@@ -1,14 +1,11 @@
 require_relative "test_helper"
 
-class MyMessage < SmartMessage::Base
-  property :foo
-  property :bar
-  property :baz
-end # class MyMessage < SmartMessage::Base
+require 'smart_message/plugin/stdout'
 
-class SmartMessageTest < Minitest::Test
+
+class BaseTest < Minitest::Test
   def test_that_it_has_a_version_number
-    refute_nil ::SmartMessage::VERSION
+    refute_nil SmartMessage::VERSION
   end
 
   def test_it_does_something_useful
@@ -17,4 +14,5 @@ class SmartMessageTest < Minitest::Test
     assert 'two'    == message.bar
     assert 'three'  == message.baz
   end
-end
+
+end # class BaseTest < Minitest::Test

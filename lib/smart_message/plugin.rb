@@ -13,5 +13,21 @@ module SmartMessage
     ###################################################
     ## Class methods
 
+    def self.config(options={})
+      debug_me{[ :options ]}
+    end
+
+    def self.send(message)
+      debug_me{[ :message ]}
+    end
+
+    def self.receive(message)
+      debug_me{[ :message ]}
+    end
+
+    def self.displatch(message)
+      debug_me{[ :message ]}
+    end
+
   end # class Plugin
 end # module SmartMessage
