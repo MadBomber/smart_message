@@ -2,59 +2,72 @@
 # frozen_string_literal: true
 
 module SmartMessage
-  # A message can't be very smart if it does not know how to
-  # send and receive itself.
-  class NoPluginConfigured < RuntimeError; end
-
   # The foundation class for the smart message
   class Base < Hashie::Dash
     @@plugin = nil
 
+    include Hashie::Extensions::Dash::PropertyTranslation
+
     include Hashie::Extensions::Coercion
+    include Hashie::Extensions::DeepMerge
+    include Hashie::Extensions::IgnoreUndeclared
+    include Hashie::Extensions::IndifferentAccess
     include Hashie::Extensions::MergeInitializer
     include Hashie::Extensions::MethodAccess
-    include Hashie::Extensions::IndifferentAccess
-    include Hashie::Extensions::IgnoreUndeclared
-    include Hashie::Extensions::DeepMerge
-    include Hashie::Extensions::Dash::PropertyTranslation
 
     def initialize(*args)
       super
     end
 
     ###################################################
-    ## Class methods
+    ## Common methods
 
-    def self.plugin
-      @@plugin
-    end
-
-    def self.config(plugin=SmartMessage::StdoutPlugin)
-      @@plugin = plugin
-      debug_me{[ '@@plugin' ]}
-    end
-
-    def self.publish
+    def publish
       debug_me
       check_plugin
       @@plugin.send(self)
     end
 
-    def self.subscribe
+    def subscribe
       debug_me
       check_plugin
       @@plugin.subscribe(self)
     end
 
-    def self.process
+    def process
       debug_me
       check_plugin
     end
 
+    def plugin
+      @@plugin
+    end
+
     private
 
-    def self.check_plugin
-      raise SmartMessage::NoPluginConfigured if @@plugin.nil?
+    def check_plugin
+      raise Errors::NoPluginConfigured unless configured?
     end
-  end # class base
+
+    ###################################################
+    ## Class methods
+
+    public
+
+    class << self
+      def plugin
+        @@plugin
+      end
+
+      def config(broker=SmartMessage::StdoutPlugin)
+        @@plugin = broker
+        debug_me{[ '@@plugin' ]}
+      end
+
+      def configured?
+        !@@plugin.nil?
+      end
+
+    end # class << self
+  end # class Base
 end # module SmartMessage

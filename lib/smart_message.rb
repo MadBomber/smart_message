@@ -8,6 +8,7 @@ include DebugMe
 require 'hashie'
 
 require_relative './smart_message/version'
+require_relative './smart_message/errors'
 
 require_relative './smart_message/base'
 require_relative './smart_message/plugin'
