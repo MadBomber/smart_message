@@ -1,13 +1,13 @@
-# smart_message/plugin/stdout.rb
+# smart_message/broker/stdout.rb
 # frozen_string_literal: true
 
 module SmartMessage
-  class StdoutPlugin < SmartMessage::Plugin
+  class StdoutBroker < SmartMessage::Broker
     def config
       debug_me
     end
 
-    def send(message)
+    def publish(message)
       debug_me{[ :message ]}
     end
 
@@ -18,5 +18,5 @@ module SmartMessage
     def displatch(message)
       debug_me{[ :message ]}
     end
-  end # class StdoutPlugin < SmartMessage::Plugin
+  end # class StdoutBroker < SmartMessage::Broker
 end # module SmartMessage

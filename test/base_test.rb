@@ -1,7 +1,5 @@
 require_relative "test_helper"
 
-require 'smart_message/plugin/stdout'
-
 module BaseTest
   # A simple example message model
   class MyMessage < SmartMessage::Base

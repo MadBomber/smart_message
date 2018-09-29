@@ -1,10 +1,10 @@
-# lib/smart_message/plug.rb
+# lib/smart_message/broker.rb
 # frozen_string_literal: true
 
 module SmartMessage
-  # SmartMessage::Plugin provides the basis for the
+  # SmartMessage::Broker provides the basis for the
   # framework that allows backend message brokers
-  class Plugin
+  class Broker
     DEFAULT_OPTIONS = {}
     def initialize(options={})
       @parameters = DEFAULT_OPTIONS.merge options
@@ -17,7 +17,7 @@ module SmartMessage
       debug_me{[ :options ]}
     end
 
-    def self.send(message)
+    def self.publish(message)
       debug_me{[ :message ]}
     end
 
@@ -29,5 +29,5 @@ module SmartMessage
       debug_me{[ :message ]}
     end
 
-  end # class Plugin
+  end # class Broker
 end # module SmartMessage
