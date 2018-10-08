@@ -1,10 +1,17 @@
 # lib/smart_message/base.rb
+# encoding: utf-8
 # frozen_string_literal: true
+
+require 'securerandom'   # STDLIB
+
+require_relative './header.rb'
 
 module SmartMessage
   # The foundation class for the smart message
   class Base < Hashie::Dash
-    @@broker = nil
+    @@broker      = nil
+    @@serializer  = nil
+    @@logger      = nil
 
     include Hashie::Extensions::Dash::PropertyTranslation
 
@@ -15,15 +22,23 @@ module SmartMessage
     include Hashie::Extensions::MergeInitializer
     include Hashie::Extensions::MethodAccess
 
-    # Connob attrubutes for all messages
-    property :uuid,           default: nil
-    property :message_class,  default: nil
-    property :published_at,   default: nil
-    property :publisher_pid,  default: nil
+    # Common attrubutes for all messages
+    # TODO: move this into a SmartMessage::Header object
+    property :_sm_header
 
-    def initialize(*args)
-      super
+    def initialize(props = {}, &block)
+      attributes = {
+        _sm_header: SmartMessage::Header.new(
+          uuid:           SecureRandom.uuid,
+          message_class:  self.class.to_s,
+          published_at:   2,
+          published_pid:  3
+        )
+      }.merge(props)
+
+      super(attributes, &block)
     end
+
 
     ###################################################
     ## Common instance methods
@@ -66,6 +81,15 @@ module SmartMessage
 
       @@broker.subscribe(message_class) if broker_configured?
     end
+
+
+    def unsubscribe
+      message_class = self.class.to_s
+      debug_me{[ :message_class ]}
+
+      @@broker.ussubscribe(message_class) if broker_configured?
+    end
+
 
     def process
       debug_me
@@ -126,3 +150,8 @@ module SmartMessage
     end # class << self
   end # class Base
 end # module SmartMessage
+
+require_relative 'header'
+require_relative 'broker'
+require_relative 'serializer'
+require_relative 'logger'
