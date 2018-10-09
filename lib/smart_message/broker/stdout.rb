@@ -2,8 +2,8 @@
 # encoding: utf-8
 # frozen_string_literal: true
 
-module SmartMessage
-  class StdoutBroker < SmartMessage::Broker
+module SmartMessage::Broker
+  class Stdout < SmartMessage::Broker::Base
     def config
       debug_me
     end
@@ -19,5 +19,6 @@ module SmartMessage
     def displatch(message)
       debug_me{[ :message ]}
     end
-  end # class StdoutBroker < SmartMessage::Broker
-end # module SmartMessage
+  end # class Stdout < SmartMessage::Broker::Base
+end # module SmartMessage::Broker
+

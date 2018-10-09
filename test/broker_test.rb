@@ -2,7 +2,9 @@
 
 require_relative "test_helper"
 
+require 'smart_message/serializer/json'
 require 'smart_message/broker/stdout'
+
 
 module BrokerTest
   # A simple example message model
@@ -16,6 +18,22 @@ module BrokerTest
   class Test < Minitest::Test
 
     def test_0010_basic_broker_assignment_actions
+      assert BrokerTest::MyMessage.serializer_missing?
+      refute BrokerTest::MyMessage.serializer_configured?
+
+      assert BrokerTest::MyMessage.broker_missing?
+      refute BrokerTest::MyMessage.broker_configured?
+
+      BrokerTest::MyMessage.config(
+                  broker_class:     nil,
+                  serializer_class: SmartMessage::Serializer::JSON.new,
+                  logger_class:     nil
+                )
+
+      assert BrokerTest::MyMessage.serializer_configured?
+      refute BrokerTest::MyMessage.serializer_missing?
+
+      refute BrokerTest::MyMessage.broker_configured?
       assert BrokerTest::MyMessage.broker_missing?
 
       my_message = BrokerTest::MyMessage.new(
@@ -24,15 +42,24 @@ module BrokerTest
         baz: 'three'
       )
 
-      assert_raises SmartMessage::Errors::NoBrokerConfigured do
+      debug_me{[ 'my_message.serializer', 'my_message.broker', 'my_message.logger']}
+
+      assert_raises SmartMessage::Errors::BrokerNotConfigured do
         my_message.publish
       end
 
-      BrokerTest::MyMessage.config SmartMessage::StdoutBroker
+        BrokerTest::MyMessage.config(
+                  broker_class:     SmartMessage::Broker::Stdout.new,
+                  serializer_class: SmartMessage::Serializer::JSON.new,
+                  logger_class:     nil
+                )
+
       debug_me{['BrokerTest::MyMessage.broker']}
+
       assert BrokerTest::MyMessage.broker
       assert BrokerTest::MyMessage.broker_configured?
-      assert_equal SmartMessage::StdoutBroker, BrokerTest::MyMessage.broker
+      refute BrokerTest::MyMessage.broker_missing?
+      assert_equal SmartMessage::Broker::Stdout, BrokerTest::MyMessage.broker.class
     end
 
   end # class BrokerTest < Minitest::Test

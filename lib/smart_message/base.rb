@@ -4,11 +4,14 @@
 
 require 'securerandom'   # STDLIB
 
+require_relative './dsl.rb'
 require_relative './header.rb'
+
 
 module SmartMessage
   # The foundation class for the smart message
   class Base < Hashie::Dash
+
     @@broker      = nil
     @@serializer  = nil
     @@logger      = nil
@@ -27,12 +30,16 @@ module SmartMessage
     property :_sm_header
 
     def initialize(props = {}, &block)
+      @broker      = nil
+      @serializer  = nil
+      @logger      = nil
+
       attributes = {
         _sm_header: SmartMessage::Header.new(
           uuid:           SecureRandom.uuid,
           message_class:  self.class.to_s,
           published_at:   2,
-          published_pid:  3
+          publisher_pid:  3
         )
       }.merge(props)
 
@@ -43,43 +50,36 @@ module SmartMessage
     ###################################################
     ## Common instance methods
 
-    # def broker
-    #   super
-    # end
+    # SMELL: How does the broker know how to decode a message before
+    #        it knows the message class?
 
-    # def broker=(value)
-    #   super value
-    # end
-
-    # def broker?
-    #   super
-    # end
+    def encode
+      raise Errors::SerializerNotConfigured if serializer_missing?
+      serializer.encode(self)
+    end
 
     def publish
-      self.published_at   = Time.now
-      self.publisher_pid  = Process.pid
-      self.message_class  = self.class.to_s
+      _sm_header.published_at   = Time.now
+      _sm_header.publisher_pid  = Process.pid
 
       debug_me{[ :properties ]}
 
-      # TODO: make serializer configurable instead of always JSON
-      payload = self.to_json
+      payload = encode
 
       debug_me{[ :payload ]}
 
-      if broker_configured?
-        debug_me
-        @@broker.publish(payload)
-      end
+      raise Errors::BrokerNotConfigured if broker_missing?
+      broker.publish(payload)
 
       debug_me
     end # def publish
+
 
     def subscribe
       message_class = self.class.to_s
       debug_me{[ :message_class ]}
 
-      @@broker.subscribe(message_class) if broker_configured?
+      broker.subscribe(message_class) if broker_configured?
     end
 
 
@@ -87,7 +87,7 @@ module SmartMessage
       message_class = self.class.to_s
       debug_me{[ :message_class ]}
 
-      @@broker.ussubscribe(message_class) if broker_configured?
+      broker.unsubscribe(message_class) if broker_configured?
     end
 
 
@@ -95,59 +95,77 @@ module SmartMessage
       debug_me
     end
 
-    private
 
-    def broker
-      @@broker
+    # TODO: allow instance configuration to over-ride the class
+    #       class configuration.  e.g. Use @@broker when @broker.nil?
+    def broker(klass_or_instance = nil)
+      klass_or_instance.nil? ? @broker || @@broker : @broker = klass_or_instance
     end
 
-    def broker_configured?
-      debug_me
-      singleton_class.broker_configured?
+    def serializer(klass_or_instance = nil)
+      klass_or_instance.nil? ? @serializer || @@serializer : @serializer = klass_or_instance
     end
 
-    ###################################################
-    ## Class methods
+    def logger(klass_or_instance = nil)
+      klass_or_instance.nil? ? @logger || @@logger : @logger = klass_or_instance
+    end
 
-    public
+    def broker_configured?; !broker.nil?; end
+    def broker_missing?;     broker.nil?; end
 
-    class << self
-      def broker
-        @@broker
+    def serializer_configured?; !serializer.nil?; end
+    def serializer_missing?;     serializer.nil?; end
+
+
+
+    ###########################################################
+    ## class methods
+
+    def self.broker(klass_or_instance = nil)
+      klass_or_instance.nil? ? @@broker : @@broker = klass_or_instance
+    end
+
+    def self.serializer(klass_or_instance = nil)
+      klass_or_instance.nil? ? @@serializer : @@serializer = klass_or_instance
+    end
+
+    def self.logger(klass_or_instance = nil)
+      klass_or_instance.nil? ? @@logger : @@logger = klass_or_instance
+    end
+
+
+    # class << self
+
+      def self.broker_configured?; !broker.nil?; end
+      def self.broker_missing?;     broker.nil?; end
+
+      def self.serializer_configured?; !serializer.nil?; end
+      def self.serializer_missing?;     serializer.nil?; end
+
+
+      def self.config(
+                  broker_class:     SmartMessage::Broker::Stdout,
+                  serializer_class: SmartMessage::Serializer::JSON,
+                  logger_class:     SmartMessage::Logger::Logger
+                )
+        broker    (broker_class)
+        serializer(serializer_class)
+        logger    (logger_class)
+        debug_me{[ 'broker', 'serializer', 'logger' ]}
       end
 
-      def broker_missing?
-        @@broker.nil?
-      end
 
+      # def self.process(payload)
+      #   # TODO: allow configuration of serializer
+      #   payload_hash = JSON.parse payload
 
-      def config(broker_class=SmartMessage::StdoutBroker)
-        @@broker = broker_class
-        debug_me{[ '@@broker' ]}
-      end
+      #   debug_me{[ :payload, :payload_hash ]}
 
-      def broker_configured?
-        debug_me('XXXXXXXXXX')
-        if broker_missing?
-          debug_me
-          raise Errors::NoBrokerConfigured
-        else
-          debug_me
-          true
-        end
-      end
+      #   massage_instance = new(payload_hash)
+      #   massage_instance.process # SMELL: maybe class-level process is sufficient
+      # end
 
-      def process(payload)
-        # TODO: allow configuration of serializer
-        payload_hash = JSON.parse payload
-
-        debug_me{[ :payload, :payload_hash ]}
-
-        massage_instance = new(payload_hash)
-        massage_instance.process # SMELL: maybe class-level process is sufficient
-      end
-
-    end # class << self
+    #  end # class << self
   end # class Base
 end # module SmartMessage
 
