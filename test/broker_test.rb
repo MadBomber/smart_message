@@ -24,11 +24,9 @@ module BrokerTest
       assert BrokerTest::MyMessage.broker_missing?
       refute BrokerTest::MyMessage.broker_configured?
 
-      BrokerTest::MyMessage.config(
-                  broker_class:     nil,
-                  serializer_class: SmartMessage::Serializer::JSON.new,
-                  logger_class:     nil
-                )
+      BrokerTest::MyMessage.config do
+        serializer SmartMessage::Serializer::JSON.new
+      end
 
       assert BrokerTest::MyMessage.serializer_configured?
       refute BrokerTest::MyMessage.serializer_missing?
@@ -48,11 +46,9 @@ module BrokerTest
         my_message.publish
       end
 
-        BrokerTest::MyMessage.config(
-                  broker_class:     SmartMessage::Broker::Stdout.new,
-                  serializer_class: SmartMessage::Serializer::JSON.new,
-                  logger_class:     nil
-                )
+      BrokerTest::MyMessage.config do
+        broker SmartMessage::Broker::Stdout.new
+      end
 
       debug_me{['BrokerTest::MyMessage.broker']}
 
@@ -60,7 +56,19 @@ module BrokerTest
       assert BrokerTest::MyMessage.broker_configured?
       refute BrokerTest::MyMessage.broker_missing?
       assert_equal SmartMessage::Broker::Stdout, BrokerTest::MyMessage.broker.class
-    end
+
+      my_other_message = BrokerTest::MyMessage.new(
+        foo: 'one for the money',
+        bar: 'two for the show',
+        baz: 'three to get ready',
+        xyzzy: 'four to go'         # not defined so ignored
+      )
+
+      # TODO: How do I know that the publich was completed successfully
+      #       beyound a raised exception?  Should the publish method return
+      #       something like a boolean maybe?  Or the encoded message payload?
+      my_other_message.publish
+    end #
 
   end # class BrokerTest < Minitest::Test
 end # module BrokerTest

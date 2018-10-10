@@ -4,14 +4,14 @@
 
 require 'securerandom'   # STDLIB
 
-require_relative './dsl.rb'
-require_relative './header.rb'
-
+require_relative './wrapper.rb'
 
 module SmartMessage
   # The foundation class for the smart message
   class Base < Hashie::Dash
 
+    # Supports multi-level plugins for serializer, borker and logger.
+    # Plugins can be made at the class level and at the instance level.
     @@broker      = nil
     @@serializer  = nil
     @@logger      = nil
@@ -26,10 +26,15 @@ module SmartMessage
     include Hashie::Extensions::MethodAccess
 
     # Common attrubutes for all messages
-    # TODO: move this into a SmartMessage::Header object
+    # TODO: Need to change the SmartMessage::Header into a
+    #       smartMessage::Wrapper concept where the message
+    #       content is serialized into an element in the wrapper
+    #       where the wrapper contains header/routing information
+    #       in addition to the serialized message data.
     property :_sm_header
 
     def initialize(props = {}, &block)
+      # instance-level over ride of class plugins
       @broker      = nil
       @serializer  = nil
       @logger      = nil
@@ -44,6 +49,12 @@ module SmartMessage
       }.merge(props)
 
       super(attributes, &block)
+    end
+
+    def config(&block)
+      debug_me
+
+      instance_eval(&block) if block_given?
     end
 
 
@@ -99,14 +110,17 @@ module SmartMessage
     # TODO: allow instance configuration to over-ride the class
     #       class configuration.  e.g. Use @@broker when @broker.nil?
     def broker(klass_or_instance = nil)
+      debug_me{[ :klass_or_instance ]}
       klass_or_instance.nil? ? @broker || @@broker : @broker = klass_or_instance
     end
 
     def serializer(klass_or_instance = nil)
+      debug_me{[ :klass_or_instance ]}
       klass_or_instance.nil? ? @serializer || @@serializer : @serializer = klass_or_instance
     end
 
     def logger(klass_or_instance = nil)
+      debug_me{[ :klass_or_instance ]}
       klass_or_instance.nil? ? @logger || @@logger : @logger = klass_or_instance
     end
 
@@ -121,39 +135,31 @@ module SmartMessage
     ###########################################################
     ## class methods
 
-    def self.broker(klass_or_instance = nil)
-      klass_or_instance.nil? ? @@broker : @@broker = klass_or_instance
-    end
+    class << self
 
-    def self.serializer(klass_or_instance = nil)
-      klass_or_instance.nil? ? @@serializer : @@serializer = klass_or_instance
-    end
-
-    def self.logger(klass_or_instance = nil)
-      klass_or_instance.nil? ? @@logger : @@logger = klass_or_instance
-    end
-
-
-    # class << self
-
-      def self.broker_configured?; !broker.nil?; end
-      def self.broker_missing?;     broker.nil?; end
-
-      def self.serializer_configured?; !serializer.nil?; end
-      def self.serializer_missing?;     serializer.nil?; end
-
-
-      def self.config(
-                  broker_class:     SmartMessage::Broker::Stdout,
-                  serializer_class: SmartMessage::Serializer::JSON,
-                  logger_class:     SmartMessage::Logger::Logger
-                )
-        broker    (broker_class)
-        serializer(serializer_class)
-        logger    (logger_class)
-        debug_me{[ 'broker', 'serializer', 'logger' ]}
+      def broker(klass_or_instance = nil)
+        klass_or_instance.nil? ? @@broker : @@broker = klass_or_instance
       end
 
+      def serializer(klass_or_instance = nil)
+        klass_or_instance.nil? ? @@serializer : @@serializer = klass_or_instance
+      end
+
+      def logger(klass_or_instance = nil)
+        klass_or_instance.nil? ? @@logger : @@logger = klass_or_instance
+      end
+
+      def broker_configured?; !broker.nil?; end
+      def broker_missing?;     broker.nil?; end
+      def serializer_configured?; !serializer.nil?; end
+      def serializer_missing?;     serializer.nil?; end
+
+
+      def config(&block)
+        debug_me
+
+        class_eval(&block) if block_given?
+      end
 
       # def self.process(payload)
       #   # TODO: allow configuration of serializer
@@ -165,7 +171,7 @@ module SmartMessage
       #   massage_instance.process # SMELL: maybe class-level process is sufficient
       # end
 
-    #  end # class << self
+    end # class << self
   end # class Base
 end # module SmartMessage
 
