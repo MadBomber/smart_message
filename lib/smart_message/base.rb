@@ -228,17 +228,20 @@ module SmartMessage
       ## class-level subscription management via the broker
 
       # Add this message class to the broker's catalog of
-      # subscribed messages.
+      # subscribed messages.  If the broker is missing, raise
+      # an exception.
       def subscribe
         message_class = whoami
         debug_me{[ :message_class ]}
 
-        broker.subscribe(message_class) if broker_configured?
+        raise Errors::BrokerNotConfigured if broker_missing?
+        broker.subscribe(message_class)
       end
 
 
       # Remove this message class from the brokers catalog of
-      # subscribed messages.
+      # subscribed messages.  If the brocker is missing, no
+      # reason to do anything.
       def unsubscribe
         message_class = whoami
         debug_me{[ :message_class ]}

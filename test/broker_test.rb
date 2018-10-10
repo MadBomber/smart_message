@@ -24,6 +24,10 @@ module BrokerTest
       assert BrokerTest::MyMessage.broker_missing?
       refute BrokerTest::MyMessage.broker_configured?
 
+      assert_raises SmartMessage::Errors::BrokerNotConfigured do
+        BrokerTest::MyMessage.subscribe
+      end
+
       BrokerTest::MyMessage.config do
         serializer SmartMessage::Serializer::JSON.new
       end
@@ -68,6 +72,11 @@ module BrokerTest
       #       beyound a raised exception?  Should the publish method return
       #       something like a boolean maybe?  Or the encoded message payload?
       my_other_message.publish
+
+      assert_equal 'BrokerTest::MyMessage', my_other_message.whoami
+      assert_equal 'BrokerTest::MyMessage', BrokerTest::MyMessage.whoami
+
+
     end #
 
   end # class BrokerTest < Minitest::Test
