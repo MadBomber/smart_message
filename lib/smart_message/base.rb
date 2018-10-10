@@ -168,7 +168,7 @@ module SmartMessage
     # the symbolized values of the property names of the message
     # without the injected '_sm_' properties that support
     # the behind-the-sceens operations of SmartMessage.
-    def properties
+    def fields
       to_h.keys
           .reject{|key| key.start_with?('_sm_')}
           .map{|key| key.to_sym}
@@ -257,7 +257,7 @@ module SmartMessage
 
       # Return a Set of symbols representing each defined property of
       # this message class.
-      def properties
+      def fields
         @properties.dup.delete_if{|item| item.to_s.start_with?('_sm_')}
       end
 
