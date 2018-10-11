@@ -55,22 +55,6 @@ module SmartMessage
 
 
     ###################################################
-    ## Business Logic resides in the #process method.
-
-    # When a broker receives a subscribed to message it
-    # creates an instance of the message and then calls
-    # the process method on that instance.
-    #
-    # It is expected that SmartMessage classes over ride
-    # the SmartMessage::Base#process method with appropriate
-    # business logic to handle the received message content.
-    def process
-      debug_me{[ 'to_h' ]}
-      raise Errors::NotImplemented
-    end
-
-
-    ###################################################
     ## Common instance methods
 
     # SMELL: How does the broker know how to decode a message before
@@ -98,12 +82,8 @@ module SmartMessage
 
       payload = encode
 
-      debug_me{[ :payload ]}
-
       raise Errors::BrokerNotConfigured if broker_missing?
       broker.publish(payload)
-
-      debug_me
     end # def publish
 
 
@@ -113,8 +93,6 @@ module SmartMessage
 
     # Configure the plugins for broker, serializer and logger
     def config(&block)
-      debug_me
-
       instance_eval(&block) if block_given?
     end
 
@@ -123,7 +101,6 @@ module SmartMessage
     ## instance-level broker configuration
 
     def broker(klass_or_instance = nil)
-      debug_me{[ :klass_or_instance ]}
       klass_or_instance.nil? ? @broker || @@broker : @broker = klass_or_instance
     end
 
@@ -136,7 +113,6 @@ module SmartMessage
     ## instance-level logger configuration
 
     def logger(klass_or_instance = nil)
-      debug_me{[ :klass_or_instance ]}
       klass_or_instance.nil? ? @logger || @@logger : @logger = klass_or_instance
     end
 
@@ -149,7 +125,6 @@ module SmartMessage
     ## instance-level serializer configuration
 
     def serializer(klass_or_instance = nil)
-      debug_me{[ :klass_or_instance ]}
       klass_or_instance.nil? ? @serializer || @@serializer : @serializer = klass_or_instance
     end
 
@@ -188,8 +163,6 @@ module SmartMessage
       ## class-level configuration
 
       def config(&block)
-        debug_me
-
         class_eval(&block) if block_given?
       end
 
@@ -270,16 +243,19 @@ module SmartMessage
         @properties.dup.delete_if{|item| item.to_s.start_with?('_sm_')}
       end
 
+      ###################################################
+      ## Business Logic resides in the #process method.
 
-      # def self.process(payload)
-      #   # TODO: allow configuration of serializer
-      #   payload_hash = JSON.parse payload
-
-      #   debug_me{[ :payload, :payload_hash ]}
-
-      #   massage_instance = new(payload_hash)
-      #   massage_instance.process # SMELL: maybe class-level process is sufficient
-      # end
+      # When a broker receives a subscribed to message it
+      # creates an instance of the message and then calls
+      # the process method on that instance.
+      #
+      # It is expected that SmartMessage classes over ride
+      # the SmartMessage::Base#process method with appropriate
+      # business logic to handle the received message content.
+      def process(message_instance)
+        raise Errors::NotImplemented
+      end
 
     end # class << self
   end # class Base

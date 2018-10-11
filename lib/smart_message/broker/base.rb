@@ -53,7 +53,7 @@ module SmartMessage::Broker
     end
 
     # send this message payload to everyone who has subscribed to it
-    def dispatch(message_payload)
+    def dispatch(message_class_string, message_payload)
       debug_me{[ :message_payload ]}
       raise ::SmartMessage::Errors::NotImplemented
     end

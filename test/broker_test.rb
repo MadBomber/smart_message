@@ -12,6 +12,30 @@ module BrokerTest
     property :foo
     property :bar
     property :baz
+    # The business logic of a smart message is located in
+    # its class-level process method.
+    class << self
+      def process(message_instance)
+        a_hash = message_instance.to_h
+        puts <<EOS
+
+Here is what is being processed:
+#{ap a_hash}
+
+What does the Cow say?
+
+ ______
+< good >
+ ------
+        \\   ^__^
+         \\  (oo)\\_______
+            (__)\\       )\\/\\
+                ||----w |
+                ||     ||
+
+EOS
+      end # def process(message_instance)
+    end # class << self
   end # class MyMessage < SmartMessage::Base
 
   # NOTE: That sense the base class had properties and
@@ -63,8 +87,10 @@ module BrokerTest
 
       # Add in a broker ...
       BrokerTest::MyMessage.config do
-        broker SmartMessage::Broker::Stdout.new
+        broker SmartMessage::Broker::Stdout.new(loopback: false)
       end
+
+      assert_equal false, BrokerTest::MyMessage.broker.loopback?
 
       assert BrokerTest::MyMessage.broker_configured?
       assert BrokerTest::MyMessage.logger_missing?
@@ -135,10 +161,11 @@ module BrokerTest
 
       # Set class-level plugins to known configuration
       BrokerTest::MyMessage.config do
-        broker      SmartMessage::Broker::Stdout.new
+        broker      SmartMessage::Broker::Stdout.new(loopback: false)
         serializer  SmartMessage::Serializer::JSON.new
       end
 
+      assert_equal false, BrokerTest::MyMessage.broker.loopback?
 
       my_other_message = BrokerTest::MyMessage.new(
         foo: 'one for the money',
@@ -172,9 +199,11 @@ module BrokerTest
 
       # Set class-level plugins to known configuration
       BrokerTest::MyMessage.config do
-        broker      SmartMessage::Broker::Stdout.new
+        broker      SmartMessage::Broker::Stdout.new(loopback: true)
         serializer  SmartMessage::Serializer::JSON.new
       end
+
+      assert_equal true, BrokerTest::MyMessage.broker.loopback?
 
       BrokerTest::MyMessage.subscribe
 
@@ -199,6 +228,11 @@ module BrokerTest
 
       assert_equal  BrokerTest::MyMessage.broker.subscribers,
                     BrokerTest::MyOtherMessage.broker.subscribers
+
+      my_message          = BrokerTest::MyMessage.new
+      encoded_my_message  = my_message.encode
+
+      my_message.publish
 
     end
 
