@@ -127,8 +127,9 @@ module SmartMessage
       klass_or_instance.nil? ? @broker || @@broker : @broker = klass_or_instance
     end
 
-    def broker_configured?;     !broker.nil?; end
-    def broker_missing?;         broker.nil?; end
+    def broker_configured?;     !broker.nil?;   end
+    def broker_missing?;         broker.nil?;   end
+    def reset_broker;           @broker = nil;  end
 
 
     #########################################################
@@ -141,6 +142,7 @@ module SmartMessage
 
     def logger_configured?;     !logger.nil?; end
     def logger_missing?;         logger.nil?; end
+    def reset_logger;           @logger = nil;  end
 
 
     #########################################################
@@ -151,8 +153,9 @@ module SmartMessage
       klass_or_instance.nil? ? @serializer || @@serializer : @serializer = klass_or_instance
     end
 
-    def serializer_configured?; !serializer.nil?; end
-    def serializer_missing?;     serializer.nil?; end
+    def serializer_configured?; !serializer.nil?;   end
+    def serializer_missing?;     serializer.nil?;   end
+    def reset_serializer;       @serializer = nil;  end
 
 
     #########################################################
@@ -198,8 +201,9 @@ module SmartMessage
         klass_or_instance.nil? ? @@broker : @@broker = klass_or_instance
       end
 
-      def broker_configured?;     !broker.nil?; end
-      def broker_missing?;         broker.nil?; end
+      def broker_configured?;     !broker.nil?;   end
+      def broker_missing?;         broker.nil?;   end
+      def reset_broker;          @@broker = nil;  end
 
 
       #########################################################
@@ -209,8 +213,9 @@ module SmartMessage
         klass_or_instance.nil? ? @@logger : @@logger = klass_or_instance
       end
 
-      def logger_configured?;     !logger.nil?; end
-      def logger_missing?;         logger.nil?; end
+      def logger_configured?;     !logger.nil?;   end
+      def logger_missing?;         logger.nil?;   end
+      def reset_logger;          @@logger = nil;  end
 
 
       #########################################################
@@ -220,8 +225,9 @@ module SmartMessage
         klass_or_instance.nil? ? @@serializer : @@serializer = klass_or_instance
       end
 
-      def serializer_configured?; !serializer.nil?; end
-      def serializer_missing?;     serializer.nil?; end
+      def serializer_configured?; !serializer.nil?;   end
+      def serializer_missing?;     serializer.nil?;   end
+      def reset_serializer;      @@serializer = nil;  end
 
 
       #########################################################
