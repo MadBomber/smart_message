@@ -3,6 +3,8 @@ PATH
   specs:
     smart_message (0.0.2)
       activesupport
+      concurrent-ruby (~> 1.0)
+      concurrent-ruby-ext (~> 1.0)
       hashie (~> 3.6)
 
 GEM
@@ -15,6 +17,8 @@ GEM
       tzinfo (~> 1.1)
     awesome_print (1.8.0)
     concurrent-ruby (1.0.5)
+    concurrent-ruby-ext (1.0.5)
+      concurrent-ruby (= 1.0.5)
     debug_me (1.0.3)
     hashie (3.6.0)
     i18n (1.1.0)

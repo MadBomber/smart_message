@@ -28,6 +28,8 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'hashie',         '~> 3.6'
   spec.add_dependency 'activesupport'
+  spec.add_dependency 'concurrent-ruby',    '~> 1.0'
+  spec.add_dependency 'concurrent-ruby-ext','~> 1.0'
 
   spec.add_development_dependency 'bundler',  '~> 1.16'
   spec.add_development_dependency 'rake',     '~> 12.3'

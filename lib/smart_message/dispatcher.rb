@@ -2,6 +2,8 @@
 # encoding: utf-8
 # frozen_string_literal: true
 
+require 'concurrent'
+
 module SmartMessage
 
   # The disoatcher routes incoming messages to all of the methods that
@@ -10,8 +12,21 @@ module SmartMessage
 
     def initialize
       @subscribers = Hash.new(Array.new)
+      @router_pool = Concurrent::CachedThreadPool.new
+      at_exit do
+        print 'Sutting down the @router_pool ...'
+        @router_pool.shutdown
+        while @router_pool.shuttingdown?
+          print '.'
+          sleep 1
+        end
+        puts " done."
+      end
     end
 
+    def running?
+      @router_pool.running?
+    end
 
     def subscribers
       @subscribers
@@ -42,12 +57,20 @@ module SmartMessage
     # message_payload is a string buffer that is a serialized
     # SmartMessage
     def route(message_header, message_payload)
-      klass = message_header.message_class
-      return nil if @subscribers[klass].empty?
-      @subscribers[klass].each do |message_processor|
-        # TODO: setup a thread pool and route the incoming message
-        #       using individual threads.
-        send(message_processor, klass, message_payload)
+      message_klass = message_header.message_class
+      return nil if @subscribers[message_klass].empty?
+      @subscribers[message_klass].each do |message_processor|
+        @router_pool.post do
+          target_klass, class_method = message_processor.split('.')
+          begin
+            result = target_klass.constantize
+                        .method(class_method)
+                        .call(message_header, message_payload)
+          rescue Exception => e
+            debug_me('==== EXCEPTION ===='){[ :e ]}
+          end
+          debug_me('=== did it work? ==='){[ :result ]}
+        end
       end
     end
 
