@@ -33,6 +33,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'rake',     '~> 12.3'
   spec.add_development_dependency 'minitest', '~> 5.11'
   spec.add_development_dependency 'shoulda',  '~> 3.6'
+  spec.add_development_dependency 'minitest-power_assert',  '~> 0.3'
 
   spec.add_development_dependency 'awesome_print'
   spec.add_development_dependency 'debug_me'

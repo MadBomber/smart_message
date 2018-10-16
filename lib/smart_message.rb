@@ -14,6 +14,7 @@ require 'hashie'         # Your friendly neighborhood hash library.
 require_relative './smart_message/version'
 require_relative './smart_message/errors'
 
+require_relative './smart_message/dispatcher.rb'
 require_relative './smart_message/base.rb'
 
 # SmartMessage abstracts messages from the backend broker process
