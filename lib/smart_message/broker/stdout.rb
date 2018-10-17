@@ -10,8 +10,8 @@ module SmartMessage::Broker
   class Stdout < SmartMessage::Broker::Base
     # Initialize
     def initialize(loopback: false)
-      @subscriptions    = Array.new
       @loopback_status  = loopback
+      super
     end
 
     # loopback is a boolean that controls whether all published
@@ -26,82 +26,48 @@ module SmartMessage::Broker
     end
 
     # Is there anything about this broker that needs to be configured
-    def config
+    def self.config
       debug_me
     end
 
     # put the encoded_message into the delievery system
-    def publish(encoded_message)
+    def publish(message_header, message_payload)
       STDOUT.puts <<~EOS
 
         ===================================================
         == SmartMessage Payload Published by Broker::Stdout
-        == #{encoded_message}
+        == #{message_header.inspect}
+        == #{message_payload}
         ===================================================
 
       EOS
 
-      receive(encoded_message) if loopback?
+      receive(message_header, message_payload) if loopback?
     end
 
 
-    def receive(encoded_message)
-      debug_me{[ :encoded_message ]}
-      header = fake_it(encoded_message)
+    def receive(message_header, message_payload)
+      debug_me{[ :message_header, :message_payload ]}
 
-      debug_me('before dispatch'){[ :header ]}
-
-      dispatch(header['message_class'], encoded_message)
-      debug_me('leaving receive')
+      @@dispatcher.route(message_header, message_payload)
     end
-
-    # TODO: until the consider wrapper concept gets implemented
-    #       fake it by assuming that the encoding is JSON.
-    def fake_it(encoded_message)
-      debug_me
-      return JSON.parse(encoded_message)['_sm_header']
-    end
-
-    # NOTE: the dispatcher functional will become complicated and
-    #       will reside in its on file soon.  For testing the
-    #       framework this is sufficient.
-    def dispatch(message_class_string, encoded_message)
-      debug_me{[ :message_class_string, :encoded_message ]}
-
-      klass = message_class_string.constantize
-
-      debug_me{[ :klass ]}
-
-      a_hash = klass.serializer.decode(encoded_message)
-
-      debug_me{[ :a_hash ]}
-
-      message_instance = klass.new(a_hash)
-
-      debug_me{[ :message_instance ]}
-
-      klass.process(message_instance)
-
-    end # def dispatch(message_class_string, encoded_message)
 
 
     # Add a non-duplicated message_class to the subscriptions Array
-    def subscribe(message_class)
-      @subscriptions << message_class unless @subscriptions.include? message_class
+    def subscribe(message_class, process_method)
+      @@dispatcher.add(message_class, process_method)
     end
 
 
-    # returns nil if the message_class is not in the subscriptions
-    # otherwise returns the current subscriptions Array without the
-    # message_class
-    def unsubscribe(message_class)
-      @subscriptions.reject!{|item| item == message_class}
+    # remove a message_class and its process_method
+    def unsubscribe(message_class, process_method)
+      @@dispatcher.drop(message_class, process_method)
     end
 
 
-    # return the subscriptions Array
-    def subscribers
-      @subscriptions
+    # remove a message_class and all of its process_methods
+    def unsubscribe!(message_class, process_method)
+      @@dispatcher.drop_all(message_class)
     end
   end # class Stdout < SmartMessage::Broker::Base
 end # module SmartMessage::Broker

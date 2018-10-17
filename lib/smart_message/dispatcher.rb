@@ -57,17 +57,29 @@ module SmartMessage
     # message_payload is a string buffer that is a serialized
     # SmartMessage
     def route(message_header, message_payload)
+      who_called = caller
       message_klass = message_header.message_class
       return nil if @subscribers[message_klass].empty?
       @subscribers[message_klass].each do |message_processor|
         @router_pool.post do
-          target_klass, class_method = message_processor.split('.')
+          parts         = message_processor.split('.')
+          target_klass  = parts[0]
+          class_method  = parts[1]
           begin
             result = target_klass.constantize
                         .method(class_method)
                         .call(message_header, message_payload)
           rescue Exception => e
-            debug_me('==== EXCEPTION ===='){[ :e ]}
+            debug_me('==== EXCEPTION ===='){[
+              :e,
+              :message_processor,
+              :parts,
+              :target_klass,
+              :class_method,
+              :message_header,
+              :message_payload,
+              :who_called
+            ]}
           end
           debug_me('=== did it work? ==='){[ :result ]}
         end

@@ -83,7 +83,7 @@ module SmartMessage
       payload = encode
 
       raise Errors::BrokerNotConfigured if broker_missing?
-      broker.publish(payload)
+      broker.publish(_sm_header, payload)
     end # def publish
 
 
@@ -209,24 +209,38 @@ module SmartMessage
       # Add this message class to the broker's catalog of
       # subscribed messages.  If the broker is missing, raise
       # an exception.
-      def subscribe
-        message_class = whoami
-        debug_me{[ :message_class ]}
+      def subscribe(process_method=nil)
+        message_class   = whoami
+        process_method  = message_class + '.process' if process_method.nil?
+
+        debug_me{[ :message_class, :process_method ]}
 
         raise Errors::BrokerNotConfigured if broker_missing?
-        broker.subscribe(message_class)
+        broker.subscribe(message_class, process_method)
       end
 
 
-      # Remove this message class from the brokers catalog of
-      # subscribed messages.  If the brocker is missing, no
-      # reason to do anything.
-      def unsubscribe
-        message_class = whoami
+      # Remove this process_method for this message class from the
+      # subscribers list.
+      def unsubscribe(process_method=nil)
+        message_class   = whoami
+        process_method  = message_class + '.process' if process_method.nil?
+        debug_me{[ :message_class, :process_method ]}
+
+        broker.unsubscribe(message_class, process_method) if broker_configured?
+      end
+
+
+      # Remove this message class and all of its processing methods
+      # from the subscribers list.
+      def unsubscribe!
+        message_class   = whoami
+
         debug_me{[ :message_class ]}
 
-        broker.unsubscribe(message_class) if broker_configured?
+        broker.unsubscribe!(message_class) if broker_configured?
       end
+
 
 
       #########################################################

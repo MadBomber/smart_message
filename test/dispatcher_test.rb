@@ -84,9 +84,9 @@ module DispatcherTest
       #       in the order that they were published.
       # TODO: Consider a buffered queue if the order of message processing
       #       is important.
-      100.times do |msg_count|
-        @dispatcher.route(@m1._sm_header, msg_count.to_s)
-      end
+      # 100.times do |msg_count|
+      #   @dispatcher.route(@m1._sm_header, msg_count.to_s)
+      # end
     end
 
 

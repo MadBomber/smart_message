@@ -15,14 +15,16 @@ module BrokerTest
     # The business logic of a smart message is located in
     # its class-level process method.
     class << self
-      def process(message_instance)
-        a_hash = message_instance.to_h
+      def process(message_header, message_payload)
+        a_hash = message_header.to_h
         puts <<EOS
 
 Here is what is being processed:
 #{ap a_hash}
 
 What does the Cow say?
+
+#{message_payload}
 
  ______
 < good >
@@ -34,6 +36,7 @@ What does the Cow say?
                 ||     ||
 
 EOS
+        return 'it worked'
       end # def process(message_instance)
     end # class << self
   end # class MyMessage < SmartMessage::Base
@@ -46,6 +49,8 @@ EOS
     property :foo_two, default: 'two for foo'
     property :bar_two, default: 'two for bar'
     property :baz_two, default: 'two for baz'
+
+    # NOTE: will use the same class process method as MyMessage
   end # class MyOtherMessage < MyMessage
 
 
@@ -126,8 +131,8 @@ EOS
                     BrokerTest::MyMessage.logger.class
 
 
-      my_message        = BrokerTest::MyMessage
-      my_other_message  = BrokerTest::MyOtherMessage
+      my_message        = BrokerTest::MyMessage.new(foo: 'foo', bar:'bar')
+      my_other_message  = BrokerTest::MyOtherMessage.new(bar_two:'bar_two', baz_two: 'baz_two')
 
       assert_equal 'BrokerTest::MyMessage',       my_message.whoami
       assert_equal 'BrokerTest::MyOtherMessage',  my_other_message.whoami
@@ -205,15 +210,33 @@ EOS
 
       assert_equal true, BrokerTest::MyMessage.broker.loopback?
 
+      # Use the defaul class-level process method
       BrokerTest::MyMessage.subscribe
 
-      assert_equal ['BrokerTest::MyMessage'], BrokerTest::MyMessage.broker.subscribers
+      message_class = 'BrokerTest::MyMessage'
 
+      assert_equal [message_class], BrokerTest::MyMessage.broker.subscribers.keys
+
+      default_process_method = message_class + '.process'
+
+      assert_equal [default_process_method], BrokerTest::MyMessage.broker.subscribers[message_class]
+
+      specialized_process_method = 'BrokerTest::Test.specialized_process'
+
+      # Use the class-level specialized process method
+      BrokerTest::MyMessage.subscribe(specialized_process_method)
+
+      assert_equal [default_process_method, specialized_process_method], BrokerTest::MyMessage.broker.subscribers[message_class]
+
+      # unscribe the default process_method leaving only the specialized
+      # process method
       BrokerTest::MyMessage.unsubscribe
 
-      assert_equal [], BrokerTest::MyMessage.broker.subscribers
+      assert_equal [specialized_process_method], BrokerTest::MyMessage.broker.subscribers[message_class]
 
-      assert BrokerTest::MyMessage.broker.subscribers.empty?
+      # all the processes have been unscribed but the message key
+      # still remains in the hash.
+      refute BrokerTest::MyMessage.broker.subscribers.empty?
 
       assert_equal 6, BrokerTest::MyOtherMessage.fields.size
 
@@ -224,7 +247,7 @@ EOS
       BrokerTest::MyOtherMessage.subscribe
 
       assert_equal  ['BrokerTest::MyMessage', 'BrokerTest::MyOtherMessage'],
-                    BrokerTest::MyMessage.broker.subscribers
+                    BrokerTest::MyMessage.broker.subscribers.keys
 
       assert_equal  BrokerTest::MyMessage.broker.subscribers,
                     BrokerTest::MyOtherMessage.broker.subscribers
@@ -234,6 +257,12 @@ EOS
 
       my_message.publish
 
+    end
+
+
+    def self.specialized_process(message_header, message_payload)
+      debug_me{[ :message_header, :message_payload ]}
+      return 'it worked'
     end
 
   end # class BrokerTest < Minitest::Test
