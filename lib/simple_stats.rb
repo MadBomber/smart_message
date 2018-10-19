@@ -32,7 +32,10 @@ class SimpleStats
 
 
     def reset(*args)
-      return 0 if args.empty?
+      if args.empty?
+        @@stat = {}
+        return 0
+      end
       key = get_key(args)
       @@stat[key] = 0
     end

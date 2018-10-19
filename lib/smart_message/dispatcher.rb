@@ -37,6 +37,11 @@ module SmartMessage
     end
 
 
+    def  current_length
+      @router_pool.length
+    end
+
+
     def running?
       @router_pool.running?
     end
@@ -75,6 +80,7 @@ module SmartMessage
       message_klass = message_header.message_class
       return nil if @subscribers[message_klass].empty?
       @subscribers[message_klass].each do |message_processor|
+        SS.add(message_klass, message_processor, 'routed' )
         @router_pool.post do
           parts         = message_processor.split('.')
           target_klass  = parts[0]
