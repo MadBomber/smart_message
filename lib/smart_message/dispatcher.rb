@@ -27,10 +27,50 @@ module SmartMessage
     end
 
 
-    # def wgat_can_i_do?
-    #   ap @router_pool.methods.sort
-    # end
+    def what_can_i_do?
+      ap @router_pool.methods.sort
+    end
 
+
+    def status
+
+      ap @router_pool.debug_me_context
+
+      begin
+        debug_me{[
+          '@router_pool',
+          '@router_pool.worker_task_completed',
+          '@router_pool.completed_task_count',
+          '@router_pool.scheduled_task_count',
+          '@router_pool.queue_length',
+          '@router_pool.length',
+          # '@router_pool.pool',
+          # '@router_pool.queue',
+          # '@router_pool.ready',
+          '@router_pool.instance_variables',
+
+        ]}
+      rescue NoMethodError
+        what_can_i_do?
+      end
+    end
+
+
+    def pool
+      @router_pool.instance_variable_get('@pool'.to_sym)
+    end
+
+    def scheduled_task_count
+      @router_pool.scheduled_task_count
+    end
+
+    def worker_task_completed
+      @router_pool.worker_task_completed
+    end
+
+    def completed_task_count
+      @router_pool.completed_task_count
+    end
 
     def queue_length
       @router_pool.queue_length

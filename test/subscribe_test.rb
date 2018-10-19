@@ -15,13 +15,9 @@ module SubscribeTest
 
 
     # This class method is being executed inside of an
-    # independant thread.  That means that no modification
-    # to the class state will be saved at the end of the
-    # thread.
+    # independant thread.
     def self.process(message_header, message_payload)
-      puts "\n >> HEADER: #{message_header.uuid}"
-      puts "\t#{message_payload}"
-      puts
+      debug_me{[ :message_header, :message_payload ]}
 
       SS.add(message_header.message_class, 'process')
       return 'it worked'
@@ -33,7 +29,7 @@ module SubscribeTest
     def setup
       SubscribeTest::MyMessage.config do
         serializer  SmartMessage::Serializer::JSON.new
-        broker      SmartMessage::Broker::Stdout.new(loopback: true)
+        broker      SmartMessage::Broker::Stdout.new(loopback: true, file: 'subscribe.log')
       end
 
       @my_message = SubscribeTest::MyMessage.new(
@@ -48,46 +44,55 @@ module SubscribeTest
       SubscribeTest::MyMessage.subscribe('SubscribeTest::MyMessage.process')
       SubscribeTest::MyMessage.subscribe('SubscribeTest::Test.business_logic')
 
-      @my_message.id = 42
+      @my_message.id = 42 # set to something obvious in case of error
 
-      how_many = 2
+      how_many = 2 # number of times to publish a message; tested upto 5000
 
-      SS.reset # reset all statustic counters
+      SS.reset # reset all stat counters
 
+      # NOTE: 'times' starts at zero
       how_many.times do |message_id|
         @my_message.id = message_id
         @my_message.publish
       end
 
       # TODO: Need to find a way to wait for the background threads
-      #       to all terminate.
+      #       to all terminate.  So far nothing is working as expected.
 
-      puts ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-      puts @my_message.broker.dispatcher.current_length
-      puts "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+      print "waiting: "
+      # MAGIC NUMBER: 3 = current thread + 2 more threads from minitest
+      #               dispatcher will create 4 additional threads to route
+      #               the messages for a total of 7
+      # print "for thread count to hit 7 ..."
+      # while (Thread.list.size < 7)
+      #   print '*'
+      # end
+      # puts " done."
+      #
+      # print 'for last thread to stop running ...'
+      # while (7 == Thread.list.size) and ('run' == Thread.list.last.status)
+      #   print '*'
+      #   Thread.pass
+      # end
+      # puts ' done.'
 
-      sleep_for = 5
-      print "waiting for a #{sleep_for} seconds ..."
-      sleep sleep_for
-      puts 'woke up.'
+      print 'something stupid ...'
+      until SS.get('SubscribeTest::MyMessage', 'process') == how_many
+        print "+"
+        Thread.pass # without this many plus signs as printed
+      end
+      puts ' done.'
+
+      # Thread.pass # does not work outside of the conditional loops
+      # sleep 1 # works just as well as the preceeding conditional loops
 
 
-      puts ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-      puts @my_message.broker.dispatcher.current_length
-      puts "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+
 
       SS.to_s
 
 
-      assert_equal how_many, SS.get('SubscribeTest::MyMessage',
-                                    'publish')
-
-      puts "waiting for thread to catch up ..."
-
-      # puts @my_message.broker.dispatcher.status
-      puts "=============================================="
-      puts @my_message.broker.dispatcher.queue_length
-      puts "=============================================="
+      assert_equal how_many, SS.get('SubscribeTest::MyMessage', 'publish')
 
       assert_equal how_many, SS.get('SubscribeTest::MyMessage', 'process')
       assert_equal how_many, SS.get('SubscribeTest::MyMessage', 'business_logic')
