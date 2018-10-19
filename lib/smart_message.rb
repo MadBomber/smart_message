@@ -11,6 +11,8 @@ include DebugMe
 
 require 'hashie'         # Your friendly neighborhood hash library.
 
+require_relative './simple_stats'
+
 require_relative './smart_message/version'
 require_relative './smart_message/errors'
 

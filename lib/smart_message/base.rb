@@ -84,6 +84,8 @@ module SmartMessage
 
       raise Errors::BrokerNotConfigured if broker_missing?
       broker.publish(_sm_header, payload)
+
+      SS.add(_sm_header.message_class, 'publish')
     end # def publish
 
 

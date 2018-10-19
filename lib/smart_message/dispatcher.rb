@@ -10,11 +10,13 @@ module SmartMessage
   # have been subscribed to the message.
   class Dispatcher
 
+    # TODO: setup forwardable for some @router_pool methods
+
     def initialize
       @subscribers = Hash.new(Array.new)
       @router_pool = Concurrent::CachedThreadPool.new
       at_exit do
-        print 'Sutting down the @router_pool ...'
+        print "Shuttingdown down the dispatcher's @router_pool ..."
         @router_pool.shutdown
         while @router_pool.shuttingdown?
           print '.'
@@ -24,9 +26,21 @@ module SmartMessage
       end
     end
 
+
+    # def wgat_can_i_do?
+    #   ap @router_pool.methods.sort
+    # end
+
+
+    def queue_length
+      @router_pool.queue_length
+    end
+
+
     def running?
       @router_pool.running?
     end
+
 
     def subscribers
       @subscribers

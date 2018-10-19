@@ -10,13 +10,21 @@ module SmartMessage::Broker
     # The dispatcher manages subscriptions.  It is responsible for
     # routing incoming messages to their subscribed processing
     # methods.
-    @@dispatcher = SmartMessage::Dispatcher.new
+    @@dispatcher    = SmartMessage::Dispatcher.new
 
+    # placeholder in case there is a broker that needs to define
+    # some default options
     DEFAULT_OPTIONS = {}
+
     attr_accessor :parameters
 
     def initialize(options={})
       @parameters = DEFAULT_OPTIONS.merge options
+    end
+
+
+    def dispatcher
+      @@dispatcher
     end
 
 
@@ -57,15 +65,15 @@ module SmartMessage::Broker
 
 
     # get a message payload from the broker
-    def read(message_payload)
-      debug_me{[ :message_payload ]}
+    def read(message_header, message_payload)
+      debug_me{[ :message_header, :message_payload ]}
       raise ::SmartMessage::Errors::NotImplemented
     end
 
 
     # put a message payload to the broker
-    def write(message_payload)
-      debug_me{[ :message_payload ]}
+    def write(message_header, message_payload)
+      debug_me{[ :message_header, :message_payload ]}
       raise ::SmartMessage::Errors::NotImplemented
     end
   end # class StdoutBroker < SmartMessage::Broker
