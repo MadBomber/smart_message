@@ -112,6 +112,12 @@ module SmartMessage
     end
 
 
+    # complete reset all subscriptions
+    def drop_all!
+      @subscribers = Hash.new(Array.new)
+    end
+
+
     # message_header is of class SmartMessage::Header
     # message_payload is a string buffer that is a serialized
     # SmartMessage

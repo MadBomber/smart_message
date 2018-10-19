@@ -16,26 +16,7 @@ module BrokerTest
     # its class-level process method.
     class << self
       def process(message_header, message_payload)
-        a_hash = message_header.to_h
-        puts <<EOS
-
-Here is what is being processed:
-#{ap a_hash}
-
-What does the Cow say?
-
-#{message_payload}
-
- ______
-< good >
- ------
-        \\   ^__^
-         \\  (oo)\\_______
-            (__)\\       )\\/\\
-                ||----w |
-                ||     ||
-
-EOS
+        SS.add(whoami, 'process')
         return 'it worked'
       end # def process(message_instance)
     end # class << self
@@ -56,6 +37,11 @@ EOS
 
   # encapsulate the test methods
   class Test < Minitest::Test
+
+    def setup
+      # c;ear all stats
+      SS.reset
+    end
 
     ##################################################################
     def test_0010_basic_broker_assignment_actions
@@ -120,7 +106,6 @@ EOS
       refute BrokerTest::MyMessage.serializer_missing?
 
 
-
       assert_equal  SmartMessage::Broker::Stdout,
                     BrokerTest::MyMessage.broker.class
 
@@ -164,26 +149,30 @@ EOS
         my_message.publish
       end
 
+      assert_equal 0, SS.get('BrokerTest::MyMessage', 'publish')
+
       # Set class-level plugins to known configuration
       BrokerTest::MyMessage.config do
-        broker      SmartMessage::Broker::Stdout.new(loopback: false)
+        broker      SmartMessage::Broker::Stdout.new(
+                      loopback: false,
+                      file:     'broker_test.log'
+                    )
         serializer  SmartMessage::Serializer::JSON.new
       end
 
       assert_equal false, BrokerTest::MyMessage.broker.loopback?
 
-      my_other_message = BrokerTest::MyMessage.new(
+      my_other_message = BrokerTest::MyOtherMessage.new(
         foo: 'one for the money',
         bar: 'two for the show',
         baz: 'three to get ready',
         xyzzy: 'four to go'         # not defined so ignored
       )
 
-      # TODO: How do I know that the publich was completed successfully
-      #       beyound a raised exception?  Should the publish method return
-      #       something like a boolean maybe?  Or the encoded message payload?
       my_other_message.publish
 
+
+      assert_equal 1, SS.get('BrokerTest::MyOtherMessage','publish')
 
     end # def test_0015_basic_broker_publish_actions
 
@@ -209,6 +198,10 @@ EOS
       end
 
       assert_equal true, BrokerTest::MyMessage.broker.loopback?
+
+      # clear out the subscription db because its been
+      # polluted by other tests.
+      BrokerTest::MyMessage.broker.dispatcher.drop_all!
 
       # Use the defaul class-level process method
       BrokerTest::MyMessage.subscribe
@@ -252,17 +245,6 @@ EOS
       assert_equal  BrokerTest::MyMessage.broker.subscribers,
                     BrokerTest::MyOtherMessage.broker.subscribers
 
-      my_message          = BrokerTest::MyMessage.new
-      encoded_my_message  = my_message.encode
-
-      my_message.publish
-
-    end
-
-
-    def self.specialized_process(message_header, message_payload)
-      debug_me{[ :message_header, :message_payload ]}
-      return 'it worked'
     end
 
   end # class BrokerTest < Minitest::Test
