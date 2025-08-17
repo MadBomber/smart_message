@@ -27,9 +27,9 @@ module SmartMessage
       end
 
       # Create a transport instance with options
-      def create(name, options = {})
+      def create(name, **options)
         transport_class = get(name)
-        transport_class&.new(options)
+        transport_class&.new(**options)
       end
 
       # List all registered transports

@@ -24,7 +24,7 @@ module SmartMessage
       property :_sm_header
       property :_sm_payload
 
-      def initialize(props = {}, &block)
+      def initialize(**props, &block)
         attributes = {
           _sm_header: SmartMessage::Header.new(
             uuid:           SecureRandom.uuid,

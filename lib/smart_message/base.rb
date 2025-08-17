@@ -35,7 +35,7 @@ module SmartMessage
 
     # Constructor for a messsage definition that allows the
     # setting of initial values.
-    def initialize(props = {}, &block)
+    def initialize(**props, &block)
       # instance-level over ride of class plugins
       @transport   = nil
       @serializer  = nil
@@ -212,7 +212,7 @@ module SmartMessage
       # Add this message class to the transport's catalog of
       # subscribed messages.  If the transport is missing, raise
       # an exception.
-      def subscribe(process_method=nil)
+      def subscribe(process_method = nil)
         message_class   = whoami
         process_method  = message_class + '.process' if process_method.nil?
 
@@ -225,7 +225,7 @@ module SmartMessage
 
       # Remove this process_method for this message class from the
       # subscribers list.
-      def unsubscribe(process_method=nil)
+      def unsubscribe(process_method = nil)
         message_class   = whoami
         process_method  = message_class + '.process' if process_method.nil?
         # TODO: Add proper logging here

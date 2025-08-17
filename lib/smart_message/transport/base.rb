@@ -9,7 +9,7 @@ module SmartMessage
     class Base
       attr_reader :options, :dispatcher
 
-      def initialize(options = {})
+      def initialize(**options)
         @options = default_options.merge(options)
         @dispatcher = options[:dispatcher] || SmartMessage::Dispatcher.new
         configure
