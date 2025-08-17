@@ -1,0 +1,235 @@
+# Getting Started with SmartMessage
+
+This guide will help you get up and running with SmartMessage quickly.
+
+## Installation
+
+Add SmartMessage to your Gemfile:
+
+```ruby
+gem 'smart_message'
+```
+
+Then run:
+
+```bash
+bundle install
+```
+
+Or install directly:
+
+```bash
+gem install smart_message
+```
+
+## Requirements
+
+- Ruby >= 3.0.0
+- No additional system dependencies
+
+## Your First Message
+
+Let's create a simple message class and see it in action:
+
+### 1. Define a Message Class
+
+```ruby
+require 'smart_message'
+
+class WelcomeMessage < SmartMessage::Base
+  # Define message properties
+  property :user_name
+  property :email
+  property :signup_date
+
+  # Configure the transport (where messages go)
+  config do
+    transport SmartMessage::Transport.create(:stdout, loopback: true)
+    serializer SmartMessage::Serializer::JSON.new
+  end
+
+  # Define how to process received messages
+  def self.process(message_header, message_payload)
+    # Decode the message
+    data = JSON.parse(message_payload)
+    welcome = new(data)
+    
+    # Process the welcome message
+    puts "🎉 Welcome #{welcome.user_name}!"
+    puts "📧 Email: #{welcome.email}"
+    puts "📅 Signed up: #{welcome.signup_date}"
+  end
+end
+```
+
+### 2. Subscribe to Messages
+
+Before publishing, set up a subscription to receive messages:
+
+```ruby
+# Subscribe to process incoming WelcomeMessage instances
+WelcomeMessage.subscribe
+```
+
+### 3. Create and Publish a Message
+
+```ruby
+# Create a new welcome message
+welcome = WelcomeMessage.new(
+  user_name: "Alice Johnson",
+  email: "alice@example.com", 
+  signup_date: Date.today.to_s
+)
+
+# Publish the message
+welcome.publish
+```
+
+### 4. See It in Action
+
+Run your script and you should see:
+
+```
+===================================================
+== SmartMessage Published via STDOUT Transport
+== Header: #<SmartMessage::Header:0x... @uuid="...", @message_class="WelcomeMessage", ...>
+== Payload: {"user_name":"Alice Johnson","email":"alice@example.com","signup_date":"2025-08-17"}
+===================================================
+
+🎉 Welcome Alice Johnson!
+📧 Email: alice@example.com
+📅 Signed up: 2025-08-17
+```
+
+## Understanding What Happened
+
+1. **Message Definition**: We created a `WelcomeMessage` class with three properties
+2. **Configuration**: We configured it to use STDOUT transport with loopback enabled
+3. **Subscription**: We subscribed to process incoming messages of this type
+4. **Publishing**: We created an instance and published it
+5. **Processing**: Because loopback is enabled, the message was immediately routed back and processed
+
+## Key Concepts
+
+### Properties
+Messages use Hashie::Dash properties for type-safe attributes:
+
+```ruby
+class OrderMessage < SmartMessage::Base
+  property :order_id, required: true
+  property :amount, transform_with: ->(v) { BigDecimal(v.to_s) }
+  property :items, default: []
+  property :created_at, default: -> { Time.now }
+end
+```
+
+### Headers
+Every message automatically gets a header with metadata:
+
+```ruby
+message = WelcomeMessage.new(user_name: "Bob")
+puts message._sm_header.uuid          # Unique identifier
+puts message._sm_header.message_class # "WelcomeMessage"
+puts message._sm_header.published_at  # Timestamp when published
+puts message._sm_header.publisher_pid # Process ID of publisher
+```
+
+### Transports
+Transports handle where messages go. Built-in options include:
+
+```ruby
+# STDOUT - for development/debugging
+transport SmartMessage::Transport.create(:stdout, loopback: true)
+
+# Memory - for testing
+transport SmartMessage::Transport.create(:memory, auto_process: true)
+```
+
+### Serializers
+Serializers handle message encoding/decoding:
+
+```ruby
+# JSON serialization (built-in)
+serializer SmartMessage::Serializer::JSON.new
+```
+
+## Next Steps
+
+Now that you have the basics working, explore:
+
+- [Architecture Overview](architecture.md) - Understand how SmartMessage works
+- [Examples](examples.md) - See more practical use cases
+- [Transports](transports.md) - Learn about different transport options
+- [Custom Transports](custom-transports.md) - Build your own transport
+
+## Common Patterns
+
+### Simple Notification System
+
+```ruby
+class NotificationMessage < SmartMessage::Base
+  property :recipient
+  property :subject
+  property :body
+  property :priority, default: 'normal'
+
+  config do
+    transport SmartMessage::Transport.create(:memory, auto_process: true)
+    serializer SmartMessage::Serializer::JSON.new
+  end
+
+  def self.process(message_header, message_payload)
+    data = JSON.parse(message_payload)
+    notification = new(data)
+    
+    # Send email, SMS, push notification, etc.
+    send_notification(notification)
+  end
+
+  private
+
+  def self.send_notification(notification)
+    puts "Sending #{notification.priority} notification to #{notification.recipient}"
+    puts "Subject: #{notification.subject}"
+  end
+end
+
+# Subscribe and send
+NotificationMessage.subscribe
+
+NotificationMessage.new(
+  recipient: "user@example.com",
+  subject: "Welcome!",
+  body: "Thanks for signing up!",
+  priority: "high"
+).publish
+```
+
+### Event Logging
+
+```ruby
+class EventMessage < SmartMessage::Base
+  property :event_type
+  property :user_id
+  property :data
+  property :timestamp, default: -> { Time.now.iso8601 }
+
+  config do
+    transport SmartMessage::Transport.create(:stdout, output: 'events.log')
+    serializer SmartMessage::Serializer::JSON.new
+  end
+end
+
+# Log events
+EventMessage.new(
+  event_type: 'user_login',
+  user_id: 123,
+  data: { ip: '192.168.1.1', user_agent: 'Chrome' }
+).publish
+```
+
+## Need Help?
+
+- Check the [Troubleshooting Guide](troubleshooting.md)
+- Review the [API Reference](api-reference.md)
+- Look at more [Examples](examples.md)

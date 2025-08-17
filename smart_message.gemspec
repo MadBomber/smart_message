@@ -26,14 +26,16 @@ Gem::Specification.new do |spec|
   end
   spec.require_paths = ['lib']
 
+  spec.required_ruby_version = '>= 3.0.0'
+
   spec.add_dependency 'hashie'
   spec.add_dependency 'activesupport'
   spec.add_dependency 'concurrent-ruby'
-  spec.add_dependency 'concurrent-ruby-ext'
 
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'minitest'
+  spec.add_development_dependency 'mutex_m'
   spec.add_development_dependency 'shoulda'
   spec.add_development_dependency 'minitest-power_assert'
 

@@ -1,12 +1,18 @@
 # SmartMessage
 
-`SmartMessage` is to messages like `ActiveRecord` is to databases. SmartMessage resides between the business logic and message encoding (aka serializer) and delivery means (aka broker).
+[![Gem Version](https://badge.fury.io/rb/smart_message.svg)](https://badge.fury.io/rb/smart_message)
+[![Ruby](https://img.shields.io/badge/ruby-%3E%3D%203.0.0-ruby.svg)](https://www.ruby-lang.org/en/)
 
-Related gems:
+SmartMessage is a message abstraction framework that decouples business logic from message brokers and serialization formats. Much like ActiveRecord abstracts models from database implementations, SmartMessage abstracts messages from their backend transport and serialization mechanisms.
 
-* [smart_message-broker-kafka](https://github.com/MadBomber/smart_message-broker-kafka)
+## Features
 
-* [smart_message-broker-rabbitmq](https://github.com/MadBomber/smart_message-broker-rabbitmq)
+- **Transport Abstraction**: Plugin architecture supporting multiple message brokers (RabbitMQ, Kafka, etc.)
+- **Serialization Flexibility**: Pluggable serialization formats (JSON, MessagePack, etc.)
+- **Dual-Level Configuration**: Class and instance-level plugin overrides for gateway patterns
+- **Concurrent Processing**: Thread-safe message routing using `Concurrent::CachedThreadPool`
+- **Built-in Statistics**: Message processing metrics and monitoring
+- **Development Tools**: STDOUT and in-memory transports for testing
 
 ## Installation
 
@@ -18,148 +24,280 @@ gem 'smart_message'
 
 And then execute:
 
-    $ bundle
-
-By the way - did you know that your application does not have to be a Rails application in order to take advantage of the bundler?  Well, now you do.
+    $ bundle install
 
 Or install it yourself as:
 
     $ gem install smart_message
 
-## Discussion
+## Quick Start
 
-SmartMessage is to messages like ActiveRecord is to databases. SmartMessage resides between business logic and message encoding (aka serializer) and delivery means.
+### 1. Define a Message Class
 
-### Terminolog
+```ruby
+class OrderMessage < SmartMessage::Base
+  property :order_id
+  property :customer_id
+  property :amount
+  property :items
 
-### Plugins
+  # Configure transport and serializer at class level
+  config do
+    transport SmartMessage::Transport.create(:stdout, loopback: true)
+    serializer SmartMessage::Serializer::JSON.new
+  end
 
-SmartMessage supports plugins at both the instance-level and class-level of message definitions.  This approach also supports gateway architectures in which messages originating on one broker are transfered to a different broker for ultimate delivery.
+  # Business logic for processing received messages
+  def self.process(message_header, message_payload)
+    # Decode the message
+    order_data = JSON.parse(message_payload)
+    order = new(order_data)
+    
+    # Process the order
+    puts "Processing order #{order.order_id} for customer #{order.customer_id}"
+    puts "Amount: $#{order.amount}"
+    
+    # Your business logic here
+    process_order(order)
+  end
 
-#### Serializer
+  private
 
-A `SmartMessage::Serializer` is a capability to take the content of a SmartMessage and encode it in a way that it can be transmitted by a `SmartMessage::Broker`
+  def self.process_order(order)
+    # Implementation specific to your domain
+  end
+end
+```
 
-An example of a serializer is `SmartMessage::Serializer::JSON` which encodes the `SmartMessage` content into a JSON text sctring.
+### 2. Publish Messages
 
-Serializers must support two instance methods: encode and decode.  The `encode` method has one required parameter - a SmartMessage instance.  The `decode` methods has two required parameters.  The first is a message header hash that contains the `message_class` used for dispatching the received message to its business logic.  The second parameter is an encoded string buffer.
+```ruby
+# Create and publish a message
+order = OrderMessage.new(
+  order_id: "ORD-123",
+  customer_id: "CUST-456", 
+  amount: 99.99,
+  items: ["Widget A", "Widget B"]
+)
 
-#### Broker
+order.publish
+```
 
-A SmartMessage::Broker is a process that moves messages wihtin a large distributed system.  A broker provides the means for publishing and subscribing to messages.  Examples of potential borkers are RabbitMQ, Kafka, zeroMQ, et.al.
+### 3. Subscribe to Messages
 
-#### Logger
+```ruby
+# Subscribe to process incoming OrderMessage instances
+OrderMessage.subscribe
 
-A SmartMessage::Logger is a process for keeping a log of activities.  The standard Ruby Logger class can be used for this process.
+# Or specify a custom processing method
+OrderMessage.subscribe("OrderMessage.custom_processor")
+```
 
-## Usage
+## Architecture
 
-TODO: Write usage instructions here
+### Core Components
 
-### Defining a SmartMessage
+#### SmartMessage::Base
+The foundation class that all messages inherit from. Built on `Hashie::Dash` with extensions for:
+- Property management and coercion
+- Multi-level plugin configuration
+- Message lifecycle management
+- Automatic header generation (UUID, timestamps, process tracking)
+
+#### Transport Layer
+Pluggable message delivery system with built-in implementations:
+
+- **StdoutTransport**: Development and testing transport
+- **MemoryTransport**: In-memory queuing for testing
+- **Custom Transports**: Implement `SmartMessage::Transport::Base`
+
+#### Serializer System
+Pluggable message encoding/decoding:
+
+- **JSON Serializer**: Built-in JSON support
+- **Custom Serializers**: Implement `SmartMessage::Serializer::Base`
+
+#### Dispatcher
+Concurrent message routing engine that:
+- Uses thread pools for async processing
+- Routes messages to subscribed handlers
+- Provides processing statistics
+- Handles graceful shutdown
+
+### Plugin Architecture
+
+SmartMessage supports two levels of plugin configuration:
+
+```ruby
+# Class-level configuration (default for all instances)
+class MyMessage < SmartMessage::Base
+  config do
+    transport MyTransport.new
+    serializer MySerializer.new
+    logger MyLogger.new
+  end
+end
+
+# Instance-level configuration (overrides class defaults)
+message = MyMessage.new
+message.config do
+  transport DifferentTransport.new  # Override for this instance
+end
+```
+
+This enables gateway patterns where messages can be received from one broker/serializer and republished to another.
+
+## Transport Implementations
+
+### STDOUT Transport (Development)
+
+```ruby
+# Basic STDOUT output
+transport = SmartMessage::Transport.create(:stdout)
+
+# With loopback for testing subscriptions
+transport = SmartMessage::Transport.create(:stdout, loopback: true)
+
+# Output to file
+transport = SmartMessage::Transport.create(:stdout, output: "messages.log")
+```
+
+### Memory Transport (Testing)
+
+```ruby
+# Auto-process messages as they're published
+transport = SmartMessage::Transport.create(:memory, auto_process: true)
+
+# Store messages without processing
+transport = SmartMessage::Transport.create(:memory, auto_process: false)
+
+# Check stored messages
+puts transport.message_count
+puts transport.all_messages
+transport.process_all  # Process all pending messages
+```
+
+### Custom Transport
+
+```ruby
+class RedisTransport < SmartMessage::Transport::Base
+  def default_options
+    { redis_url: "redis://localhost:6379" }
+  end
+
+  def configure
+    @redis = Redis.new(url: @options[:redis_url])
+  end
+
+  def publish(message_header, message_payload)
+    channel = message_header.message_class
+    @redis.publish(channel, message_payload)
+  end
+
+  def subscribe(message_class, process_method)
+    super
+    # Set up Redis subscription for message_class
+  end
+end
+
+# Register the transport
+SmartMessage::Transport.register(:redis, RedisTransport)
+
+# Use the transport
+MyMessage.config do
+  transport SmartMessage::Transport.create(:redis, redis_url: "redis://prod:6379")
+end
+```
+
+## Message Lifecycle
+
+1. **Definition**: Create message class inheriting from `SmartMessage::Base`
+2. **Configuration**: Set transport, serializer, and logger plugins
+3. **Publishing**: Message instance is encoded and sent through transport
+4. **Subscription**: Message classes register with dispatcher for processing
+5. **Processing**: Received messages are decoded and `process` method is called
+
+## Advanced Usage
+
+### Statistics and Monitoring
+
+SmartMessage includes built-in statistics collection:
+
+```ruby
+# Access global statistics
+puts SS.stat  # Shows all collected statistics
+
+# Get specific counts
+publish_count = SS.get("MyMessage", "publish")
+process_count = SS.get("MyMessage", "MyMessage.process", "routed")
+
+# Reset statistics
+SS.reset  # Clear all stats
+SS.reset("MyMessage", "publish")  # Reset specific stat
+```
+
+### Dispatcher Status
+
+```ruby
+dispatcher = SmartMessage::Dispatcher.new
+
+# Check thread pool status
+status = dispatcher.status
+puts "Running: #{status[:running]}"
+puts "Queue length: #{status[:queue_length]}"
+puts "Completed tasks: #{status[:completed_task_count]}"
+
+# Check subscriptions
+puts dispatcher.subscribers
+```
+
+### Message Properties and Headers
 
 ```ruby
 class MyMessage < SmartMessage::Base
-  # property names should not start with '_sm_'
-  property :foo   # hashie options ...
-  property :bar   # hashie options ...
-  property :baz   # hashie options ...
-  # ... as many properties (aka attributes, fields) as needed
-
-  # Business logic in the `process` method.  This is the
-  # method that will be called when a message of this class
-  # is received.
-  def process
-  end
-end # class MyMessage < SmartMessage::Base
-```
-
-### Configuring the Class
-
-Here is an example of where there are two different back end message delivery systems with different serializers and different loggers.  The same message has been defined on both back end systems.
-
-```ruby
-class BackEndOne < SmartMessage::Base; end
-class BackEndTwo < SmartMessage::Base; end
-
-BackEndOne.config do
-  broker      SmartMessage::Broker::BrokerOne.new
-  serializer  SmartMessage::Serializer::SerializerOne.new
-  logger      SmartMessage::Logger::LoggerOne.new
+  property :user_id
+  property :action
+  property :timestamp, default: -> { Time.now }
 end
 
-BackEndTwo.config do
-  broker      SmartMessage::Broker::BrokerTwo.new
-  serializer  SmartMessage::Serializer::SerializerTwo.new
-  logger      SmartMessage::Logger::LoggerTwo.new
-end
+message = MyMessage.new(user_id: 123, action: "login")
 
-class MyMessageOne < BackEndOne
-  property :foo
-  def process
-    MyMessageTwo.new(self.to_h).publish
-  end
-end
+# Access message properties
+puts message.user_id
+puts message.fields  # Returns Set of property names (excluding internal _sm_ properties)
 
-class MyMessageTwo < BackEndOne
-  property :foo
-end
-```
-
-This kind of configuration is a gateway.  It takes messages from one system and republished them on another system.  Using a gateway architecture it is possible for example to subscribe to messages from RabbitMQ and republish those messages on Kafka.
-
-One-way gateways are safest.  If a two-way gateway is needed extra business in the `process` methods is required to prevent the same message content from ping-ponging back-n-forth between the two seperate back end systems forever.
-
-### Configuring an Instance
-
-SmartMessage supports two-levels of configuration.  All instances of a message class can have a different configuration from its class; however, all sub-classes of a message class will have the same configuration as the top-level class.
-
-```ruby
-my_message.config do
-  broker      SmartMessage::Broker::YourBroker.new
-  serializer  SmartMessage::Serializer::YourSerializer.new
-  logger      SmartMessage::Logger::YourLogger.new
-end
-```
-
-
-### Publishing the Instance
-
-```ruby
-my_message = MyMessage.new(foo: 'one', baz: 'three', xyzzy: 'ignored')
-
-# since 'xyzzy' is not defined as a valid property of this message
-# this entry in the constructor will be ignored.  No exceptions; no
-# warnings are generated.
-
-my_message.bar = 'two'
-# or my_message[:bar]  = 'two'
-# or my_message['bar'] = 'two'
-
-my_message.publish
-```
-
-### Subscribe a Class
-
-When a SmartMessage::Broker receives a message, it will inspect the message to determine which message class the raw serialized message belongs to.  It then creates an instance of that message class and involkes the `process` method on the instance.
-
-```ruby
-MyMessage.subscribe
-```
-
-### Unsubscribe a Class
-
-```ruby
-MyMessage.unsubscribe
-
+# Access message header
+puts message._sm_header.uuid
+puts message._sm_header.message_class
+puts message._sm_header.published_at
+puts message._sm_header.publisher_pid
 ```
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+After checking out the repo, run:
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+```bash
+bin/setup      # Install dependencies
+bin/console    # Start interactive console
+rake test      # Run test suite
+```
+
+### Testing
+
+SmartMessage uses Minitest with Shoulda for testing:
+
+```bash
+rake test                           # Run all tests
+ruby -Ilib:test test/base_test.rb  # Run specific test file
+```
+
+Test output and debug information is logged to `test.log`.
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/smart_message.
+Bug reports and pull requests are welcome on GitHub at https://github.com/MadBomber/smart_message.
+
+## License
+
+The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).

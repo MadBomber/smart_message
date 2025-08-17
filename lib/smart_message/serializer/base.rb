@@ -11,13 +11,13 @@ module SmartMessage::Serializer
     end
 
     def encode(message_instance)
-      debug_me{[ :message_instance ]}
-      raise ::Errors::NotImplemented
+      # TODO: Add proper logging here
+      raise ::SmartMessage::Errors::NotImplemented
     end
 
     def decode(payload)
-      debug_me{[ :payload ]}
-      raise ::Errors::NotImplemented
+      # TODO: Add proper logging here
+      raise ::SmartMessage::Errors::NotImplemented
     end
   end # class Base
 end # module SmartMessage::Serializer

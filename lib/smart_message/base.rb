@@ -10,9 +10,9 @@ module SmartMessage
   # The foundation class for the smart message
   class Base < Hashie::Dash
 
-    # Supports multi-level plugins for serializer, broker and logger.
+    # Supports multi-level plugins for transport, serializer and logger.
     # Plugins can be made at the class level and at the instance level.
-    @@broker      = nil
+    @@transport   = nil
     @@serializer  = nil
     @@logger      = nil
 
@@ -37,7 +37,7 @@ module SmartMessage
     # setting of initial values.
     def initialize(props = {}, &block)
       # instance-level over ride of class plugins
-      @broker      = nil
+      @transport   = nil
       @serializer  = nil
       @logger      = nil
 
@@ -82,8 +82,8 @@ module SmartMessage
 
       payload = encode
 
-      raise Errors::BrokerNotConfigured if broker_missing?
-      broker.publish(_sm_header, payload)
+      raise Errors::TransportNotConfigured if transport_missing?
+      transport.publish(_sm_header, payload)
 
       SS.add(_sm_header.message_class, 'publish')
     end # def publish
@@ -100,15 +100,15 @@ module SmartMessage
 
 
     #########################################################
-    ## instance-level broker configuration
+    ## instance-level transport configuration
 
-    def broker(klass_or_instance = nil)
-      klass_or_instance.nil? ? @broker || @@broker : @broker = klass_or_instance
+    def transport(klass_or_instance = nil)
+      klass_or_instance.nil? ? @transport || @@transport : @transport = klass_or_instance
     end
 
-    def broker_configured?;     !broker.nil?;   end
-    def broker_missing?;         broker.nil?;   end
-    def reset_broker;           @broker = nil;  end
+    def transport_configured?;  !transport.nil?;   end
+    def transport_missing?;      transport.nil?;   end
+    def reset_transport;        @transport = nil;  end
 
 
     #########################################################
@@ -170,15 +170,15 @@ module SmartMessage
 
 
       #########################################################
-      ## class-level broker configuration
+      ## class-level transport configuration
 
-      def broker(klass_or_instance = nil)
-        klass_or_instance.nil? ? @@broker : @@broker = klass_or_instance
+      def transport(klass_or_instance = nil)
+        klass_or_instance.nil? ? @@transport : @@transport = klass_or_instance
       end
 
-      def broker_configured?;     !broker.nil?;   end
-      def broker_missing?;         broker.nil?;   end
-      def reset_broker;          @@broker = nil;  end
+      def transport_configured?;  !transport.nil?;   end
+      def transport_missing?;      transport.nil?;   end
+      def reset_transport;       @@transport = nil;  end
 
 
       #########################################################
@@ -206,19 +206,19 @@ module SmartMessage
 
 
       #########################################################
-      ## class-level subscription management via the broker
+      ## class-level subscription management via the transport
 
-      # Add this message class to the broker's catalog of
-      # subscribed messages.  If the broker is missing, raise
+      # Add this message class to the transport's catalog of
+      # subscribed messages.  If the transport is missing, raise
       # an exception.
       def subscribe(process_method=nil)
         message_class   = whoami
         process_method  = message_class + '.process' if process_method.nil?
 
-        debug_me{[ :message_class, :process_method ]}
+        # TODO: Add proper logging here
 
-        raise Errors::BrokerNotConfigured if broker_missing?
-        broker.subscribe(message_class, process_method)
+        raise Errors::TransportNotConfigured if transport_missing?
+        transport.subscribe(message_class, process_method)
       end
 
 
@@ -227,9 +227,9 @@ module SmartMessage
       def unsubscribe(process_method=nil)
         message_class   = whoami
         process_method  = message_class + '.process' if process_method.nil?
-        debug_me{[ :message_class, :process_method ]}
+        # TODO: Add proper logging here
 
-        broker.unsubscribe(message_class, process_method) if broker_configured?
+        transport.unsubscribe(message_class, process_method) if transport_configured?
       end
 
 
@@ -238,9 +238,9 @@ module SmartMessage
       def unsubscribe!
         message_class   = whoami
 
-        debug_me{[ :message_class ]}
+        # TODO: Add proper logging here
 
-        broker.unsubscribe!(message_class) if broker_configured?
+        transport.unsubscribe!(message_class) if transport_configured?
       end
 
 

@@ -35,7 +35,7 @@ module SmartMessage::Broker
 
     # tell everyone about this message instance
     def publish(message_header, message_payload)
-      debug_me{[ :message_header, :message_payload ]}
+      # TODO: Add proper logging here
       raise ::SmartMessage::Errors::NotImplemented
     end
 
@@ -43,7 +43,7 @@ module SmartMessage::Broker
     # ask tp be notified when a specific message class is received
     # using the specific processing method
     def subscribe(message_class, process_method)
-      debug_me{[ :message_class, :process_method ]}
+      # TODO: Add proper logging here
       # Insert broker specific code to handle subscription
       @@dispatcher.add(message_class, process_method)
     end
@@ -52,28 +52,28 @@ module SmartMessage::Broker
     # Don't care about this message class being handled by
     # this process
     def unsubscribe(message_class, process_method)
-      debug_me{[ :message_class, :process_method ]}
+      # TODO: Add proper logging here
       @@dispatcher.drop(message_class, process_method)
     end
 
 
     # Don't care about this message class
     def unsubscribe!(message_class)
-      debug_me{[ :message_class, :process_method ]}
+      # TODO: Add proper logging here
       @@dispatcher.drop_all(message_class)
     end
 
 
     # get a message payload from the broker
     def read(message_header, message_payload)
-      debug_me{[ :message_header, :message_payload ]}
+      # TODO: Add proper logging here
       raise ::SmartMessage::Errors::NotImplemented
     end
 
 
     # put a message payload to the broker
     def write(message_header, message_payload)
-      debug_me{[ :message_header, :message_payload ]}
+      # TODO: Add proper logging here
       raise ::SmartMessage::Errors::NotImplemented
     end
   end # class StdoutBroker < SmartMessage::Broker

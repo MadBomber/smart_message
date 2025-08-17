@@ -32,7 +32,7 @@ module SmartMessage::Broker
 
     # Is there anything about this broker that needs to be configured
     def self.config
-      debug_me(file: @file)
+      # TODO: Add proper configuration logging
     end
 
     # put the encoded_message into the delievery system
@@ -52,7 +52,7 @@ module SmartMessage::Broker
 
 
     def receive(message_header, message_payload)
-      debug_me(file: @file){[ :message_header, :message_payload ]}
+      # TODO: Add proper logging here
 
       @@dispatcher.route(message_header, message_payload)
     end

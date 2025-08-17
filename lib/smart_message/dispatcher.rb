@@ -28,31 +28,22 @@ module SmartMessage
 
 
     def what_can_i_do?
-      ap @router_pool.methods.sort
+      # TODO: Return pool methods list for debugging
+      @router_pool.methods.sort
     end
 
 
     def status
-
-      ap @router_pool.debug_me_context
-
-      begin
-        debug_me{[
-          '@router_pool',
-          '@router_pool.worker_task_completed',
-          '@router_pool.completed_task_count',
-          '@router_pool.scheduled_task_count',
-          '@router_pool.queue_length',
-          '@router_pool.length',
-          # '@router_pool.pool',
-          # '@router_pool.queue',
-          # '@router_pool.ready',
-          '@router_pool.instance_variables',
-
-        ]}
-      rescue NoMethodError
-        what_can_i_do?
-      end
+      # TODO: Return proper status hash
+      {
+        scheduled_task_count: @router_pool.scheduled_task_count,
+        completed_task_count: @router_pool.completed_task_count,
+        queue_length: @router_pool.queue_length,
+        length: @router_pool.length,
+        running: @router_pool.running?
+      }
+    rescue NoMethodError
+      what_can_i_do?
     end
 
 
@@ -136,18 +127,11 @@ module SmartMessage
                         .method(class_method)
                         .call(message_header, message_payload)
           rescue Exception => e
-            debug_me('==== EXCEPTION ===='){[
-              :e,
-              :message_processor,
-              :parts,
-              :target_klass,
-              :class_method,
-              :message_header,
-              :message_payload,
-              :who_called
-            ]}
+            # TODO: Add proper exception logging
+            # Exception details: #{e.message}
+            # Processor: #{message_processor}
           end
-          debug_me('=== did it work? ==='){[ :result ]}
+          # TODO: Add proper result logging
         end
       end
     end

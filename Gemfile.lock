@@ -1,44 +1,59 @@
 PATH
   remote: .
   specs:
-    smart_message (0.0.2)
+    smart_message (0.0.1)
       activesupport
       concurrent-ruby
-      concurrent-ruby-ext
       hashie
 
 GEM
   remote: https://rubygems.org/
   specs:
-    activesupport (7.0.2.3)
-      concurrent-ruby (~> 1.0, >= 1.0.2)
+    activesupport (8.0.2.1)
+      base64
+      benchmark (>= 0.3)
+      bigdecimal
+      concurrent-ruby (~> 1.0, >= 1.3.1)
+      connection_pool (>= 2.2.5)
+      drb
       i18n (>= 1.6, < 2)
+      logger (>= 1.4.2)
       minitest (>= 5.1)
-      tzinfo (~> 2.0)
-    amazing_print (1.4.0)
-    concurrent-ruby (1.1.9)
-    concurrent-ruby-ext (1.1.9)
-      concurrent-ruby (= 1.1.9)
-    debug_me (1.1.0)
+      securerandom (>= 0.3)
+      tzinfo (~> 2.0, >= 2.0.5)
+      uri (>= 0.13.1)
+    amazing_print (1.8.1)
+    base64 (0.3.0)
+    benchmark (0.4.1)
+    bigdecimal (3.2.2)
+    concurrent-ruby (1.3.5)
+    connection_pool (2.5.3)
+    debug_me (1.1.1)
+    drb (2.2.3)
     hashie (5.0.0)
-    i18n (1.10.0)
+    i18n (1.14.7)
       concurrent-ruby (~> 1.0)
-    minitest (5.15.0)
+    logger (1.7.0)
+    minitest (5.25.5)
     minitest-power_assert (0.3.1)
       minitest
       power_assert (>= 1.1)
-    power_assert (2.0.1)
-    rake (13.0.6)
+    mutex_m (0.3.0)
+    power_assert (2.0.5)
+    rake (13.3.0)
+    securerandom (0.4.1)
     shoulda (4.0.0)
       shoulda-context (~> 2.0)
       shoulda-matchers (~> 4.0)
     shoulda-context (2.0.0)
     shoulda-matchers (4.5.1)
       activesupport (>= 4.2.0)
-    tzinfo (2.0.4)
+    tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
+    uri (1.0.3)
 
 PLATFORMS
+  arm64-darwin-24
   x86_64-darwin-20
 
 DEPENDENCIES
@@ -47,9 +62,10 @@ DEPENDENCIES
   debug_me
   minitest
   minitest-power_assert
+  mutex_m
   rake
   shoulda
   smart_message!
 
 BUNDLED WITH
-   2.3.9
+   2.7.1
