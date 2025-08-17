@@ -26,15 +26,15 @@ require_relative './smart_message/dispatcher.rb'
 require_relative './smart_message/transport.rb'
 require_relative './smart_message/base.rb'
 
-# SmartMessage abstracts messages from the backend broker process
+# SmartMessage abstracts messages from the backend transport process
 module SmartMessage
   # The super class of all smart messages
   # class Base < Dash from the Hashie gem plus mixins
   # end
 
-  # encapsulates the message broker plugin
-  module Broker
-    # The super class for the SmartMessage::Broker
+  # encapsulates the message transport plugin
+  module Transport
+    # The super class for the SmartMessage::Transport
     class Base
     end
   end
@@ -54,6 +54,6 @@ module SmartMessage
   end
 end # module SmartMessage
 
-require_relative './smart_message/broker'
+require_relative './smart_message/broker'  # Legacy compatibility layer
 require_relative './smart_message/serializer'
 require_relative './smart_message/logger'

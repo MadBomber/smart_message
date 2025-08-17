@@ -3,7 +3,7 @@
 require_relative "test_helper"
 
 require 'smart_message/serializer/json'
-require 'smart_message/broker/stdout'
+require 'smart_message/broker'  # For compatibility
 require 'logger'
 
 module TransportTest

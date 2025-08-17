@@ -57,7 +57,7 @@ module SmartMessage
     ###################################################
     ## Common instance methods
 
-    # SMELL: How does the broker know how to decode a message before
+    # SMELL: How does the transport know how to decode a message before
     #        it knows the message class?  We need a wrapper around
     #        the entire message in a known serialization.  That
     #        wrapper would contain two properties: _sm_header and
@@ -65,7 +65,7 @@ module SmartMessage
 
     # NOTE: to publish a message it must first be encoded using a
     #       serializer.  The receive a subscribed to message it must
-    #       be decoded via a serializer from the broker to be processed.
+    #       be decoded via a serializer from the transport to be processed.
     def encode
       raise Errors::SerializerNotConfigured if serializer_missing?
 
@@ -94,7 +94,7 @@ module SmartMessage
     #########################################################
     ## instance-level configuration
 
-    # Configure the plugins for broker, serializer and logger
+    # Configure the plugins for transport, serializer and logger
     def config(&block)
       instance_eval(&block) if block_given?
     end
@@ -263,7 +263,7 @@ module SmartMessage
       ###################################################
       ## Business Logic resides in the #process method.
 
-      # When a broker receives a subscribed to message it
+      # When a transport receives a subscribed to message it
       # creates an instance of the message and then calls
       # the process method on that instance.
       #
@@ -279,6 +279,6 @@ module SmartMessage
 end # module SmartMessage
 
 require_relative 'header'
-require_relative 'broker'
+require_relative 'transport'
 require_relative 'serializer'
 require_relative 'logger'
