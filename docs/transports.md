@@ -202,7 +202,7 @@ redis_transport = SmartMessage::Transport.create(:redis,
 )
 
 kafka_transport = SmartMessage::Transport.create(:kafka,
-  brokers: ["localhost:9092"]
+  servers: ["localhost:9092"]
 )
 ```
 

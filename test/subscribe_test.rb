@@ -3,7 +3,7 @@
 require_relative "test_helper"
 
 require 'smart_message/serializer/json'
-require 'smart_message/broker'  # For compatibility
+require 'smart_message/transport'
 
 module SubscribeTest
   # A simple example message model
@@ -29,7 +29,7 @@ module SubscribeTest
     def setup
       SubscribeTest::MyMessage.config do
         serializer  SmartMessage::Serializer::JSON.new
-        transport   SmartMessage::Broker::Stdout.new(loopback: true, file: 'subscribe.log')
+        transport   SmartMessage::Transport::StdoutTransport.new(loopback: true, output: 'subscribe.log')
       end
 
       @my_message = SubscribeTest::MyMessage.new(

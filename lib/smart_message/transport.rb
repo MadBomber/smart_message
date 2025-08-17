@@ -9,7 +9,6 @@ require_relative 'transport/memory_transport'
 
 module SmartMessage
   # Transport layer abstraction for SmartMessage
-  # This replaces the legacy Broker concept with a more formal interface
   module Transport
     class << self
       # Get the transport registry instance

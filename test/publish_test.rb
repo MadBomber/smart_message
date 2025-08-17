@@ -3,7 +3,7 @@
 require_relative "test_helper"
 
 require 'smart_message/serializer/json'
-require 'smart_message/broker'  # For compatibility
+require 'smart_message/transport'
 
 module PublishTest
   # A simple example message model
@@ -47,7 +47,7 @@ module PublishTest
     def setup
       PublishTest::CommonMessageConfig.config do
         serializer  SmartMessage::Serializer::JSON.new
-        transport   SmartMessage::Broker::Stdout.new
+        transport   SmartMessage::Transport::StdoutTransport.new
       end
 
       # Uses the publish method defined by the message

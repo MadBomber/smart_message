@@ -12,11 +12,11 @@ Gem::Specification.new do |spec|
   spec.email         = ['dvanhoozer@gmail.com']
 
   spec.homepage      = "https://github.com/MadBomber/smart_message"
-  spec.summary       = %q{An abstraction to protect message content from the backend delivery broker.}
+  spec.summary       = %q{An abstraction to protect message content from the backend delivery transport.}
   spec.description   = <<~DESCRIPTION
     Much like ActiveRecord abstracts the model as an ORM from the
     backend data-store, SmartMessage abstracts the message from
-    its backend broker processes.
+    its backend transport processes.
   DESCRIPTION
 
   # Specify which files should be added to the gem when it is released.

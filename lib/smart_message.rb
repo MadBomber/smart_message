@@ -33,11 +33,7 @@ module SmartMessage
   # end
 
   # encapsulates the message transport plugin
-  module Transport
-    # The super class for the SmartMessage::Transport
-    class Base
-    end
-  end
+  # module Transport is defined in transport.rb
 
   # encapsulates the message code/decode serializer
   module Serializer
@@ -54,6 +50,5 @@ module SmartMessage
   end
 end # module SmartMessage
 
-require_relative './smart_message/broker'  # Legacy compatibility layer
 require_relative './smart_message/serializer'
 require_relative './smart_message/logger'

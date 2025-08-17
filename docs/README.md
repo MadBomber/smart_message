@@ -1,6 +1,6 @@
 # SmartMessage Documentation
 
-Welcome to the comprehensive documentation for SmartMessage, a Ruby gem that abstracts messages from backend broker/transport systems.
+Welcome to the comprehensive documentation for SmartMessage, a Ruby gem that abstracts messages from backend transport systems.
 
 ## Table of Contents
 

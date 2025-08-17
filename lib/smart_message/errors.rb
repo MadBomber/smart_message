@@ -5,8 +5,8 @@
 module SmartMessage
   module Errors
     # A message can't be very smart if it does not know how to
-    # send and receive itself using a message broker (legacy)
-    class BrokerNotConfigured < RuntimeError; end
+    # send and receive itself using a message transport
+    class TransportNotConfigured < RuntimeError; end
 
     # A message can't be very smart if it does not know how to
     # send and receive itself using a message transport

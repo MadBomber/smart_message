@@ -3,11 +3,11 @@
 [![Gem Version](https://badge.fury.io/rb/smart_message.svg)](https://badge.fury.io/rb/smart_message)
 [![Ruby](https://img.shields.io/badge/ruby-%3E%3D%203.0.0-ruby.svg)](https://www.ruby-lang.org/en/)
 
-SmartMessage is a message abstraction framework that decouples business logic from message brokers and serialization formats. Much like ActiveRecord abstracts models from database implementations, SmartMessage abstracts messages from their backend transport and serialization mechanisms.
+SmartMessage is a message abstraction framework that decouples business logic from message transports and serialization formats. Much like ActiveRecord abstracts models from database implementations, SmartMessage abstracts messages from their backend transport and serialization mechanisms.
 
 ## Features
 
-- **Transport Abstraction**: Plugin architecture supporting multiple message brokers (RabbitMQ, Kafka, etc.)
+- **Transport Abstraction**: Plugin architecture supporting multiple message transports (RabbitMQ, Kafka, etc.)
 - **Serialization Flexibility**: Pluggable serialization formats (JSON, MessagePack, etc.)
 - **Dual-Level Configuration**: Class and instance-level plugin overrides for gateway patterns
 - **Concurrent Processing**: Thread-safe message routing using `Concurrent::CachedThreadPool`
@@ -145,7 +145,7 @@ message.config do
 end
 ```
 
-This enables gateway patterns where messages can be received from one broker/serializer and republished to another.
+This enables gateway patterns where messages can be received from one transport/serializer and republished to another.
 
 ## Transport Implementations
 

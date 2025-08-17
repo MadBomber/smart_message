@@ -11,7 +11,7 @@ module SmartMessage
   module Wrapper
     # Every smart message has a common wrapper format that contains
     # information used to support the dispatching of subscribed
-    # messages upon receipt from a broker as well as the serialized
+    # messages upon receipt from a transport as well as the serialized
     # payload.
     class Base < Hashie::Dash
       include Hashie::Extensions::IndifferentAccess

@@ -5,7 +5,7 @@
 module SmartMessage
   # Every smart message has a common header format that contains
   # information used to support the dispatching of subscribed
-  # messages upon receipt from a broker.
+  # messages upon receipt from a transport.
   class Header < Hashie::Dash
     include Hashie::Extensions::IndifferentAccess
     include Hashie::Extensions::MergeInitializer

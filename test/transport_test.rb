@@ -3,7 +3,7 @@
 require_relative "test_helper"
 
 require 'smart_message/serializer/json'
-require 'smart_message/broker'  # For compatibility
+require 'smart_message/transport'
 require 'logger'
 
 module TransportTest
@@ -78,7 +78,7 @@ module TransportTest
 
       # Add in a transport ...
       TransportTest::MyMessage.config do
-        transport SmartMessage::Broker::Stdout.new(loopback: false)
+        transport SmartMessage::Transport::StdoutTransport.new(loopback: false)
       end
 
       assert_equal false, TransportTest::MyMessage.transport.loopback?
@@ -106,7 +106,7 @@ module TransportTest
       refute TransportTest::MyMessage.serializer_missing?
 
 
-      assert_equal  SmartMessage::Broker::Stdout,
+      assert_equal  SmartMessage::Transport::StdoutTransport,
                     TransportTest::MyMessage.transport.class
 
       assert_equal  SmartMessage::Serializer::JSON,
@@ -153,9 +153,9 @@ module TransportTest
 
       # Set class-level plugins to known configuration
       TransportTest::MyMessage.config do
-        transport   SmartMessage::Broker::Stdout.new(
+        transport   SmartMessage::Transport::StdoutTransport.new(
                       loopback: false,
-                      file:     'transport_test.log'
+                      output:   'transport_test.log'
                     )
         serializer  SmartMessage::Serializer::JSON.new
       end
@@ -193,7 +193,7 @@ module TransportTest
 
       # Set class-level plugins to known configuration
       TransportTest::MyMessage.config do
-        transport   SmartMessage::Broker::Stdout.new(loopback: true)
+        transport   SmartMessage::Transport::StdoutTransport.new(loopback: true)
         serializer  SmartMessage::Serializer::JSON.new
       end
 
