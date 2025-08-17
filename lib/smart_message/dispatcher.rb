@@ -113,7 +113,6 @@ module SmartMessage
     # message_payload is a string buffer that is a serialized
     # SmartMessage
     def route(message_header, message_payload)
-      who_called = caller
       message_klass = message_header.message_class
       return nil if @subscribers[message_klass].empty?
       @subscribers[message_klass].each do |message_processor|
@@ -123,15 +122,15 @@ module SmartMessage
           target_klass  = parts[0]
           class_method  = parts[1]
           begin
-            result = target_klass.constantize
+            target_klass.constantize
                         .method(class_method)
                         .call(message_header, message_payload)
           rescue Exception => e
             # TODO: Add proper exception logging
             # Exception details: #{e.message}
             # Processor: #{message_processor}
+            puts "Error processing message: #{e.message}" if $DEBUG
           end
-          # TODO: Add proper result logging
         end
       end
     end

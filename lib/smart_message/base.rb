@@ -86,6 +86,7 @@ module SmartMessage
       transport.publish(_sm_header, payload)
 
       SS.add(_sm_header.message_class, 'publish')
+      SS.get(_sm_header.message_class, 'publish')
     end # def publish
 
 

@@ -16,7 +16,7 @@ module SmartMessage::Serializer
       # TODO: so how do I know to which message class this payload
       #       belongs?  The class needs to be in some kind of message
       #       header.
-      a_hash = ::JSON.parse payload
+      ::JSON.parse payload
     end
   end # class JSON < Base
 end # module SmartMessage::Serializer

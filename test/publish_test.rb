@@ -28,7 +28,7 @@ module PublishTest
     end
   end # class MyMessage < SmartMessage::Base
 
-  class MyBorkerMessage < CommonMessageConfig
+  class MyTransportMessage < CommonMessageConfig
     property :foo
     property :bar
     property :baz
@@ -47,7 +47,7 @@ module PublishTest
     def setup
       PublishTest::CommonMessageConfig.config do
         serializer  SmartMessage::Serializer::JSON.new
-        broker      SmartMessage::Broker::Stdout.new
+        transport   SmartMessage::Broker::Stdout.new
       end
 
       # Uses the publish method defined by the message
@@ -58,7 +58,7 @@ module PublishTest
         )
 
       # Uses the publish method from SmartMessage::Base
-      @my_broker_message = PublishTest::MyBorkerMessage.new(
+      @my_transport_message = PublishTest::MyTransportMessage.new(
           foo: 'foo',
           bar: 'bar',
           baz: 'baz'
@@ -84,21 +84,21 @@ module PublishTest
 
 
     def test_020_base_publish_method
-      PublishTest::MyBorkerMessage.subscribe
+      PublishTest::MyTransportMessage.subscribe
 
-      @my_broker_message.id  = 42
+      @my_transport_message.id  = 42
       how_many        = 10
 
-      SS.reset('PublishTest::MyBorkerMessage', 'publish')
+      SS.reset('PublishTest::MyTransportMessage', 'publish')
 
       how_many.times do |message_id|
-        @my_broker_message.id = message_id
+        @my_transport_message.id = message_id
         # NOTE: message_id is zero-based but the count of published messages
         # is being returned.
-        assert_equal message_id+1, @my_broker_message.publish
+        assert_equal message_id+1, @my_transport_message.publish
       end
 
-      assert_equal how_many, SS.get('PublishTest::MyBorkerMessage', 'publish')
+      assert_equal how_many, SS.get('PublishTest::MyTransportMessage', 'publish')
     end
   end # class Test < Minitest::Test
 end # module PublishTest

@@ -29,7 +29,7 @@ module SubscribeTest
     def setup
       SubscribeTest::MyMessage.config do
         serializer  SmartMessage::Serializer::JSON.new
-        broker      SmartMessage::Broker::Stdout.new(loopback: true, file: 'subscribe.log')
+        transport   SmartMessage::Broker::Stdout.new(loopback: true, file: 'subscribe.log')
       end
 
       @my_message = SubscribeTest::MyMessage.new(

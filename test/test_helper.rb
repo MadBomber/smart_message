@@ -20,7 +20,8 @@ require 'ap'
 require 'debug_me'
 include DebugMe
 
-DebugMeDefaultOptions = {
+unless defined?(DebugMeDefaultOptions)
+  DebugMeDefaultOptions = {
   tag: 'DEBUG:',   # A tag to prepend to each output line
   time: true,      # Include a time-stamp in front of the tag
   header: true,    # Print a header string before printing the variables
@@ -29,4 +30,5 @@ DebugMeDefaultOptions = {
   cvar: true,      # Include class variables in the output
   cconst: true,    # Include class constants
   file: File.open('test.log', 'a')    # The output file
-}
+  }
+end
