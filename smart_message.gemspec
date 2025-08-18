@@ -39,6 +39,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'hashie'
   spec.add_dependency 'activesupport'
   spec.add_dependency 'concurrent-ruby'
+  spec.add_dependency 'redis'
 
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'rake'

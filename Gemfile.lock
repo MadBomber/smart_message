@@ -1,10 +1,11 @@
 PATH
   remote: .
   specs:
-    smart_message (0.0.2)
+    smart_message (0.0.3)
       activesupport
       concurrent-ruby
       hashie
+      redis
 
 GEM
   remote: https://rubygems.org/
@@ -41,6 +42,10 @@ GEM
     mutex_m (0.3.0)
     power_assert (2.0.5)
     rake (13.3.0)
+    redis (5.4.1)
+      redis-client (>= 0.22.0)
+    redis-client (0.25.2)
+      connection_pool
     securerandom (0.4.1)
     shoulda (4.0.0)
       shoulda-context (~> 2.0)

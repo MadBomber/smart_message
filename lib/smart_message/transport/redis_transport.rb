@@ -133,26 +133,32 @@ module SmartMessage
       def subscribe_to_channels
         return unless @subscribed_channels.any?
         
-        @redis_sub.subscribe(*@subscribed_channels) do |on|
-          on.message do |channel, message_payload|
-            # Create a header with the channel as message_class
-            message_header = SmartMessage::Header.new(
-              message_class: channel,
-              uuid: SecureRandom.uuid,
-              published_at: Time.now,
-              publisher_pid: 'redis_subscriber'
-            )
+        begin
+          @redis_sub.subscribe(*@subscribed_channels) do |on|
+            on.message do |channel, message_payload|
+              # Create a header with the channel as message_class
+              message_header = SmartMessage::Header.new(
+                message_class: channel,
+                uuid: SecureRandom.uuid,
+                published_at: Time.now,
+                publisher_pid: 'redis_subscriber'
+              )
+              
+              receive(message_header, message_payload)
+            end
             
-            receive(message_header, message_payload)
+            on.subscribe do |channel, subscriptions|
+              puts "Subscribed to Redis channel: #{channel} (#{subscriptions} total)" if @options[:debug]
+            end
+            
+            on.unsubscribe do |channel, subscriptions|
+              puts "Unsubscribed from Redis channel: #{channel} (#{subscriptions} total)" if @options[:debug]
+            end
           end
-          
-          on.subscribe do |channel, subscriptions|
-            puts "Subscribed to Redis channel: #{channel} (#{subscriptions} total)" if @options[:debug]
-          end
-          
-          on.unsubscribe do |channel, subscriptions|
-            puts "Unsubscribed from Redis channel: #{channel} (#{subscriptions} total)" if @options[:debug]
-          end
+        rescue => e
+          # Silently handle connection errors during subscription
+          puts "Redis subscription error: #{e.class.name}" if @options[:debug]
+          retry_subscriber if @running
         end
       end
 

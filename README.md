@@ -109,6 +109,7 @@ Pluggable message delivery system with built-in implementations:
 
 - **StdoutTransport**: Development and testing transport
 - **MemoryTransport**: In-memory queuing for testing
+- **RedisTransport**: Redis pub/sub transport for production messaging
 - **Custom Transports**: Implement `SmartMessage::Transport::Base`
 
 #### Serializer System
@@ -177,35 +178,85 @@ puts transport.all_messages
 transport.process_all  # Process all pending messages
 ```
 
+### Redis Transport (Production)
+
+```ruby
+# Basic Redis configuration
+transport = SmartMessage::Transport.create(:redis, 
+  url: 'redis://localhost:6379',
+  db: 0
+)
+
+# Production configuration with custom options
+transport = SmartMessage::Transport.create(:redis,
+  url: 'redis://prod-redis:6379',
+  db: 1,
+  auto_subscribe: true,
+  reconnect_attempts: 5,
+  reconnect_delay: 2
+)
+
+# Configure message class to use Redis
+MyMessage.config do
+  transport SmartMessage::Transport.create(:redis, url: 'redis://localhost:6379')
+  serializer SmartMessage::Serializer::JSON.new
+end
+
+# Subscribe to messages (uses message class name as Redis channel)
+MyMessage.subscribe
+
+# Publish messages (automatically publishes to Redis channel named "MyMessage")
+message = MyMessage.new(data: "Hello Redis!")
+message.publish
+```
+
+The Redis transport uses the message class name as the Redis channel name, enabling automatic routing of messages to their appropriate handlers.
+
 ### Custom Transport
 
 ```ruby
-class RedisTransport < SmartMessage::Transport::Base
+class WebhookTransport < SmartMessage::Transport::Base
   def default_options
-    { redis_url: "redis://localhost:6379" }
+    { 
+      webhook_url: "https://api.example.com/webhooks",
+      timeout: 30,
+      retries: 3
+    }
   end
 
   def configure
-    @redis = Redis.new(url: @options[:redis_url])
+    require 'net/http'
+    @uri = URI(@options[:webhook_url])
   end
 
   def publish(message_header, message_payload)
-    channel = message_header.message_class
-    @redis.publish(channel, message_payload)
+    http = Net::HTTP.new(@uri.host, @uri.port)
+    http.use_ssl = @uri.scheme == 'https'
+    
+    request = Net::HTTP::Post.new(@uri)
+    request['Content-Type'] = 'application/json'
+    request['X-Message-Class'] = message_header.message_class
+    request.body = message_payload
+    
+    response = http.request(request)
+    raise "Webhook failed: #{response.code}" unless response.code.to_i < 400
   end
 
   def subscribe(message_class, process_method)
     super
-    # Set up Redis subscription for message_class
+    # For webhooks, subscription would typically be configured 
+    # externally on the webhook provider's side
   end
 end
 
 # Register the transport
-SmartMessage::Transport.register(:redis, RedisTransport)
+SmartMessage::Transport.register(:webhook, WebhookTransport)
 
 # Use the transport
 MyMessage.config do
-  transport SmartMessage::Transport.create(:redis, redis_url: "redis://prod:6379")
+  transport SmartMessage::Transport.create(:webhook, 
+    webhook_url: "https://api.myservice.com/messages"
+  )
 end
 ```
 

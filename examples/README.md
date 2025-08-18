@@ -11,6 +11,7 @@ cd examples
 ruby 01_point_to_point_orders.rb
 ruby 02_publish_subscribe_events.rb  
 ruby 03_many_to_many_chat.rb
+ruby 04_redis_smart_home_iot.rb
 ```
 
 ## Examples Overview
@@ -97,6 +98,46 @@ ruby 03_many_to_many_chat.rb
 - Service capabilities and discovery
 - Complex subscription management
 
+---
+
+### 4. Redis Transport IoT Example (Production Messaging)
+**File:** `04_redis_smart_home_iot.rb`
+
+**Scenario:** Smart home IoT dashboard with multiple device types communicating through Redis pub/sub channels, demonstrating production-ready messaging patterns.
+
+**Key Features:**
+- Real Redis pub/sub transport (falls back to memory if Redis unavailable)
+- Multiple device types with realistic sensor data
+- Automatic Redis channel routing using message class names
+- Real-time monitoring and alerting system
+- Production-ready error handling and reconnection
+
+**Messages Used:**
+- `SensorDataMessage` - IoT device sensor readings and status
+- `DeviceCommandMessage` - Commands sent to control devices
+- `AlertMessage` - Critical notifications and warnings
+- `DashboardStatusMessage` - System-wide status updates
+
+**Services:**
+- `SmartThermostat` - Temperature monitoring and control
+- `SecurityCamera` - Motion detection and recording
+- `SmartDoorLock` - Access control and status monitoring
+- `IoTDashboard` - Centralized monitoring and status aggregation
+
+**What You'll Learn:**
+- Production Redis transport configuration and usage
+- Automatic Redis channel routing (each message type → separate channel)
+- IoT device simulation and real-time data streaming
+- Event-driven alert systems
+- Scalable pub/sub architecture for distributed systems
+- Error handling and graceful fallbacks
+
+**Redis Channels Created:**
+- `SensorDataMessage` - Device sensor readings
+- `DeviceCommandMessage` - Device control commands  
+- `AlertMessage` - System alerts and notifications
+- `DashboardStatusMessage` - Dashboard status updates
+
 ## Message Patterns Demonstrated
 
 ### Request-Response Pattern
@@ -129,7 +170,7 @@ alice.leave_room('general')        # Stop receiving messages
 
 ## Transport Configurations
 
-All examples use `StdoutTransport` with loopback enabled for demonstration purposes:
+Most examples use `StdoutTransport` with loopback enabled for demonstration purposes:
 
 ```ruby
 config do
@@ -138,8 +179,21 @@ config do
 end
 ```
 
+**Exception:** The IoT example (`04_redis_smart_home_iot.rb`) uses real Redis transport:
+
+```ruby
+config do
+  transport SmartMessage::Transport.create(:redis,
+    url: 'redis://localhost:6379',
+    db: 1,
+    auto_subscribe: true
+  )
+  serializer SmartMessage::Serializer::JSON.new
+end
+```
+
 **For Production Use:**
-- Replace `StdoutTransport` with production transports (Redis, RabbitMQ, Kafka)
+- Use production transports like Redis (see example #4), RabbitMQ, or Kafka
 - Configure appropriate serializers for your data needs
 - Add proper error handling and logging
 - Implement monitoring and metrics
@@ -242,6 +296,7 @@ Each example includes:
    ruby examples/01_point_to_point_orders.rb
    ruby examples/02_publish_subscribe_events.rb
    ruby examples/03_many_to_many_chat.rb
+   ruby examples/04_redis_smart_home_iot.rb  # Requires Redis server
    ```
 
 3. **Expected output:**
@@ -293,7 +348,7 @@ end
 When adapting these examples for production:
 
 1. **Transport Selection:**
-   - Use production message brokers (Redis, RabbitMQ, Kafka)
+   - Use production message brokers (Redis is built-in - see example #4, RabbitMQ, Kafka)
    - Configure connection pooling and failover
    - Implement proper error handling
 
