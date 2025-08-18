@@ -9,37 +9,37 @@ The smart home system consists of three types of IoT devices and a central dashb
 ```mermaid
 graph TB
     %% IoT Devices
-    THERM[🌡️ Smart Thermostat<br/>THERM-001<br/>Living Room]
-    CAM[📹 Security Camera<br/>CAM-001<br/>Front Door]
-    LOCK[🚪 Smart Door Lock<br/>LOCK-001<br/>Main Entrance]
-    DASH[📊 IoT Dashboard<br/>System Monitor]
+    THERM["🌡️ Smart Thermostat<br/>THERM-001<br/>Living Room"]
+    CAM["📹 Security Camera<br/>CAM-001<br/>Front Door"]
+    LOCK["🚪 Smart Door Lock<br/>LOCK-001<br/>Main Entrance"]
+    DASH["📊 IoT Dashboard<br/>System Monitor"]
 
     %% Redis Channels
-    subgraph REDIS [Redis Pub/Sub Channels]
-        SENSOR[SensorDataMessage<br/>Temperature, Motion, Status<br/>Battery Levels]
-        COMMAND[DeviceCommandMessage<br/>set_temperature, start_recording<br/>lock/unlock, get_status]
-        ALERT[AlertMessage<br/>Motion Detected, Battery Low<br/>High Temperature]
-        STATUS[DashboardStatusMessage<br/>System Status, Device Counts<br/>Alert Summaries]
+    subgraph REDIS ["Redis Pub/Sub Channels"]
+        SENSOR["SensorDataMessage<br/>Temperature, Motion, Status<br/>Battery Levels"]
+        COMMAND["DeviceCommandMessage<br/>set_temperature, start_recording<br/>lock/unlock, get_status"]
+        ALERT["AlertMessage<br/>Motion Detected, Battery Low<br/>High Temperature"]
+        STATUS["DashboardStatusMessage<br/>System Status, Device Counts<br/>Alert Summaries"]
     end
 
-    %% Device Publishing (Red arrows)
-    THERM -.->|Publishes Temperature Data| SENSOR
-    CAM -.->|Publishes Motion Data| SENSOR
-    LOCK -.->|Publishes Lock Status| SENSOR
-    CAM -.->|Publishes Motion Alerts| ALERT
-    THERM -.->|Publishes High Temp Alerts| ALERT
-    LOCK -.->|Publishes Battery Low Alerts| ALERT
-    DASH -.->|Publishes System Status| STATUS
-    DASH -.->|Publishes Device Commands| COMMAND
+    %% Device Publishing
+    THERM -.->|"Temperature Data"| SENSOR
+    CAM -.->|"Motion Data"| SENSOR
+    LOCK -.->|"Lock Status"| SENSOR
+    CAM -.->|"Motion Alerts"| ALERT
+    THERM -.->|"High Temp Alerts"| ALERT
+    LOCK -.->|"Battery Low Alerts"| ALERT
+    DASH -.->|"System Status"| STATUS
+    DASH -.->|"Device Commands"| COMMAND
 
-    %% Device Subscribing (Blue arrows)
-    COMMAND -->|set_temperature commands| THERM
-    COMMAND -->|start/stop_recording commands| CAM
-    COMMAND -->|lock/unlock commands| LOCK
-    SENSOR -->|All sensor data| DASH
-    COMMAND -->|All commands (logging)| DASH
-    ALERT -->|All alerts| DASH
-    STATUS -->|Status updates| DASH
+    %% Device Subscribing
+    COMMAND -->|"set_temperature"| THERM
+    COMMAND -->|"start/stop recording"| CAM
+    COMMAND -->|"lock/unlock"| LOCK
+    SENSOR -->|"All sensor data"| DASH
+    COMMAND -->|"Command logging"| DASH
+    ALERT -->|"All alerts"| DASH
+    STATUS -->|"Status updates"| DASH
 
     %% Styling
     classDef deviceStyle fill:#ff6b6b,stroke:#c0392b,stroke-width:2px,color:#fff
@@ -89,15 +89,15 @@ sequenceDiagram
     participant Cam as Camera
     participant Lock as Door Lock
 
-    App->>Redis: DeviceCommandMessage<br/>{device_id: "THERM-001", command: "set_temperature"}
-    Redis->>Therm: ✅ Processes (THERM-* prefix match)
-    Redis->>Cam: ❌ Ignores (not CAM-* prefix)
-    Redis->>Lock: ❌ Ignores (not LOCK-* prefix)
+    App->>Redis: DeviceCommandMessage<br/>device_id THERM-001 set_temperature
+    Redis->>Therm: ✅ Processes THERM prefix match
+    Redis->>Cam: ❌ Ignores not CAM prefix
+    Redis->>Lock: ❌ Ignores not LOCK prefix
     
-    App->>Redis: DeviceCommandMessage<br/>{device_id: "CAM-001", command: "start_recording"}
-    Redis->>Therm: ❌ Ignores (not THERM-* prefix)
-    Redis->>Cam: ✅ Processes (CAM-* prefix match)
-    Redis->>Lock: ❌ Ignores (not LOCK-* prefix)
+    App->>Redis: DeviceCommandMessage<br/>device_id CAM-001 start_recording
+    Redis->>Therm: ❌ Ignores not THERM prefix
+    Redis->>Cam: ✅ Processes CAM prefix match
+    Redis->>Lock: ❌ Ignores not LOCK prefix
 ```
 
 **Device Command Filtering Rules:**
