@@ -7,7 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.0.1] 2025-08-17
+## [0.0.2] - 2025-08-17
+
+### Added
+- **Property Descriptions**: New property-level description system for message documentation
+  - Add descriptions to individual properties using `property :name, description: "text"`
+  - Access descriptions programmatically via `property_description(:name)` method
+  - Get all property descriptions with `property_descriptions` method
+  - List properties with descriptions using `described_properties` method
+  - Implemented via new `SmartMessage::PropertyDescriptions` module
+- **Class-Level Descriptions**: New message class documentation system
+  - Set class descriptions using `description "text"` class method
+  - Retrieve descriptions with `MyMessage.description`
+  - Can be set within config blocks or after class definition
+  - Useful for API documentation and code generation tools
+- **Enhanced Documentation**
+  - Added comprehensive property system documentation (`docs/properties.md`)
+  - Documents all Hashie::Dash options and SmartMessage enhancements
+  - Includes examples of property transformations, coercions, and translations
+  - Added to documentation table of contents
+
+### Changed
+- Updated README.md with property and class description examples
+- Enhanced SmartMessage::Base with property introspection capabilities
+
+### Tests
+- Added comprehensive test suite for property descriptions (`test/property_descriptions_test.rb`)
+- Added test suite for class-level descriptions (`test/description_test.rb`)
+- Updated base_test.rb with class description test cases
+- All tests passing with full backward compatibility
+
+## [0.0.1] - 2025-08-17
 
 ### Added
 - Comprehensive example applications demonstrating different messaging patterns
