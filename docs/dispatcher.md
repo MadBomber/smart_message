@@ -28,26 +28,48 @@ Located at `lib/smart_message/dispatcher.rb:11-147`, the dispatcher is the centr
 
 ### Adding Subscriptions
 
+SmartMessage supports multiple subscription patterns:
+
 ```ruby
-# Basic subscription - uses default process method
+# 1. Default handler - uses self.process method
 MyMessage.subscribe
 # Registers "MyMessage.process" as the handler
 
-# Custom process method
-MyMessage.subscribe("MyMessage.custom_handler")
-# Registers "MyMessage.custom_handler" as the handler
+# 2. Custom method handler
+MyMessage.subscribe("MyService.handle_message")
+# Registers "MyService.handle_message" as the handler
+
+# 3. Block handler (NEW!)
+handler_id = MyMessage.subscribe do |header, payload|
+  puts "Processing: #{JSON.parse(payload)}"
+end
+# Registers a proc handler with generated ID like "MyMessage.proc_abc123"
+
+# 4. Proc handler (NEW!)
+my_proc = proc { |header, payload| log_message(payload) }
+proc_id = MyMessage.subscribe(my_proc)
+# Registers the proc with generated ID
+
+# 5. Lambda handler (NEW!)
+my_lambda = lambda { |header, payload| validate_message(payload) }
+lambda_id = MyMessage.subscribe(my_lambda)
 
 # Multiple handlers for the same message
-MyMessage.subscribe("MyMessage.handler_one")
-MyMessage.subscribe("MyMessage.handler_two")
-# Both handlers will receive the message
+MyMessage.subscribe("MyMessage.audit")
+MyMessage.subscribe("MyMessage.notify")
+MyMessage.subscribe { |h,p| puts "Quick log" }
+# All handlers will receive the message
 ```
 
 ### Removing Subscriptions
 
 ```ruby
-# Remove specific handler
+# Remove specific method handler
 MyMessage.unsubscribe("MyMessage.custom_handler")
+
+# Remove specific proc/block handler using returned ID
+block_id = MyMessage.subscribe { |h,p| puts p }
+MyMessage.unsubscribe(block_id)  # Cleans up proc from registry too
 
 # Remove ALL handlers for a message class
 MyMessage.unsubscribe!
@@ -101,7 +123,7 @@ end
 
 ### 3. Concurrent Processing
 
-Each handler is processed in its own thread:
+Each handler is processed in its own thread, with support for both method and proc handlers:
 
 ```ruby
 @subscribers[message_klass].each do |message_processor|
@@ -109,20 +131,34 @@ Each handler is processed in its own thread:
   
   @router_pool.post do
     # This runs in a separate thread
-    parts = message_processor.split('.')
-    target_klass = parts[0]  # "MyMessage"
-    class_method = parts[1]  # "process"
-    
     begin
-      result = target_klass.constantize
-                  .method(class_method)
-                  .call(message_header, message_payload)
+      # Check if this is a proc handler or a regular method call
+      if proc_handler?(message_processor)
+        # Call the proc handler via SmartMessage::Base
+        SmartMessage::Base.call_proc_handler(message_processor, message_header, message_payload)
+      else
+        # Original method call logic
+        parts = message_processor.split('.')
+        target_klass = parts[0]  # "MyMessage" 
+        class_method = parts[1]  # "process"
+        
+        target_klass.constantize
+                    .method(class_method)
+                    .call(message_header, message_payload)
+      end
     rescue Exception => e
       # Error handling - doesn't crash the dispatcher
+      puts "Error processing message: #{e.message}" if $DEBUG
     end
   end
 end
 ```
+
+**Handler Types Processed:**
+- **Method handlers**: `"ClassName.method_name"` → resolved via constantize
+- **Proc handlers**: `"ClassName.proc_abc123"` → looked up in proc registry  
+- **Block handlers**: `"ClassName.proc_def456"` → treated as proc handlers
+- **Lambda handlers**: `"ClassName.proc_ghi789"` → treated as proc handlers
 
 ## Thread Pool Management
 

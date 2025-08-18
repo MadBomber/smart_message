@@ -12,6 +12,7 @@ ruby 01_point_to_point_orders.rb
 ruby 02_publish_subscribe_events.rb  
 ruby 03_many_to_many_chat.rb
 ruby 04_redis_smart_home_iot.rb
+ruby 05_proc_handlers.rb
 ```
 
 ## Examples Overview
@@ -137,6 +138,65 @@ ruby 04_redis_smart_home_iot.rb
 - `DeviceCommandMessage` - Device control commands  
 - `AlertMessage` - System alerts and notifications
 - `DashboardStatusMessage` - Dashboard status updates
+
+---
+
+### 5. Proc and Block Handler Example (Flexible Message Processing)
+**File:** `05_proc_handlers.rb`
+
+**Scenario:** Notification system demonstrating all available message handler types in SmartMessage, showcasing the flexibility of the new proc and block subscription patterns.
+
+**Key Features:**
+- Multiple handler types in a single application
+- Default method handlers alongside new proc/block handlers
+- Dynamic handler management (subscription and unsubscription)
+- Practical comparison of different handler approaches
+
+**Messages Used:**
+- `NotificationMessage` - System notifications with type, title, message, and user info
+
+**Handler Types Demonstrated:**
+- `Default Handler` - Traditional `self.process` method
+- `Block Handler` - Inline logic using `subscribe do |h,p|...end`
+- `Proc Handler` - Reusable proc objects for cross-cutting concerns
+- `Lambda Handler` - Strict parameter validation with functional style
+- `Method Handler` - Organized service class methods
+
+**What You'll Learn:**
+- How to choose the right handler type for different use cases
+- Block handlers for simple, subscription-specific logic
+- Proc handlers for reusable cross-message functionality
+- Lambda handlers for strict functional programming patterns
+- Handler lifecycle management and cleanup
+- Performance characteristics of different handler types
+
+**Handler Patterns Shown:**
+```ruby
+# Default handler
+class NotificationMessage < SmartMessage::Base
+  def self.process(header, payload)
+    # Built-in processing
+  end
+end
+
+# Block handler - inline logic
+NotificationMessage.subscribe do |header, payload|
+  # Simple, specific processing
+end
+
+# Proc handler - reusable across message types
+audit_logger = proc { |header, payload| log_audit(payload) }
+NotificationMessage.subscribe(audit_logger)
+
+# Method handler - organized service logic
+NotificationMessage.subscribe("NotificationService.handle")
+```
+
+**Benefits Demonstrated:**
+- **Flexibility**: Multiple ways to handle the same message type
+- **Reusability**: Proc handlers can be shared across message classes
+- **Maintainability**: Choose the right abstraction level for each need
+- **Performance**: Understand overhead of different handler approaches
 
 ## Message Patterns Demonstrated
 

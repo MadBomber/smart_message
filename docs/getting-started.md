@@ -64,11 +64,27 @@ end
 
 ### 2. Subscribe to Messages
 
-Before publishing, set up a subscription to receive messages:
+Before publishing, set up a subscription to receive messages. SmartMessage provides several ways to handle incoming messages:
 
 ```ruby
-# Subscribe to process incoming WelcomeMessage instances
+# 1. Default handler (uses the self.process method defined above)
 WelcomeMessage.subscribe
+
+# 2. Block handler (inline processing logic)
+WelcomeMessage.subscribe do |header, payload|
+  data = JSON.parse(payload)
+  puts "👋 Quick welcome for #{data['user_name']}"
+end
+
+# 3. Proc handler (reusable processing logic)
+welcome_processor = proc do |header, payload|
+  data = JSON.parse(payload)
+  EmailService.send_welcome_email(data['email'], data['user_name'])
+end
+WelcomeMessage.subscribe(welcome_processor)
+
+# 4. Custom method handler
+WelcomeMessage.subscribe("UserService.handle_welcome")
 ```
 
 ### 3. Create and Publish a Message
@@ -152,6 +168,52 @@ Serializers handle message encoding/decoding:
 # JSON serialization (built-in)
 serializer SmartMessage::Serializer::JSON.new
 ```
+
+### Message Handlers
+
+SmartMessage supports four types of message handlers to give you flexibility in how you process messages:
+
+```ruby
+class OrderMessage < SmartMessage::Base
+  # Define your message properties
+  property :order_id
+  property :amount
+  
+  # Default handler - processed when no custom handler specified
+  def self.process(header, payload)
+    puts "Default processing for order"
+  end
+end
+
+# 1. Default handler (uses self.process)
+OrderMessage.subscribe
+
+# 2. Block handler - great for simple, inline logic
+OrderMessage.subscribe do |header, payload|
+  data = JSON.parse(payload)
+  puts "Block handler: Processing order #{data['order_id']}"
+end
+
+# 3. Proc handler - reusable across message types
+audit_logger = proc do |header, payload|
+  puts "Audit: #{header.message_class} at #{header.published_at}"
+end
+OrderMessage.subscribe(audit_logger)
+
+# 4. Method handler - organized in service classes
+class OrderService
+  def self.process_order(header, payload)
+    puts "Service processing order"
+  end
+end
+OrderMessage.subscribe("OrderService.process_order")
+```
+
+**When to use each type:**
+- **Default**: Simple built-in processing for the message type
+- **Block**: Quick inline logic specific to one subscription
+- **Proc**: Reusable handlers that work across multiple message types
+- **Method**: Complex business logic organized in service classes
 
 ## Next Steps
 

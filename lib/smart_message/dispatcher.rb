@@ -118,13 +118,20 @@ module SmartMessage
       @subscribers[message_klass].each do |message_processor|
         SS.add(message_klass, message_processor, 'routed' )
         @router_pool.post do
-          parts         = message_processor.split('.')
-          target_klass  = parts[0]
-          class_method  = parts[1]
           begin
-            target_klass.constantize
-                        .method(class_method)
-                        .call(message_header, message_payload)
+            # Check if this is a proc handler or a regular method call
+            if proc_handler?(message_processor)
+              # Call the proc handler via SmartMessage::Base
+              SmartMessage::Base.call_proc_handler(message_processor, message_header, message_payload)
+            else
+              # Original method call logic
+              parts         = message_processor.split('.')
+              target_klass  = parts[0]
+              class_method  = parts[1]
+              target_klass.constantize
+                          .method(class_method)
+                          .call(message_header, message_payload)
+            end
           rescue Exception => e
             # TODO: Add proper exception logging
             # Exception details: #{e.message}
@@ -133,6 +140,15 @@ module SmartMessage
           end
         end
       end
+    end
+
+    private
+
+    # Check if a message processor is a proc handler
+    # @param message_processor [String] The message processor identifier
+    # @return [Boolean] True if this is a proc handler
+    def proc_handler?(message_processor)
+      SmartMessage::Base.proc_handler?(message_processor)
     end
 
 

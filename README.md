@@ -7,12 +7,14 @@ SmartMessage is a message abstraction framework that decouples business logic fr
 
 ## Features
 
-- **Transport Abstraction**: Plugin architecture supporting multiple message transports (RabbitMQ, Kafka, etc.)
+- **Transport Abstraction**: Plugin architecture supporting multiple message transports (Redis, RabbitMQ, Kafka, etc.)
 - **Serialization Flexibility**: Pluggable serialization formats (JSON, MessagePack, etc.)
+- **Flexible Message Handlers**: Multiple subscription patterns - default methods, custom methods, blocks, procs, and lambdas
 - **Dual-Level Configuration**: Class and instance-level plugin overrides for gateway patterns
 - **Concurrent Processing**: Thread-safe message routing using `Concurrent::CachedThreadPool`
 - **Built-in Statistics**: Message processing metrics and monitoring
 - **Development Tools**: STDOUT and in-memory transports for testing
+- **Production Ready**: Redis transport with automatic reconnection and error handling
 
 ## Installation
 
@@ -85,12 +87,33 @@ order.publish
 
 ### 3. Subscribe to Messages
 
+SmartMessage supports multiple ways to handle incoming messages:
+
 ```ruby
-# Subscribe to process incoming OrderMessage instances
+# 1. Default handler (uses self.process method)
 OrderMessage.subscribe
 
-# Or specify a custom processing method
-OrderMessage.subscribe("OrderMessage.custom_processor")
+# 2. Custom method handler
+OrderMessage.subscribe("PaymentService.process_order")
+
+# 3. Block handler (NEW!)
+OrderMessage.subscribe do |header, payload|
+  order_data = JSON.parse(payload)
+  puts "Quick processing: Order #{order_data['order_id']}"
+end
+
+# 4. Proc handler (NEW!)
+order_processor = proc do |header, payload|
+  order_data = JSON.parse(payload)
+  EmailService.send_confirmation(order_data['customer_id'])
+end
+OrderMessage.subscribe(order_processor)
+
+# 5. Lambda handler (NEW!)
+audit_handler = lambda do |header, payload|
+  AuditLog.record("Order processed at #{header.published_at}")
+end
+OrderMessage.subscribe(audit_handler)
 ```
 
 ## Architecture
@@ -265,8 +288,12 @@ end
 1. **Definition**: Create message class inheriting from `SmartMessage::Base`
 2. **Configuration**: Set transport, serializer, and logger plugins
 3. **Publishing**: Message instance is encoded and sent through transport
-4. **Subscription**: Message classes register with dispatcher for processing
-5. **Processing**: Received messages are decoded and `process` method is called
+4. **Subscription**: Message classes register handlers with dispatcher for processing
+   - Default handlers (`self.process` method)
+   - Custom method handlers (`"ClassName.method_name"`)
+   - Block handlers (`subscribe do |h,p|...end`)
+   - Proc/Lambda handlers (`subscribe(proc {...})`)
+5. **Processing**: Received messages are decoded and routed to registered handlers
 
 ## Advanced Usage
 

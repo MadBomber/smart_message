@@ -40,10 +40,12 @@ SmartMessage is designed around the principle that **messages should be independ
                                 │
                                 ▼
                     ┌─────────────────────┐
-                    │  Business Logic     │
+                    │  Message Handlers   │
                     │                     │
-                    │ • process() method  │
-                    │ • Domain logic      │
+                    │ • Default handler   │
+                    │ • Block handlers    │
+                    │ • Proc handlers     │
+                    │ • Method handlers   │
                     └─────────────────────┘
 ```
 
@@ -193,20 +195,51 @@ transport.receive(header, payload)
 # 1. Routes to dispatcher
 # 2. Dispatcher finds subscribers
 # 3. Spawns thread for processing
-# 4. Calls OrderMessage.process(header, payload)
+# 4. Calls registered message handlers
 ```
 
-### 5. Processing Phase
+### 5. Message Handler Processing
+
+SmartMessage supports multiple handler types, routed through the dispatcher:
+
 ```ruby
+# Default handler (self.process method)
 def self.process(message_header, message_payload)
-  # 1. Decode payload
   data = JSON.parse(message_payload)
   order = new(data)
-  
-  # 2. Execute business logic
   fulfill_order(order)
 end
+
+# Block handler (inline processing)
+OrderMessage.subscribe do |header, payload|
+  data = JSON.parse(payload)
+  quick_processing(data)
+end
+
+# Proc handler (reusable across message types)
+audit_proc = proc do |header, payload|
+  AuditService.log_message(header.message_class, payload)
+end
+OrderMessage.subscribe(audit_proc)
+
+# Method handler (service class processing)
+class OrderService
+  def self.process_order(header, payload)
+    data = JSON.parse(payload)
+    complex_business_logic(data)
+  end
+end
+OrderMessage.subscribe("OrderService.process_order")
 ```
+
+**Handler Routing Process:**
+1. Dispatcher receives message and header
+2. Looks up all registered handlers for message class
+3. For each handler:
+   - **String handlers**: Resolves to class method via constantize
+   - **Proc handlers**: Calls proc directly from registry
+4. Executes handlers in parallel threads
+5. Collects statistics and handles errors
 
 ## Plugin System Architecture
 
