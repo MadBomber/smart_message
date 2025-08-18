@@ -19,6 +19,14 @@ Gem::Specification.new do |spec|
     its backend transport processes.
   DESCRIPTION
 
+  spec.metadata = {
+    "homepage_uri"      => spec.homepage,
+    "source_code_uri"   => "https://github.com/MadBomber/smart_message",
+    "changelog_uri"     => "https://github.com/MadBomber/smart_message/blob/master/CHANGELOG.md",
+    "bug_tracker_uri"   => "https://github.com/MadBomber/smart_message/issues",
+    "documentation_uri" => "https://github.com/MadBomber/smart_message/blob/master/README.md"
+  }
+
   # Specify which files should be added to the gem when it is released.
   # The `git ls-files -z` loads the files in the RubyGem that have been added into git.
   spec.files         = Dir.chdir(File.expand_path(__dir__, __FILE__)) do
