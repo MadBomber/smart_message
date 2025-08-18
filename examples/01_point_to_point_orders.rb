@@ -13,12 +13,21 @@ puts
 
 # Define the Order Message
 class OrderMessage < SmartMessage::Base
-  property :order_id
-  property :customer_id
-  property :amount
-  property :currency, default: 'USD'
-  property :payment_method
-  property :items
+  description "Represents customer orders for processing through the payment system"
+  
+  property :order_id, 
+    description: "Unique identifier for the order (e.g., ORD-1001)"
+  property :customer_id, 
+    description: "Unique identifier for the customer placing the order"
+  property :amount, 
+    description: "Total order amount in decimal format (e.g., 99.99)"
+  property :currency, 
+    default: 'USD',
+    description: "ISO currency code for the order (defaults to USD)"
+  property :payment_method, 
+    description: "Payment method selected by customer (credit_card, debit_card, paypal, etc.)"
+  property :items, 
+    description: "Array of item names or descriptions included in the order"
 
   # Configure to use memory transport for this example
   config do
@@ -35,11 +44,18 @@ end
 
 # Define the Payment Response Message  
 class PaymentResponseMessage < SmartMessage::Base
-  property :order_id
-  property :payment_id
-  property :status  # 'success', 'failed', 'pending'
-  property :message
-  property :processed_at
+  description "Contains payment processing results sent back to the order system"
+  
+  property :order_id, 
+    description: "Reference to the original order being processed"
+  property :payment_id, 
+    description: "Unique identifier for the payment transaction (e.g., PAY-5001)"
+  property :status, 
+    description: "Payment processing status: 'success', 'failed', or 'pending'"
+  property :message, 
+    description: "Human-readable description of the payment result"
+  property :processed_at, 
+    description: "ISO8601 timestamp when the payment was processed"
 
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)

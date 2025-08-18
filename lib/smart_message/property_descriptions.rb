@@ -13,16 +13,17 @@ module SmartMessage
 
     module ClassMethods
       def property(property_name, options = {})
+        # Extract our custom option before passing to parent
         description = options.delete(:description)
         
-        # Store description if provided
+        # Call original property method first
+        super(property_name, options)
+        
+        # Then store description if provided
         if description
           @property_descriptions ||= {}
           @property_descriptions[property_name.to_sym] = description
         end
-        
-        # Call original property method
-        super(property_name, options)
       end
 
       def property_description(property_name)

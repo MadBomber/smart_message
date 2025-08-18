@@ -37,6 +37,9 @@ Let's create a simple message class and see it in action:
 require 'smart_message'
 
 class WelcomeMessage < SmartMessage::Base
+  # Add a description for the message class
+  description "Welcomes new users after successful signup"
+  
   # Define message properties
   property :user_name
   property :email
@@ -132,6 +135,8 @@ Messages use Hashie::Dash properties for type-safe attributes:
 
 ```ruby
 class OrderMessage < SmartMessage::Base
+  description "Represents customer orders for processing and fulfillment"
+  
   property :order_id, required: true
   property :amount, transform_with: ->(v) { BigDecimal(v.to_s) }
   property :items, default: []
@@ -175,6 +180,8 @@ SmartMessage supports four types of message handlers to give you flexibility in 
 
 ```ruby
 class OrderMessage < SmartMessage::Base
+  description "Handles customer order processing and fulfillment"
+  
   # Define your message properties
   property :order_id
   property :amount
@@ -230,6 +237,8 @@ Now that you have the basics working, explore:
 
 ```ruby
 class NotificationMessage < SmartMessage::Base
+  description "Sends notifications to users via email, SMS, or push"
+  
   property :recipient
   property :subject
   property :body
@@ -271,6 +280,8 @@ NotificationMessage.new(
 
 ```ruby
 class EventMessage < SmartMessage::Base
+  description "Logs application events for monitoring and analytics"
+  
   property :event_type
   property :user_id
   property :data

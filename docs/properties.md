@@ -4,6 +4,7 @@ The SmartMessage property system builds on Hashie::Dash to provide a robust, dec
 
 ## Table of Contents
 - [Basic Property Definition](#basic-property-definition)
+- [Schema Versioning](#schema-versioning)
 - [Class-Level Description](#class-level-description)
 - [Property Options](#property-options)
 - [Accessing Property Information](#accessing-property-information)
@@ -20,9 +21,115 @@ class MyMessage < SmartMessage::Base
 end
 ```
 
+## Schema Versioning
+
+SmartMessage supports schema versioning to enable message evolution while maintaining compatibility:
+
+```ruby
+class OrderMessage < SmartMessage::Base
+  version 2  # Declare schema version
+  
+  property :order_id, required: true
+  property :customer_email  # Added in version 2
+end
+```
+
+### Version Management
+
+```ruby
+# Version 1 message
+class V1OrderMessage < SmartMessage::Base
+  version 1  # or omit for default version 1
+  
+  property :order_id, required: true
+  property :amount, required: true
+end
+
+# Version 2 message with additional field
+class V2OrderMessage < SmartMessage::Base
+  version 2
+  
+  property :order_id, required: true
+  property :amount, required: true
+  property :customer_email  # New in version 2
+end
+
+# Version 3 message with validation
+class V3OrderMessage < SmartMessage::Base
+  version 3
+  
+  property :order_id, 
+    required: true,
+    validate: ->(v) { v.is_a?(String) && v.length > 0 }
+    
+  property :amount, 
+    required: true,
+    validate: ->(v) { v.is_a?(Numeric) && v > 0 }
+    
+  property :customer_email,
+    validate: /\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i
+end
+```
+
+### Version Validation
+
+The framework automatically validates version compatibility:
+
+```ruby
+message = V2OrderMessage.new(order_id: "123", amount: 99.99)
+# Header automatically gets version: 2
+
+# Version validation happens automatically
+message.validate!  # Validates message + header + version compatibility
+
+# Manual version validation
+message.validate_header_version!  # Checks header version matches class version
+
+# Check version information
+V2OrderMessage.version                    # => 2
+V2OrderMessage.expected_header_version    # => 2
+message._sm_header.version               # => 2
+```
+
+### Version Evolution Patterns
+
+```ruby
+# Pattern 1: Additive changes (safe)
+class UserMessageV1 < SmartMessage::Base
+  version 1
+  property :user_id, required: true
+  property :name, required: true
+end
+
+class UserMessageV2 < SmartMessage::Base
+  version 2
+  property :user_id, required: true
+  property :name, required: true
+  property :email  # Optional addition - backward compatible
+end
+
+# Pattern 2: Field validation evolution
+class ProductMessageV1 < SmartMessage::Base
+  version 1
+  property :product_id, required: true
+  property :price, required: true
+end
+
+class ProductMessageV2 < SmartMessage::Base
+  version 2
+  property :product_id, 
+    required: true,
+    validate: ->(v) { v.is_a?(String) && v.match?(/\APROD-\d+\z/) }
+    
+  property :price, 
+    required: true,
+    validate: ->(v) { v.is_a?(Numeric) && v > 0 }
+end
+```
+
 ## Class-Level Description
 
-In addition to property-level descriptions, you can add a description for the entire message class:
+In addition to property-level descriptions, you can add a description for the entire message class using the `description` DSL method:
 
 ```ruby
 class OrderMessage < SmartMessage::Base
@@ -35,15 +142,29 @@ end
 # Access the class description
 OrderMessage.description  # => "Handles order processing and fulfillment workflow"
 
-# Class descriptions can also be set after class definition
+# Instance access to class description
+order = OrderMessage.new(order_id: "123", amount: 9999)
+order.description  # => "Handles order processing and fulfillment workflow"
+```
+
+### Setting Descriptions
+
+Class descriptions can be set in multiple ways:
+
+```ruby
+# 1. During class definition
 class PaymentMessage < SmartMessage::Base
+  description "Processes payment transactions"
   property :payment_id
 end
 
-PaymentMessage.description "Processes payment transactions"
-PaymentMessage.description  # => "Processes payment transactions"
+# 2. After class definition
+class RefundMessage < SmartMessage::Base
+  property :refund_id
+end
+RefundMessage.description "Handles payment refunds and reversals"
 
-# Can be set within config block
+# 3. Within config block
 class NotificationMessage < SmartMessage::Base
   config do
     description "Sends notifications to users"
@@ -53,13 +174,41 @@ class NotificationMessage < SmartMessage::Base
 end
 ```
 
+### Default Descriptions
+
+Classes without explicit descriptions automatically receive a default description:
+
+```ruby
+class MyMessage < SmartMessage::Base
+  property :data
+end
+
+MyMessage.description  # => "MyMessage is a SmartMessage"
+
+# This applies to all unnamed message classes
+class SomeModule::ComplexMessage < SmartMessage::Base
+  property :info
+end
+
+SomeModule::ComplexMessage.description  
+# => "SomeModule::ComplexMessage is a SmartMessage"
+```
+
+### Use Cases
+
 Class descriptions are useful for:
 - Documenting the overall purpose of a message class
 - Providing context for code generation tools
 - Integration with documentation systems
 - API documentation generation
+- Dynamic message introspection in gateway applications
 
-Note: Class descriptions are not inherited by subclasses. Each class maintains its own description.
+### Important Notes
+
+- Class descriptions are not inherited by subclasses - each class maintains its own description
+- Setting a description to `nil` will revert to the default description
+- Descriptions are stored as strings and can include multiline content
+- Both class and instance methods are available to access descriptions
 
 ## Property Options
 
@@ -181,7 +330,64 @@ msg.tags     # => ['important'] (Array)
 msg.metadata # => {} (Hash)
 ```
 
-### 6. Property Descriptions (SmartMessage Enhancement)
+### 6. Property Validation (SmartMessage Enhancement)
+
+Add custom validation logic to ensure data integrity:
+
+```ruby
+class ValidatedMessage < SmartMessage::Base
+  # Lambda validation
+  property :age,
+           validate: ->(v) { v.is_a?(Integer) && v.between?(1, 120) },
+           validation_message: "Age must be an integer between 1 and 120"
+
+  # Regex validation for email
+  property :email,
+           validate: /\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i,
+           validation_message: "Must be a valid email address"
+
+  # Array inclusion validation
+  property :status,
+           validate: ['active', 'inactive', 'pending'],
+           validation_message: "Status must be active, inactive, or pending"
+
+  # Range validation
+  property :score,
+           validate: (0..100),
+           validation_message: "Score must be between 0 and 100"
+
+  # Class type validation
+  property :created_at,
+           validate: Time,
+           validation_message: "Must be a Time object"
+
+  # Symbol method validation
+  property :username,
+           validate: :valid_username?,
+           validation_message: "Username contains invalid characters"
+
+  private
+
+  def valid_username?(value)
+    value.to_s.match?(/\A[a-zA-Z0-9_]+\z/)
+  end
+end
+
+# Validation usage
+message = ValidatedMessage.new(age: 25, email: "test@example.com")
+
+# Validate entire message
+message.validate!           # Raises SmartMessage::Errors::ValidationError on failure
+message.valid?              # Returns true/false
+
+# Get validation errors
+errors = message.validation_errors
+errors.each do |error|
+  puts "#{error[:property]}: #{error[:message]}"
+end
+```
+
+### 7. Property Descriptions (SmartMessage Enhancement)
 
 Add human-readable descriptions to document your properties for dynamic LLM integration:
 

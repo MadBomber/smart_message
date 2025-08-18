@@ -6,6 +6,7 @@ require 'securerandom'   # STDLIB
 
 require_relative './wrapper.rb'
 require_relative './property_descriptions.rb'
+require_relative './property_validations.rb'
 
 module SmartMessage
   # The foundation class for the smart message
@@ -19,16 +20,38 @@ module SmartMessage
     
     # Registry for proc-based message handlers
     @@proc_handlers = {}
+    
+    # Class-level version setting
+    class << self
+      attr_accessor :_version
+      
+      def version(v = nil)
+        if v.nil?
+          @_version || 1  # Default to version 1 if not set
+        else
+          @_version = v
+          
+          # Set up version validation for the header
+          # This ensures that the header version matches the expected class version
+          @expected_header_version = v
+        end
+      end
+      
+      def expected_header_version
+        @expected_header_version || 1
+      end
+    end
 
     include Hashie::Extensions::Dash::PropertyTranslation
 
     include SmartMessage::PropertyDescriptions
+    include SmartMessage::PropertyValidations
 
     include Hashie::Extensions::Coercion
     include Hashie::Extensions::DeepMerge
     include Hashie::Extensions::IgnoreUndeclared
     include Hashie::Extensions::IndifferentAccess
-    include Hashie::Extensions::MergeInitializer
+    # MergeInitializer interferes with required property validation - removed
     include Hashie::Extensions::MethodAccess
 
     # Common attrubutes for all messages
@@ -47,13 +70,28 @@ module SmartMessage
       @serializer  = nil
       @logger      = nil
 
+      # Create header with version validation specific to this message class
+      header = SmartMessage::Header.new(
+        uuid:           SecureRandom.uuid,
+        message_class:  self.class.to_s,
+        published_at:   Time.now,
+        publisher_pid:  Process.pid,
+        version:        self.class.version
+      )
+      
+      # Set up version validation to match the expected class version
+      expected_version = self.class.expected_header_version
+      header.singleton_class.class_eval do
+        define_method(:validate_version!) do
+          unless self.version == expected_version
+            raise SmartMessage::Errors::ValidationError, 
+              "Header version must be #{expected_version}, got: #{self.version}"
+          end
+        end
+      end
+      
       attributes = {
-        _sm_header: SmartMessage::Header.new(
-          uuid:           SecureRandom.uuid,
-          message_class:  self.class.to_s,
-          published_at:   2,
-          publisher_pid:  3
-        )
+        _sm_header: header
       }.merge(props)
 
       super(attributes, &block)
@@ -62,6 +100,57 @@ module SmartMessage
 
     ###################################################
     ## Common instance methods
+    
+    # Validate that the header version matches the expected version for this class
+    def validate_header_version!
+      expected = self.class.expected_header_version
+      actual = _sm_header.version
+      unless actual == expected
+        raise SmartMessage::Errors::ValidationError,
+          "#{self.class.name} expects version #{expected}, but header has version #{actual}"
+      end
+    end
+
+    # Override PropertyValidations validate! to include header and version validation
+    def validate!
+      # Validate message properties using PropertyValidations
+      super
+      
+      # Validate header properties
+      _sm_header.validate!
+      
+      # Validate header version matches expected class version  
+      validate_header_version!
+    end
+
+    # Override PropertyValidations validation_errors to include header errors
+    def validation_errors
+      errors = []
+      
+      # Get message property validation errors using PropertyValidations
+      errors.concat(super.map { |err| 
+        err.merge(source: 'message') 
+      })
+      
+      # Get header validation errors
+      errors.concat(_sm_header.validation_errors.map { |err| 
+        err.merge(source: 'header') 
+      })
+      
+      # Check version mismatch
+      expected = self.class.expected_header_version
+      actual = _sm_header.version
+      unless actual == expected
+        errors << {
+          property: :version,
+          value: actual,
+          message: "Expected version #{expected}, got: #{actual}",
+          source: 'version_mismatch'
+        }
+      end
+      
+      errors
+    end
 
     # SMELL: How does the transport know how to decode a message before
     #        it knows the message class?  We need a wrapper around
@@ -82,6 +171,9 @@ module SmartMessage
     # NOTE: you publish instances; but, you subscribe/unsubscribe at
     #       the class-level
     def publish
+      # Validate the complete message before publishing (now uses overridden validate!)
+      validate!
+      
       # TODO: move all of the _sm_ property processes into the wrapper
       _sm_header.published_at   = Time.now
       _sm_header.publisher_pid  = Process.pid
@@ -150,6 +242,11 @@ module SmartMessage
       self.class.to_s
     end
 
+    # return this class' description
+    def description
+      self.class.description
+    end
+
 
     # returns a collection of class Set that consists of
     # the symbolized values of the property names of the message
@@ -173,7 +270,7 @@ module SmartMessage
       
       def description(desc = nil)
         if desc.nil?
-          @description
+          @description || "#{self.name} is a SmartMessage"
         else
           @description = desc.to_s
         end

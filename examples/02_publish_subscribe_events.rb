@@ -13,13 +13,22 @@ puts
 
 # Define the User Event Message
 class UserEventMessage < SmartMessage::Base
-  property :event_id
-  property :event_type  # 'user_registered', 'user_login', 'password_changed', etc.
-  property :user_id
-  property :user_email
-  property :user_name
-  property :timestamp
-  property :metadata  # Additional event-specific data
+  description "Broadcasts user activity events to multiple notification services"
+  
+  property :event_id, 
+    description: "Unique identifier for this event (e.g., EVT-1001)"
+  property :event_type, 
+    description: "Type of user event: 'user_registered', 'user_login', 'password_changed', etc."
+  property :user_id, 
+    description: "Unique identifier for the user performing the action"
+  property :user_email, 
+    description: "Email address of the user for notification purposes"
+  property :user_name, 
+    description: "Display name of the user"
+  property :timestamp, 
+    description: "ISO8601 timestamp when the event occurred"
+  property :metadata, 
+    description: "Additional event-specific data (source, location, IP, etc.)"
 
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)

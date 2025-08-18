@@ -47,8 +47,8 @@ module BaseTest
       # Test that a message with description returns it
       assert_equal "Test message with class-level description", BaseTest::DescribedMessage.description
       
-      # Test that a message without description returns nil
-      assert_nil BaseTest::MyMessage.description
+      # Test that a message without description returns default
+      assert_equal "BaseTest::MyMessage is a SmartMessage", BaseTest::MyMessage.description
       
       # Test that we can set a description on a class that doesn't have one
       BaseTest::MyMessage.description "Added description for MyMessage"
@@ -56,7 +56,7 @@ module BaseTest
       
       # Reset it back to nil for other tests
       BaseTest::MyMessage.instance_variable_set(:@description, nil)
-      assert_nil BaseTest::MyMessage.description
+      assert_equal "BaseTest::MyMessage is a SmartMessage", BaseTest::MyMessage.description
     end
 
   end # class BaseTest < Minitest::Test

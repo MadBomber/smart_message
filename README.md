@@ -9,6 +9,9 @@ SmartMessage is a message abstraction framework that decouples business logic fr
 
 - **Transport Abstraction**: Plugin architecture supporting multiple message transports (Redis, RabbitMQ, Kafka, etc.)
 - **Serialization Flexibility**: Pluggable serialization formats (JSON, MessagePack, etc.)
+- **Schema Versioning**: Built-in version management with automatic compatibility validation
+- **Comprehensive Validation**: Property validation with custom error messages and automatic validation before publishing
+- **Message Documentation**: Built-in documentation support for message classes and properties with automatic defaults
 - **Flexible Message Handlers**: Multiple subscription patterns - default methods, custom methods, blocks, procs, and lambdas
 - **Dual-Level Configuration**: Class and instance-level plugin overrides for gateway patterns
 - **Concurrent Processing**: Thread-safe message routing using `Concurrent::CachedThreadPool`
@@ -38,10 +41,35 @@ Or install it yourself as:
 
 ```ruby
 class OrderMessage < SmartMessage::Base
-  property :order_id, description: "Unique order identifier"
-  property :customer_id, description: "Customer's unique ID"
-  property :amount, description: "Total order amount in dollars"
-  property :items, description: "Array of ordered items"
+  # Declare schema version for compatibility tracking
+  version 2
+  
+  # Add a description for the message class
+  description "Represents customer order data for processing and fulfillment"
+  
+  # Required properties with validation
+  property :order_id, 
+    required: true,
+    message: "Order ID is required",
+    validate: ->(v) { v.is_a?(String) && v.length > 0 },
+    validation_message: "Order ID must be a non-empty string",
+    description: "Unique order identifier"
+    
+  property :customer_id, 
+    required: true,
+    message: "Customer ID is required",
+    description: "Customer's unique ID"
+    
+  property :amount, 
+    required: true,
+    message: "Amount is required",
+    validate: ->(v) { v.is_a?(Numeric) && v > 0 },
+    validation_message: "Amount must be a positive number",
+    description: "Total order amount in dollars"
+    
+  property :items, 
+    default: [],
+    description: "Array of ordered items"
 
   # Configure transport and serializer at class level
   config do
@@ -74,7 +102,7 @@ end
 ### 2. Publish Messages
 
 ```ruby
-# Create and publish a message
+# Create and publish a message (automatically validated before publishing)
 order = OrderMessage.new(
   order_id: "ORD-123",
   customer_id: "CUST-456", 
@@ -82,7 +110,16 @@ order = OrderMessage.new(
   items: ["Widget A", "Widget B"]
 )
 
-order.publish
+# Message is automatically validated before publishing
+order.publish  # Validates all properties, header, and version compatibility
+
+# Or validate manually
+if order.valid?
+  order.publish
+else
+  errors = order.validation_errors
+  errors.each { |err| puts "#{err[:property]}: #{err[:message]}" }
+end
 ```
 
 ### 3. Subscribe to Messages
@@ -287,13 +324,211 @@ end
 
 1. **Definition**: Create message class inheriting from `SmartMessage::Base`
 2. **Configuration**: Set transport, serializer, and logger plugins
-3. **Publishing**: Message instance is encoded and sent through transport
-4. **Subscription**: Message classes register handlers with dispatcher for processing
+3. **Validation**: Messages are automatically validated before publishing (properties, header, version compatibility)
+4. **Publishing**: Message instance is encoded and sent through transport
+5. **Subscription**: Message classes register handlers with dispatcher for processing
    - Default handlers (`self.process` method)
    - Custom method handlers (`"ClassName.method_name"`)
    - Block handlers (`subscribe do |h,p|...end`)
    - Proc/Lambda handlers (`subscribe(proc {...})`)
-5. **Processing**: Received messages are decoded and routed to registered handlers
+6. **Processing**: Received messages are decoded and routed to registered handlers
+
+## Schema Versioning and Validation
+
+SmartMessage includes comprehensive validation and versioning capabilities to ensure message integrity and schema evolution support.
+
+### Version Declaration
+
+Declare your message schema version using the `version` class method:
+
+```ruby
+class OrderMessage < SmartMessage::Base
+  version 2  # Schema version 2
+  
+  property :order_id, required: true
+  property :customer_email  # Added in version 2
+end
+```
+
+### Property Validation
+
+Properties support multiple validation types with custom error messages:
+
+```ruby
+class UserMessage < SmartMessage::Base
+  version 1
+  
+  # Required field validation (Hashie built-in)
+  property :user_id, 
+    required: true,
+    message: "User ID is required and cannot be blank"
+  
+  # Custom validation with lambda
+  property :age,
+    validate: ->(v) { v.is_a?(Integer) && v.between?(1, 120) },
+    validation_message: "Age must be an integer between 1 and 120"
+  
+  # Email validation with regex
+  property :email,
+    validate: /\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i,
+    validation_message: "Must be a valid email address"
+  
+  # Inclusion validation with array
+  property :status,
+    validate: ['active', 'inactive', 'pending'],
+    validation_message: "Status must be active, inactive, or pending"
+end
+```
+
+### Validation Methods
+
+All message instances include validation methods:
+
+```ruby
+user = UserMessage.new(user_id: "123", age: 25)
+
+# Validate entire message (properties + header + version)
+user.validate!           # Raises SmartMessage::Errors::ValidationError on failure
+user.valid?              # Returns true/false
+
+# Get detailed validation errors
+errors = user.validation_errors
+errors.each do |error|
+  puts "#{error[:source]}.#{error[:property]}: #{error[:message]}"
+  # Example output:
+  # message.age: Age must be an integer between 1 and 120
+  # header.version: Header version must be a positive integer
+  # version_mismatch.version: Expected version 1, got: 2
+end
+```
+
+### Automatic Validation
+
+Messages are automatically validated during publishing:
+
+```ruby
+# This will raise ValidationError if invalid
+message = UserMessage.new(user_id: "", age: 150)
+message.publish  # Automatically validates before publishing
+```
+
+### Version Compatibility
+
+The framework automatically validates version compatibility:
+
+```ruby
+class V2Message < SmartMessage::Base
+  version 2
+  property :data
+end
+
+message = V2Message.new(data: "test")
+# Header automatically gets version: 2
+
+# Simulate version mismatch (e.g., from older message)
+message._sm_header.version = 1
+message.validate!  # Raises: "V2Message expects version 2, but header has version 1"
+```
+
+### Supported Validation Types
+
+- **Proc/Lambda**: `validate: ->(v) { v.length > 5 }`
+- **Regexp**: `validate: /\A[a-z]+\z/`
+- **Class**: `validate: String` (type checking)
+- **Array**: `validate: ['red', 'green', 'blue']` (inclusion)
+- **Range**: `validate: (1..100)` (range checking)
+- **Symbol**: `validate: :custom_validator_method`
+
+## Message Documentation
+
+SmartMessage provides built-in documentation capabilities for both message classes and their properties.
+
+### Class-Level Descriptions
+
+Use the `description` DSL method to document what your message class represents:
+
+```ruby
+class OrderMessage < SmartMessage::Base
+  description "Represents customer order data for processing and fulfillment"
+  
+  property :order_id, required: true
+  property :amount, required: true
+end
+
+class UserMessage < SmartMessage::Base  
+  description "Handles user management operations including registration and updates"
+  
+  property :user_id, required: true
+  property :email, required: true
+end
+
+# Access descriptions
+puts OrderMessage.description  
+# => "Represents customer order data for processing and fulfillment"
+
+puts UserMessage.description
+# => "Handles user management operations including registration and updates"
+
+# Instance access to class description
+order = OrderMessage.new(order_id: "123", amount: 99.99)
+puts order.description
+# => "Represents customer order data for processing and fulfillment"
+```
+
+### Default Descriptions
+
+Classes without explicit descriptions automatically get a default description:
+
+```ruby
+class MyMessage < SmartMessage::Base
+  property :data
+end
+
+puts MyMessage.description  
+# => "MyMessage is a SmartMessage"
+```
+
+### Property Documentation
+
+Combine class descriptions with property descriptions for comprehensive documentation:
+
+```ruby
+class FullyDocumented < SmartMessage::Base
+  description "A fully documented message class for demonstration purposes"
+  
+  property :id, 
+    description: "Unique identifier for the record"
+  property :name, 
+    description: "Display name for the entity"
+  property :status,
+    description: "Current processing status",
+    validate: ['active', 'inactive', 'pending']
+end
+
+# Access all documentation
+puts FullyDocumented.description
+# => "A fully documented message class for demonstration purposes"
+
+puts FullyDocumented.property_description(:id)
+# => "Unique identifier for the record"
+
+puts FullyDocumented.property_descriptions
+# => {:id=>"Unique identifier for the record", :name=>"Display name for the entity", ...}
+```
+
+### Documentation in Config Blocks
+
+You can also set descriptions within configuration blocks:
+
+```ruby
+class ConfiguredMessage < SmartMessage::Base
+  config do
+    description "Set within config block"
+    transport SmartMessage::Transport.create(:stdout)
+    serializer SmartMessage::Serializer::JSON.new
+  end
+end
+```
 
 ## Advanced Usage
 

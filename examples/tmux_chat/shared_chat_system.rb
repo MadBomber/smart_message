@@ -102,15 +102,26 @@ SmartMessage::Transport.register(:file, FileTransport)
 
 # Define the Chat Message
 class ChatMessage < SmartMessage::Base
-  property :message_id
-  property :room_id
-  property :sender_id
-  property :sender_name
-  property :content
-  property :message_type  # 'user', 'bot', 'system'
-  property :timestamp
-  property :mentions
-  property :metadata
+  description "Chat messages for tmux-based multi-pane chat demonstration"
+  
+  property :message_id, 
+    description: "Unique identifier for this chat message"
+  property :room_id, 
+    description: "Chat room identifier for message routing"
+  property :sender_id, 
+    description: "Unique ID of the user or bot sending the message"
+  property :sender_name, 
+    description: "Display name of the message sender"
+  property :content, 
+    description: "The actual text content of the chat message"
+  property :message_type, 
+    description: "Message type: 'user', 'bot', or 'system'"
+  property :timestamp, 
+    description: "ISO8601 timestamp when message was sent"
+  property :mentions, 
+    description: "Array of user IDs mentioned in the message"
+  property :metadata, 
+    description: "Additional message metadata for tmux display"
 
   config do
     transport SmartMessage::Transport.create(:file)
@@ -124,13 +135,22 @@ end
 
 # Define Bot Command Message
 class BotCommandMessage < SmartMessage::Base
-  property :command_id
-  property :room_id
-  property :user_id
-  property :user_name
-  property :command
-  property :parameters
-  property :timestamp
+  description "Commands sent to chat bots in the tmux chat system"
+  
+  property :command_id, 
+    description: "Unique identifier for this bot command"
+  property :room_id, 
+    description: "Chat room where the command was issued"
+  property :user_id, 
+    description: "User who issued the bot command"
+  property :user_name, 
+    description: "Display name of the user issuing the command"
+  property :command, 
+    description: "Bot command name (help, joke, weather, etc.)"
+  property :parameters, 
+    description: "Array of parameters for the bot command"
+  property :timestamp, 
+    description: "ISO8601 timestamp when command was issued"
 
   config do
     transport SmartMessage::Transport.create(:file)
@@ -144,12 +164,20 @@ end
 
 # Define System Notification Message
 class SystemNotificationMessage < SmartMessage::Base
-  property :notification_id
-  property :room_id
-  property :notification_type
-  property :content
-  property :timestamp
-  property :metadata
+  description "System notifications for tmux chat room events and status updates"
+  
+  property :notification_id, 
+    description: "Unique identifier for this system notification"
+  property :room_id, 
+    description: "Chat room affected by this notification"
+  property :notification_type, 
+    description: "Type of notification (user_joined, user_left, etc.)"
+  property :content, 
+    description: "Human-readable description of the system event"
+  property :timestamp, 
+    description: "ISO8601 timestamp when the event occurred"
+  property :metadata, 
+    description: "Additional system event metadata for tmux display"
 
   config do
     transport SmartMessage::Transport.create(:file)

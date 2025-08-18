@@ -328,6 +328,12 @@ class LoggerDefaultTest < Minitest::Test
         end
       end
       
+      teardown do
+        # Clean up class-level logger to prevent test pollution
+        @message_class.reset_logger if @message_class
+        SmartMessage::Base.reset_logger
+      end
+      
       should "work as a logger plugin in message configuration" do
         @message_class.config do
           transport SmartMessage::Transport::StdoutTransport.new(loopback: false)

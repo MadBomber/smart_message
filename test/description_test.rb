@@ -24,8 +24,8 @@ module DescriptionTest
         assert_equal "A basic test message for unit testing", BasicMessage.description
       end
 
-      should "return nil when no description is set" do
-        assert_nil MessageWithoutDescription.description
+      should "return default description when no description is set" do
+        assert_equal "DescriptionTest::MessageWithoutDescription is a SmartMessage", MessageWithoutDescription.description
       end
 
       should "allow setting description after class definition" do
@@ -50,7 +50,7 @@ module DescriptionTest
         end
         
         assert_equal "Parent description", ParentMessage.description
-        assert_nil ChildMessage.description
+        assert_equal "DescriptionTest::Test::ChildMessage is a SmartMessage", ChildMessage.description
         
         # Child can have its own description
         ChildMessage.description "Child description"

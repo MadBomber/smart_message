@@ -25,5 +25,8 @@ module SmartMessage
     # A received message is of an unknown class
     class UnknownMessageClass < RuntimeError; end
 
+    # A property validation failed
+    class ValidationError < RuntimeError; end
+
   end
 end

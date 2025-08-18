@@ -10,6 +10,8 @@ This document provides practical examples of using SmartMessage in real-world sc
 require 'smart_message'
 
 class NotificationMessage < SmartMessage::Base
+  description "Sends notifications to users via multiple channels"
+  
   property :recipient
   property :subject
   property :body

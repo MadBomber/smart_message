@@ -58,14 +58,24 @@ SHARED_TRANSPORT = create_transport
 
 # Sensor Data Message - Published by IoT devices
 class SensorDataMessage < SmartMessage::Base
-  property :device_id
-  property :device_type      # 'thermostat', 'security_camera', 'door_lock', 'smoke_detector'
-  property :location         # 'living_room', 'kitchen', 'bedroom', 'garage'
-  property :sensor_type      # 'temperature', 'humidity', 'motion', 'status'
-  property :value
-  property :unit             # 'celsius', 'percent', 'boolean', 'lux'
-  property :timestamp
-  property :battery_level    # For battery-powered devices
+  description "Real-time sensor data from smart home IoT devices"
+  
+  property :device_id, 
+    description: "Unique identifier for the IoT device (e.g., THERM-001)"
+  property :device_type, 
+    description: "Type of device: 'thermostat', 'security_camera', 'door_lock', 'smoke_detector'"
+  property :location, 
+    description: "Physical location of device: 'living_room', 'kitchen', 'bedroom', 'garage'"
+  property :sensor_type, 
+    description: "Type of sensor reading: 'temperature', 'humidity', 'motion', 'status'"
+  property :value, 
+    description: "Numeric or boolean sensor reading value"
+  property :unit, 
+    description: "Unit of measurement: 'celsius', 'percent', 'boolean', 'lux'"
+  property :timestamp, 
+    description: "ISO8601 timestamp when sensor reading was taken"
+  property :battery_level, 
+    description: "Battery percentage for battery-powered devices (0-100)"
 
   config do
     transport SHARED_TRANSPORT
@@ -88,11 +98,18 @@ end
 
 # Device Command Message - Sent to control IoT devices
 class DeviceCommandMessage < SmartMessage::Base
-  property :device_id
-  property :command          # 'set_temperature', 'lock_door', 'start_recording', 'test_alarm'
-  property :parameters       # Command-specific parameters
-  property :requested_by     # Who/what requested this command
-  property :timestamp
+  description "Commands sent to control and configure smart home IoT devices"
+  
+  property :device_id, 
+    description: "Target device identifier to receive the command"
+  property :command, 
+    description: "Command to execute: 'set_temperature', 'lock_door', 'start_recording', 'test_alarm'"
+  property :parameters, 
+    description: "Hash of command-specific parameters and values"
+  property :requested_by, 
+    description: "Identifier of user, system, or automation that requested this command"
+  property :timestamp, 
+    description: "ISO8601 timestamp when command was issued"
 
   config do
     transport SHARED_TRANSPORT
@@ -107,14 +124,24 @@ end
 
 # Alert Message - For critical notifications
 class AlertMessage < SmartMessage::Base
-  property :alert_id
-  property :severity         # 'low', 'medium', 'high', 'critical'
-  property :alert_type       # 'security_breach', 'fire_detected', 'device_offline', 'battery_low'
-  property :device_id
-  property :location
-  property :message
-  property :timestamp
-  property :requires_action  # Boolean indicating if immediate action needed
+  description "Critical alerts and notifications from smart home monitoring systems"
+  
+  property :alert_id, 
+    description: "Unique identifier for this alert event"
+  property :severity, 
+    description: "Alert severity level: 'low', 'medium', 'high', 'critical'"
+  property :alert_type, 
+    description: "Type of alert: 'security_breach', 'fire_detected', 'device_offline', 'battery_low'"
+  property :device_id, 
+    description: "Device that triggered the alert (if applicable)"
+  property :location, 
+    description: "Physical location where alert was triggered"
+  property :message, 
+    description: "Human-readable description of the alert condition"
+  property :timestamp, 
+    description: "ISO8601 timestamp when alert was generated"
+  property :requires_action, 
+    description: "Boolean indicating if immediate human action is required"
 
   config do
     transport SHARED_TRANSPORT

@@ -73,6 +73,9 @@ class BotChatAgent < BaseAgent
     return unless @active_rooms.include?(chat_data['room_id'])
     return if chat_data['sender_id'] == @agent_id
     
+    # Don't respond to other bots to avoid infinite loops
+    return if chat_data['message_type'] == 'bot'
+    
     # Log the message
     log_display("👁️  [#{chat_data['room_id']}] #{chat_data['sender_name']}: #{chat_data['content']}")
     
@@ -80,7 +83,7 @@ class BotChatAgent < BaseAgent
     if chat_data['content'].start_with?('/')
       handle_inline_command(chat_data)
     else
-      # Respond to certain keywords
+      # Respond to certain keywords from human users only
       respond_to_keywords(chat_data)
     end
   end

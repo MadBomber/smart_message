@@ -14,15 +14,26 @@ puts
 
 # Define the Chat Message
 class ChatMessage < SmartMessage::Base
-  property :message_id
-  property :room_id
-  property :sender_id
-  property :sender_name
-  property :content
-  property :message_type  # 'user', 'bot', 'system'
-  property :timestamp
-  property :mentions      # Array of user IDs mentioned
-  property :metadata
+  description "Represents chat messages exchanged between users in chat rooms"
+  
+  property :message_id, 
+    description: "Unique identifier for this chat message"
+  property :room_id, 
+    description: "Identifier of the chat room where message was sent"
+  property :sender_id, 
+    description: "Unique identifier of the user or bot sending the message"
+  property :sender_name, 
+    description: "Display name of the message sender"
+  property :content, 
+    description: "The actual text content of the chat message"
+  property :message_type, 
+    description: "Type of message: 'user', 'bot', or 'system'"
+  property :timestamp, 
+    description: "ISO8601 timestamp when message was sent"
+  property :mentions, 
+    description: "Array of user IDs mentioned in the message (@username)"
+  property :metadata, 
+    description: "Additional message data (reactions, edit history, etc.)"
 
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
@@ -37,12 +48,20 @@ end
 
 # Define Bot Command Message
 class BotCommandMessage < SmartMessage::Base
-  property :command_id
-  property :room_id
-  property :user_id
-  property :command
-  property :parameters
-  property :timestamp
+  description "Represents commands sent to chat bots for processing"
+  
+  property :command_id, 
+    description: "Unique identifier for this bot command"
+  property :room_id, 
+    description: "Chat room where the command was issued"
+  property :user_id, 
+    description: "User who issued the bot command"
+  property :command, 
+    description: "The bot command name (e.g., 'weather', 'help', 'joke')"
+  property :parameters, 
+    description: "Array of parameters passed to the bot command"
+  property :timestamp, 
+    description: "ISO8601 timestamp when command was issued"
 
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
@@ -57,12 +76,20 @@ end
 
 # Define System Notification Message
 class SystemNotificationMessage < SmartMessage::Base
-  property :notification_id
-  property :room_id
-  property :notification_type  # 'user_joined', 'user_left', 'room_created'
-  property :content
-  property :timestamp
-  property :metadata
+  description "System-generated notifications about chat room events and status changes"
+  
+  property :notification_id, 
+    description: "Unique identifier for this system notification"
+  property :room_id, 
+    description: "Chat room affected by this notification"
+  property :notification_type, 
+    description: "Type of notification: 'user_joined', 'user_left', 'room_created', etc."
+  property :content, 
+    description: "Human-readable description of the system event"
+  property :timestamp, 
+    description: "ISO8601 timestamp when the system event occurred"
+  property :metadata, 
+    description: "Additional system event data and context"
 
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
@@ -329,7 +356,11 @@ class BotAgent
   end
 
   def process_chat_message(chat_data)
-    # Bot can respond to certain keywords or patterns
+    # Don't respond to other bots to avoid infinite loops
+    return if chat_data['message_type'] == 'bot'
+    return if chat_data['sender_id'] == @bot_id  # Don't respond to our own messages
+    
+    # Bot can respond to certain keywords or patterns from human users only
     content = chat_data['content'].downcase
     
     if content.include?('hello') || content.include?('hi')
@@ -598,6 +629,9 @@ class DistributedChatDemo
     puts "• Dynamic subscription and unsubscription"
     puts "• Event-driven responses and interactions"
     puts "• Service discovery and capability advertisement"
+    
+    puts "\n🛑 Shutting down demo..."
+    sleep(1) # Give any pending messages time to process
   end
 end
 

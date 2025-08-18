@@ -65,6 +65,8 @@ The foundation class that all messages inherit from, built on `Hashie::Dash`.
 
 ```ruby
 class MyMessage < SmartMessage::Base
+  description "Handles custom message processing for my application"
+  
   property :data
   
   config do

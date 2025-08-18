@@ -14,11 +14,18 @@ puts
 
 # Define a simple notification message
 class NotificationMessage < SmartMessage::Base
-  property :type         # 'info', 'warning', 'error'
-  property :title
-  property :message
-  property :user_id
-  property :timestamp
+  description "System notifications processed by different types of handlers"
+  
+  property :type, 
+    description: "Notification type: 'info', 'warning', 'error'"
+  property :title, 
+    description: "Short title or subject of the notification"
+  property :message, 
+    description: "Detailed notification message content"
+  property :user_id, 
+    description: "Target user ID for the notification (optional)"
+  property :timestamp, 
+    description: "ISO8601 timestamp when notification was created"
 
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)

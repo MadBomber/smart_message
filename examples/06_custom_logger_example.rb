@@ -285,11 +285,18 @@ end
 
 # Sample message class with comprehensive logging
 class OrderProcessingMessage < SmartMessage::Base
-  property :order_id
-  property :customer_id
-  property :amount
-  property :status
-  property :items
+  description "Order processing messages with comprehensive multi-logger configuration"
+  
+  property :order_id, 
+    description: "Unique identifier for the customer order"
+  property :customer_id, 
+    description: "Identifier of the customer placing the order"
+  property :amount, 
+    description: "Total monetary amount of the order"
+  property :status, 
+    description: "Current processing status of the order"
+  property :items, 
+    description: "Array of items included in the order"
   
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
@@ -350,10 +357,16 @@ end
 
 # Notification message with different logger configuration
 class NotificationMessage < SmartMessage::Base
-  property :recipient
-  property :subject
-  property :body
-  property :priority
+  description "User notifications with file-based logging configuration"
+  
+  property :recipient, 
+    description: "Target recipient for the notification"
+  property :subject, 
+    description: "Subject line or title of the notification"
+  property :body, 
+    description: "Main content body of the notification"
+  property :priority, 
+    description: "Priority level of the notification (low, normal, high, urgent)"
   
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
@@ -384,8 +397,12 @@ end
 # Example: Message class using standard Ruby logger
 # This demonstrates how to use Ruby's standard Logger in production code
 class StandardLoggerMessage < SmartMessage::Base
-  property :content
-  property :level
+  description "Demonstrates integration with standard Ruby Logger for production logging"
+  
+  property :content, 
+    description: "Main content of the message to be logged"
+  property :level, 
+    description: "Logging level for the message (debug, info, warn, error)"
   
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
@@ -417,8 +434,12 @@ end
 
 # Example: Message using the built-in Default Logger
 class DefaultLoggerMessage < SmartMessage::Base
-  property :message
-  property :level
+  description "Demonstrates SmartMessage's built-in default logger with auto-detection"
+  
+  property :message, 
+    description: "The message content to be logged using default logger"
+  property :level, 
+    description: "Log level (debug, info, warn, error, fatal)"
   
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
