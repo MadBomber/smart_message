@@ -7,6 +7,57 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.5] 2025-08-18
+
+### Added
+- **Enhanced Description DSL**: Extended class-level `description` method with automatic defaults
+  - Classes without explicit descriptions now automatically get `"ClassName is a SmartMessage"` default
+  - Instance method `message.description` provides access to class description
+  - Backward compatible with existing description implementations
+  - Improves developer experience by eliminating nil description values
+- **Comprehensive Error Handling Example** (`examples/07_error_handling_scenarios.rb`)
+  - Demonstrates missing required property validation with detailed error messages
+  - Shows custom property validation failures with multiple validation types (regex, range, enum, proc)
+  - Illustrates version mismatch detection between message classes and headers
+  - **NEW**: Documents Hashie::Dash limitation where only first missing required property is reported
+  - Provides educational content about SmartMessage's robust validation framework
+  - Includes suggestions for potential improvements to multi-property validation
+- **Complete Property Documentation**: All examples now include comprehensive descriptions
+  - Message class descriptions added to all example programs (01-06 + tmux_chat)
+  - Individual property descriptions added with detailed explanations of purpose and format
+  - Enhanced readability and educational value of all demonstration code
+  - Consistent documentation patterns across all messaging scenarios
+
+### Fixed
+- **Critical: Infinite Loop Bug in Chat Examples**
+  - Fixed infinite message loops in `examples/03_many_to_many_chat.rb` and `examples/tmux_chat/bot_agent.rb`
+  - **Root Cause**: Bots responding to other bots' messages containing trigger keywords ("hello", "hi")
+  - **Solution**: Added `return if chat_data['message_type'] == 'bot'` to prevent bot-to-bot responses
+  - Examples now terminate properly without requiring manual intervention
+  - Maintains proper bot functionality for human interactions and explicit commands
+- **Example Termination**: Chat examples now shutdown cleanly without hanging indefinitely
+
+### Changed
+- **Enhanced Documentation Coverage**
+  - Updated README.md with comprehensive description DSL documentation
+  - Enhanced `docs/properties.md` with updated class description behavior and default handling
+  - Updated `docs/getting-started.md`, `docs/architecture.md`, and `docs/examples.md` with description examples
+  - All documentation now demonstrates proper message and property description usage
+- **Improved Example Educational Value**
+  - All example programs enhanced with descriptive class and property documentation
+  - Better demonstration of SmartMessage's self-documenting capabilities
+  - Examples serve as both functional demonstrations and documentation references
+
+### Documentation
+- **Hashie::Dash Limitation Discovery**: Documented important framework limitation in error handling example
+  - Only first missing required property reported during validation failures
+  - Provides clear explanation of incremental error discovery behavior
+  - Suggests potential solutions for improved multi-property validation
+- **Comprehensive Description System**: Complete documentation of message documentation capabilities
+  - Class-level description DSL with automatic defaults
+  - Property-level descriptions with usage patterns
+  - Integration with existing SmartMessage validation and introspection systems
+
 ## [0.0.2] - 2025-08-17
 
 ### Added
