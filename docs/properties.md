@@ -4,6 +4,7 @@ The SmartMessage property system builds on Hashie::Dash to provide a robust, dec
 
 ## Table of Contents
 - [Basic Property Definition](#basic-property-definition)
+- [Class-Level Description](#class-level-description)
 - [Property Options](#property-options)
 - [Accessing Property Information](#accessing-property-information)
 - [Hashie Extensions](#hashie-extensions)
@@ -18,6 +19,47 @@ class MyMessage < SmartMessage::Base
   property :field_name
 end
 ```
+
+## Class-Level Description
+
+In addition to property-level descriptions, you can add a description for the entire message class:
+
+```ruby
+class OrderMessage < SmartMessage::Base
+  description "Handles order processing and fulfillment workflow"
+  
+  property :order_id, description: "Unique order identifier"
+  property :amount, description: "Total amount in cents"
+end
+
+# Access the class description
+OrderMessage.description  # => "Handles order processing and fulfillment workflow"
+
+# Class descriptions can also be set after class definition
+class PaymentMessage < SmartMessage::Base
+  property :payment_id
+end
+
+PaymentMessage.description "Processes payment transactions"
+PaymentMessage.description  # => "Processes payment transactions"
+
+# Can be set within config block
+class NotificationMessage < SmartMessage::Base
+  config do
+    description "Sends notifications to users"
+    transport MyTransport.new
+    serializer MySerializer.new
+  end
+end
+```
+
+Class descriptions are useful for:
+- Documenting the overall purpose of a message class
+- Providing context for code generation tools
+- Integration with documentation systems
+- API documentation generation
+
+Note: Class descriptions are not inherited by subclasses. Each class maintains its own description.
 
 ## Property Options
 
@@ -262,6 +304,8 @@ msg = MyMessage.new(defaults.merge(status: 'pending'))
 
 ```ruby
 class OrderProcessingMessage < SmartMessage::Base
+  description "Manages the complete order lifecycle from placement to delivery"
+  
   # Required fields with descriptions
   property :order_id,
            required: true,
@@ -333,7 +377,10 @@ order.status           # => 'pending' (default)
 order.external_ref     # => 'EXT-789' (translated)
 order.created_at       # => Time object
 
-# Get property information
+# Get class and property information
+OrderProcessingMessage.description
+# => "Manages the complete order lifecycle from placement to delivery"
+
 OrderProcessingMessage.property_description(:total_amount)
 # => "Total order amount including tax and shipping"
 

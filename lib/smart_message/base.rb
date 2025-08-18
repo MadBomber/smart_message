@@ -166,6 +166,17 @@ module SmartMessage
     class << self
 
       #########################################################
+      ## class-level description
+      
+      def description(desc = nil)
+        if desc.nil?
+          @description
+        else
+          @description = desc.to_s
+        end
+      end
+
+      #########################################################
       ## class-level configuration
 
       def config(&block)
