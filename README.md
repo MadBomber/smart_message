@@ -36,10 +36,10 @@ Or install it yourself as:
 
 ```ruby
 class OrderMessage < SmartMessage::Base
-  property :order_id
-  property :customer_id
-  property :amount
-  property :items
+  property :order_id, description: "Unique order identifier"
+  property :customer_id, description: "Customer's unique ID"
+  property :amount, description: "Total order amount in dollars"
+  property :items, description: "Array of ordered items"
 
   # Configure transport and serializer at class level
   config do
@@ -255,9 +255,9 @@ puts dispatcher.subscribers
 
 ```ruby
 class MyMessage < SmartMessage::Base
-  property :user_id
-  property :action
-  property :timestamp, default: -> { Time.now }
+  property :user_id, description: "User's unique identifier"
+  property :action, description: "Action performed by the user"
+  property :timestamp, default: -> { Time.now }, description: "When the action occurred"
 end
 
 message = MyMessage.new(user_id: 123, action: "login")
@@ -265,6 +265,10 @@ message = MyMessage.new(user_id: 123, action: "login")
 # Access message properties
 puts message.user_id
 puts message.fields  # Returns Set of property names (excluding internal _sm_ properties)
+
+# Access property descriptions
+puts MyMessage.property_description(:user_id)  # => "User's unique identifier"
+puts MyMessage.property_descriptions            # => Hash of all descriptions
 
 # Access message header
 puts message._sm_header.uuid

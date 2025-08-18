@@ -5,6 +5,7 @@
 require 'securerandom'   # STDLIB
 
 require_relative './wrapper.rb'
+require_relative './property_descriptions.rb'
 
 module SmartMessage
   # The foundation class for the smart message
@@ -17,6 +18,8 @@ module SmartMessage
     @@logger      = nil
 
     include Hashie::Extensions::Dash::PropertyTranslation
+
+    include SmartMessage::PropertyDescriptions
 
     include Hashie::Extensions::Coercion
     include Hashie::Extensions::DeepMerge

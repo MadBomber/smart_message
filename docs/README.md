@@ -8,14 +8,15 @@ Welcome to the comprehensive documentation for SmartMessage, a Ruby gem that abs
 - [Installation & Quick Start](getting-started.md)
 - [Basic Usage Examples](examples.md)
 
-### Core Concepts  
+### Core Concepts
 - [Architecture Overview](architecture.md)
 - [Message Lifecycle](message-lifecycle.md)
 - [Plugin System](plugin-system.md)
 
 ### Components
 - [SmartMessage::Base](base.md)
-- [Transport Layer](transports.md) 
+- [Property System](properties.md)
+- [Transport Layer](transports.md)
 - [Serializers](serializers.md)
 - [Dispatcher & Routing](dispatcher.md)
 - [Message Headers](headers.md)
@@ -47,6 +48,6 @@ Welcome to the comprehensive documentation for SmartMessage, a Ruby gem that abs
 
 ## Version
 
-This documentation is for SmartMessage v0.0.1.
+This documentation is for SmartMessage v0.0.2.
 
 For older versions, please check the git tags and corresponding documentation.
