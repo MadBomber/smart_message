@@ -4,6 +4,8 @@ require_relative "test_helper"
 
 module DescriptionTest
   class BasicMessage < SmartMessage::Base
+    from 'test-service'
+    
     description "A basic test message for unit testing"
     
     property :field1
@@ -11,10 +13,14 @@ module DescriptionTest
   end
 
   class MessageWithoutDescription < SmartMessage::Base
+    from 'test-service'
+    
     property :data
   end
 
   class MessageWithLateDescription < SmartMessage::Base
+    from 'test-service'
+    
     property :value
   end
 
@@ -35,6 +41,8 @@ module DescriptionTest
 
       should "convert description to string" do
         class SymbolDescription < SmartMessage::Base
+    from 'test-service'
+    
           description :symbolic_description
         end
         
@@ -43,6 +51,8 @@ module DescriptionTest
 
       should "not inherit description from parent class" do
         class ParentMessage < SmartMessage::Base
+    from 'test-service'
+    
           description "Parent description"
         end
         
@@ -60,6 +70,8 @@ module DescriptionTest
 
       should "work alongside property descriptions" do
         class FullyDocumented < SmartMessage::Base
+    from 'test-service'
+    
           description "A fully documented message class"
           
           property :id, description: "Unique identifier"
@@ -73,6 +85,8 @@ module DescriptionTest
 
       should "be settable within config block" do
         class ConfiguredMessage < SmartMessage::Base
+    from 'test-service'
+    
           config do
             description "Set within config block"
           end
@@ -83,6 +97,8 @@ module DescriptionTest
 
       should "handle empty string description" do
         class EmptyDescription < SmartMessage::Base
+    from 'test-service'
+    
           description ""
         end
         
@@ -91,6 +107,8 @@ module DescriptionTest
 
       should "handle multiline description" do
         class MultilineDescription < SmartMessage::Base
+    from 'test-service'
+    
           description <<~DESC
             This is a multiline description
             that spans several lines

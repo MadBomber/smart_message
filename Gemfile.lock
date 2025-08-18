@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    smart_message (0.0.4)
+    smart_message (0.0.6)
       activesupport
       concurrent-ruby
       hashie

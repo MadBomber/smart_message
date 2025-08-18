@@ -9,6 +9,7 @@ SmartMessage is a message abstraction framework that decouples business logic fr
 
 - **Transport Abstraction**: Plugin architecture supporting multiple message transports (Redis, RabbitMQ, Kafka, etc.)
 - **Serialization Flexibility**: Pluggable serialization formats (JSON, MessagePack, etc.)
+- **Entity-to-Entity Addressing**: Built-in FROM/TO/REPLY_TO addressing for point-to-point and broadcast messaging patterns
 - **Schema Versioning**: Built-in version management with automatic compatibility validation
 - **Comprehensive Validation**: Property validation with custom error messages and automatic validation before publishing
 - **Message Documentation**: Built-in documentation support for message classes and properties with automatic defaults
@@ -46,6 +47,11 @@ class OrderMessage < SmartMessage::Base
   
   # Add a description for the message class
   description "Represents customer order data for processing and fulfillment"
+  
+  # Configure entity addressing
+  from 'order-service'
+  to 'fulfillment-service'  # Point-to-point message
+  reply_to 'order-service'  # Responses come back here
   
   # Required properties with validation
   property :order_id, 
@@ -152,6 +158,50 @@ audit_handler = lambda do |header, payload|
 end
 OrderMessage.subscribe(audit_handler)
 ```
+
+### 4. Entity Addressing
+
+SmartMessage supports entity-to-entity addressing with FROM/TO/REPLY_TO fields for advanced message routing:
+
+```ruby
+# Point-to-point messaging
+class PaymentMessage < SmartMessage::Base
+  version 1
+  from 'payment-service'     # Required: sender identity
+  to 'bank-gateway'          # Optional: specific recipient
+  reply_to 'payment-service' # Optional: where responses go
+  
+  property :amount, required: true
+  property :account_id, required: true
+end
+
+# Broadcast messaging (no 'to' specified)
+class SystemAnnouncementMessage < SmartMessage::Base
+  version 1
+  from 'admin-service'       # Required: sender identity
+  # No 'to' field = broadcast to all subscribers
+  
+  property :message, required: true
+  property :priority, default: 'normal'
+end
+
+# Instance-level addressing override
+payment = PaymentMessage.new(amount: 100.00, account_id: "ACCT-123")
+payment.to('backup-gateway')  # Override destination for this instance
+payment.publish
+
+# Access addressing information
+puts payment._sm_header.from      # => 'payment-service'
+puts payment._sm_header.to        # => 'backup-gateway'
+puts payment._sm_header.reply_to  # => 'payment-service'
+```
+
+#### Messaging Patterns Supported
+
+- **Point-to-Point**: Set `to` field for direct entity targeting
+- **Broadcast**: Omit `to` field (nil) for message broadcast to all subscribers  
+- **Request-Reply**: Use `reply_to` field to specify response routing
+- **Gateway Patterns**: Override addressing at instance level for message forwarding
 
 ## Architecture
 
@@ -323,15 +373,16 @@ end
 ## Message Lifecycle
 
 1. **Definition**: Create message class inheriting from `SmartMessage::Base`
-2. **Configuration**: Set transport, serializer, and logger plugins
-3. **Validation**: Messages are automatically validated before publishing (properties, header, version compatibility)
-4. **Publishing**: Message instance is encoded and sent through transport
+2. **Configuration**: Set transport, serializer, logger plugins, and entity addressing (from/to/reply_to)
+3. **Validation**: Messages are automatically validated before publishing (properties, header, addressing, version compatibility)
+4. **Publishing**: Message instance is encoded with addressing metadata and sent through transport
 5. **Subscription**: Message classes register handlers with dispatcher for processing
    - Default handlers (`self.process` method)
    - Custom method handlers (`"ClassName.method_name"`)
    - Block handlers (`subscribe do |h,p|...end`)
    - Proc/Lambda handlers (`subscribe(proc {...})`)
-6. **Processing**: Received messages are decoded and routed to registered handlers
+6. **Routing**: Dispatcher uses addressing metadata to route messages (point-to-point vs broadcast)
+7. **Processing**: Received messages are decoded and routed to registered handlers
 
 ## Schema Versioning and Validation
 
@@ -588,6 +639,9 @@ puts message._sm_header.uuid
 puts message._sm_header.message_class
 puts message._sm_header.published_at
 puts message._sm_header.publisher_pid
+puts message._sm_header.from
+puts message._sm_header.to
+puts message._sm_header.reply_to
 ```
 
 ## Development

@@ -13,6 +13,9 @@ ruby 02_publish_subscribe_events.rb
 ruby 03_many_to_many_chat.rb
 ruby 04_redis_smart_home_iot.rb
 ruby 05_proc_handlers.rb
+ruby 06_custom_logger_example.rb
+ruby 07_error_handling_scenarios.rb
+ruby 08_entity_addressing.rb
 ```
 
 ## Examples Overview
@@ -197,6 +200,71 @@ NotificationMessage.subscribe("NotificationService.handle")
 - **Reusability**: Proc handlers can be shared across message classes
 - **Maintainability**: Choose the right abstraction level for each need
 - **Performance**: Understand overhead of different handler approaches
+
+---
+
+### 8. Entity Addressing System (Advanced Routing)
+**File:** `08_entity_addressing.rb`
+
+**Scenario:** Comprehensive demonstration of SmartMessage's entity addressing system showing point-to-point messaging, broadcast patterns, request-reply workflows, and gateway patterns.
+
+**Key Features:**
+- FROM/TO/REPLY_TO addressing fields for sophisticated routing
+- Point-to-point messaging with specific entity targeting
+- Broadcast messaging to all subscribers
+- Request-reply patterns with response routing
+- Instance-level addressing overrides
+- Gateway patterns for message transformation and routing
+
+**Messages Used:**
+- `OrderMessage` - Point-to-point order processing
+- `SystemAnnouncementMessage` - Broadcast announcements
+- `UserLookupRequest` & `UserLookupResponse` - Request-reply pattern
+- `PaymentMessage` - Instance-level addressing override
+- `ExternalAPIMessage` - Gateway pattern demonstration
+
+**Addressing Patterns Shown:**
+```ruby
+# Point-to-point messaging
+class OrderMessage < SmartMessage::Base
+  from 'order-service'        # Required: sender identity
+  to 'fulfillment-service'    # Optional: specific recipient
+  reply_to 'order-service'    # Optional: response routing
+end
+
+# Broadcast messaging
+class AnnouncementMessage < SmartMessage::Base
+  from 'admin-service'        # Required sender
+  # No 'to' field = broadcast to all subscribers
+end
+
+# Instance-level override
+payment = PaymentMessage.new(amount: 100.00)
+payment.to('backup-gateway')  # Override destination
+payment.publish
+```
+
+**What You'll Learn:**
+- Entity-to-entity communication patterns
+- Point-to-point vs broadcast messaging
+- Request-reply workflows with proper response routing
+- Runtime addressing configuration and overrides
+- Gateway patterns for cross-system integration
+- How addressing enables sophisticated routing logic
+
+**Routing Patterns Demonstrated:**
+- **Point-to-Point**: Direct entity targeting with FROM/TO
+- **Broadcast**: FROM only, TO=nil for all subscribers  
+- **Request-Reply**: REPLY_TO for response routing
+- **Gateway**: Dynamic addressing for message transformation
+- **Override**: Instance-level addressing changes
+
+**Benefits:**
+- **Flexible Routing**: Support multiple messaging patterns
+- **Entity Identification**: Clear sender/recipient tracking
+- **Response Management**: Structured request-reply workflows
+- **Runtime Configuration**: Dynamic addressing based on conditions
+- **Integration Patterns**: Gateway support for external systems
 
 ## Message Patterns Demonstrated
 

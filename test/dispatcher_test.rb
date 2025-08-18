@@ -6,6 +6,8 @@ require_relative "test_helper"
 module DispatcherTest
   # A simple example message model
   class MyMessage < SmartMessage::Base
+    from 'test-service'
+    
     property :foo
     property :bar
     property :baz

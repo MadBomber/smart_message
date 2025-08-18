@@ -35,6 +35,8 @@ class ProcHandlerIntegrationTest < Minitest::Test
 
   # Integration test message
   class IntegrationTestMessage < SmartMessage::Base
+    from 'test-service'
+    
     property :message_id
     property :content
     property :timestamp

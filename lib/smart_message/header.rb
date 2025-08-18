@@ -43,5 +43,19 @@ module SmartMessage
       description: "Schema version of the message format, used for schema evolution and compatibility checking",
       validate: ->(v) { v.is_a?(Integer) && v > 0 },
       validation_message: "Header version must be a positive integer"
+    
+    # Message addressing properties for entity-to-entity communication
+    property :from,
+      required: true,
+      message: "From entity ID is required for message routing and replies",
+      description: "Unique identifier of the entity sending this message, used for routing responses and audit trails"
+    
+    property :to,
+      required: false,
+      description: "Optional unique identifier of the intended recipient entity. When nil, message is broadcast to all subscribers"
+    
+    property :reply_to,
+      required: false,
+      description: "Optional unique identifier of the entity that should receive replies to this message. Defaults to 'from' entity if not specified"
   end
 end

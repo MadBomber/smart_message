@@ -4,6 +4,8 @@ require_relative "test_helper"
 
 module PropertyDescriptionsTest
   class MessageWithDescriptions < SmartMessage::Base
+    from 'test-service'
+    
     property :order_id, description: "Unique identifier for the order"
     property :amount, description: "Order total in cents"
     property :currency, default: 'USD', description: "ISO currency code"
@@ -80,6 +82,8 @@ module PropertyDescriptionsTest
         # Note: Hashie::Dash doesn't inherit property metadata, so subclasses
         # need to redefine properties to get descriptions
         class SubMessage < SmartMessage::Base
+    from 'test-service'
+    
           property :order_id, description: "Unique identifier for the order"
           property :extra_field, description: "An additional field"
         end
@@ -96,6 +100,8 @@ module PropertyDescriptionsTest
 
       should "work with properties that have other options like default and transform" do
         class ComplexMessage < SmartMessage::Base
+    from 'test-service'
+    
           property :with_default, default: "default_value", description: "Has a default value"
           property :transformed_field, transform_with: ->(v) { v.to_s.upcase }, description: "Gets uppercased"
         end
@@ -114,6 +120,8 @@ module PropertyDescriptionsTest
 
       should "return empty hash when no descriptions are defined" do
         class NoDescriptionMessage < SmartMessage::Base
+    from 'test-service'
+    
           property :field1
           property :field2
         end

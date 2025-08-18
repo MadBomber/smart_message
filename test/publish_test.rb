@@ -8,6 +8,8 @@ require 'smart_message/transport'
 module PublishTest
   # A simple example message model
   class CommonMessageConfig < SmartMessage::Base
+    from 'test-service'
+    
     # Defines a common message configuration
   end
 
@@ -39,8 +41,6 @@ module PublishTest
       puts "\t#{message_payload}"
     end
   end # class MyMessage < SmartMessage::Base
-
-
 
 
   class Test < Minitest::Test

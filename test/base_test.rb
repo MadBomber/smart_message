@@ -5,6 +5,8 @@ require_relative "test_helper"
 module BaseTest
   # A simple example message model
   class MyMessage < SmartMessage::Base
+    from 'test-service'
+    
     property :foo
     property :bar
     property :baz
@@ -12,6 +14,7 @@ module BaseTest
 
   # Message with class description for testing
   class DescribedMessage < SmartMessage::Base
+    from 'test-service'
     description "Test message with class-level description"
     property :data
   end

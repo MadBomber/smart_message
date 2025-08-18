@@ -8,6 +8,8 @@ require 'smart_message/transport'
 module SubscribeTest
   # A simple example message model
   class MyMessage < SmartMessage::Base
+    from 'subscribe-test-service'
+    
     property :foo
     property :bar
     property :baz

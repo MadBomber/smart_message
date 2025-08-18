@@ -320,6 +320,7 @@ class LoggerDefaultTest < Minitest::Test
         
         # Define a test message class
         @message_class = Class.new(SmartMessage::Base) do
+          from 'test-service'
           property :content
           
           def self.name

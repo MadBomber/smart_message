@@ -16,6 +16,7 @@ Welcome to the comprehensive documentation for SmartMessage, a Ruby gem that abs
 ### Components
 - [SmartMessage::Base](base.md)
 - [Property System](properties.md)
+- [Entity Addressing](addressing.md)
 - [Transport Layer](transports.md)
 - [Serializers](serializers.md)
 - [Logging System](logging.md)

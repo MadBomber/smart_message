@@ -40,6 +40,11 @@ class WelcomeMessage < SmartMessage::Base
   # Add a description for the message class
   description "Welcomes new users after successful signup"
   
+  # Configure entity addressing
+  from 'user-service'           # Required: identifies sender
+  to 'notification-service'     # Optional: specific recipient
+  reply_to 'user-service'       # Optional: where responses go
+  
   # Define message properties
   property :user_name
   property :email
@@ -153,6 +158,9 @@ puts message._sm_header.uuid          # Unique identifier
 puts message._sm_header.message_class # "WelcomeMessage"
 puts message._sm_header.published_at  # Timestamp when published
 puts message._sm_header.publisher_pid # Process ID of publisher
+puts message._sm_header.from          # 'user-service'
+puts message._sm_header.to            # 'notification-service'
+puts message._sm_header.reply_to      # 'user-service'
 ```
 
 ### Transports
@@ -221,6 +229,36 @@ OrderMessage.subscribe("OrderService.process_order")
 - **Block**: Quick inline logic specific to one subscription
 - **Proc**: Reusable handlers that work across multiple message types
 - **Method**: Complex business logic organized in service classes
+
+### Entity Addressing
+
+SmartMessage supports entity-to-entity addressing for sophisticated messaging patterns:
+
+```ruby
+# Point-to-point messaging
+class PaymentMessage < SmartMessage::Base
+  from 'payment-service'    # Required: sender identity
+  to 'bank-gateway'         # Optional: specific recipient
+  reply_to 'payment-service' # Optional: where responses go
+  
+  property :amount, required: true
+end
+
+# Broadcast messaging (no 'to' field)
+class AnnouncementMessage < SmartMessage::Base
+  from 'admin-service'      # Required sender
+  # No 'to' = broadcast to all subscribers
+  
+  property :message, required: true
+end
+
+# Instance-level addressing override
+payment = PaymentMessage.new(amount: 100.00)
+payment.to('backup-gateway')  # Override destination
+payment.publish
+```
+
+For more details, see [Entity Addressing](addressing.md).
 
 ## Next Steps
 

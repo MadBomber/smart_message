@@ -9,6 +9,8 @@ require 'logger'
 module TransportTest
   # A simple example message model
   class MyMessage < SmartMessage::Base
+    from 'test-service'
+    
     property :foo
     property :bar
     property :baz

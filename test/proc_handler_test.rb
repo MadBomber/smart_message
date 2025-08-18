@@ -19,6 +19,8 @@ class ProcHandlerTest < Minitest::Test
 
   # Test message class for proc handler testing
   class TestMessage < SmartMessage::Base
+    from 'test-service'
+    
     property :content
     property :sender
 
