@@ -53,6 +53,7 @@ module SmartMessage
         # Register built-in transports
         register(:stdout, SmartMessage::Transport::StdoutTransport)
         register(:memory, SmartMessage::Transport::MemoryTransport)
+        register(:redis, SmartMessage::Transport::RedisTransport)
       end
     end
   end
