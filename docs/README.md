@@ -18,6 +18,7 @@ Welcome to the comprehensive documentation for SmartMessage, a Ruby gem that abs
 - [Property System](properties.md)
 - [Transport Layer](transports.md)
 - [Serializers](serializers.md)
+- [Logging System](logging.md)
 - [Dispatcher & Routing](dispatcher.md)
 - [Message Headers](headers.md)
 
