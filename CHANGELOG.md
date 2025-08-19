@@ -6,6 +6,61 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+## [0.0.7] 2025-08-19
+### Added
+- **Production-Grade Circuit Breaker Integration**: Comprehensive reliability patterns using BreakerMachines gem
+  - Circuit breaker protection for message processing operations with configurable failure thresholds
+  - Transport-level circuit breakers for publish/subscribe operations with automatic fallback
+  - Integrated circuit breaker DSL throughout SmartMessage components for production reliability
+  - Memory and Redis storage backends for circuit breaker state persistence
+  - Built-in fallback mechanisms including dead letter queue, retry with exponential backoff, and graceful degradation
+  - Circuit breaker statistics and introspection capabilities for monitoring and debugging
+
+### Fixed
+- **Critical: Redis Transport Header Preservation**: Fixed message header information loss during Redis pub/sub transport
+  - **Root Cause**: Redis transport was only sending message payload through channels, reconstructing generic headers on receive
+  - **Impact**: Message addressing information (`from`, `to`, `reply_to`) was lost, breaking entity-aware filtering and routing
+  - **Solution**: Modified Redis transport to combine header and payload into JSON structure during publish/subscribe
+  - **Result**: Full header information now preserved across Redis transport with backward compatibility fallback
+  - Redis IoT example now displays all expected sensor data, alerts, and real-time device monitoring output
+- **Performance: Dispatcher Shutdown Optimization**: Dramatically improved dispatcher shutdown speed
+  - **Previous Issue**: Slow 1-second polling with no timeout mechanism caused delays up to several minutes
+  - **Optimization**: Replaced with native `wait_for_termination(3)` using Concurrent::ThreadPool built-in timeout
+  - **Performance Gain**: Shutdown now completes in milliseconds instead of seconds
+  - Removed unnecessary circuit breaker wrapper - thread pool handles timeout and fallback natively
+- **Code Quality: Transport Method Signature Consistency**: Ensured all transport `do_publish` methods use consistent parameters
+  - Standardized `do_publish(message_header, message_payload)` signature across all transport implementations
+  - Updated Redis, STDOUT, and Memory transports for consistent interface
+
+### Changed
+- **Dispatcher Architecture**: Simplified shutdown mechanism leveraging Concurrent::ThreadPool native capabilities
+  - Removed custom timeout polling logic in favor of built-in `wait_for_termination` method
+  - Eliminated redundant circuit breaker for shutdown operations - thread pool provides timeout and fallback
+  - **BREAKING**: Removed `router_pool_shutdown` circuit breaker configuration (no longer needed)
+- **Redis Transport Protocol**: Enhanced message format to preserve complete header information
+  - Redis messages now contain both header and payload: `{header: {...}, payload: "..."}`
+  - Automatic fallback to legacy behavior for malformed or old-format messages
+  - Maintains full backward compatibility with existing Redis deployments
+
+### Enhanced
+- **Circuit Breaker Integration**: Strategic application of reliability patterns where most beneficial
+  - Message processing operations protected with configurable failure thresholds and fallback behavior
+  - Transport publish/subscribe operations wrapped with circuit breakers for external service protection
+  - Clean separation between internal operations (thread pools) and external dependencies (Redis, etc.)
+- **Redis Transport Reliability**: Production-ready Redis pub/sub with complete message fidelity
+  - Full message header preservation enables proper entity-aware filtering and routing
+  - IoT examples now demonstrate complete real-time messaging with sensor data, alerts, and device commands
+  - Enhanced error handling with JSON parsing fallbacks for malformed messages
+- **Developer Experience**: Cleaner, more maintainable codebase with proper separation of concerns
+  - Circuit breakers applied strategically for external dependencies, not internal thread management
+  - Simplified shutdown logic leverages proven Concurrent::ThreadPool patterns
+  - Clear distinction between reliability mechanisms and business logic
+
+### Documentation
+- **Circuit Breaker Patterns**: Examples of proper BreakerMachines DSL usage throughout codebase
+  - Strategic application for external service protection vs internal thread management
+  - Configuration examples for different failure scenarios and recovery patterns
+  - Best practices for production-grade messaging reliability
 
 ## [0.0.6] 2025-08-19
 
