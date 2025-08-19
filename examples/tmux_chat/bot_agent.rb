@@ -110,7 +110,8 @@ class BotChatAgent < BaseAgent
       user_name: chat_data['sender_name'],
       command: command,
       parameters: parameters,
-      timestamp: Time.now.iso8601
+      timestamp: Time.now.iso8601,
+      from: chat_data['sender_id']
     )
     
     bot_command.publish

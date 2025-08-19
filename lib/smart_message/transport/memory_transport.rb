@@ -22,7 +22,7 @@ module SmartMessage
       end
 
       # Publish message to memory queue
-      def publish(message_header, message_payload)
+      def do_publish(message_header, message_payload)
         @message_mutex.synchronize do
           # Prevent memory overflow
           @messages.shift if @messages.size >= @options[:max_messages]

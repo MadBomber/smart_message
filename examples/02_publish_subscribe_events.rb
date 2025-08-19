@@ -270,7 +270,8 @@ class UserManager
       user_email: user_email,
       user_name: user_name,
       timestamp: Time.now.iso8601,
-      metadata: metadata
+      metadata: metadata,
+      from: 'UserManager'
     )
     
     puts "👤 UserManager: Publishing #{event_type} event..."

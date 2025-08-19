@@ -470,7 +470,7 @@ class PriorityOrderService
   
   def process_priority_order(order_data)
     # Create message with instance-level logger override
-    message = OrderProcessingMessage.new(**order_data)
+    message = OrderProcessingMessage.new(**order_data, from: 'PriorityOrderService')
     
     # Override the logger at instance level
     message.logger(@priority_logger)
@@ -506,7 +506,8 @@ class LoggerDemo
     DefaultLoggerMessage.subscribe
     default_msg = DefaultLoggerMessage.new(
       message: "Testing the built-in default logger",
-      level: "info"
+      level: "info",
+      from: 'LoggerDemo'
     )
     default_msg.publish
     sleep(0.5)
@@ -518,7 +519,8 @@ class LoggerDemo
       customer_id: "CUST-123",
       amount: 99.99,
       status: "pending",
-      items: ["Widget A", "Widget B"]
+      items: ["Widget A", "Widget B"],
+      from: 'LoggerDemo'
     )
     order1.publish
     sleep(0.5)
@@ -529,7 +531,8 @@ class LoggerDemo
       recipient: "customer@example.com",
       subject: "Order Confirmation",
       body: "Your order has been received",
-      priority: "normal"
+      priority: "normal",
+      from: 'LoggerDemo'
     )
     notification.publish
     sleep(0.5)
@@ -542,7 +545,8 @@ class LoggerDemo
       customer_id: "VIP-456",
       amount: 299.99,
       status: "urgent",
-      items: ["Premium Widget", "Express Shipping"]
+      items: ["Premium Widget", "Express Shipping"],
+      from: 'PriorityOrderService'
     )
     sleep(0.5)
     
@@ -555,7 +559,8 @@ class LoggerDemo
     # Create and send a message - watch for the Ruby logger output
     msg = StandardLoggerMessage.new(
       content: "Testing with Ruby's standard logger",
-      level: "info"
+      level: "info",
+      from: 'LoggerDemo'
     )
     
     # The logger will output to STDOUT using Ruby's standard format
@@ -573,7 +578,8 @@ class LoggerDemo
         order_id: nil,  # This might cause issues
         customer_id: "ERROR-TEST",
         amount: "invalid_amount",
-        status: "error_demo"
+        status: "error_demo",
+        from: 'LoggerDemo'
       )
       
       # Simulate an error during processing

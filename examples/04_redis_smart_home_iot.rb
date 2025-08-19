@@ -234,7 +234,7 @@ class SmartThermostat
         @battery_level -= 0.1 if rand < 0.1   # Occasional battery drain
         
         # Publish sensor data
-        SensorDataMessage.new(
+        sensor_msg = SensorDataMessage.new(
           device_id: @device_id,
           device_type: 'thermostat',
           location: @location,
@@ -242,8 +242,11 @@ class SmartThermostat
           value: @current_temp.round(1),
           unit: 'celsius',
           timestamp: Time.now.iso8601,
-          battery_level: @battery_level.round(1)
-        ).publish
+          battery_level: @battery_level.round(1),
+          from: @device_id
+        )
+        puts "🌡️  #{@device_id}: Publishing temperature #{@current_temp.round(1)}°C"
+        sensor_msg.publish
 
         # Check for alerts
         if @current_temp > 28.0
@@ -255,7 +258,8 @@ class SmartThermostat
             location: @location,
             message: "Temperature too high: #{@current_temp.round(1)}°C",
             timestamp: Time.now.iso8601,
-            requires_action: true
+            requires_action: true,
+            from: @device_id
           ).publish
         end
 
@@ -325,7 +329,8 @@ class SecurityCamera
             value: true,
             unit: 'boolean',
             timestamp: Time.now.iso8601,
-            battery_level: @battery_level.round(1)
+            battery_level: @battery_level.round(1),
+            from: @device_id
           ).publish
 
           # Send security alert
@@ -337,7 +342,8 @@ class SecurityCamera
             location: @location,
             message: "Motion detected in #{@location}",
             timestamp: Time.now.iso8601,
-            requires_action: false
+            requires_action: false,
+            from: @device_id
           ).publish
           
           # Auto-start recording
@@ -346,7 +352,8 @@ class SecurityCamera
             command: 'start_recording',
             parameters: { duration: 30 },
             requested_by: 'motion_detector',
-            timestamp: Time.now.iso8601
+            timestamp: Time.now.iso8601,
+            from: @device_id
           ).publish
           
         elsif !motion_detected && @motion_detected
@@ -361,7 +368,8 @@ class SecurityCamera
             value: false,
             unit: 'boolean',
             timestamp: Time.now.iso8601,
-            battery_level: @battery_level.round(1)
+            battery_level: @battery_level.round(1),
+            from: @device_id
           ).publish
         end
 
@@ -424,7 +432,8 @@ class SmartDoorLock
           value: @locked ? 'locked' : 'unlocked',
           unit: 'string',
           timestamp: Time.now.iso8601,
-          battery_level: @battery_level.round(1)
+          battery_level: @battery_level.round(1),
+          from: @device_id
         ).publish
 
         # Check for low battery
@@ -437,7 +446,8 @@ class SmartDoorLock
             location: @location,
             message: "Door lock battery low: #{@battery_level.round(1)}%",
             timestamp: Time.now.iso8601,
-            requires_action: true
+            requires_action: true,
+            from: @device_id
           ).publish
         end
 
@@ -528,7 +538,8 @@ class IoTDashboard
           summary_stats: {
             total_devices: @@devices.size,
             avg_battery: @@devices.values.map { |d| d[:battery_level] || 100 }.sum / [@@devices.size, 1].max
-          }
+          },
+          from: 'IoTDashboard'
         ).publish
       end
     end
@@ -592,13 +603,16 @@ class SmartHomeDemo
     puts "\n🎛️  Sending some manual commands..."
     sleep(2)
     
-    DeviceCommandMessage.new(
+    cmd_msg = DeviceCommandMessage.new(
       device_id: "THERM-001",
       command: "set_temperature",
       parameters: { target: 24.0 },
       requested_by: "mobile_app",
-      timestamp: Time.now.iso8601
-    ).publish
+      timestamp: Time.now.iso8601,
+      from: 'SmartHomeDemo'
+    )
+    puts "🎛️  Publishing command: set_temperature for THERM-001"
+    cmd_msg.publish
     
     sleep(3)
     
@@ -607,7 +621,8 @@ class SmartHomeDemo
       command: "start_recording",
       parameters: { duration: 60 },
       requested_by: "security_schedule",
-      timestamp: Time.now.iso8601
+      timestamp: Time.now.iso8601,
+      from: 'SmartHomeDemo'
     ).publish
     
     sleep(2)
@@ -617,7 +632,8 @@ class SmartHomeDemo
       command: "get_status",
       parameters: {},
       requested_by: "mobile_app",
-      timestamp: Time.now.iso8601
+      timestamp: Time.now.iso8601,
+      from: 'SmartHomeDemo'
     ).publish
     
     puts "\n⏳ Monitoring for 30 seconds (watch the Redis channels!)..."

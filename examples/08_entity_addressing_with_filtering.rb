@@ -87,7 +87,8 @@ puts "\n📤 Publishing test messages..."
 # Broadcast message - should only be received by broadcast handler
 broadcast_msg = ServiceMessage.new(
   message_type: 'system_announcement',
-  data: 'System maintenance at 2 AM'
+  data: 'System maintenance at 2 AM',
+  from: 'sender-service'
 )
 broadcast_msg.to(nil)  # Explicitly set as broadcast
 puts "\n1. Publishing broadcast message (no 'to' field)..."
@@ -97,7 +98,8 @@ sleep(0.2)  # Allow time for handlers to process
 # Directed message to 'my-service' - should only be received by directed handler
 directed_msg = ServiceMessage.new(
   message_type: 'service_update',
-  data: 'Update your configuration'
+  data: 'Update your configuration',
+  from: 'sender-service'
 )
 directed_msg.to('my-service')
 puts "\n2. Publishing message to 'my-service'..."
@@ -107,7 +109,8 @@ sleep(0.2)  # Allow time for handlers to process
 # Directed message to different service - should NOT be received
 other_msg = ServiceMessage.new(
   message_type: 'other_update',
-  data: 'This is for another service'
+  data: 'This is for another service',
+  from: 'sender-service'
 )
 other_msg.to('other-service')
 puts "\n3. Publishing message to 'other-service' (should not be received)..."
@@ -117,7 +120,8 @@ sleep(0.2)  # Allow time to confirm no handlers process this
 # Message from admin - should only be received by admin handler
 admin_msg = ServiceMessage.new(
   message_type: 'admin_command',
-  data: 'Restart all services'
+  data: 'Restart all services',
+  from: 'admin-service'
 )
 admin_msg.from('admin-service')
 admin_msg.to('my-service')
@@ -191,7 +195,8 @@ puts "\n📤 Publishing alert messages..."
 broadcast_alert = AlertMessage.new(
   severity: 'warning',
   alert_text: 'CPU usage high across cluster',
-  source_system: 'cluster-monitor'
+  source_system: 'cluster-monitor',
+  from: 'monitoring-system-1'
 )
 broadcast_alert.from('monitoring-system-1')
 broadcast_alert.to(nil)  # Broadcast
@@ -203,7 +208,8 @@ sleep(0.2)  # Allow time for handlers to process
 directed_alert = AlertMessage.new(
   severity: 'critical',
   alert_text: 'Database connection lost',
-  source_system: 'db-monitor'
+  source_system: 'db-monitor',
+  from: 'monitoring-system-2'
 )
 directed_alert.from('monitoring-system-2')
 directed_alert.to('alert-service')
@@ -215,7 +221,8 @@ sleep(0.2)  # Allow time for handlers to process
 other_alert = AlertMessage.new(
   severity: 'info',
   alert_text: 'Backup completed successfully',
-  source_system: 'backup-system'
+  source_system: 'backup-system',
+  from: 'monitoring-system-1'
 )
 other_alert.from('monitoring-system-1')
 other_alert.to('backup-service')
@@ -285,7 +292,8 @@ normal_order = OrderMessage.new(
   order_id: "ORD-001",
   priority: 'normal',
   items: ["Widget A", "Widget B"],
-  total_amount: 99.99
+  total_amount: 99.99,
+  from: 'order-service'
 )
 puts "\n1. Publishing normal order to fulfillment..."
 normal_order.publish
@@ -296,7 +304,8 @@ high_priority_order = OrderMessage.new(
   order_id: "ORD-002",
   priority: 'high',
   items: ["Premium Widget", "Express Gadget"],
-  total_amount: 999.99
+  total_amount: 999.99,
+  from: 'order-service'
 )
 puts "\n2. Publishing high-priority order..."
 high_priority_order.publish
@@ -307,7 +316,8 @@ misrouted_order = OrderMessage.new(
   order_id: "ORD-003",
   priority: 'normal',
   items: ["Test Item"],
-  total_amount: 50.00
+  total_amount: 50.00,
+  from: 'order-service'
 )
 misrouted_order.to('wrong-service')
 puts "\n3. Publishing order to 'wrong-service' (should not be received)..."
@@ -371,7 +381,8 @@ puts "\n📤 Publishing service requests..."
 api_request = ServiceRequest.new(
   request_id: SecureRandom.uuid,
   request_type: 'user_lookup',
-  data: { user_id: 'USER-123' }
+  data: { user_id: 'USER-123' },
+  from: 'web-frontend'
 )
 api_request.from('web-frontend')
 api_request.to('api-service')
@@ -384,7 +395,8 @@ sleep(0.2)  # Allow time for handlers to process
 data_request = ServiceRequest.new(
   request_id: SecureRandom.uuid,
   request_type: 'query',
-  data: { table: 'orders', limit: 100 }
+  data: { table: 'orders', limit: 100 },
+  from: 'analytics-service'
 )
 data_request.from('analytics-service')
 data_request.to('data-service')

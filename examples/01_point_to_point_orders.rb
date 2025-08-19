@@ -92,7 +92,8 @@ class OrderService
       customer_id: customer_id,
       amount: amount,
       payment_method: payment_method,
-      items: items
+      items: items,
+      from: 'OrderService'
     )
     
     puts "🏪 OrderService: Sending order to payment processing..."
@@ -132,7 +133,8 @@ class PaymentService
       payment_id: payment_id,
       status: success ? 'success' : 'failed',
       message: success ? 'Payment processed successfully' : 'Insufficient funds',
-      processed_at: Time.now.iso8601
+      processed_at: Time.now.iso8601,
+      from: 'PaymentService'
     )
     
     puts "💳 PaymentService: Sending payment response..."

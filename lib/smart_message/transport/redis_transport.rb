@@ -5,6 +5,7 @@
 require 'redis'
 require 'securerandom'
 require 'set'
+require 'json'
 
 module SmartMessage
   module Transport
@@ -35,13 +36,20 @@ module SmartMessage
       end
 
       # Publish message to Redis channel using message class name
-      def publish(message_header, message_payload)
+      def do_publish(message_header, message_payload)
         channel = message_header.message_class
         
+        # Combine header and payload for Redis transport
+        # This ensures header information (from, to, reply_to, etc.) is preserved
+        redis_message = {
+          header: message_header.to_hash,
+          payload: message_payload
+        }.to_json
+        
         begin
-          @redis_pub.publish(channel, message_payload)
+          @redis_pub.publish(channel, redis_message)
         rescue Redis::ConnectionError
-          retry_with_reconnect('publish') { @redis_pub.publish(channel, message_payload) }
+          retry_with_reconnect('publish') { @redis_pub.publish(channel, redis_message) }
         end
       end
 
@@ -135,16 +143,38 @@ module SmartMessage
         
         begin
           @redis_sub.subscribe(*@subscribed_channels) do |on|
-            on.message do |channel, message_payload|
-              # Create a header with the channel as message_class
-              message_header = SmartMessage::Header.new(
-                message_class: channel,
-                uuid: SecureRandom.uuid,
-                published_at: Time.now,
-                publisher_pid: 'redis_subscriber'
-              )
-              
-              receive(message_header, message_payload)
+            on.message do |channel, redis_message|
+              begin
+                # Parse the Redis message to extract header and payload
+                parsed_message = JSON.parse(redis_message)
+                
+                if parsed_message.is_a?(Hash) && parsed_message.has_key?('header') && parsed_message.has_key?('payload')
+                  # Reconstruct the original header from the parsed data
+                  header_data = parsed_message['header']
+                  message_header = SmartMessage::Header.new(header_data)
+                  message_payload = parsed_message['payload']
+                else
+                  # Fallback for messages that don't have header/payload structure (legacy support)
+                  message_header = SmartMessage::Header.new(
+                    message_class: channel,
+                    uuid: SecureRandom.uuid,
+                    published_at: Time.now,
+                    publisher_pid: 'redis_subscriber'
+                  )
+                  message_payload = redis_message
+                end
+                
+                receive(message_header, message_payload)
+              rescue JSON::ParserError
+                # Handle malformed JSON - fallback to legacy behavior
+                message_header = SmartMessage::Header.new(
+                  message_class: channel,
+                  uuid: SecureRandom.uuid,
+                  published_at: Time.now,
+                  publisher_pid: 'redis_subscriber'
+                )
+                receive(message_header, redis_message)
+              end
             end
             
             on.subscribe do |channel, subscriptions|

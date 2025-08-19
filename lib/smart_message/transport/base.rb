@@ -2,17 +2,22 @@
 # encoding: utf-8
 # frozen_string_literal: true
 
+require_relative '../circuit_breaker'
+
 module SmartMessage
   module Transport
     # Base class for all transport implementations
     # This defines the standard interface that all transports must implement
     class Base
+      include BreakerMachines::DSL
+      
       attr_reader :options, :dispatcher
 
       def initialize(**options)
         @options = default_options.merge(options)
         @dispatcher = options[:dispatcher] || SmartMessage::Dispatcher.new
         configure
+        configure_transport_circuit_breakers
       end
 
       # Transport-specific configuration
@@ -25,11 +30,26 @@ module SmartMessage
         {}
       end
 
-      # Publish a message
+      # Publish a message with circuit breaker protection
       # @param message_header [SmartMessage::Header] Message routing information
       # @param message_payload [String] Serialized message content
       def publish(message_header, message_payload)
-        raise NotImplementedError, 'Transport must implement #publish'
+        circuit(:transport_publish).wrap do
+          do_publish(message_header, message_payload)
+        end
+      rescue => e
+        # Re-raise if it's not a circuit breaker fallback
+        raise unless e.is_a?(Hash) && e[:circuit_breaker]
+        
+        # Handle circuit breaker fallback
+        handle_publish_fallback(e, message_header, message_payload)
+      end
+
+      # Template method for actual publishing (implement in subclasses)
+      # @param message_header [SmartMessage::Header] Message routing information
+      # @param message_payload [String] Serialized message content
+      def do_publish(message_header, message_payload)
+        raise NotImplementedError, 'Transport must implement #do_publish'
       end
 
       # Subscribe to a message class
@@ -73,6 +93,47 @@ module SmartMessage
         # Override in subclasses if cleanup is needed
       end
 
+      # Get transport circuit breaker statistics
+      # @return [Hash] Circuit breaker statistics
+      def transport_circuit_stats
+        stats = {}
+        
+        [:transport_publish, :transport_subscribe].each do |circuit_name|
+          begin
+            if respond_to?(:circuit)
+              breaker = circuit(circuit_name)
+              if breaker
+                stats[circuit_name] = {
+                  status: breaker.status,
+                  closed: breaker.closed?,
+                  open: breaker.open?,
+                  half_open: breaker.half_open?,
+                  last_error: breaker.last_error,
+                  opened_at: breaker.opened_at,
+                  stats: breaker.stats
+                }
+              end
+            end
+          rescue => e
+            stats[circuit_name] = { error: "Failed to get stats: #{e.message}" }
+          end
+        end
+        
+        stats
+      end
+
+      # Reset transport circuit breakers
+      # @param circuit_name [Symbol] Optional specific circuit to reset
+      def reset_transport_circuits!(circuit_name = nil)
+        if circuit_name
+          circuit(circuit_name)&.reset!
+        else
+          # Reset all transport circuits
+          circuit(:transport_publish)&.reset!
+          circuit(:transport_subscribe)&.reset!
+        end
+      end
+
       # Receive and route a message (called by transport implementations)
       # @param message_header [SmartMessage::Header] Message routing information
       # @param message_payload [String] Serialized message content
@@ -80,6 +141,81 @@ module SmartMessage
 
       def receive(message_header, message_payload)
         @dispatcher.route(message_header, message_payload)
+      end
+
+      # Configure circuit breakers for transport operations
+      def configure_transport_circuit_breakers
+        # Configure publish circuit breaker
+        publish_config = SmartMessage::CircuitBreaker::DEFAULT_CONFIGS[:transport_publish]
+        
+        self.class.circuit :transport_publish do
+          threshold failures: publish_config[:threshold][:failures], 
+                   within: publish_config[:threshold][:within].seconds
+          reset_after publish_config[:reset_after].seconds
+          
+          # Use memory storage by default for transport circuits
+          storage BreakerMachines::Storage::Memory.new
+          
+          # Fallback for publish failures
+          fallback do |exception|
+            {
+              circuit_breaker: {
+                circuit: :transport_publish,
+                transport_type: self.class.name,
+                state: 'open',
+                error: exception.message,
+                error_class: exception.class.name,
+                timestamp: Time.now.iso8601,
+                fallback_triggered: true
+              }
+            }
+          end
+        end
+
+        # Configure subscribe circuit breaker
+        subscribe_config = SmartMessage::CircuitBreaker::DEFAULT_CONFIGS[:transport_subscribe]
+        
+        self.class.circuit :transport_subscribe do
+          threshold failures: subscribe_config[:threshold][:failures], 
+                   within: subscribe_config[:threshold][:within].seconds
+          reset_after subscribe_config[:reset_after].seconds
+          
+          storage BreakerMachines::Storage::Memory.new
+          
+          # Fallback for subscribe failures
+          fallback do |exception|
+            {
+              circuit_breaker: {
+                circuit: :transport_subscribe,
+                transport_type: self.class.name,
+                state: 'open',
+                error: exception.message,
+                error_class: exception.class.name,
+                timestamp: Time.now.iso8601,
+                fallback_triggered: true
+              }
+            }
+          end
+        end
+      end
+
+      # Handle publish circuit breaker fallback
+      # @param fallback_result [Hash] The circuit breaker fallback result
+      # @param message_header [SmartMessage::Header] The message header
+      # @param message_payload [String] The message payload
+      def handle_publish_fallback(fallback_result, message_header, message_payload)
+        # Log the circuit breaker activation
+        if $DEBUG
+          puts "Transport publish circuit breaker activated: #{self.class.name}"
+          puts "Error: #{fallback_result[:circuit_breaker][:error]}"
+          puts "Message: #{message_header.message_class}"
+        end
+        
+        # TODO: Integrate with structured logging when implemented
+        # TODO: Queue for retry or send to dead letter queue
+        
+        # Return the fallback result to indicate failure
+        fallback_result
       end
     end
   end

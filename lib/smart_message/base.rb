@@ -73,10 +73,13 @@ module SmartMessage
       @serializer  = nil
       @logger      = nil
       
+      # Extract addressing information from props before creating header
+      addressing_props = props.extract!(:from, :to, :reply_to)
+      
       # instance-level over ride of class addressing
-      @from        = nil
-      @to          = nil
-      @reply_to    = nil
+      @from        = addressing_props[:from]
+      @to          = addressing_props[:to] 
+      @reply_to    = addressing_props[:reply_to]
 
       # Create header with version validation specific to this message class
       header = SmartMessage::Header.new(

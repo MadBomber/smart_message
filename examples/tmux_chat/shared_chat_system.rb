@@ -244,7 +244,8 @@ class BaseAgent
       message_type: message_type,
       timestamp: Time.now.iso8601,
       mentions: extract_mentions(content),
-      metadata: { agent_type: @agent_type }
+      metadata: { agent_type: @agent_type },
+      from: @agent_id
     )
     
     log_display("💬 [#{room_id}] #{@name}: #{content}")
@@ -291,7 +292,8 @@ class BaseAgent
       notification_type: notification_type,
       content: content,
       timestamp: Time.now.iso8601,
-      metadata: { triggered_by: @agent_id }
+      metadata: { triggered_by: @agent_id },
+      from: @agent_id
     )
     
     notification.publish

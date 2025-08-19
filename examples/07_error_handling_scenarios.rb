@@ -167,7 +167,8 @@ class ErrorDemonstrator
       missing_user_id = UserRegistrationMessage.new(
         email: "john@example.com",
         age: 25,
-        username: "johndoe"
+        username: "johndoe",
+        from: 'ErrorDemonstrator'
       )
       puts "❌ ERROR: Should have failed but didn't!"
     rescue => e
@@ -181,7 +182,8 @@ class ErrorDemonstrator
     begin
       missing_multiple = UserRegistrationMessage.new(
         user_id: "USER-123",
-        username: "johndoe"
+        username: "johndoe",
+        from: 'ErrorDemonstrator'
       )
       puts "❌ ERROR: Should have failed but didn't!"
     rescue => e
@@ -197,7 +199,8 @@ class ErrorDemonstrator
         user_id: "USER-123",
         email: "john@example.com", 
         age: 25,
-        username: "johndoe"
+        username: "johndoe",
+        from: 'ErrorDemonstrator'
       )
       puts "✅ Message created successfully"
       puts "   User: #{valid_user.username} (#{valid_user.email})"
@@ -227,7 +230,8 @@ class ErrorDemonstrator
         user_id: "USER-124",
         email: "not-an-email",  # Invalid format
         age: 25,
-        username: "janedoe"
+        username: "janedoe",
+        from: 'ErrorDemonstrator'
       )
       puts "   Message created, now validating..."
       invalid_email.validate!  # Explicitly trigger validation
@@ -245,7 +249,8 @@ class ErrorDemonstrator
         user_id: "USER-125",
         email: "kid@example.com",
         age: 10,  # Too young (< 13)
-        username: "kiduser"
+        username: "kiduser",
+        from: 'ErrorDemonstrator'
       )
       puts "   Message created, now validating..."
       invalid_age.validate!  # Explicitly trigger validation
@@ -263,7 +268,8 @@ class ErrorDemonstrator
         user_id: "USER-126",
         email: "user@example.com",
         age: 30,
-        username: "user@123!"  # Contains invalid characters
+        username: "user@123!",  # Contains invalid characters
+        from: 'ErrorDemonstrator'
       )
       puts "   Message created, now validating..."
       invalid_username.validate!  # Explicitly trigger validation
@@ -282,7 +288,8 @@ class ErrorDemonstrator
         email: "user@example.com",
         age: 30,
         username: "validuser",
-        subscription_type: "platinum"  # Not in allowed list
+        subscription_type: "platinum",  # Not in allowed list
+        from: 'ErrorDemonstrator'
       )
       puts "   Message created, now validating..."
       invalid_subscription.validate!  # Explicitly trigger validation
@@ -301,7 +308,8 @@ class ErrorDemonstrator
         email: "valid@example.com",
         age: 25,
         username: "validuser123",
-        subscription_type: "premium"
+        subscription_type: "premium",
+        from: 'ErrorDemonstrator'
       )
       puts "   Message created, now validating..."
       valid_user.validate!  # Explicitly trigger validation
@@ -339,7 +347,8 @@ class ErrorDemonstrator
         user_id: "USER-V1-001",
         email: "v1user@example.com",
         age: 28,
-        username: "v1user"
+        username: "v1user",
+        from: 'ErrorDemonstrator'
       )
       puts "✅ V1 Message created (version #{v1_message._sm_header.version})"
       v1_message.publish
@@ -356,7 +365,8 @@ class ErrorDemonstrator
         email: "v2user@example.com",
         age: 32,
         username: "v2user",
-        phone_number: "+1234567890"
+        phone_number: "+1234567890",
+        from: 'ErrorDemonstrator'
       )
       puts "✅ V2 Message created (version #{v2_message._sm_header.version})"
       v2_message.publish
@@ -374,7 +384,8 @@ class ErrorDemonstrator
         user_id: "USER-MISMATCH-001",
         email: "mismatch@example.com",
         age: 35,
-        username: "mismatchuser"
+        username: "mismatchuser",
+        from: 'ErrorDemonstrator'
       )
       
       puts "✅ Original message created with version #{version_mismatch_message._sm_header.version}"
@@ -396,8 +407,8 @@ class ErrorDemonstrator
 
     # Test Case 4: Show version information
     puts "📊 Test Case 3D: Version information display"
-    v1_msg = UserRegistrationMessage.new(user_id: "INFO-V1", email: "info@example.com", age: 25, username: "infouser")
-    v2_msg = UserRegistrationMessageV2.new(user_id: "INFO-V2", email: "info@example.com", age: 25, username: "infouser", phone_number: "+1234567890")
+    v1_msg = UserRegistrationMessage.new(user_id: "INFO-V1", email: "info@example.com", age: 25, username: "infouser", from: 'ErrorDemonstrator')
+    v2_msg = UserRegistrationMessageV2.new(user_id: "INFO-V2", email: "info@example.com", age: 25, username: "infouser", phone_number: "+1234567890", from: 'ErrorDemonstrator')
     
     puts "📋 Version Information:"
     puts "   UserRegistrationMessage (V1):"
@@ -424,7 +435,7 @@ class ErrorDemonstrator
     puts "Expected: Ideally should report all missing fields"
     puts "Actual Hashie::Dash behavior:"
     begin
-      message = MultiRequiredMessage.new(optional_field: "present")
+      message = MultiRequiredMessage.new(optional_field: "present", from: 'ErrorDemonstrator')
       puts "❌ ERROR: Should have failed but didn't!"
     rescue => e
       puts "✅ Error caught: #{e.class.name}"
@@ -443,7 +454,7 @@ class ErrorDemonstrator
     test_data.each_with_index do |test_case, index|
       puts "   #{index + 1}. #{test_case[:name]}:"
       begin
-        message = MultiRequiredMessage.new(test_case[:data])
+        message = MultiRequiredMessage.new(test_case[:data].merge(from: 'ErrorDemonstrator'))
         puts "      ✅ Success: Message created"
       rescue => e
         field_name = e.message.match(/property '([^']+)'/)[1] rescue 'unknown'

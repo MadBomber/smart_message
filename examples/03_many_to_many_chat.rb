@@ -164,7 +164,8 @@ class HumanChatAgent
         message_type: 'user',
         timestamp: Time.now.iso8601,
         mentions: mentions,
-        metadata: { client: 'human_agent' }
+        metadata: { client: 'human_agent' },
+        from: @user_id
       )
       
       message.publish
@@ -228,7 +229,8 @@ class HumanChatAgent
       user_id: @user_id,
       command: command,
       parameters: parameters,
-      timestamp: Time.now.iso8601
+      timestamp: Time.now.iso8601,
+      from: @user_id
     )
     
     bot_command.publish
@@ -259,7 +261,8 @@ class HumanChatAgent
       notification_type: notification_type,
       content: content,
       timestamp: Time.now.iso8601,
-      metadata: { triggered_by: @user_id }
+      metadata: { triggered_by: @user_id },
+      from: @user_id
     )
     
     notification.publish
@@ -444,7 +447,8 @@ class BotAgent
       message_type: 'bot',
       timestamp: Time.now.iso8601,
       mentions: [],
-      metadata: { bot_type: 'service_bot' }
+      metadata: { bot_type: 'service_bot' },
+      from: @bot_id
     )
     
     message.publish
@@ -480,7 +484,8 @@ class RoomManager
       notification_type: 'room_created',
       content: "Room '#{name}' was created",
       timestamp: Time.now.iso8601,
-      metadata: { description: description }
+      metadata: { description: description },
+      from: 'RoomManager'
     )
     
     notification.publish

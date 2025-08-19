@@ -62,7 +62,8 @@ order = OrderMessage.new(
   order_id: "ORD-2024-001",
   customer_id: "CUST-12345",
   items: ["Widget A", "Widget B", "Gadget C"],
-  total_amount: 299.99
+  total_amount: 299.99,
+  from: 'order-service'
 )
 
 puts "\n📤 Publishing point-to-point order message..."
@@ -111,7 +112,8 @@ SystemAnnouncementMessage.subscribe
 announcement = SystemAnnouncementMessage.new(
   message: "System maintenance scheduled for tonight at 2:00 AM EST",
   priority: 'high',
-  effective_time: '2024-12-20 02:00:00 EST'
+  effective_time: '2024-12-20 02:00:00 EST',
+  from: 'admin-service'
 )
 
 puts "\n📤 Publishing broadcast announcement..."
@@ -192,7 +194,8 @@ UserLookupResponse.subscribe
 request = UserLookupRequest.new(
   user_id: "USER-789",
   request_id: SecureRandom.uuid,
-  requested_fields: ['name', 'email', 'last_login']
+  requested_fields: ['name', 'email', 'last_login'],
+  from: 'web-service'
 )
 
 puts "\n📤 Publishing user lookup request..."
@@ -208,7 +211,8 @@ response = UserLookupResponse.new(
     email: "alice@example.com",
     last_login: "2024-12-19 14:30:00"
   },
-  success: true
+  success: true,
+  from: 'user-service'
 )
 response.to('web-service')  # Set reply destination
 
@@ -261,7 +265,8 @@ normal_payment = PaymentMessage.new(
   payment_id: "PAY-001",
   amount: 150.00,
   account_id: "ACCT-12345",
-  payment_method: 'credit_card'
+  payment_method: 'credit_card',
+  from: 'payment-service'
 )
 
 puts "\n📤 Publishing normal payment (using class defaults)..."
@@ -275,7 +280,8 @@ backup_payment = PaymentMessage.new(
   payment_id: "PAY-002",
   amount: 75.50,
   account_id: "ACCT-67890",
-  payment_method: 'debit_card'
+  payment_method: 'debit_card',
+  from: 'payment-service'
 )
 
 # Override instance addressing
@@ -338,7 +344,8 @@ external_message = ExternalAPIMessage.new(
   api_call: "PUT /api/v1/users/USER-123",
   payload_data: internal_data,
   authentication_token: "Bearer abc123xyz789",
-  partner_id: "PARTNER-ALPHA"
+  partner_id: "PARTNER-ALPHA",
+  from: 'api-gateway'
 )
 
 # Gateway can override destination based on routing rules

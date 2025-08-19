@@ -28,7 +28,7 @@ module SmartMessage
       end
 
       # Publish message to STDOUT
-      def publish(message_header, message_payload)
+      def do_publish(message_header, message_payload)
         @output.puts format_message(message_header, message_payload)
         @output.flush
 

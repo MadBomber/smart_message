@@ -3,26 +3,25 @@
 # frozen_string_literal: true
 
 require 'concurrent'
+require_relative 'circuit_breaker'
 
 module SmartMessage
 
   # The disoatcher routes incoming messages to all of the methods that
   # have been subscribed to the message.
   class Dispatcher
+    include BreakerMachines::DSL
 
     # TODO: setup forwardable for some @router_pool methods
 
-    def initialize
+    def initialize(circuit_breaker_options = {})
       @subscribers = Hash.new(Array.new)
       @router_pool = Concurrent::CachedThreadPool.new
+      
+      # Configure circuit breakers
+      configure_circuit_breakers(circuit_breaker_options)
       at_exit do
-        print "Shuttingdown down the dispatcher's @router_pool ..."
-        @router_pool.shutdown
-        while @router_pool.shuttingdown?
-          print '.'
-          sleep 1
-        end
-        puts " done."
+        shutdown_pool
       end
     end
 
@@ -139,7 +138,8 @@ module SmartMessage
         
         SS.add(message_klass, message_processor, 'routed' )
         @router_pool.post do
-          begin
+          # Use circuit breaker to protect message processing
+          circuit_result = circuit(:message_processor).wrap do
             # Check if this is a proc handler or a regular method call
             if proc_handler?(message_processor)
               # Call the proc handler via SmartMessage::Base
@@ -153,17 +153,63 @@ module SmartMessage
                           .method(class_method)
                           .call(message_header, message_payload)
             end
-          rescue Exception => e
-            # TODO: Add proper exception logging
-            # Exception details: #{e.message}
-            # Processor: #{message_processor}
-            puts "Error processing message: #{e.message}" if $DEBUG
+          end
+          
+          # Handle circuit breaker fallback responses
+          if circuit_result.is_a?(Hash) && circuit_result[:circuit_breaker]
+            handle_circuit_breaker_fallback(circuit_result, message_header, message_payload, message_processor)
           end
         end
       end
     end
 
-    private
+    # Get circuit breaker statistics
+    # @return [Hash] Circuit breaker statistics
+    def circuit_breaker_stats
+      stats = {}
+      
+      begin
+        if respond_to?(:circuit)
+          breaker = circuit(:message_processor)
+          if breaker
+            stats[:message_processor] = {
+              status: breaker.status,
+              closed: breaker.closed?,
+              open: breaker.open?,
+              half_open: breaker.half_open?,
+              last_error: breaker.last_error,
+              opened_at: breaker.opened_at,
+              stats: breaker.stats
+            }
+          end
+        end
+      rescue => e
+        stats[:error] = "Failed to get circuit breaker stats: #{e.message}"
+      end
+      
+      stats
+    end
+
+    # Reset circuit breakers
+    # @param circuit_name [Symbol] Optional specific circuit to reset
+    def reset_circuit_breakers!(circuit_name = nil)
+      if circuit_name
+        circuit(circuit_name)&.reset!
+      else
+        # Reset all known circuits
+        circuit(:message_processor)&.reset!
+      end
+    end
+
+    # Shutdown the router pool with timeout and fallback
+    def shutdown_pool
+      @router_pool.shutdown
+      
+      # Wait for graceful shutdown, force kill if timeout
+      unless @router_pool.wait_for_termination(3)
+        @router_pool.kill
+      end
+    end
 
     # Check if a message matches the subscription filters
     # @param message_header [SmartMessage::Header] The message header
@@ -197,6 +243,81 @@ module SmartMessage
     # @return [Boolean] True if this is a proc handler
     def proc_handler?(message_processor)
       SmartMessage::Base.proc_handler?(message_processor)
+    end
+
+    # Configure circuit breakers for the dispatcher
+    # @param options [Hash] Circuit breaker configuration options
+    def configure_circuit_breakers(options = {})
+      # Ensure CircuitBreaker module is available
+      return unless defined?(SmartMessage::CircuitBreaker::DEFAULT_CONFIGS)
+      
+      # Configure message processor circuit breaker
+      default_config = SmartMessage::CircuitBreaker::DEFAULT_CONFIGS[:message_processor]
+      return unless default_config
+      
+      processor_config = default_config.merge(options[:message_processor] || {})
+      
+      # Define the circuit using the class-level DSL
+      self.class.circuit :message_processor do
+        threshold failures: processor_config[:threshold][:failures], 
+                 within: processor_config[:threshold][:within].seconds
+        reset_after processor_config[:reset_after].seconds
+        
+        # Configure storage backend
+        case processor_config[:storage]
+        when :redis
+          # Use Redis storage if configured and available
+          if defined?(SmartMessage::Transport::RedisTransport)
+            begin
+              redis_transport = SmartMessage::Transport::RedisTransport.new
+              storage BreakerMachines::Storage::Redis.new(redis: redis_transport.redis_pub)
+            rescue
+              # Fall back to memory storage if Redis not available
+              storage BreakerMachines::Storage::Memory.new
+            end
+          else
+            storage BreakerMachines::Storage::Memory.new
+          end
+        else
+          storage BreakerMachines::Storage::Memory.new
+        end
+        
+        # Default fallback for message processing failures
+        fallback do |exception|
+          {
+            circuit_breaker: {
+              circuit: :message_processor,
+              state: 'open',
+              error: exception.message,
+              error_class: exception.class.name,
+              timestamp: Time.now.iso8601,
+              fallback_triggered: true
+            }
+          }
+        end
+      end
+      
+    end
+
+    # Handle circuit breaker fallback responses
+    # @param circuit_result [Hash] The circuit breaker fallback result
+    # @param message_header [SmartMessage::Header] The message header
+    # @param message_payload [String] The message payload
+    # @param message_processor [String] The processor that failed
+    def handle_circuit_breaker_fallback(circuit_result, message_header, message_payload, message_processor)
+      # Log circuit breaker activation
+      if $DEBUG
+        puts "Circuit breaker activated for processor: #{message_processor}"
+        puts "Error: #{circuit_result[:circuit_breaker][:error]}"
+        puts "Message: #{message_header.message_class} from #{message_header.from}"
+      end
+      
+      # TODO: Integrate with structured logging when implemented
+      # TODO: Send to dead letter queue when implemented
+      # TODO: Emit metrics/events for monitoring
+      
+      # For now, record the failure in simple stats
+      SS.add(message_header.message_class, message_processor, 'circuit_breaker_fallback')
     end
 
 

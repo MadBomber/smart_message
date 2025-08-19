@@ -137,7 +137,7 @@ notifications = [
 notifications.each_with_index do |notification_data, index|
   puts "\n📤 Publishing notification #{index + 1}: #{notification_data[:title]}"
 
-  notification = NotificationMessage.new(**notification_data)
+  notification = NotificationMessage.new(**notification_data, from: 'ProcHandlerDemo')
   notification.publish
 
   # Give time for all handlers to process
@@ -161,7 +161,8 @@ error_notification = NotificationMessage.new(
   title: 'Another Error',
   message: 'This error won\'t trigger the block handler',
   user_id: 'test_user',
-  timestamp: Time.now.iso8601
+  timestamp: Time.now.iso8601,
+  from: 'ProcHandlerDemo'
 )
 
 error_notification.publish
