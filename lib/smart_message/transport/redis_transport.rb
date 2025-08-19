@@ -164,7 +164,8 @@ module SmartMessage
                   message_payload = redis_message
                 end
                 
-                receive(message_header, message_payload)
+                wrapper = SmartMessage::Wrapper::Base.new(header: message_header, payload: message_payload)
+                receive(wrapper)
               rescue JSON::ParserError
                 # Handle malformed JSON - fallback to legacy behavior
                 message_header = SmartMessage::Header.new(
@@ -173,7 +174,8 @@ module SmartMessage
                   published_at: Time.now,
                   publisher_pid: 'redis_subscriber'
                 )
-                receive(message_header, redis_message)
+                wrapper = SmartMessage::Wrapper::Base.new(header: message_header, payload: redis_message)
+                receive(wrapper)
               end
             end
             

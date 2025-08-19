@@ -54,7 +54,7 @@ class CircuitBreakerTest < Minitest::Test
   context "Message Processor Circuit Breaker" do
     should "allow normal message processing when circuit is closed" do
       # Set up a failing processor
-      failing_processor = proc do |header, payload|
+      failing_processor = proc do |wrapper|
         raise StandardError, "Processing failed"
       end
 
@@ -62,8 +62,9 @@ class CircuitBreakerTest < Minitest::Test
       @dispatcher.add('TestMessage', 'test_failing_processor')
 
       # First few failures should still attempt processing
+      wrapper = SmartMessage::Wrapper::Base.new(header: @header, payload: '{"test": true}')
       3.times do
-        @dispatcher.route(@header, '{"test": true}')
+        @dispatcher.route(wrapper)
         sleep 0.1 # Allow async processing
       end
 
@@ -84,13 +85,14 @@ class CircuitBreakerTest < Minitest::Test
 
     should "reset circuit breakers when requested" do
       # Trigger circuit breaker by causing failures
-      failing_processor = proc { |header, payload| raise "Test failure" }
+      failing_processor = proc { |wrapper| raise "Test failure" }
       SmartMessage::Base.register_proc_handler('test_reset_processor', failing_processor)
       @dispatcher.add('TestMessage', 'test_reset_processor')
 
       # Cause some failures
+      wrapper = SmartMessage::Wrapper::Base.new(header: @header, payload: '{"test": true}')
       5.times do
-        @dispatcher.route(@header, '{"test": true}')
+        @dispatcher.route(wrapper)
         sleep 0.1
       end
 
@@ -180,9 +182,9 @@ class CircuitBreakerTest < Minitest::Test
           'TestCircuitMessage'
         end
 
-        def self.process(header, payload)
+        def self.process(wrapper)
           # This processor will be protected by the dispatcher circuit breaker
-          data = JSON.parse(payload)
+          data = JSON.parse(wrapper._sm_payload)
           new(data)
         end
       end

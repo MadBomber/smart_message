@@ -155,13 +155,12 @@ module SmartMessage
         end
       end
 
-      # Receive and route a message (called by transport implementations)
-      # @param message_header [SmartMessage::Header] Message routing information
-      # @param message_payload [String] Serialized message content
+      # Receive and route a wrapper (called by transport implementations)
+      # @param wrapper [SmartMessage::Wrapper::Base] Complete message wrapper
       protected
 
-      def receive(message_header, message_payload)
-        @dispatcher.route(message_header, message_payload)
+      def receive(wrapper)
+        @dispatcher.route(wrapper)
       end
 
       # Configure circuit breakers for transport operations

@@ -22,7 +22,8 @@ class DeadLetterQueueTest < Minitest::Test
   end
   
   def test_enqueue_message
-    entry = @dlq.enqueue(@header, @payload, error: 'Test error', transport: 'redis')
+    wrapper = SmartMessage::Wrapper::Base.new(header: @header, payload: @payload)
+    entry = @dlq.enqueue(wrapper, error: 'Test error', transport: 'redis')
     
     assert entry[:timestamp]
     assert_equal 'Test error', entry[:error]
@@ -32,7 +33,8 @@ class DeadLetterQueueTest < Minitest::Test
   
   def test_dequeue_message
     # Enqueue a message first
-    @dlq.enqueue(@header, @payload, error: 'Test error')
+    wrapper = SmartMessage::Wrapper::Base.new(header: @header, payload: @payload)
+    @dlq.enqueue(wrapper, error: 'Test error')
     
     # Dequeue and verify
     entry = @dlq.dequeue
@@ -45,7 +47,8 @@ class DeadLetterQueueTest < Minitest::Test
   
   def test_peek_message
     # Enqueue a message first
-    @dlq.enqueue(@header, @payload, error: 'Test error')
+    wrapper = SmartMessage::Wrapper::Base.new(header: @header, payload: @payload)
+    @dlq.enqueue(wrapper, error: 'Test error')
     
     # Peek and verify message is still there
     entry = @dlq.peek
@@ -59,9 +62,11 @@ class DeadLetterQueueTest < Minitest::Test
     header1 = create_header('first', 'TestMessage')
     header2 = create_header('second', 'TestMessage')
     
-    @dlq.enqueue(header1, '{"first": true}', error: 'First error')
+    wrapper1 = SmartMessage::Wrapper::Base.new(header: header1, payload: '{"first": true}')
+    wrapper2 = SmartMessage::Wrapper::Base.new(header: header2, payload: '{"second": true}')
+    @dlq.enqueue(wrapper1, error: 'First error')
     sleep(0.01)  # Ensure different timestamps
-    @dlq.enqueue(header2, '{"second": true}', error: 'Second error')
+    @dlq.enqueue(wrapper2, error: 'Second error')
     
     # Dequeue should return first message
     entry1 = @dlq.dequeue
@@ -73,13 +78,16 @@ class DeadLetterQueueTest < Minitest::Test
   
   def test_statistics
     # Enqueue messages of different types
-    @dlq.enqueue(@header, @payload, error: 'Redis error')
+    wrapper = SmartMessage::Wrapper::Base.new(header: @header, payload: @payload)
+    @dlq.enqueue(wrapper, error: 'Redis error')
     
     header2 = create_header('order-123', 'OrderMessage')
-    @dlq.enqueue(header2, '{"order": 123}', error: 'Database error')
+    wrapper2 = SmartMessage::Wrapper::Base.new(header: header2, payload: '{"order": 123}')
+    @dlq.enqueue(wrapper2, error: 'Database error')
     
     header3 = create_header('test-456', 'TestMessage')
-    @dlq.enqueue(header3, '{"test": "more"}', error: 'Redis error')
+    wrapper3 = SmartMessage::Wrapper::Base.new(header: header3, payload: '{"test": "more"}')
+    @dlq.enqueue(wrapper3, error: 'Redis error')
     
     stats = @dlq.statistics
     assert_equal 3, stats[:total]
@@ -91,10 +99,12 @@ class DeadLetterQueueTest < Minitest::Test
   
   def test_filter_by_class
     # Enqueue messages of different classes
-    @dlq.enqueue(@header, @payload, error: 'Test error')
+    wrapper = SmartMessage::Wrapper::Base.new(header: @header, payload: @payload)
+    @dlq.enqueue(wrapper, error: 'Test error')
     
     order_header = create_header('order-456', 'OrderMessage')
-    @dlq.enqueue(order_header, '{"order": 123}', error: 'Order error')
+    order_wrapper = SmartMessage::Wrapper::Base.new(header: order_header, payload: '{"order": 123}')
+    @dlq.enqueue(order_wrapper, error: 'Order error')
     
     # Filter should return only TestMessage entries
     test_entries = @dlq.filter_by_class('TestMessage')
@@ -107,10 +117,12 @@ class DeadLetterQueueTest < Minitest::Test
   end
   
   def test_filter_by_error_pattern
-    @dlq.enqueue(@header, @payload, error: 'Redis connection timeout')
+    wrapper = SmartMessage::Wrapper::Base.new(header: @header, payload: @payload)
+    @dlq.enqueue(wrapper, error: 'Redis connection timeout')
     
     header2 = create_header('order-789', 'OrderMessage')
-    @dlq.enqueue(header2, '{"order": 123}', error: 'Database connection failed')
+    wrapper2 = SmartMessage::Wrapper::Base.new(header: header2, payload: '{"order": 123}')
+    @dlq.enqueue(wrapper2, error: 'Database connection failed')
     
     # Filter by pattern
     redis_errors = @dlq.filter_by_error_pattern(/redis/i)
@@ -122,8 +134,9 @@ class DeadLetterQueueTest < Minitest::Test
   end
   
   def test_clear_queue
-    @dlq.enqueue(@header, @payload, error: 'Test error')
-    @dlq.enqueue(@header, @payload, error: 'Another error')
+    wrapper = SmartMessage::Wrapper::Base.new(header: @header, payload: @payload)
+    @dlq.enqueue(wrapper, error: 'Test error')
+    @dlq.enqueue(wrapper, error: 'Another error')
     
     assert_equal 2, @dlq.size
     
@@ -155,7 +168,8 @@ class DeadLetterQueueTest < Minitest::Test
     # Set up time ranges before enqueuing
     start_time = Time.now - 1  # Start from 1 second ago
     
-    @dlq.enqueue(@header, @payload, error: 'Error 1')
+    wrapper = SmartMessage::Wrapper::Base.new(header: @header, payload: @payload)
+    @dlq.enqueue(wrapper, error: 'Error 1')
     
     # Wait and set middle time
     sleep(0.1)
@@ -163,7 +177,8 @@ class DeadLetterQueueTest < Minitest::Test
     sleep(0.1)
     
     header2 = create_header('test-range-2', 'TestMessage')
-    @dlq.enqueue(header2, '{"test": "data2"}', error: 'Error 2')
+    wrapper2 = SmartMessage::Wrapper::Base.new(header: header2, payload: '{"test": "data2"}')
+    @dlq.enqueue(wrapper2, error: 'Error 2')
     
     end_time = Time.now + 1  # End 1 second from now
     

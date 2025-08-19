@@ -17,7 +17,9 @@ module TransportTest
     # The business logic of a smart message is located in
     # its class-level process method.
     class << self
-      def process(message_header, message_payload)
+      def process(wrapper)
+        message_header = wrapper._sm_header
+        message_payload = wrapper._sm_payload
         SS.add(whoami, 'process')
         return 'it worked'
       end # def process(message_instance)

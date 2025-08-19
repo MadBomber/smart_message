@@ -9,7 +9,9 @@ module MessageFilteringTest
     property :content
     
     class << self
-      def process(message_header, message_payload)
+      def process(wrapper)
+        message_header = wrapper._sm_header
+        message_payload = wrapper._sm_payload
         # Track processed messages for testing
         SS.add(whoami, 'process')
         SS.add(whoami, 'processed_messages', message_header.uuid)

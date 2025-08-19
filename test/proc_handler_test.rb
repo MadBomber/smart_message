@@ -29,9 +29,9 @@ class ProcHandlerTest < Minitest::Test
       reset_serializer
     end
 
-    def self.process(message_header, message_payload)
+    def self.process(wrapper)
       # Default handler - should still work
-      data = JSON.parse(message_payload)
+      data = JSON.parse(wrapper._sm_payload)
       puts "Default handler: #{data['content']}"
     end
   end
@@ -54,8 +54,8 @@ class ProcHandlerTest < Minitest::Test
     received_data = nil
 
     # Subscribe with a block
-    handler_id = TestMessage.subscribe do |header, payload|
-      data = JSON.parse(payload)
+    handler_id = TestMessage.subscribe do |wrapper|
+      data = JSON.parse(wrapper._sm_payload)
       received_data = data
     end
 
@@ -81,8 +81,8 @@ class ProcHandlerTest < Minitest::Test
     received_data = nil
 
     # Create a proc
-    my_handler = proc do |header, payload|
-      data = JSON.parse(payload)
+    my_handler = proc do |wrapper|
+      data = JSON.parse(wrapper._sm_payload)
       received_data = data
     end
 
@@ -111,8 +111,8 @@ class ProcHandlerTest < Minitest::Test
     received_data = nil
 
     # Create a lambda
-    my_handler = lambda do |header, payload|
-      data = JSON.parse(payload)
+    my_handler = lambda do |wrapper|
+      data = JSON.parse(wrapper._sm_payload)
       received_data = data
     end
 
@@ -141,13 +141,13 @@ class ProcHandlerTest < Minitest::Test
     received_messages = []
 
     # Subscribe with multiple blocks
-    handler1 = TestMessage.subscribe do |header, payload|
-      data = JSON.parse(payload)
+    handler1 = TestMessage.subscribe do |wrapper|
+      data = JSON.parse(wrapper._sm_payload)
       received_messages << "Handler1: #{data['content']}"
     end
 
-    handler2 = TestMessage.subscribe do |header, payload|
-      data = JSON.parse(payload)
+    handler2 = TestMessage.subscribe do |wrapper|
+      data = JSON.parse(wrapper._sm_payload)
       received_messages << "Handler2: #{data['content']}"
     end
 
@@ -175,8 +175,8 @@ class ProcHandlerTest < Minitest::Test
     received_data = nil
 
     # Subscribe with both proc and method handlers
-    proc_handler = TestMessage.subscribe do |header, payload|
-      data = JSON.parse(payload)
+    proc_handler = TestMessage.subscribe do |wrapper|
+      data = JSON.parse(wrapper._sm_payload)
       received_data = data
     end
 
@@ -197,7 +197,7 @@ class ProcHandlerTest < Minitest::Test
     TestMessage.serializer SmartMessage::Serializer::JSON.new
 
     # Subscribe with a block
-    handler_id = TestMessage.subscribe do |header, payload|
+    handler_id = TestMessage.subscribe do |wrapper|
       # This handler should be removed
     end
 
@@ -221,9 +221,9 @@ class ProcHandlerTest < Minitest::Test
     received_uuid = nil
 
     # Subscribe with a block that checks the header
-    TestMessage.subscribe do |header, payload|
-      received_header = header
-      received_uuid = header.uuid
+    TestMessage.subscribe do |wrapper|
+      received_header = wrapper._sm_header
+      received_uuid = wrapper._sm_header.uuid
     end
 
     # Publish a message
@@ -245,7 +245,7 @@ class ProcHandlerTest < Minitest::Test
     TestMessage.serializer SmartMessage::Serializer::JSON.new
 
     # Subscribe with a block that raises an error
-    TestMessage.subscribe do |header, payload|
+    TestMessage.subscribe do |wrapper|
       raise "Test error in proc handler"
     end
 
@@ -267,14 +267,14 @@ class ProcHandlerTest < Minitest::Test
     processed_data = {}
 
     # Subscribe with a complex proc that does data transformation
-    complex_processor = proc do |header, payload|
-      data = JSON.parse(payload)
+    complex_processor = proc do |wrapper|
+      data = JSON.parse(wrapper._sm_payload)
       processed_data[:original] = data
       processed_data[:transformed] = {
         upper_content: data['content'].upcase,
         sender_length: data['sender'].length,
         processed_at: Time.now,
-        header_uuid: header.uuid
+        header_uuid: wrapper._sm_header.uuid
       }
     end
 
@@ -300,8 +300,8 @@ class ProcHandlerTest < Minitest::Test
     TestMessage.serializer SmartMessage::Serializer::JSON.new
 
     # Subscribe with several proc handlers
-    proc1 = proc { |h,p| }
-    proc2 = proc { |h,p| }
+    proc1 = proc { |wrapper| }
+    proc2 = proc { |wrapper| }
     
     id1 = TestMessage.subscribe(proc1)
     id2 = TestMessage.subscribe(proc2)
@@ -330,10 +330,10 @@ class ProcHandlerTest < Minitest::Test
     method_id = TestMessage.subscribe("SomeClass.some_method")
     assert_equal "SomeClass.some_method", method_id
 
-    block_id = TestMessage.subscribe { |h,p| }
+    block_id = TestMessage.subscribe { |wrapper| }
     assert block_id.start_with?("ProcHandlerTest::TestMessage.proc_")
 
-    proc_id = TestMessage.subscribe(proc { |h,p| })
+    proc_id = TestMessage.subscribe(proc { |wrapper| })
     assert proc_id.start_with?("ProcHandlerTest::TestMessage.proc_")
     
     # All IDs should be different

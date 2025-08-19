@@ -37,8 +37,7 @@ module SmartMessage
 
         # If loopback is enabled, route the message back through the dispatcher
         if loopback?
-          # Dispatcher still expects header and payload separately for now
-          receive(wrapper._sm_header, wrapper._sm_payload)
+          receive(wrapper)
         end
       end
 
@@ -47,8 +46,11 @@ module SmartMessage
         @output.puts format_message(message_header, message_payload)
         @output.flush
 
-        # If loopback is enabled, route the message back through the dispatcher
-        receive(message_header, message_payload) if loopback?
+        # If loopback is enabled, route the message back through the dispatcher  
+        if loopback?
+          wrapper = SmartMessage::Wrapper::Base.new(header: message_header, payload: message_payload)
+          receive(wrapper)
+        end
       end
 
       def connected?

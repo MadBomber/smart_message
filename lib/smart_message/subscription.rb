@@ -32,13 +32,12 @@ module SmartMessage
 
       # Call a registered proc handler
       # @param handler_id [String] The handler identifier
-      # @param message_header [SmartMessage::Header] The message header
-      # @param message_payload [String] The message payload
-      def call_proc_handler(handler_id, message_header, message_payload)
+      # @param wrapper [SmartMessage::Wrapper::Base] The message wrapper
+      def call_proc_handler(handler_id, wrapper)
         handler_proc = class_variable_get(:@@proc_handlers)[handler_id]
         return unless handler_proc
 
-        handler_proc.call(message_header, message_payload)
+        handler_proc.call(wrapper)
       end
 
       # Remove a proc handler from the registry

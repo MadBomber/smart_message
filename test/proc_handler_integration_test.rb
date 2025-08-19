@@ -19,8 +19,8 @@ class ProcHandlerIntegrationTest < Minitest::Test
   class TestService
     @@method_calls = []
 
-    def self.handle_message(header, payload)
-      data = JSON.parse(payload)
+    def self.handle_message(wrapper)
+      data = JSON.parse(wrapper._sm_payload)
       @@method_calls << "METHOD:#{data['message_id']}"
     end
 
@@ -46,8 +46,8 @@ class ProcHandlerIntegrationTest < Minitest::Test
       reset_serializer
     end
 
-    def self.process(message_header, message_payload)
-      data = JSON.parse(message_payload)
+    def self.process(wrapper)
+      data = JSON.parse(wrapper._sm_payload)
       @default_processed ||= []
       @default_processed << data['message_id']
     end
@@ -68,12 +68,12 @@ class ProcHandlerIntegrationTest < Minitest::Test
     received_messages = []
 
     # Subscribe with a proc
-    message_processor = proc do |header, payload|
-      data = JSON.parse(payload)
+    message_processor = proc do |wrapper|
+      data = JSON.parse(wrapper._sm_payload)
       received_messages << {
         id: data['message_id'],
         content: data['content'],
-        header_class: header.message_class
+        header_class: wrapper._sm_header.message_class
       }
     end
 
@@ -116,13 +116,13 @@ class ProcHandlerIntegrationTest < Minitest::Test
     handler2_messages = []
 
     # Subscribe with two different procs
-    handler1 = proc do |header, payload|
-      data = JSON.parse(payload)
+    handler1 = proc do |wrapper|
+      data = JSON.parse(wrapper._sm_payload)
       handler1_messages << "H1:#{data['message_id']}"
     end
 
-    handler2 = proc do |header, payload|
-      data = JSON.parse(payload)
+    handler2 = proc do |wrapper|
+      data = JSON.parse(wrapper._sm_payload)
       handler2_messages << "H2:#{data['message_id']}"
     end
 
@@ -157,13 +157,13 @@ class ProcHandlerIntegrationTest < Minitest::Test
     success_handler_called = false
 
     # Subscribe with a proc that raises an error
-    error_handler = proc do |header, payload|
+    error_handler = proc do |wrapper|
       error_handler_called = true
       raise "Test error in proc handler"
     end
 
     # Subscribe with a proc that succeeds
-    success_handler = proc do |header, payload|
+    success_handler = proc do |wrapper|
       success_handler_called = true
     end
 
@@ -199,7 +199,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
     call_count = 0
 
     # Subscribe with a proc
-    test_proc = proc do |header, payload|
+    test_proc = proc do |wrapper|
       call_count += 1
     end
 
@@ -247,14 +247,14 @@ class ProcHandlerIntegrationTest < Minitest::Test
     IntegrationTestMessage.subscribe
 
     # 2. Block handler
-    block_id = IntegrationTestMessage.subscribe do |header, payload|
-      data = JSON.parse(payload)
+    block_id = IntegrationTestMessage.subscribe do |wrapper|
+      data = JSON.parse(wrapper._sm_payload)
       results << "BLOCK:#{data['message_id']}"
     end
 
     # 3. Proc handler
-    test_proc = proc do |header, payload|
-      data = JSON.parse(payload)
+    test_proc = proc do |wrapper|
+      data = JSON.parse(wrapper._sm_payload)
       results << "PROC:#{data['message_id']}"
     end
     proc_id = IntegrationTestMessage.subscribe(test_proc)
@@ -294,12 +294,12 @@ class ProcHandlerIntegrationTest < Minitest::Test
     lambda_calls = []
 
     # Subscribe with a proc (flexible argument checking)
-    test_proc = proc do |header, payload|
+    test_proc = proc do |wrapper|
       proc_calls << "PROC_CALLED"
     end
 
     # Subscribe with a lambda (strict argument checking)
-    test_lambda = lambda do |header, payload|
+    test_lambda = lambda do |wrapper|
       lambda_calls << "LAMBDA_CALLED"
     end
 
@@ -333,13 +333,13 @@ class ProcHandlerIntegrationTest < Minitest::Test
     processing_order = []
 
     # Subscribe with multiple procs that have different processing times
-    fast_proc = proc do |header, payload|
+    fast_proc = proc do |wrapper|
       mutex.synchronize { processing_order << "FAST_START" }
       sleep(0.01)  # Very quick
       mutex.synchronize { processing_order << "FAST_END" }
     end
 
-    slow_proc = proc do |header, payload|
+    slow_proc = proc do |wrapper|
       mutex.synchronize { processing_order << "SLOW_START" }
       sleep(0.05)  # Slower
       mutex.synchronize { processing_order << "SLOW_END" }

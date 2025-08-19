@@ -80,7 +80,8 @@ module DispatcherTest
 
       # simulate the reception of a specific and route it to all of its
       # subscribed-to processes.
-      @dispatcher.route(@m1._sm_header, @m1.to_s)
+      wrapper = SmartMessage::Wrapper::Base.new(header: @m1._sm_header, payload: @m1.to_s)
+      @dispatcher.route(wrapper)
 
       # NOTE: this shows that the messages are not being "processed"
       #       in the order that they were published.

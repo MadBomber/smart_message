@@ -35,7 +35,10 @@ module SmartMessage
         end
 
         # Auto-process if enabled
-        receive(message_header, message_payload) if @options[:auto_process]
+        if @options[:auto_process]
+          wrapper = SmartMessage::Wrapper::Base.new(header: message_header, payload: message_payload)
+          receive(wrapper)
+        end
       end
 
       # Get all stored messages

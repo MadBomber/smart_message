@@ -14,7 +14,9 @@ module RedisTransportTest
     property :timestamp
 
     class << self
-      def process(message_header, message_payload)
+      def process(wrapper)
+        message_header = wrapper._sm_header
+        message_payload = wrapper._sm_payload
         SS.add(whoami, 'process')
         return 'processed'
       end
@@ -27,7 +29,9 @@ module RedisTransportTest
     property :data
 
     class << self
-      def process(message_header, message_payload)
+      def process(wrapper)
+        message_header = wrapper._sm_header
+        message_payload = wrapper._sm_payload
         SS.add(whoami, 'process')
         return 'processed_another'
       end

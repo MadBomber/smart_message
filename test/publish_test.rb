@@ -24,7 +24,9 @@ module PublishTest
       return id
     end
 
-    def self.process(message_header, message_payload)
+    def self.process(wrapper)
+      message_header = wrapper._sm_header
+      message_payload = wrapper._sm_payload
       puts "\n#{message_header.uuid}"
       puts "\t#{message_payload}"
     end
@@ -36,7 +38,9 @@ module PublishTest
     property :baz
     property :id
 
-    def self.process(message_header, message_payload)
+    def self.process(wrapper)
+      message_header = wrapper._sm_header
+      message_payload = wrapper._sm_payload
       puts "\n#{message_header.uuid}"
       puts "\t#{message_payload}"
     end

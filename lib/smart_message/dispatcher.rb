@@ -121,10 +121,10 @@ module SmartMessage
     end
 
 
-    # message_header is of class SmartMessage::Header
-    # message_payload is a string buffer that is a serialized
-    # SmartMessage
-    def route(message_header, message_payload)
+    # Route a wrapper to appropriate message processors
+    # @param wrapper [SmartMessage::Wrapper::Base] The message wrapper
+    def route(wrapper)
+      message_header = wrapper._sm_header
       message_klass = message_header.message_class
       return nil if @subscribers[message_klass].empty?
       
@@ -143,21 +143,21 @@ module SmartMessage
             # Check if this is a proc handler or a regular method call
             if proc_handler?(message_processor)
               # Call the proc handler via SmartMessage::Base
-              SmartMessage::Base.call_proc_handler(message_processor, message_header, message_payload)
+              SmartMessage::Base.call_proc_handler(message_processor, wrapper)
             else
-              # Original method call logic
+              # Method call logic with wrapper
               parts         = message_processor.split('.')
               target_klass  = parts[0]
               class_method  = parts[1]
               target_klass.constantize
                           .method(class_method)
-                          .call(message_header, message_payload)
+                          .call(wrapper)
             end
           end
           
           # Handle circuit breaker fallback responses
           if circuit_result.is_a?(Hash) && circuit_result[:circuit_breaker]
-            handle_circuit_breaker_fallback(circuit_result, message_header, message_payload, message_processor)
+            handle_circuit_breaker_fallback(circuit_result, wrapper, message_processor)
           end
         end
       end
@@ -324,7 +324,9 @@ module SmartMessage
     # @param message_header [SmartMessage::Header] The message header
     # @param message_payload [String] The message payload
     # @param message_processor [String] The processor that failed
-    def handle_circuit_breaker_fallback(circuit_result, message_header, message_payload, message_processor)
+    def handle_circuit_breaker_fallback(circuit_result, wrapper, message_processor)
+      message_header = wrapper._sm_header
+      
       # Log circuit breaker activation
       if $DEBUG
         puts "Circuit breaker activated for processor: #{message_processor}"
@@ -332,11 +334,17 @@ module SmartMessage
         puts "Message: #{message_header.message_class} from #{message_header.from}"
       end
       
+      # Send to dead letter queue
+      SmartMessage::DeadLetterQueue.default.enqueue(wrapper,
+        error: circuit_result[:circuit_breaker][:error],
+        retry_count: 0,
+        transport: 'circuit_breaker'
+      )
+      
       # TODO: Integrate with structured logging when implemented
-      # TODO: Send to dead letter queue when implemented
       # TODO: Emit metrics/events for monitoring
       
-      # For now, record the failure in simple stats
+      # Record the failure in simple stats
       SS.add(message_header.message_class, message_processor, 'circuit_breaker_fallback')
     end
 

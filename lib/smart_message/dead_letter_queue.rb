@@ -31,10 +31,11 @@ module SmartMessage
     # Core FIFO queue operations
 
     # Add a failed message to the dead letter queue
-    # @param message_header [SmartMessage::Header] The message header
-    # @param message_payload [String] The serialized message payload
+    # @param wrapper [SmartMessage::Wrapper::Base] The message wrapper
     # @param error_info [Hash] Error details including :error, :retry_count, :transport, etc.
-    def enqueue(message_header, message_payload, error_info = {})
+    def enqueue(wrapper, error_info = {})
+      message_header = wrapper._sm_header
+      message_payload = wrapper._sm_payload
       entry = {
         timestamp: Time.now.iso8601,
         header: message_header.to_hash,
