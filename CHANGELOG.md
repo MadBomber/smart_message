@@ -7,6 +7,73 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.6] 2025-08-19
+
+### Added
+- **Entity-Aware Message Filtering**: Advanced subscription filtering system enabling precise message routing
+  - New subscription filter parameters: `broadcast:`, `to:`, `from:` for `subscribe` method
+  - Filter by broadcast messages only: `MyMessage.subscribe(broadcast: true)`
+  - Filter by destination entity: `MyMessage.subscribe(to: 'service-name')`
+  - Filter by sender entity: `MyMessage.subscribe(from: 'sender-service')`
+  - Support for array-based filters: `subscribe(from: ['admin', 'system'])`
+  - Combined filters with OR logic: `subscribe(broadcast: true, to: 'my-service')`
+  - String-to-array automatic conversion for convenience: `subscribe(to: 'service')` becomes `['service']`
+  - Full backward compatibility - existing subscriptions work unchanged
+- **Real-Time Header Synchronization**: Message headers now update automatically when addressing fields change
+  - Instance-level `from()`, `to()`, `reply_to()` methods now update both instance variables and message headers
+  - Enables filtering to work correctly when addressing is changed after message creation
+  - Reset methods (`reset_from`, `reset_to`, `reset_reply_to`) also update headers
+  - Critical for entity-aware filtering functionality
+- **Enhanced Example Programs**
+  - New comprehensive filtering example: `examples/08_entity_addressing_with_filtering.rb`
+  - Demonstrates all filtering capabilities with real-world microservice scenarios
+  - Improved timing with sleep statements for better output visualization
+  - Updated basic addressing example: `examples/08_entity_addressing_basic.rb`
+  - Both examples now show clear interleaved publish/receive output flow
+
+### Changed
+- **Message Subscription Architecture**: Subscription storage updated to support filtering
+  - Dispatcher now stores subscription objects with filter criteria instead of simple method strings
+  - Subscription objects contain `{process_method: string, filters: hash}` structure
+  - All transport implementations updated to pass filter options through subscription chain
+  - RedisTransport updated to accept new filter_options parameter
+- **Header Addressing Behavior**: Message headers now reflect real-time addressing changes
+  - **BREAKING**: Headers are no longer immutable after creation - they update when addressing methods are called
+  - This change enables entity-aware filtering to work correctly with dynamic addressing
+  - Previous behavior kept original addressing in headers while instance methods showed new values
+
+### Fixed
+- **Message Filtering Logic**: Resolved critical filtering implementation issues
+  - Fixed message_matches_filters? method to properly evaluate filter criteria
+  - Corrected AND/OR logic for combined broadcast and entity-specific filters
+  - Ensured filtering works with both class-level and instance-level addressing
+- **Test Suite Compatibility**: Updated all tests to work with new subscription structure
+  - Fixed ProcHandlerTest to expect subscription objects instead of string arrays
+  - Updated TransportTest to handle new subscription object format
+  - Fixed AddressingTest to reflect new real-time header update behavior
+  - All existing functionality preserved with full backward compatibility
+
+### Enhanced
+- **Message Processing Performance**: Filtering happens at subscription level, reducing processing overhead
+  - Messages not matching filter criteria are ignored by handlers, improving efficiency
+  - Enables microservices to process only relevant messages
+  - Reduces unnecessary handler invocations and processing cycles
+- **Developer Experience**: Clear examples demonstrate filtering benefits and usage patterns
+  - Examples show both what DOES and DOESN'T get processed
+  - Demonstrates gateway patterns, admin message handling, and microservice communication
+  - Educational value enhanced with comprehensive console output and timing
+
+### Documentation
+- **Entity-Aware Filtering Guide**: Comprehensive examples showing all filtering capabilities
+  - Broadcast vs directed message handling patterns
+  - Admin/monitoring system integration examples
+  - Request-reply routing with filters
+  - Gateway pattern implementations with dynamic routing
+  - Best practices for microservice message filtering
+- **Breaking Change Documentation**: Clear explanation of header behavior changes
+  - Migration guide for applications depending on immutable headers
+  - Benefits of real-time header updates for filtering functionality
+
 ## [0.0.5] 2025-08-18
 
 ### Added
