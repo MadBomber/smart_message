@@ -27,7 +27,8 @@ module SmartMessage
 
     # Clean accessor to the SmartMessage header object
     # Provides more intuitive API than _sm_header
-    def header
+    # Note: Renamed to avoid conflict with class-level header DSL
+    def message_header
       _sm_header
     end
 
@@ -43,8 +44,22 @@ module SmartMessage
     end
 
     # Pretty print the message content to STDOUT using amazing_print
+    # @param pp_or_include_header [PP, Boolean] Either a PP printer object (from Ruby's pp library) 
+    #                                           or include_header boolean (for our custom usage)
     # @param include_header [Boolean] Whether to include the SmartMessage header (default: false)
-    def pretty_print(include_header: false)
+    def pretty_print(pp_or_include_header = nil, include_header: false)
+      # Handle Ruby's PP library calling convention: pretty_print(pp_object)
+      if pp_or_include_header.is_a?(Object) && pp_or_include_header.respond_to?(:text)
+        # This is Ruby's PP library calling us - delegate to standard object pretty printing
+        pp_or_include_header.text(self.inspect)
+        return
+      end
+      
+      # Handle our custom calling convention: pretty_print(include_header: true)
+      if pp_or_include_header.is_a?(TrueClass) || pp_or_include_header.is_a?(FalseClass)
+        include_header = pp_or_include_header
+      end
+      
       require 'amazing_print'
       
       if include_header

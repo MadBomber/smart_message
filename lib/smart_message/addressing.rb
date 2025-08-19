@@ -115,13 +115,24 @@ module SmartMessage
       #########################################################
       ## Header DSL support
       
-      # Header DSL block processor
+      # Header DSL block processor  
       # Allows: header do; from "service"; to "target"; end
-      def header(&block)
+      def header(*args, &block)
+        # Handle the case where this might be called with unexpected arguments
+        # This helps with IRB compatibility issues
+        if args.length > 0
+          # If called with arguments, this might be an IRB inspection issue
+          # Try to delegate gracefully or return nil
+          return nil
+        end
+        
         if block_given?
           # Create a DSL context to capture header configuration
           dsl = HeaderDSL.new(self)
           dsl.instance_eval(&block)
+        else
+          # No block provided - this is an error for class-level usage
+          raise ArgumentError, "header() at class level requires a block. Use: header do; from 'value'; end"
         end
       end
 
