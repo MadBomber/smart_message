@@ -67,6 +67,7 @@ order = OrderMessage.new(
 
 puts "\n📤 Publishing point-to-point order message..."
 order.publish
+sleep(0.2)  # Allow time for handlers to process
 
 # =============================================================================
 # Example 2: Broadcast Messaging
@@ -115,6 +116,7 @@ announcement = SystemAnnouncementMessage.new(
 
 puts "\n📤 Publishing broadcast announcement..."
 announcement.publish
+sleep(0.2)  # Allow time for handlers to process
 
 # =============================================================================
 # Example 3: Request-Reply Pattern
@@ -195,6 +197,7 @@ request = UserLookupRequest.new(
 
 puts "\n📤 Publishing user lookup request..."
 request.publish
+sleep(0.2)  # Allow time for handlers to process
 
 # Send simulated response
 response = UserLookupResponse.new(
@@ -211,6 +214,7 @@ response.to('web-service')  # Set reply destination
 
 puts "\n📤 Publishing user lookup response..."
 response.publish
+sleep(0.2)  # Allow time for handlers to process
 
 # =============================================================================
 # Example 4: Instance-Level Addressing Override
@@ -264,6 +268,7 @@ puts "\n📤 Publishing normal payment (using class defaults)..."
 puts "   Class FROM: #{PaymentMessage.from}"
 puts "   Class TO: #{PaymentMessage.to}"
 normal_payment.publish
+sleep(0.2)  # Allow time for handlers to process
 
 # Override addressing for backup gateway
 backup_payment = PaymentMessage.new(
@@ -282,6 +287,7 @@ puts "   Instance FROM: #{backup_payment.from}"
 puts "   Instance TO: #{backup_payment.to}"
 puts "   Instance REPLY_TO: #{backup_payment.reply_to}"
 backup_payment.publish
+sleep(0.2)  # Allow time for handlers to process
 
 # =============================================================================
 # Example 5: Gateway Pattern
@@ -344,6 +350,7 @@ end
 
 puts "\n📤 Publishing external API message via gateway..."
 external_message.publish
+sleep(0.2)  # Allow time for handlers to process
 
 # =============================================================================
 # Summary
