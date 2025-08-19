@@ -35,8 +35,9 @@ module SmartMessage
       # Subscribe to a message class
       # @param message_class [String] The message class name
       # @param process_method [String] The processing method identifier
-      def subscribe(message_class, process_method)
-        @dispatcher.add(message_class, process_method)
+      # @param filter_options [Hash] Optional filtering criteria
+      def subscribe(message_class, process_method, filter_options = {})
+        @dispatcher.add(message_class, process_method, filter_options)
       end
 
       # Unsubscribe from a specific message class and process method

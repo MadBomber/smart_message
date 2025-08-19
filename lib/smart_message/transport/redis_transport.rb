@@ -46,8 +46,8 @@ module SmartMessage
       end
 
       # Subscribe to a message class (Redis channel)
-      def subscribe(message_class, process_method)
-        super(message_class, process_method)
+      def subscribe(message_class, process_method, filter_options = {})
+        super(message_class, process_method, filter_options)
         
         @mutex.synchronize do
           @subscribed_channels.add(message_class)

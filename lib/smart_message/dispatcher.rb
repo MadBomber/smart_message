@@ -83,17 +83,30 @@ module SmartMessage
     end
 
 
-    def add(message_class, process_method_as_string)
+    def add(message_class, process_method_as_string, filter_options = {})
       klass = String(message_class)
-      unless @subscribers[klass].include? process_method_as_string
-        @subscribers[klass] += [process_method_as_string]
+      
+      # Create subscription entry with filter options
+      subscription = {
+        process_method: process_method_as_string,
+        filters: filter_options
+      }
+      
+      # Check if this exact subscription already exists
+      existing_subscription = @subscribers[klass].find do |sub|
+        sub[:process_method] == process_method_as_string && sub[:filters] == filter_options
+      end
+      
+      unless existing_subscription
+        @subscribers[klass] += [subscription]
       end
     end
 
 
     # drop a processer from a subscribed message
     def drop(message_class, process_method_as_string)
-      @subscribers[String(message_class)].delete process_method_as_string
+      klass = String(message_class)
+      @subscribers[klass].reject! { |sub| sub[:process_method] == process_method_as_string }
     end
 
 
@@ -115,7 +128,15 @@ module SmartMessage
     def route(message_header, message_payload)
       message_klass = message_header.message_class
       return nil if @subscribers[message_klass].empty?
-      @subscribers[message_klass].each do |message_processor|
+      
+      @subscribers[message_klass].each do |subscription|
+        # Extract subscription details
+        message_processor = subscription[:process_method]
+        filters = subscription[:filters]
+        
+        # Check if message matches filters
+        next unless message_matches_filters?(message_header, filters)
+        
         SS.add(message_klass, message_processor, 'routed' )
         @router_pool.post do
           begin
@@ -143,6 +164,33 @@ module SmartMessage
     end
 
     private
+
+    # Check if a message matches the subscription filters
+    # @param message_header [SmartMessage::Header] The message header
+    # @param filters [Hash] The filter criteria
+    # @return [Boolean] True if the message matches all filters
+    def message_matches_filters?(message_header, filters)
+      # If no filters specified, accept all messages (backward compatibility)
+      return true if filters.nil? || filters.empty? || filters.values.all?(&:nil?)
+      
+      # Check from filter
+      if filters[:from]
+        from_match = filters[:from].include?(message_header.from)
+        return false unless from_match
+      end
+      
+      # Check to/broadcast filters (OR logic between them)
+      if filters[:broadcast] || filters[:to]
+        broadcast_match = filters[:broadcast] && message_header.to.nil?
+        to_match = filters[:to] && filters[:to].include?(message_header.to)
+        
+        # If either broadcast or to filter is specified, at least one must match
+        combined_match = (broadcast_match || to_match)
+        return false unless combined_match
+      end
+      
+      true
+    end
 
     # Check if a message processor is a proc handler
     # @param message_processor [String] The message processor identifier

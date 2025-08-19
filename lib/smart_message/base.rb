@@ -253,36 +253,51 @@ module SmartMessage
         @from || self.class.from
       else
         @from = entity_id
+        # Update the header with the new value
+        _sm_header.from = entity_id if _sm_header
       end
     end
     
     def from_configured?; !from.nil?; end
     def from_missing?;     from.nil?; end
-    def reset_from;       @from = nil; end
+    def reset_from;       
+      @from = nil
+      _sm_header.from = nil if _sm_header
+    end
 
     def to(entity_id = nil)
       if entity_id.nil?
         @to || self.class.to
       else
         @to = entity_id
+        # Update the header with the new value
+        _sm_header.to = entity_id if _sm_header
       end
     end
     
     def to_configured?;   !to.nil?; end
     def to_missing?;       to.nil?; end
-    def reset_to;         @to = nil; end
+    def reset_to;         
+      @to = nil
+      _sm_header.to = nil if _sm_header
+    end
 
     def reply_to(entity_id = nil)
       if entity_id.nil?
         @reply_to || self.class.reply_to
       else
         @reply_to = entity_id
+        # Update the header with the new value
+        _sm_header.reply_to = entity_id if _sm_header
       end
     end
     
     def reply_to_configured?; !reply_to.nil?; end
     def reply_to_missing?;     reply_to.nil?; end
-    def reset_reply_to;       @reply_to = nil; end
+    def reset_reply_to;       
+      @reply_to = nil
+      _sm_header.reply_to = nil if _sm_header
+    end
 
 
     #########################################################
@@ -412,6 +427,20 @@ module SmartMessage
       #########################################################
       ## class-level addressing configuration
       
+      # Helper method to normalize filter values (string -> array, nil -> nil)
+      private def normalize_filter_value(value)
+        case value
+        when nil
+          nil
+        when String
+          [value]
+        when Array
+          value
+        else
+          raise ArgumentError, "Filter value must be a String, Array, or nil, got: #{value.class}"
+        end
+      end
+      
       # Helper method to find addressing values in the inheritance chain
       private def find_addressing_value(field)
         # Start with current class
@@ -513,25 +542,30 @@ module SmartMessage
       #   - String: Method name like "MyService.handle_message" 
       #   - Proc: A proc/lambda that accepts (message_header, message_payload)
       #   - nil: Uses default "MessageClass.process" method
+      # @param broadcast [Boolean, nil] Filter for broadcast messages (to: nil)
+      # @param to [String, Array, nil] Filter for messages directed to specific entities
+      # @param from [String, Array, nil] Filter for messages from specific entities
       # @param block [Proc] Alternative way to pass a processing block
       # @return [String] The identifier used for this subscription
       #
-      # @example Using default handler
+      # @example Using default handler (all messages)
       #   MyMessage.subscribe
       #
-      # @example Using custom method name
-      #   MyMessage.subscribe("MyService.handle_message")
+      # @example Using custom method name with filtering
+      #   MyMessage.subscribe("MyService.handle_message", to: 'my-service')
       #
-      # @example Using a block
-      #   MyMessage.subscribe do |header, payload|
+      # @example Using a block with broadcast filtering
+      #   MyMessage.subscribe(broadcast: true) do |header, payload|
       #     data = JSON.parse(payload)
-      #     puts "Received: #{data}"
+      #     puts "Received broadcast: #{data}"
       #   end
       #
-      # @example Using a proc
-      #   handler = proc { |header, payload| puts "Processing..." }
-      #   MyMessage.subscribe(handler)
-      def subscribe(process_method = nil, &block)
+      # @example Entity-specific filtering
+      #   MyMessage.subscribe(to: 'order-service', from: ['payment', 'user'])
+      #
+      # @example Broadcast + directed messages
+      #   MyMessage.subscribe(to: 'my-service', broadcast: true)
+      def subscribe(process_method = nil, broadcast: nil, to: nil, from: nil, &block)
         message_class = whoami
         
         # Handle different parameter types
@@ -549,10 +583,21 @@ module SmartMessage
         end
         # If process_method is a String, use it as-is
 
+        # Normalize string filters to arrays
+        to_filter = normalize_filter_value(to)
+        from_filter = normalize_filter_value(from)
+        
+        # Create filter options
+        filter_options = {
+          broadcast: broadcast,
+          to: to_filter,
+          from: from_filter
+        }
+
         # TODO: Add proper logging here
 
         raise Errors::TransportNotConfigured if transport_missing?
-        transport.subscribe(message_class, process_method)
+        transport.subscribe(message_class, process_method, filter_options)
         
         process_method
       end

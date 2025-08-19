@@ -214,20 +214,24 @@ module TransportTest
 
       default_process_method = message_class + '.process'
 
-      assert_equal [default_process_method], TransportTest::MyMessage.transport.subscribers[message_class]
+      assert_equal 1, TransportTest::MyMessage.transport.subscribers[message_class].length
+      assert_equal default_process_method, TransportTest::MyMessage.transport.subscribers[message_class].first[:process_method]
 
       specialized_process_method = 'TransportTest::Test.specialized_process'
 
       # Use the class-level specialized process method
       TransportTest::MyMessage.subscribe(specialized_process_method)
 
-      assert_equal [default_process_method, specialized_process_method], TransportTest::MyMessage.transport.subscribers[message_class]
+      assert_equal 2, TransportTest::MyMessage.transport.subscribers[message_class].length
+      process_methods = TransportTest::MyMessage.transport.subscribers[message_class].map { |sub| sub[:process_method] }
+      assert_equal [default_process_method, specialized_process_method], process_methods
 
       # unscribe the default process_method leaving only the specialized
       # process method
       TransportTest::MyMessage.unsubscribe
 
-      assert_equal [specialized_process_method], TransportTest::MyMessage.transport.subscribers[message_class]
+      assert_equal 1, TransportTest::MyMessage.transport.subscribers[message_class].length
+      assert_equal specialized_process_method, TransportTest::MyMessage.transport.subscribers[message_class].first[:process_method]
 
       # all the processes have been unscribed but the message key
       # still remains in the hash.

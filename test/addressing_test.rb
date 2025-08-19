@@ -423,12 +423,12 @@ module AddressingTest
       message.to('updated-receiver')
       message.reply_to('updated-callback')
       
-      # Header values remain from creation time (this is the current behavior)
-      assert_equal 'sender-service', header.from
-      assert_equal 'receiver-service', header.to
-      assert_equal 'callback-service', header.reply_to
+      # Header values now update in real-time to support message filtering
+      assert_equal 'updated-sender', header.from
+      assert_equal 'updated-receiver', header.to
+      assert_equal 'updated-callback', header.reply_to
       
-      # But instance addressing has changed
+      # And instance addressing has changed as well
       assert_equal 'updated-sender', message.from
       assert_equal 'updated-receiver', message.to
       assert_equal 'updated-callback', message.reply_to

@@ -44,7 +44,7 @@ class ProcHandlerTest < Minitest::Test
     handler_id = TestMessage.subscribe
     
     assert_equal "ProcHandlerTest::TestMessage.process", handler_id
-    assert TestMessage.transport.subscribers["ProcHandlerTest::TestMessage"].include?(handler_id)
+    assert TestMessage.transport.subscribers["ProcHandlerTest::TestMessage"].any? { |sub| sub[:process_method] == handler_id }
   end
 
   def test_subscribe_with_block
@@ -188,8 +188,8 @@ class ProcHandlerTest < Minitest::Test
 
     # Both should be in subscribers
     subscribers = TestMessage.transport.subscribers["ProcHandlerTest::TestMessage"]
-    assert subscribers.include?(proc_handler)
-    assert subscribers.include?(method_handler)
+    assert subscribers.any? { |sub| sub[:process_method] == proc_handler }
+    assert subscribers.any? { |sub| sub[:process_method] == method_handler }
   end
 
   def test_unsubscribe_proc_handler
@@ -203,13 +203,13 @@ class ProcHandlerTest < Minitest::Test
 
     # Verify it's registered
     assert TestMessage.proc_handler?(handler_id)
-    assert TestMessage.transport.subscribers["ProcHandlerTest::TestMessage"].include?(handler_id)
+    assert TestMessage.transport.subscribers["ProcHandlerTest::TestMessage"].any? { |sub| sub[:process_method] == handler_id }
 
     # Unsubscribe
     TestMessage.unsubscribe(handler_id)
 
     # Should be removed from both subscribers and proc registry
-    refute TestMessage.transport.subscribers["ProcHandlerTest::TestMessage"].include?(handler_id)
+    refute TestMessage.transport.subscribers["ProcHandlerTest::TestMessage"].any? { |sub| sub[:process_method] == handler_id }
     refute TestMessage.proc_handler?(handler_id)
   end
 
