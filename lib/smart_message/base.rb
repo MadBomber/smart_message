@@ -435,12 +435,18 @@ module SmartMessage
         case value
         when nil
           nil
-        when String
+        when String, Regexp
           [value]
         when Array
+          # Validate that array contains only Strings and Regexps
+          value.each do |item|
+            unless item.is_a?(String) || item.is_a?(Regexp)
+              raise ArgumentError, "Array filter values must be Strings or Regexps, got: #{item.class}"
+            end
+          end
           value
         else
-          raise ArgumentError, "Filter value must be a String, Array, or nil, got: #{value.class}"
+          raise ArgumentError, "Filter value must be a String, Regexp, Array, or nil, got: #{value.class}"
         end
       end
       

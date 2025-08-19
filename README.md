@@ -10,6 +10,7 @@ SmartMessage is a message abstraction framework that decouples business logic fr
 - **Transport Abstraction**: Plugin architecture supporting multiple message transports (Redis, RabbitMQ, Kafka, etc.)
 - **Serialization Flexibility**: Pluggable serialization formats (JSON, MessagePack, etc.)
 - **Entity-to-Entity Addressing**: Built-in FROM/TO/REPLY_TO addressing for point-to-point and broadcast messaging patterns
+- **Advanced Message Filtering**: Filter subscriptions using exact strings, regular expressions, or mixed arrays for precise message routing
 - **Schema Versioning**: Built-in version management with automatic compatibility validation
 - **Comprehensive Validation**: Property validation with custom error messages and automatic validation before publishing
 - **Message Documentation**: Built-in documentation support for message classes and properties with automatic defaults
@@ -19,6 +20,8 @@ SmartMessage is a message abstraction framework that decouples business logic fr
 - **Built-in Statistics**: Message processing metrics and monitoring
 - **Development Tools**: STDOUT and in-memory transports for testing
 - **Production Ready**: Redis transport with automatic reconnection and error handling
+- **Dead Letter Queue**: File-based DLQ with JSON Lines format for failed message capture and replay
+- **Circuit Breaker Integration**: Production-grade reliability with BreakerMachines for automatic fallback and recovery
 
 ## Installation
 
@@ -159,7 +162,38 @@ end
 OrderMessage.subscribe(audit_handler)
 ```
 
-### 4. Entity Addressing
+### 4. Message Filtering (NEW!)
+
+SmartMessage supports powerful message filtering using exact strings, regular expressions, or arrays:
+
+```ruby
+# Filter by exact sender
+OrderMessage.subscribe(from: 'payment-service')
+
+# Filter by sender pattern (all payment services)
+OrderMessage.subscribe(from: /^payment-.*/)
+
+# Filter by multiple senders
+OrderMessage.subscribe(from: ['admin', 'system', 'monitoring'])
+
+# Mixed exact and pattern matching
+OrderMessage.subscribe(from: ['admin', /^system-.*/, 'legacy-service'])
+
+# Filter by recipient patterns
+OrderMessage.subscribe(to: /^(dev|staging)-.*/)
+
+# Combined filtering
+OrderMessage.subscribe(
+  from: /^admin-.*/, 
+  to: ['order-service', /^fulfillment-.*/]
+)
+
+# Environment-based routing
+DevService.subscribe(to: /^(dev|staging)-.*/)
+ProdService.subscribe(to: /^prod-.*/)
+```
+
+### 5. Entity Addressing
 
 SmartMessage supports entity-to-entity addressing with FROM/TO/REPLY_TO fields for advanced message routing:
 
@@ -642,6 +676,99 @@ puts message._sm_header.publisher_pid
 puts message._sm_header.from
 puts message._sm_header.to
 puts message._sm_header.reply_to
+```
+
+### Dead Letter Queue
+
+SmartMessage includes a comprehensive file-based Dead Letter Queue system for handling failed messages:
+
+```ruby
+# Configure global DLQ (optional - defaults to 'dead_letters.jsonl')
+SmartMessage::DeadLetterQueue.configure_default('/var/log/app/dlq.jsonl')
+
+# Or use environment-based configuration
+SmartMessage::DeadLetterQueue.configure_default(
+  ENV.fetch('SMART_MESSAGE_DLQ_PATH', 'dead_letters.jsonl')
+)
+
+# Access the default DLQ instance
+dlq = SmartMessage::DeadLetterQueue.default
+
+# Create a custom DLQ instance for specific needs
+custom_dlq = SmartMessage::DeadLetterQueue.new('/tmp/critical_failures.jsonl')
+```
+
+#### DLQ Operations
+
+```ruby
+# Messages are automatically captured when circuit breakers trip
+# But you can also manually enqueue failed messages:
+dlq.enqueue(
+  message._sm_header,
+  message_payload,
+  error: "Connection timeout",
+  transport: "Redis",
+  retry_count: 3
+)
+
+# Inspect queue status
+puts "Queue size: #{dlq.size}"
+puts "Next message: #{dlq.peek}"  # Look without removing
+
+# Get statistics
+stats = dlq.statistics
+puts "Total messages: #{stats[:total]}"
+puts "By error type: #{stats[:by_error]}"
+puts "By message class: #{stats[:by_class]}"
+```
+
+#### Message Replay
+
+```ruby
+# Replay messages back through their original transport
+dlq.replay_one           # Replay oldest message
+dlq.replay_batch(10)      # Replay next 10 messages
+dlq.replay_all            # Replay entire queue
+
+# Replay with a different transport
+redis_transport = SmartMessage::Transport.create(:redis)
+dlq.replay_one(redis_transport)  # Override original transport
+```
+
+#### Administrative Functions
+
+```ruby
+# Filter messages for analysis
+failed_orders = dlq.filter_by_class('OrderMessage')
+timeout_errors = dlq.filter_by_error_pattern(/timeout/i)
+
+# Export messages within a time range
+yesterday = Time.now - 86400
+today = Time.now
+recent_failures = dlq.export_range(yesterday, today)
+
+# Clear the queue when needed
+dlq.clear  # Remove all messages
+```
+
+#### Integration with Circuit Breakers
+
+Dead Letter Queue is automatically integrated with circuit breakers:
+
+```ruby
+class PaymentMessage < SmartMessage::Base
+  config do
+    transport SmartMessage::Transport.create(:redis)
+    # Messages automatically go to DLQ when circuit breaker trips
+  end
+end
+
+# Monitor circuit breaker status
+transport = PaymentMessage.transport
+stats = transport.transport_circuit_stats
+if stats[:transport_publish][:open]
+  puts "Circuit open - messages going to DLQ"
+end
 ```
 
 ## Development

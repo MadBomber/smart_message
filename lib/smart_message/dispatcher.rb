@@ -221,14 +221,14 @@ module SmartMessage
       
       # Check from filter
       if filters[:from]
-        from_match = filters[:from].include?(message_header.from)
+        from_match = filter_value_matches?(message_header.from, filters[:from])
         return false unless from_match
       end
       
       # Check to/broadcast filters (OR logic between them)
       if filters[:broadcast] || filters[:to]
         broadcast_match = filters[:broadcast] && message_header.to.nil?
-        to_match = filters[:to] && filters[:to].include?(message_header.to)
+        to_match = filters[:to] && filter_value_matches?(message_header.to, filters[:to])
         
         # If either broadcast or to filter is specified, at least one must match
         combined_match = (broadcast_match || to_match)
@@ -236,6 +236,26 @@ module SmartMessage
       end
       
       true
+    end
+
+    # Check if a value matches any of the filter criteria
+    # Supports both exact string matching and regex pattern matching
+    # @param value [String, nil] The value to match against
+    # @param filter_array [Array] Array of strings and/or regexps to match against
+    # @return [Boolean] True if the value matches any filter in the array
+    def filter_value_matches?(value, filter_array)
+      return false if value.nil? || filter_array.nil?
+      
+      filter_array.any? do |filter|
+        case filter
+        when String
+          filter == value
+        when Regexp
+          filter.match?(value)
+        else
+          false
+        end
+      end
     end
 
     # Check if a message processor is a proc handler

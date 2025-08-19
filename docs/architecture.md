@@ -345,6 +345,74 @@ module SmartMessage::Errors
 end
 ```
 
+## Reliability & Fault Tolerance
+
+### Circuit Breaker Integration
+
+SmartMessage integrates BreakerMachines for production-grade reliability:
+
+```ruby
+# Transport operations protected by circuit breakers
+class MyTransport < SmartMessage::Transport::Base
+  circuit :transport_publish do
+    threshold failures: 5, within: 30.seconds
+    reset_after 15.seconds
+    fallback SmartMessage::CircuitBreaker::Fallbacks.dead_letter_queue
+  end
+end
+```
+
+**Circuit Breaker States:**
+- **Closed**: Normal operation, requests pass through
+- **Open**: Threshold exceeded, requests fail fast
+- **Half-Open**: Testing if service recovered
+
+### Dead Letter Queue
+
+Failed messages are automatically captured in the Dead Letter Queue:
+
+```ruby
+# Automatic capture when circuit breaker trips
+message.publish  # If transport fails, goes to DLQ
+
+# Manual capture for business logic failures
+dlq = SmartMessage::DeadLetterQueue.default
+dlq.enqueue(header, payload, error: "Validation failed")
+```
+
+**DLQ Architecture:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Message Publishing                       │
+│                           │                                 │
+│                           ▼                                 │
+│                  ┌─────────────────┐                        │
+│                  │ Circuit Breaker │                        │
+│                  │   (Monitoring)   │                        │
+│                  └─────────────────┘                        │
+│                     │           │                           │
+│              Success │           │ Failure                  │
+│                     ▼           ▼                           │
+│              ┌──────────┐ ┌─────────────┐                  │
+│              │Transport │ │Dead Letter  │                  │
+│              │          │ │   Queue     │                  │
+│              └──────────┘ └─────────────┘                  │
+│                                │                            │
+│                                ▼                            │
+│                         ┌─────────────┐                     │
+│                         │   Replay    │                     │
+│                         │ Mechanism   │                     │
+│                         └─────────────┘                     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**DLQ Features:**
+- JSON Lines format for efficient append operations
+- FIFO queue operations with thread safety
+- Replay capabilities with transport override
+- Administrative tools for filtering and analysis
+
 ## Statistics & Monitoring
 
 ### Built-in Statistics

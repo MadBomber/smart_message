@@ -808,3 +808,61 @@ test_message_processing
 ```
 
 These examples demonstrate the flexibility and power of SmartMessage for building robust, scalable messaging systems. Each pattern can be adapted to your specific needs and combined with other patterns for more complex workflows.
+
+## Executable Example Programs
+
+The `examples/` directory contains complete, runnable programs that demonstrate various SmartMessage features:
+
+### Core Messaging Patterns
+- **`01_point_to_point_orders.rb`** - Point-to-point order processing with payment integration
+- **`02_publish_subscribe_events.rb`** - Event broadcasting to multiple services (email, SMS, audit)
+- **`03_many_to_many_chat.rb`** - Interactive chat system with rooms, bots, and human agents
+
+### Advanced Features
+- **`04_redis_smart_home_iot.rb`** - Redis-based IoT sensor monitoring with real-time data flow
+- **`05_proc_handlers.rb`** - Flexible message handlers (blocks, procs, lambdas, methods)
+- **`06_custom_logger_example.rb`** - Advanced logging with SmartMessage::Logger::Default
+- **`07_error_handling_scenarios.rb`** - Comprehensive validation, version mismatch, and error handling
+- **`08_entity_addressing_basic.rb`** - Basic FROM/TO/REPLY_TO message addressing
+- **`08_entity_addressing_with_filtering.rb`** - Advanced entity-aware message filtering
+- **`09_dead_letter_queue_demo.rb`** - Complete Dead Letter Queue system demonstration
+
+### Interactive Demos
+- **`tmux_chat/`** - Multi-pane terminal visualization of many-to-many messaging with file-based transport
+
+### Running Examples
+
+```bash
+# Navigate to the SmartMessage directory
+cd smart_message
+
+# Run any example directly
+ruby examples/01_point_to_point_orders.rb
+ruby examples/09_dead_letter_queue_demo.rb
+
+# For tmux chat demo
+cd examples/tmux_chat && ./run_demo.sh
+```
+
+Each example is self-contained and includes:
+- Clear educational comments
+- Multiple message classes
+- Complete setup and teardown
+- Real-world scenarios
+- Best practices demonstration
+
+### Example Features Demonstrated
+
+| Example | Transports | Features | Use Case |
+|---------|------------|----------|----------|
+| 01 | STDOUT | Point-to-point, validation | Order processing |
+| 02 | STDOUT | Pub-sub, multiple handlers | Event broadcasting |
+| 03 | Memory | Many-to-many, bots | Chat systems |
+| 04 | Redis | IoT, real-time, addressing | Smart home monitoring |
+| 05 | Memory | Proc handlers, flexibility | Dynamic message handling |
+| 06 | STDOUT | Custom logging, lifecycle | Production logging |
+| 07 | STDOUT | Error handling, validation | Robust message systems |
+| 08 | STDOUT | Entity addressing, filtering | Microservice communication |
+| 09 | Memory | DLQ, circuit breakers, replay | Production reliability |
+
+These examples provide practical, working code that you can use as a starting point for your own SmartMessage implementations.

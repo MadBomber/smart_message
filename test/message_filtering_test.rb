@@ -200,5 +200,132 @@ module MessageFilteringTest
       # Should have processed admin + system messages (2 total)
       assert_equal 2, SS.get('MessageFilteringTest::FilterTestMessage', 'process')
     end
+
+    def test_regex_from_filter
+      # Subscribe to messages from services matching regex pattern
+      FilterTestMessage.subscribe(from: /^payment-.*/)
+      
+      # Message from payment-service (should match)
+      payment_msg = FilterTestMessage.new(content: "from payment service")
+      payment_msg.from('payment-service')
+      payment_msg.publish
+      
+      # Message from payment-gateway (should match)
+      gateway_msg = FilterTestMessage.new(content: "from payment gateway")
+      gateway_msg.from('payment-gateway')
+      gateway_msg.publish
+      
+      # Message from user-service (should not match)
+      user_msg = FilterTestMessage.new(content: "from user service")
+      user_msg.from('user-service')
+      user_msg.publish
+      
+      # Give time for processing
+      sleep(0.1)
+      
+      # Should have processed payment-service + payment-gateway messages (2 total)
+      assert_equal 2, SS.get('MessageFilteringTest::FilterTestMessage', 'process')
+    end
+
+    def test_regex_to_filter
+      # Subscribe to messages directed to services matching environment pattern
+      FilterTestMessage.subscribe(to: /^(dev|staging)-.*/)
+      
+      # Message to dev-service (should match)
+      dev_msg = FilterTestMessage.new(content: "to dev")
+      dev_msg.to('dev-service')
+      dev_msg.publish
+      
+      # Message to staging-api (should match)
+      staging_msg = FilterTestMessage.new(content: "to staging")
+      staging_msg.to('staging-api')
+      staging_msg.publish
+      
+      # Message to prod-service (should not match)
+      prod_msg = FilterTestMessage.new(content: "to prod")
+      prod_msg.to('prod-service')
+      prod_msg.publish
+      
+      # Give time for processing
+      sleep(0.1)
+      
+      # Should have processed dev + staging messages (2 total)
+      assert_equal 2, SS.get('MessageFilteringTest::FilterTestMessage', 'process')
+    end
+
+    def test_mixed_regex_and_string_filters
+      # Subscribe to messages from specific string OR regex pattern
+      FilterTestMessage.subscribe(from: ['admin', /^system-.*/, 'monitoring'])
+      
+      # Message from admin (exact string match)
+      admin_msg = FilterTestMessage.new(content: "from admin")
+      admin_msg.from('admin')
+      admin_msg.publish
+      
+      # Message from system-worker (regex match)
+      system_msg = FilterTestMessage.new(content: "from system worker")
+      system_msg.from('system-worker')
+      system_msg.publish
+      
+      # Message from monitoring (exact string match)
+      monitoring_msg = FilterTestMessage.new(content: "from monitoring")
+      monitoring_msg.from('monitoring')
+      monitoring_msg.publish
+      
+      # Message from user-service (should not match)
+      user_msg = FilterTestMessage.new(content: "from user")
+      user_msg.from('user-service')
+      user_msg.publish
+      
+      # Give time for processing
+      sleep(0.1)
+      
+      # Should have processed admin + system-worker + monitoring messages (3 total)
+      assert_equal 3, SS.get('MessageFilteringTest::FilterTestMessage', 'process')
+    end
+
+    def test_regex_combined_from_and_to_filters
+      # Subscribe to messages from admin services to production environments
+      FilterTestMessage.subscribe(from: /^admin-.*/, to: /^prod-.*/)
+      
+      # Message from admin-panel to prod-api (should match both)
+      match_msg = FilterTestMessage.new(content: "admin to prod")
+      match_msg.from('admin-panel')
+      match_msg.to('prod-api')
+      match_msg.publish
+      
+      # Message from admin-panel to dev-api (matches from but not to)
+      no_match_to = FilterTestMessage.new(content: "admin to dev")
+      no_match_to.from('admin-panel')
+      no_match_to.to('dev-api')
+      no_match_to.publish
+      
+      # Message from user-panel to prod-api (matches to but not from)
+      no_match_from = FilterTestMessage.new(content: "user to prod")
+      no_match_from.from('user-panel')
+      no_match_from.to('prod-api')
+      no_match_from.publish
+      
+      # Give time for processing
+      sleep(0.1)
+      
+      # Should have processed only the admin->prod message (1 total)
+      assert_equal 1, SS.get('MessageFilteringTest::FilterTestMessage', 'process')
+    end
+
+    def test_invalid_filter_types
+      # Test that invalid filter types raise errors
+      assert_raises(ArgumentError) do
+        FilterTestMessage.subscribe(from: 123)
+      end
+      
+      assert_raises(ArgumentError) do
+        FilterTestMessage.subscribe(to: [123, 'valid'])
+      end
+      
+      assert_raises(ArgumentError) do
+        FilterTestMessage.subscribe(from: ['valid', Object.new])
+      end
+    end
   end
 end

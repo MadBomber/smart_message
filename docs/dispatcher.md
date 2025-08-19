@@ -61,6 +61,93 @@ MyMessage.subscribe { |h,p| puts "Quick log" }
 # All handlers will receive the message
 ```
 
+### Message Filtering (NEW!)
+
+SmartMessage supports advanced message filtering using exact strings, regular expressions, or arrays for precise message routing:
+
+```ruby
+# Basic string filtering (exact match)
+MyMessage.subscribe(from: 'payment-service')
+MyMessage.subscribe(to: 'order-processor')
+
+# Regular expression filtering
+MyMessage.subscribe(from: /^payment-.*/)        # All payment services
+MyMessage.subscribe(to: /^(dev|staging)-.*/)    # Development environments
+
+# Array filtering (multiple options)
+MyMessage.subscribe(from: ['admin', 'system', 'monitoring'])
+
+# Mixed exact and pattern matching
+MyMessage.subscribe(from: ['admin', /^system-.*/, 'legacy-service'])
+
+# Combined filtering
+MyMessage.subscribe(
+  from: /^admin-.*/, 
+  to: ['order-service', /^fulfillment-.*/]
+)
+
+# Broadcast + directed filtering
+MyMessage.subscribe(broadcast: true, to: 'api-service')
+```
+
+#### Filter Types
+
+**String Filters (Exact Match)**
+```ruby
+# Subscribe only to messages from specific sender
+OrderMessage.subscribe(from: 'payment-service')
+
+# Subscribe only to messages directed to specific recipient
+OrderMessage.subscribe(to: 'order-processor')
+```
+
+**Regular Expression Filters (Pattern Match)**
+```ruby
+# Environment-based routing
+DevService.subscribe(to: /^(dev|staging)-.*/)
+ProdService.subscribe(to: /^prod-.*/)
+
+# Service pattern routing
+PaymentProcessor.subscribe(from: /^payment-.*/)
+ApiService.subscribe(from: /^(web|mobile|api)-.*/)
+```
+
+**Array Filters (Multiple Options)**
+```ruby
+# Multiple specific services
+AdminService.subscribe(from: ['admin', 'system', 'monitoring'])
+
+# Mixed patterns and exact matches
+AlertService.subscribe(from: ['admin', /^system-.*/, 'security'])
+```
+
+**Combined Filters**
+```ruby
+# Complex multi-criteria filtering
+OrderMessage.subscribe(
+  from: /^(admin|system)-.*/, 
+  to: ['order-service', /^fulfillment-.*/]
+)
+
+# Admin services to production only
+AdminMessage.subscribe(from: /^admin-.*/, to: /^prod-.*/)
+```
+
+#### Filter Validation
+
+Filters are validated at subscription time:
+
+```ruby
+# Valid filters
+MyMessage.subscribe(from: 'service')           # String
+MyMessage.subscribe(from: /^service-.*/)       # Regexp  
+MyMessage.subscribe(from: ['a', /^b-.*/])      # Array of String/Regexp
+
+# Invalid filters (raise ArgumentError)
+MyMessage.subscribe(from: 123)                 # Invalid type
+MyMessage.subscribe(from: ['valid', 123])      # Invalid array element
+```
+
 ### Removing Subscriptions
 
 ```ruby

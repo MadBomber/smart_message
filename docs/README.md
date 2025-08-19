@@ -17,11 +17,13 @@ Welcome to the comprehensive documentation for SmartMessage, a Ruby gem that abs
 - [SmartMessage::Base](base.md)
 - [Property System](properties.md)
 - [Entity Addressing](addressing.md)
+- [Message Filtering](message_filtering.md)
 - [Transport Layer](transports.md)
 - [Serializers](serializers.md)
 - [Logging System](logging.md)
 - [Dispatcher & Routing](dispatcher.md)
 - [Message Headers](headers.md)
+- [Dead Letter Queue](dead_letter_queue.md)
 
 ### Advanced Topics
 - [Custom Transports](custom-transports.md)
@@ -50,6 +52,6 @@ Welcome to the comprehensive documentation for SmartMessage, a Ruby gem that abs
 
 ## Version
 
-This documentation is for SmartMessage v0.0.2.
+This documentation is for SmartMessage v0.0.8.
 
 For older versions, please check the git tags and corresponding documentation.
