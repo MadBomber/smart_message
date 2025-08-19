@@ -53,7 +53,9 @@ class BotChatAgent < BaseAgent
     end
   end
 
-  def handle_bot_command(message_header, message_payload)
+  def handle_bot_command(wrapper)
+    message_header = wrapper._sm_header
+    message_payload = wrapper._sm_payload
     command_data = JSON.parse(message_payload)
     
     # Only handle commands in rooms we're in and commands we can handle
@@ -66,7 +68,9 @@ class BotChatAgent < BaseAgent
     process_command(command_data)
   end
 
-  def handle_chat_message(message_header, message_payload)
+  def handle_chat_message(wrapper)
+    message_header = wrapper._sm_header
+    message_payload = wrapper._sm_payload
     chat_data = JSON.parse(message_payload)
     
     # Only process messages from rooms we're in and not our own messages

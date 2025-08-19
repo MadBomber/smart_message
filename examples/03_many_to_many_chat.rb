@@ -40,7 +40,9 @@ class ChatMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
 
-  def self.process(message_header, message_payload)
+  def self.process(wrapper)
+    message_header = wrapper._sm_header
+    message_payload = wrapper._sm_payload
     chat_data = JSON.parse(message_payload)
     puts "💬 Chat message in #{chat_data['room_id']}: #{chat_data['content']}"
   end
@@ -68,7 +70,9 @@ class BotCommandMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
 
-  def self.process(message_header, message_payload)
+  def self.process(wrapper)
+    message_header = wrapper._sm_header
+    message_payload = wrapper._sm_payload
     command_data = JSON.parse(message_payload)
     puts "🤖 Bot command: #{command_data['command']} in #{command_data['room_id']}"
   end
@@ -96,7 +100,9 @@ class SystemNotificationMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
 
-  def self.process(message_header, message_payload)
+  def self.process(wrapper)
+    message_header = wrapper._sm_header
+    message_payload = wrapper._sm_payload
     notif_data = JSON.parse(message_payload)
     puts "🔔 System: #{notif_data['content']} in #{notif_data['room_id']}"
   end
@@ -192,7 +198,9 @@ class HumanChatAgent
     @@agents[agent.user_id] = agent
   end
 
-  def handle_chat_message(message_header, message_payload)
+  def handle_chat_message(wrapper)
+    message_header = wrapper._sm_header
+    message_payload = wrapper._sm_payload
     chat_data = JSON.parse(message_payload)
     
     # Only process messages from rooms we're in and not our own messages
@@ -207,7 +215,9 @@ class HumanChatAgent
     end
   end
 
-  def handle_system_notification(message_header, message_payload)
+  def handle_system_notification(wrapper)
+    message_header = wrapper._sm_header
+    message_payload = wrapper._sm_payload
     notif_data = JSON.parse(message_payload)
     
     # Only process notifications from rooms we're in
@@ -302,7 +312,9 @@ class BotAgent
     )
   end
 
-  def self.handle_bot_command(message_header, message_payload)
+  def self.handle_bot_command(wrapper)
+    message_header = wrapper._sm_header
+    message_payload = wrapper._sm_payload
     command_data = JSON.parse(message_payload)
     @@bots ||= []
     
@@ -315,7 +327,9 @@ class BotAgent
     capable_bot&.process_command(command_data)
   end
 
-  def self.handle_chat_message(message_header, message_payload)
+  def self.handle_chat_message(wrapper)
+    message_header = wrapper._sm_header
+    message_payload = wrapper._sm_payload
     chat_data = JSON.parse(message_payload)
     @@bots ||= []
     
@@ -491,7 +505,9 @@ class RoomManager
     notification.publish
   end
 
-  def self.handle_system_notification(message_header, message_payload)
+  def self.handle_system_notification(wrapper)
+    message_header = wrapper._sm_header
+    message_payload = wrapper._sm_payload
     @@instance ||= new
     @@instance.process_system_notification(message_header, message_payload)
   end

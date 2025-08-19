@@ -310,7 +310,9 @@ class OrderProcessingMessage < SmartMessage::Base
     )
   end
   
-  def self.process(message_header, message_payload)
+  def self.process(wrapper)
+    message_header = wrapper._sm_header
+    message_payload = wrapper._sm_payload
     # Simulate the logger being called during processing
     if logger
       logger.log_message_received(self, message_payload)
@@ -376,7 +378,9 @@ class NotificationMessage < SmartMessage::Base
     logger SmartMessage::Logger::FileLogger.new('logs/notifications.log', level: Logger::WARN)
   end
   
-  def self.process(message_header, message_payload)
+  def self.process(wrapper)
+    message_header = wrapper._sm_header
+    message_payload = wrapper._sm_payload
     if logger
       logger.log_message_received(self, message_payload)
     end
@@ -425,7 +429,9 @@ class StandardLoggerMessage < SmartMessage::Base
     # logger SmartMessage::Logger::RubyLoggerWrapper.new(Rails.logger)
   end
   
-  def self.process(message_header, message_payload)
+  def self.process(wrapper)
+    message_header = wrapper._sm_header
+    message_payload = wrapper._sm_payload
     data = JSON.parse(message_payload)
     puts "📝 Processing: #{data['content']}"
     "Processed"
@@ -449,7 +455,9 @@ class DefaultLoggerMessage < SmartMessage::Base
     logger SmartMessage::Logger::Default.new
   end
   
-  def self.process(message_header, message_payload)
+  def self.process(wrapper)
+    message_header = wrapper._sm_header
+    message_payload = wrapper._sm_payload
     data = JSON.parse(message_payload)
     puts "🎯 DefaultLogger: Processing #{data['message']}"
     "Processed with default logger"

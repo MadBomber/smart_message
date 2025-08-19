@@ -33,7 +33,9 @@ class NotificationMessage < SmartMessage::Base
   end
 
   # Default handler
-  def self.process(message_header, message_payload)
+  def self.process(wrapper)
+    message_header = wrapper._sm_header
+    message_payload = wrapper._sm_payload
     data = JSON.parse(message_payload)
     icon = case data['type']
            when 'info' then 'ℹ️'
@@ -56,8 +58,8 @@ puts
 
 # 2. Block handler
 puts "2️⃣ Block handler subscription:"
-block_id = NotificationMessage.subscribe do |header, payload|
-  data = JSON.parse(payload)
+block_id = NotificationMessage.subscribe do |wrapper|
+  data = JSON.parse(wrapper._sm_payload)
   if data['type'] == 'error'
     puts "🔥 [BLOCK] Critical error logged: #{data['title']}"
     # Could send to error tracking service here
@@ -68,9 +70,9 @@ puts
 
 # 3. Proc handler
 puts "3️⃣ Proc handler subscription:"
-audit_logger = proc do |header, payload|
-  data = JSON.parse(payload)
-  timestamp = header.published_at.strftime('%Y-%m-%d %H:%M:%S')
+audit_logger = proc do |wrapper|
+  data = JSON.parse(wrapper._sm_payload)
+  timestamp = wrapper._sm_header.published_at.strftime('%Y-%m-%d %H:%M:%S')
   puts "📝 [AUDIT] #{timestamp} - User #{data['user_id']}: #{data['type'].upcase}"
 end
 
@@ -80,8 +82,8 @@ puts
 
 # 4. Lambda handler
 puts "4️⃣ Lambda handler subscription:"
-warning_filter = lambda do |header, payload|
-  data = JSON.parse(payload)
+warning_filter = lambda do |wrapper|
+  data = JSON.parse(wrapper._sm_payload)
   if data['type'] == 'warning'
     puts "⚡ [LAMBDA] Warning for user #{data['user_id']}: #{data['message']}"
   end
@@ -94,8 +96,8 @@ puts
 # 5. Method handler (traditional, but shown for comparison)
 puts "5️⃣ Method handler subscription:"
 class NotificationService
-  def self.handle_notifications(header, payload)
-    data = JSON.parse(payload)
+  def self.handle_notifications(wrapper)
+    data = JSON.parse(wrapper._sm_payload)
     puts "🏢 [SERVICE] Processing #{data['type']} notification for user #{data['user_id']}"
   end
 end
@@ -174,7 +176,7 @@ puts "=" * 60
 
 puts "\nThis example demonstrated:"
 puts "• ✅ Default self.process method (traditional)"
-puts "• ✅ Block handlers with subscribe { |h,p| ... } (NEW!)"
+puts "• ✅ Block handlers with subscribe { |wrapper| ... } (NEW!)"
 puts "• ✅ Proc handlers with subscribe(proc { ... }) (NEW!)"
 puts "• ✅ Lambda handlers with subscribe(lambda { ... }) (NEW!)"
 puts "• ✅ Method handlers with subscribe('Class.method') (traditional)"

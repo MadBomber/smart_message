@@ -128,7 +128,9 @@ class ChatMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
 
-  def self.process(message_header, message_payload)
+  def self.process(wrapper)
+    message_header = wrapper._sm_header
+    message_payload = wrapper._sm_payload
     # Default processing - agents will override this
   end
 end
@@ -157,7 +159,9 @@ class BotCommandMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
 
-  def self.process(message_header, message_payload)
+  def self.process(wrapper)
+    message_header = wrapper._sm_header
+    message_payload = wrapper._sm_payload
     # Default processing - bots will override this
   end
 end
@@ -184,7 +188,9 @@ class SystemNotificationMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
 
-  def self.process(message_header, message_payload)
+  def self.process(wrapper)
+    message_header = wrapper._sm_header
+    message_payload = wrapper._sm_payload
     # Default processing
   end
 end

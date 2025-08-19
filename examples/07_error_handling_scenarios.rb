@@ -53,7 +53,9 @@ class UserRegistrationMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
 
-  def self.process(message_header, message_payload)
+  def self.process(wrapper)
+    message_header = wrapper._sm_header
+    message_payload = wrapper._sm_payload
     user_data = JSON.parse(message_payload)
     puts "✅ User registration processed: #{user_data['username']} (#{user_data['email']})"
   end
@@ -101,7 +103,9 @@ class UserRegistrationMessageV2 < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
 
-  def self.process(message_header, message_payload)
+  def self.process(wrapper)
+    message_header = wrapper._sm_header
+    message_payload = wrapper._sm_payload
     user_data = JSON.parse(message_payload)
     puts "✅ User registration V2 processed: #{user_data['username']} (#{user_data['email']}, #{user_data['phone_number']})"
   end

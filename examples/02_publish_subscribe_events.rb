@@ -36,7 +36,9 @@ class UserEventMessage < SmartMessage::Base
   end
 
   # Default processor - just logs the event
-  def self.process(message_header, message_payload)
+  def self.process(wrapper)
+    message_header = wrapper._sm_header
+    message_payload = wrapper._sm_payload
     event_data = JSON.parse(message_payload)
     puts "📡 Event broadcasted: #{event_data['event_type']} for user #{event_data['user_id']}"
   end
@@ -50,12 +52,14 @@ class EmailService
     UserEventMessage.subscribe('EmailService.handle_user_event')
   end
 
-  def self.handle_user_event(message_header, message_payload)
+  def self.handle_user_event(wrapper)
     service = new
-    service.process_event(message_header, message_payload)
+    service.process_event(wrapper)
   end
 
-  def process_event(message_header, message_payload)
+  def process_event(wrapper)
+    message_header = wrapper._sm_header
+    message_payload = wrapper._sm_payload
     event_data = JSON.parse(message_payload)
     
     case event_data['event_type']
@@ -105,12 +109,14 @@ class SMSService
     UserEventMessage.subscribe('SMSService.handle_user_event')
   end
 
-  def self.handle_user_event(message_header, message_payload)
+  def self.handle_user_event(wrapper)
     service = new
-    service.process_event(message_header, message_payload)
+    service.process_event(wrapper)
   end
 
-  def process_event(message_header, message_payload)
+  def process_event(wrapper)
+    message_header = wrapper._sm_header
+    message_payload = wrapper._sm_payload
     event_data = JSON.parse(message_payload)
     
     case event_data['event_type']
@@ -170,17 +176,19 @@ class AuditService
     UserEventMessage.subscribe('AuditService.handle_user_event')
   end
 
-  def self.handle_user_event(message_header, message_payload)
+  def self.handle_user_event(wrapper)
     # Use a singleton pattern for persistent audit log
     @@instance ||= new
-    @@instance.process_event(message_header, message_payload)
+    @@instance.process_event(wrapper)
   end
 
   def self.get_summary
     @@instance&.get_audit_summary || {}
   end
 
-  def process_event(message_header, message_payload)
+  def process_event(wrapper)
+    message_header = wrapper._sm_header
+    message_payload = wrapper._sm_payload
     event_data = JSON.parse(message_payload)
     
     audit_entry = {

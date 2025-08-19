@@ -43,7 +43,9 @@ class PaymentMessage < MicroserviceMessage
   property :amount, required: true
   property :currency, default: 'USD'
   
-  def self.process(header, payload)
+  def self.process(wrapper)
+    header = wrapper._sm_header
+    payload = wrapper._sm_payload
     msg_data = JSON.parse(payload)
     puts "💳 PaymentMessage processed by #{self.name}"
     puts "   From: #{header.from} → To: #{header.to}"
@@ -60,7 +62,9 @@ class OrderMessage < MicroserviceMessage
   property :customer_id, required: true
   property :status, default: 'pending'
   
-  def self.process(header, payload)
+  def self.process(wrapper)
+    header = wrapper._sm_header
+    payload = wrapper._sm_payload
     msg_data = JSON.parse(payload)
     puts "📦 OrderMessage processed by #{self.name}"
     puts "   From: #{header.from} → To: #{header.to}"
@@ -77,7 +81,9 @@ class AlertMessage < MicroserviceMessage
   property :component, required: true
   property :description, required: true
   
-  def self.process(header, payload)
+  def self.process(wrapper)
+    header = wrapper._sm_header
+    payload = wrapper._sm_payload
     msg_data = JSON.parse(payload)
     puts "🚨 AlertMessage processed by #{self.name}"
     puts "   From: #{header.from} → To: #{header.to}"

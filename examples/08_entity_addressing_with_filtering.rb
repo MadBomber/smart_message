@@ -41,7 +41,9 @@ class ServiceMessage < SmartMessage::Base
   end
   
   # Different handlers for different subscription filters
-  def self.process_broadcast(header, payload)
+  def self.process_broadcast(wrapper)
+    header = wrapper._sm_header
+    payload = wrapper._sm_payload
     data = JSON.parse(payload)
     puts "   📻 BROADCAST HANDLER received:"
     puts "      Type: #{data['message_type']}"
@@ -49,7 +51,9 @@ class ServiceMessage < SmartMessage::Base
     puts "      Data: #{data['data']}"
   end
   
-  def self.process_directed(header, payload)
+  def self.process_directed(wrapper)
+    header = wrapper._sm_header
+    payload = wrapper._sm_payload
     data = JSON.parse(payload)
     puts "   🎯 DIRECTED HANDLER received:"
     puts "      Type: #{data['message_type']}"
@@ -57,7 +61,9 @@ class ServiceMessage < SmartMessage::Base
     puts "      Data: #{data['data']}"
   end
   
-  def self.process_from_admin(header, payload)
+  def self.process_from_admin(wrapper)
+    header = wrapper._sm_header
+    payload = wrapper._sm_payload
     data = JSON.parse(payload)
     puts "   👮 ADMIN HANDLER received:"
     puts "      Type: #{data['message_type']}"
@@ -151,7 +157,9 @@ class AlertMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
   
-  def self.process_critical_or_broadcast(header, payload)
+  def self.process_critical_or_broadcast(wrapper)
+    header = wrapper._sm_header
+    payload = wrapper._sm_payload
     data = JSON.parse(payload)
     icon = data['severity'] == 'critical' ? '🚨' : '📢'
     puts "   #{icon} ALERT MONITOR received:"
@@ -160,7 +168,9 @@ class AlertMessage < SmartMessage::Base
     puts "      Alert: #{data['alert_text']}"
   end
   
-  def self.process_from_monitoring(header, payload)
+  def self.process_from_monitoring(wrapper)
+    header = wrapper._sm_header
+    payload = wrapper._sm_payload
     data = JSON.parse(payload)
     puts "   📊 MONITORING TEAM received:"
     puts "      From: #{header.from} (monitoring system)"
@@ -255,7 +265,9 @@ class OrderMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
   
-  def self.process_high_priority(header, payload)
+  def self.process_high_priority(wrapper)
+    header = wrapper._sm_header
+    payload = wrapper._sm_payload
     data = JSON.parse(payload)
     puts "   🚀 HIGH PRIORITY ORDER HANDLER:"
     puts "      Order ID: #{data['order_id']} (PRIORITY: #{data['priority'].upcase})"
@@ -263,7 +275,9 @@ class OrderMessage < SmartMessage::Base
     puts "      Total: $#{data['total_amount']}"
   end
   
-  def self.process_normal(header, payload)
+  def self.process_normal(wrapper)
+    header = wrapper._sm_header
+    payload = wrapper._sm_payload
     data = JSON.parse(payload)
     puts "   📦 NORMAL ORDER HANDLER:"
     puts "      Order ID: #{data['order_id']}"
@@ -346,7 +360,9 @@ class ServiceRequest < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
   
-  def self.process_api_requests(header, payload)
+  def self.process_api_requests(wrapper)
+    header = wrapper._sm_header
+    payload = wrapper._sm_payload
     data = JSON.parse(payload)
     puts "   🌐 API SERVICE received request:"
     puts "      Request ID: #{data['request_id']}"
@@ -355,7 +371,9 @@ class ServiceRequest < SmartMessage::Base
     puts "      Reply To: #{header.reply_to}"
   end
   
-  def self.process_data_requests(header, payload)
+  def self.process_data_requests(wrapper)
+    header = wrapper._sm_header
+    payload = wrapper._sm_payload
     data = JSON.parse(payload)
     puts "   💾 DATA SERVICE received request:"
     puts "      Request ID: #{data['request_id']}"

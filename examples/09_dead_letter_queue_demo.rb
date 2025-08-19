@@ -48,7 +48,9 @@ class PaymentMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
   
-  def self.process(header, payload)
+  def self.process(wrapper)
+    header = wrapper._sm_header
+    payload = wrapper._sm_payload
     data = JSON.parse(payload, symbolize_names: true)
     puts "  💳 Processing payment #{data[:payment_id]} for $#{data[:amount]}"
   end
@@ -69,7 +71,9 @@ class OrderMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
   
-  def self.process(header, payload)
+  def self.process(wrapper)
+    header = wrapper._sm_header
+    payload = wrapper._sm_payload
     data = JSON.parse(payload, symbolize_names: true)
     puts "  📦 Processing order #{data[:order_id]} with #{data[:items].size} items"
   end
@@ -89,7 +93,9 @@ class NotificationMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
   
-  def self.process(header, payload)
+  def self.process(wrapper)
+    header = wrapper._sm_header
+    payload = wrapper._sm_payload
     data = JSON.parse(payload, symbolize_names: true)
     puts "  📧 Sending #{data[:channel]} to user #{data[:user_id]}: #{data[:message]}"
   end
@@ -187,9 +193,12 @@ rescue => e
   puts "❌ Validation failed: #{e.message}"
   
   # Manually add to DLQ
+  wrapper = SmartMessage::Wrapper::Base.new(
+    header: payment._sm_header,
+    payload: payment.encode
+  )
   dlq.enqueue(
-    payment._sm_header,
-    payment.encode,
+    wrapper,
     error: e.message,
     transport: "ValidationLayer",
     retry_count: 0
@@ -227,9 +236,12 @@ rescue => e
   puts "❌ Publish failed: #{e.message}"
   
   # Circuit breaker would normally handle this, but we'll add manually for demo
+  wrapper = SmartMessage::Wrapper::Base.new(
+    header: payment._sm_header,
+    payload: payment.encode
+  )
   dlq.enqueue(
-    payment._sm_header,
-    payment.encode,
+    wrapper,
     error: e.message,
     transport: failing_transport.class.name,
     retry_count: 1
@@ -251,9 +263,12 @@ order = OrderMessage.new(
   total: 99.99
 )
 
+wrapper = SmartMessage::Wrapper::Base.new(
+  header: order._sm_header,
+  payload: order.encode
+)
 dlq.enqueue(
-  order._sm_header,
-  order.encode,
+  wrapper,
   error: "Gateway timeout after 30 seconds",
   transport: "Redis",
   retry_count: 3
@@ -267,9 +282,12 @@ notification = NotificationMessage.new(
   channel: "sms"
 )
 
+wrapper = SmartMessage::Wrapper::Base.new(
+  header: notification._sm_header,
+  payload: notification.encode
+)
 dlq.enqueue(
-  notification._sm_header,
-  notification.encode,
+  wrapper,
   error: "Rate limit exceeded: 429 Too Many Requests",
   transport: "SMSGateway",
   retry_count: 1
@@ -283,9 +301,12 @@ payment3 = PaymentMessage.new(
   customer_id: "CUST-789"
 )
 
+wrapper = SmartMessage::Wrapper::Base.new(
+  header: payment3._sm_header,
+  payload: payment3.encode
+)
 dlq.enqueue(
-  payment3._sm_header,
-  payment3.encode,
+  wrapper,
   error: "Invalid merchant credentials",
   transport: "StripeGateway",
   retry_count: 0
@@ -443,7 +464,11 @@ end
 # Put them back for other demos
 temp_messages.each do |msg|
   header = SmartMessage::Header.new(msg[:header])
-  dlq.enqueue(header, msg[:payload], 
+  wrapper = SmartMessage::Wrapper::Base.new(
+    header: header,
+    payload: msg[:payload]
+  )
+  dlq.enqueue(wrapper, 
     error: msg[:error], 
     retry_count: msg[:retry_count])
 end

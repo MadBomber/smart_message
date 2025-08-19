@@ -43,7 +43,9 @@ class OrderMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
   
-  def self.process(header, payload)
+  def self.process(wrapper)
+    header = wrapper._sm_header
+    payload = wrapper._sm_payload
     data = JSON.parse(payload)
     puts "   🎯 FULFILLMENT SERVICE received order:"
     puts "      Order ID: #{data['order_id']}"
@@ -94,7 +96,9 @@ class SystemAnnouncementMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
   
-  def self.process(header, payload)
+  def self.process(wrapper)
+    header = wrapper._sm_header
+    payload = wrapper._sm_payload
     data = JSON.parse(payload)
     priority_icon = data['priority'] == 'high' ? '🚨' : '📢'
     puts "   #{priority_icon} ALL SERVICES received announcement:"
@@ -144,7 +148,9 @@ class UserLookupRequest < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
   
-  def self.process(header, payload)
+  def self.process(wrapper)
+    header = wrapper._sm_header
+    payload = wrapper._sm_payload
     data = JSON.parse(payload)
     puts "   🔍 USER SERVICE received lookup request:"
     puts "      Request ID: #{data['request_id']}"
@@ -176,7 +182,9 @@ class UserLookupResponse < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
   
-  def self.process(header, payload)
+  def self.process(wrapper)
+    header = wrapper._sm_header
+    payload = wrapper._sm_payload
     data = JSON.parse(payload)
     puts "   ✅ WEB SERVICE received lookup response:"
     puts "      Request ID: #{data['request_id']}"
@@ -246,7 +254,9 @@ class PaymentMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
   
-  def self.process(header, payload)
+  def self.process(wrapper)
+    header = wrapper._sm_header
+    payload = wrapper._sm_payload
     data = JSON.parse(payload)
     gateway_icon = header.to.include?('backup') ? '🔄' : '🏦'
     puts "   #{gateway_icon} #{header.to.upcase} received payment:"
@@ -319,7 +329,9 @@ class ExternalAPIMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
   
-  def self.process(header, payload)
+  def self.process(wrapper)
+    header = wrapper._sm_header
+    payload = wrapper._sm_payload
     data = JSON.parse(payload)
     puts "   🌐 EXTERNAL PARTNER received API call:"
     puts "      API Call: #{data['api_call']}"
