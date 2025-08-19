@@ -1,0 +1,135 @@
+{
+  "benchmark_info": {
+    "timestamp": "2025-08-18T20:58:31-05:00",
+    "implementation": "ractor",
+    "ruby_version": "3.4.5",
+    "platform": "arm64-darwin24",
+    "processor_count": 12
+  },
+  "overall_stats": {
+    "total_runtime": 4.174644,
+    "memory_used_mb": 23.53125
+  },
+  "scenario_results": {
+    "cpu_light": {
+      "name": "CPU Light",
+      "messages_generated": 1000,
+      "messages_published": 1000,
+      "messages_processed": 1000,
+      "errors": 0,
+      "times": {
+        "total": 0.353973,
+        "publish": 0.135409,
+        "processing": 0.106285
+      },
+      "throughput": {
+        "messages_per_second": 2825.0742288253628,
+        "publish_rate": 7385.033491126882
+      },
+      "dispatcher_stats": {
+        "pool_size": null,
+        "queue_length": 0,
+        "completed_task_count": 1000,
+        "scheduled_task_count": 1000,
+        "running": true,
+        "implementation": "ractor"
+      }
+    },
+    "cpu_heavy": {
+      "name": "CPU Heavy",
+      "messages_generated": 500,
+      "messages_published": 500,
+      "messages_processed": 500,
+      "errors": 0,
+      "times": {
+        "total": 1.76826,
+        "publish": 0.427835,
+        "processing": 1.265818
+      },
+      "throughput": {
+        "messages_per_second": 282.76384694558493,
+        "publish_rate": 1168.6748395993782
+      },
+      "dispatcher_stats": {
+        "pool_size": null,
+        "queue_length": 0,
+        "completed_task_count": 1500,
+        "scheduled_task_count": 1500,
+        "running": true,
+        "implementation": "ractor"
+      }
+    },
+    "io_light": {
+      "name": "I/O Light",
+      "messages_generated": 800,
+      "messages_published": 800,
+      "messages_processed": 800,
+      "errors": 0,
+      "times": {
+        "total": 0.893786,
+        "publish": 0.065332,
+        "processing": 0.731431
+      },
+      "throughput": {
+        "messages_per_second": 895.068841982309,
+        "publish_rate": 12245.14786016041
+      },
+      "dispatcher_stats": {
+        "pool_size": null,
+        "queue_length": 0,
+        "completed_task_count": 2300,
+        "scheduled_task_count": 2300,
+        "running": true,
+        "implementation": "ractor"
+      }
+    },
+    "io_heavy": {
+      "name": "I/O Heavy",
+      "messages_generated": 200,
+      "messages_published": 200,
+      "messages_processed": 200,
+      "errors": 0,
+      "times": {
+        "total": 0.274932,
+        "publish": 0.017833,
+        "processing": 0.210557
+      },
+      "throughput": {
+        "messages_per_second": 727.4526064626889,
+        "publish_rate": 11215.162900241125
+      },
+      "dispatcher_stats": {
+        "pool_size": null,
+        "queue_length": 0,
+        "completed_task_count": 2500,
+        "scheduled_task_count": 2500,
+        "running": true,
+        "implementation": "ractor"
+      }
+    },
+    "mixed": {
+      "name": "Mixed Load",
+      "messages_generated": 600,
+      "messages_published": 600,
+      "messages_processed": 600,
+      "errors": 0,
+      "times": {
+        "total": 0.870865,
+        "publish": 0.145127,
+        "processing": 0.625774
+      },
+      "throughput": {
+        "messages_per_second": 688.9701618505738,
+        "publish_rate": 4134.309949216893
+      },
+      "dispatcher_stats": {
+        "pool_size": null,
+        "queue_length": 0,
+        "completed_task_count": 3100,
+        "scheduled_task_count": 3100,
+        "running": true,
+        "implementation": "ractor"
+      }
+    }
+  }
+}
