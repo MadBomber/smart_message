@@ -6,6 +6,53 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.0.8] 2025-08-19
+
+### Added
+- **File-Based Dead Letter Queue System**: Production-ready DLQ implementation with comprehensive replay capabilities
+  - JSON Lines (.jsonl) format for efficient message storage and retrieval
+  - FIFO queue operations: `enqueue`, `dequeue`, `peek`, `size`, `clear`
+  - Configurable file paths with automatic directory creation
+  - Global default instance and custom instance support for different use cases
+  - Comprehensive replay functionality with transport override capabilities
+  - Administrative tools: `statistics`, `filter_by_class`, `filter_by_error_pattern`, `export_range`
+  - Thread-safe operations with Mutex protection for concurrent access
+  - Integration with circuit breaker fallbacks for automatic failed message capture
+
+### Fixed
+- **Code Quality: Dead Letter Queue Refactoring**: Eliminated multiple code smells for improved maintainability
+  - **Hardcoded Serialization Assumption**: Added `payload_format` tracking with flexible deserialization supporting multiple formats
+  - **Incomplete Header Restoration**: Complete header field restoration including `message_class`, `published_at`, `publisher_pid`, and `version`
+  - **Transport Override Not Applied**: Fixed replay logic to properly apply transport overrides before message publishing
+  - **Repeated File Reading Patterns**: Extracted common file iteration logic into reusable `read_entries_with_filter` method
+- **Test Suite: Logger State Pollution**: Fixed cross-test contamination in logger tests
+  - **Root Cause**: Class-level logger state persisting between tests due to shared `@@logger` variable
+  - **Solution**: Added explicit logger reset in "handle nil logger gracefully" test to ensure clean state
+  - **Result**: Full test suite now passes with 0 failures, 0 errors (151 runs, 561 assertions)
+
+### Enhanced
+- **Dead Letter Queue Reliability**: Robust error handling and graceful degradation
+  - Automatic fallback to JSON deserialization for unknown payload formats with warning logs
+  - Graceful handling of corrupted DLQ entries without breaking queue operations
+  - Enhanced error context capture including stack traces and retry counts
+  - Backward compatibility maintained for existing DLQ files and message formats
+- **Circuit Breaker Integration**: Enhanced fallback mechanism with DLQ integration
+  - Circuit breaker fallbacks now include proper circuit name identification for debugging
+  - Automatic serializer format detection and storage for accurate message replay
+  - Seamless integration between transport circuit breakers and dead letter queue storage
+- **Code Maintainability**: Eliminated code duplication and improved design patterns
+  - DRY principle applied to file reading operations with reusable filter methods
+  - Consistent error handling patterns across all DLQ operations
+  - Clear separation of concerns between queue operations, replay logic, and administrative functions
+
+### Documentation
+- **Dead Letter Queue Configuration**: Multiple configuration options for different deployment scenarios
+  - Global default configuration: `SmartMessage::DeadLetterQueue.configure_default(path)`
+  - Instance-level configuration with custom paths for different message types
+  - Environment-based configuration using ENV variables for deployment flexibility
+  - Per-environment path configuration for development, staging, and production
+
 ## [0.0.7] 2025-08-19
 ### Added
 - **Production-Grade Circuit Breaker Integration**: Comprehensive reliability patterns using BreakerMachines gem

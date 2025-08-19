@@ -159,23 +159,39 @@ module SmartMessage
 
     # Configure fallback handlers for different scenarios
     module Fallbacks
-      # Dead letter queue fallback
-      def self.dead_letter_queue(dlq_transport = nil)
+      # Dead letter queue fallback - stores failed messages to file-based DLQ
+      def self.dead_letter_queue(dlq_instance = nil)
         proc do |exception, *args|
           # Extract message details from args if available
           message_header = args[0] if args[0].is_a?(SmartMessage::Header)
           message_payload = args[1] if args.length > 1
           
-          # Log to dead letter queue if transport provided
-          if dlq_transport && message_header && message_payload
-            dlq_transport.publish(message_header, message_payload)
+          # Use provided DLQ instance or default
+          dlq = dlq_instance || SmartMessage::DeadLetterQueue.default
+          
+          # Store failed message in dead letter queue
+          sent_to_dlq = false
+          if message_header && message_payload
+            begin
+              dlq.enqueue(message_header, message_payload, 
+                error: exception.message,
+                retry_count: 0,
+                serializer: 'json',  # Default to JSON, could be enhanced to detect actual serializer
+                stack_trace: exception.backtrace&.join("\n")
+              )
+              sent_to_dlq = true
+            rescue => dlq_error
+              # DLQ storage failed - log but don't raise
+              puts "Warning: Failed to store message in DLQ: #{dlq_error.message}" if $DEBUG
+            end
           end
           
           {
             circuit_breaker: {
+              circuit: :transport_publish,  # Default circuit name, overridden by specific configurations
               state: 'open',
               error: exception.message,
-              sent_to_dlq: !!(dlq_transport && message_header && message_payload),
+              sent_to_dlq: sent_to_dlq,
               timestamp: Time.now.iso8601
             }
           }

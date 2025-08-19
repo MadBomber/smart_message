@@ -156,20 +156,8 @@ module SmartMessage
           # Use memory storage by default for transport circuits
           storage BreakerMachines::Storage::Memory.new
           
-          # Fallback for publish failures
-          fallback do |exception|
-            {
-              circuit_breaker: {
-                circuit: :transport_publish,
-                transport_type: self.class.name,
-                state: 'open',
-                error: exception.message,
-                error_class: exception.class.name,
-                timestamp: Time.now.iso8601,
-                fallback_triggered: true
-              }
-            }
-          end
+          # Fallback for publish failures - use DLQ fallback
+          fallback SmartMessage::CircuitBreaker::Fallbacks.dead_letter_queue
         end
 
         # Configure subscribe circuit breaker
@@ -182,7 +170,7 @@ module SmartMessage
           
           storage BreakerMachines::Storage::Memory.new
           
-          # Fallback for subscribe failures
+          # Fallback for subscribe failures - log and return error info
           fallback do |exception|
             {
               circuit_breaker: {
@@ -209,10 +197,22 @@ module SmartMessage
           puts "Transport publish circuit breaker activated: #{self.class.name}"
           puts "Error: #{fallback_result[:circuit_breaker][:error]}"
           puts "Message: #{message_header.message_class}"
+          puts "Sent to DLQ: #{fallback_result[:circuit_breaker][:sent_to_dlq]}"
         end
         
-        # TODO: Integrate with structured logging when implemented
-        # TODO: Queue for retry or send to dead letter queue
+        # If message wasn't sent to DLQ by circuit breaker, send it now
+        unless fallback_result.dig(:circuit_breaker, :sent_to_dlq)
+          begin
+            SmartMessage::DeadLetterQueue.default.enqueue(
+              message_header, 
+              message_payload,
+              error: fallback_result.dig(:circuit_breaker, :error) || 'Circuit breaker activated',
+              transport: self.class.name
+            )
+          rescue => dlq_error
+            puts "Warning: Failed to store message in DLQ: #{dlq_error.message}" if $DEBUG
+          end
+        end
         
         # Return the fallback result to indicate failure
         fallback_result

@@ -355,6 +355,10 @@ class LoggerDefaultTest < Minitest::Test
       end
       
       should "handle nil logger gracefully" do
+        # Explicitly reset logger to ensure clean state
+        @message_class.reset_logger
+        SmartMessage::Base.reset_logger
+        
         @message_class.config do
           transport SmartMessage::Transport::StdoutTransport.new(loopback: false)
           serializer SmartMessage::Serializer::JSON.new
