@@ -10,7 +10,7 @@ module SmartMessage
     # This defines the standard interface that all transports must implement
     class Base
       include BreakerMachines::DSL
-      
+
       attr_reader :options, :dispatcher
 
       def initialize(**options)
@@ -39,7 +39,7 @@ module SmartMessage
       rescue => e
         # Re-raise if it's not a circuit breaker fallback
         raise unless e.is_a?(Hash) && e[:circuit_breaker]
-        
+
         # Handle circuit breaker fallback
         handle_wrapper_publish_fallback(e, wrapper)
       end
@@ -54,7 +54,7 @@ module SmartMessage
       rescue => e
         # Re-raise if it's not a circuit breaker fallback
         raise unless e.is_a?(Hash) && e[:circuit_breaker]
-        
+
         # Handle circuit breaker fallback
         handle_publish_fallback(e, message_header, message_payload)
       end
@@ -63,7 +63,7 @@ module SmartMessage
       # @param wrapper [SmartMessage::Wrapper::Base] Complete message wrapper
       def do_publish_wrapper(wrapper)
         # Default implementation: extract header and payload for legacy compatibility
-        do_publish(wrapper._sm_header, wrapper._sm_payload)
+        do_publish(wrapper.header, wrapper.payload)
       end
 
       # Template method for actual publishing (implement in subclasses)
@@ -82,7 +82,7 @@ module SmartMessage
       end
 
       # Unsubscribe from a specific message class and process method
-      # @param message_class [String] The message class name  
+      # @param message_class [String] The message class name
       # @param process_method [String] The processing method identifier
       def unsubscribe(message_class, process_method)
         @dispatcher.drop(message_class, process_method)
@@ -109,7 +109,7 @@ module SmartMessage
         # Override in subclasses if connection setup is needed
       end
 
-      # Disconnect from transport (if applicable) 
+      # Disconnect from transport (if applicable)
       def disconnect
         # Override in subclasses if cleanup is needed
       end
@@ -118,7 +118,7 @@ module SmartMessage
       # @return [Hash] Circuit breaker statistics
       def transport_circuit_stats
         stats = {}
-        
+
         [:transport_publish, :transport_subscribe].each do |circuit_name|
           begin
             if respond_to?(:circuit)
@@ -139,7 +139,7 @@ module SmartMessage
             stats[circuit_name] = { error: "Failed to get stats: #{e.message}" }
           end
         end
-        
+
         stats
       end
 
@@ -167,29 +167,29 @@ module SmartMessage
       def configure_transport_circuit_breakers
         # Configure publish circuit breaker
         publish_config = SmartMessage::CircuitBreaker::DEFAULT_CONFIGS[:transport_publish]
-        
+
         self.class.circuit :transport_publish do
-          threshold failures: publish_config[:threshold][:failures], 
+          threshold failures: publish_config[:threshold][:failures],
                    within: publish_config[:threshold][:within].seconds
           reset_after publish_config[:reset_after].seconds
-          
+
           # Use memory storage by default for transport circuits
           storage BreakerMachines::Storage::Memory.new
-          
+
           # Fallback for publish failures - use DLQ fallback
           fallback SmartMessage::CircuitBreaker::Fallbacks.dead_letter_queue
         end
 
         # Configure subscribe circuit breaker
         subscribe_config = SmartMessage::CircuitBreaker::DEFAULT_CONFIGS[:transport_subscribe]
-        
+
         self.class.circuit :transport_subscribe do
-          threshold failures: subscribe_config[:threshold][:failures], 
+          threshold failures: subscribe_config[:threshold][:failures],
                    within: subscribe_config[:threshold][:within].seconds
           reset_after subscribe_config[:reset_after].seconds
-          
+
           storage BreakerMachines::Storage::Memory.new
-          
+
           # Fallback for subscribe failures - log and return error info
           fallback do |exception|
             {
@@ -212,7 +212,7 @@ module SmartMessage
       # @param wrapper [SmartMessage::Wrapper::Base] The message wrapper
       def handle_wrapper_publish_fallback(fallback_result, wrapper)
         # Delegate to legacy handler for now
-        handle_publish_fallback(fallback_result, wrapper._sm_header, wrapper._sm_payload)
+        handle_publish_fallback(fallback_result, wrapper.header, wrapper.payload)
       end
 
       # Handle publish circuit breaker fallback
@@ -227,12 +227,12 @@ module SmartMessage
           puts "Message: #{message_header.message_class}"
           puts "Sent to DLQ: #{fallback_result[:circuit_breaker][:sent_to_dlq]}"
         end
-        
+
         # If message wasn't sent to DLQ by circuit breaker, send it now
         unless fallback_result.dig(:circuit_breaker, :sent_to_dlq)
           begin
             SmartMessage::DeadLetterQueue.default.enqueue(
-              message_header, 
+              message_header,
               message_payload,
               error: fallback_result.dig(:circuit_breaker, :error) || 'Circuit breaker activated',
               transport: self.class.name
@@ -241,7 +241,7 @@ module SmartMessage
             puts "Warning: Failed to store message in DLQ: #{dlq_error.message}" if $DEBUG
           end
         end
-        
+
         # Return the fallback result to indicate failure
         fallback_result
       end

@@ -15,8 +15,7 @@ module RedisTransportTest
 
     class << self
       def process(wrapper)
-        message_header = wrapper._sm_header
-        message_payload = wrapper._sm_payload
+        message_header, message_payload = wrapper.split
         SS.add(whoami, 'process')
         return 'processed'
       end
@@ -30,8 +29,7 @@ module RedisTransportTest
 
     class << self
       def process(wrapper)
-        message_header = wrapper._sm_header
-        message_payload = wrapper._sm_payload
+        message_header, message_payload = wrapper.split
         SS.add(whoami, 'process')
         return 'processed_another'
       end

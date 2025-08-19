@@ -311,8 +311,7 @@ class OrderProcessingMessage < SmartMessage::Base
   end
   
   def self.process(wrapper)
-    message_header = wrapper._sm_header
-    message_payload = wrapper._sm_payload
+    message_header, message_payload = wrapper.split
     # Simulate the logger being called during processing
     if logger
       logger.log_message_received(self, message_payload)
@@ -379,8 +378,7 @@ class NotificationMessage < SmartMessage::Base
   end
   
   def self.process(wrapper)
-    message_header = wrapper._sm_header
-    message_payload = wrapper._sm_payload
+    message_header, message_payload = wrapper.split
     if logger
       logger.log_message_received(self, message_payload)
     end
@@ -430,8 +428,7 @@ class StandardLoggerMessage < SmartMessage::Base
   end
   
   def self.process(wrapper)
-    message_header = wrapper._sm_header
-    message_payload = wrapper._sm_payload
+    message_header, message_payload = wrapper.split
     data = JSON.parse(message_payload)
     puts "📝 Processing: #{data['content']}"
     "Processed"
@@ -456,8 +453,7 @@ class DefaultLoggerMessage < SmartMessage::Base
   end
   
   def self.process(wrapper)
-    message_header = wrapper._sm_header
-    message_payload = wrapper._sm_payload
+    message_header, message_payload = wrapper.split
     data = JSON.parse(message_payload)
     puts "🎯 DefaultLogger: Processing #{data['message']}"
     "Processed with default logger"

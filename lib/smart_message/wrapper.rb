@@ -121,6 +121,12 @@ module SmartMessage
         require 'json'
         to_hash.to_json(*args)
       end
+
+      # Split wrapper into header and payload components
+      # Enables destructuring assignment: header, payload = wrapper.split
+      def split
+        [_sm_header, _sm_payload]
+      end
     end
   end
 end

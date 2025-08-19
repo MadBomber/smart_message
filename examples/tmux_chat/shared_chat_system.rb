@@ -129,8 +129,7 @@ class ChatMessage < SmartMessage::Base
   end
 
   def self.process(wrapper)
-    message_header = wrapper._sm_header
-    message_payload = wrapper._sm_payload
+    message_header, message_payload = wrapper.split
     # Default processing - agents will override this
   end
 end
@@ -160,8 +159,7 @@ class BotCommandMessage < SmartMessage::Base
   end
 
   def self.process(wrapper)
-    message_header = wrapper._sm_header
-    message_payload = wrapper._sm_payload
+    message_header, message_payload = wrapper.split
     # Default processing - bots will override this
   end
 end
@@ -189,8 +187,7 @@ class SystemNotificationMessage < SmartMessage::Base
   end
 
   def self.process(wrapper)
-    message_header = wrapper._sm_header
-    message_payload = wrapper._sm_payload
+    message_header, message_payload = wrapper.split
     # Default processing
   end
 end

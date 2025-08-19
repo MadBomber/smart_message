@@ -34,8 +34,7 @@ module SmartMessage
     # @param wrapper [SmartMessage::Wrapper::Base] The message wrapper
     # @param error_info [Hash] Error details including :error, :retry_count, :transport, etc.
     def enqueue(wrapper, error_info = {})
-      message_header = wrapper._sm_header
-      message_payload = wrapper._sm_payload
+      message_header, message_payload = wrapper.split
       entry = {
         timestamp: Time.now.iso8601,
         header: message_header.to_hash,

@@ -19,8 +19,7 @@ module SubscribeTest
     # This class method is being executed inside of an
     # independant thread.
     def self.process(wrapper)
-      message_header = wrapper._sm_header
-      message_payload = wrapper._sm_payload
+      message_header, message_payload = wrapper.split
       debug_me{[ :message_header, :message_payload ]}
 
       SS.add(message_header.message_class, 'process')
@@ -112,8 +111,7 @@ module SubscribeTest
     end
 
     def self.business_logic(wrapper)
-      message_header = wrapper._sm_header
-      message_payload = wrapper._sm_payload
+      message_header, message_payload = wrapper.split
 
       SS.add(message_header.message_class, 'business_logic')
       return 'it worked'

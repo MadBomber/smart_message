@@ -31,7 +31,7 @@ module SmartMessage
       def do_publish_wrapper(wrapper)
         # Level 2 serialization: wrapper as JSON for monitoring/routing
         wrapper_json = wrapper.to_json
-        
+
         @output.puts format_wrapper_message(wrapper, wrapper_json)
         @output.flush
 
@@ -46,7 +46,7 @@ module SmartMessage
         @output.puts format_message(message_header, message_payload)
         @output.flush
 
-        # If loopback is enabled, route the message back through the dispatcher  
+        # If loopback is enabled, route the message back through the dispatcher
         if loopback?
           wrapper = SmartMessage::Wrapper::Base.new(header: message_header, payload: message_payload)
           receive(wrapper)
@@ -69,10 +69,10 @@ module SmartMessage
           ===================================================
           == SmartMessage Wrapper Published via STDOUT Transport
           == Two-Level Serialization Demo:
-          == Level 1 (Payload): #{wrapper._sm_payload} [#{wrapper._sm_header.serializer}]
+          == Level 1 (Payload): #{wrapper.payload} [#{wrapper.header.serializer}]
           == Level 2 (Wrapper): #{wrapper_json} [JSON]
-          == Header: #{wrapper._sm_header.inspect}
-          == Payload: #{wrapper._sm_payload}
+          == Header: #{wrapper.header.inspect}
+          == Payload: #{wrapper.payload}
           ===================================================
 
         MESSAGE

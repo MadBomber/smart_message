@@ -37,8 +37,7 @@ class UserEventMessage < SmartMessage::Base
 
   # Default processor - just logs the event
   def self.process(wrapper)
-    message_header = wrapper._sm_header
-    message_payload = wrapper._sm_payload
+    message_header, message_payload = wrapper.split
     event_data = JSON.parse(message_payload)
     puts "📡 Event broadcasted: #{event_data['event_type']} for user #{event_data['user_id']}"
   end
@@ -58,8 +57,7 @@ class EmailService
   end
 
   def process_event(wrapper)
-    message_header = wrapper._sm_header
-    message_payload = wrapper._sm_payload
+    message_header, message_payload = wrapper.split
     event_data = JSON.parse(message_payload)
     
     case event_data['event_type']
@@ -115,8 +113,7 @@ class SMSService
   end
 
   def process_event(wrapper)
-    message_header = wrapper._sm_header
-    message_payload = wrapper._sm_payload
+    message_header, message_payload = wrapper.split
     event_data = JSON.parse(message_payload)
     
     case event_data['event_type']
@@ -187,8 +184,7 @@ class AuditService
   end
 
   def process_event(wrapper)
-    message_header = wrapper._sm_header
-    message_payload = wrapper._sm_payload
+    message_header, message_payload = wrapper.split
     event_data = JSON.parse(message_payload)
     
     audit_entry = {

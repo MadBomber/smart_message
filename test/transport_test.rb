@@ -18,8 +18,7 @@ module TransportTest
     # its class-level process method.
     class << self
       def process(wrapper)
-        message_header = wrapper._sm_header
-        message_payload = wrapper._sm_payload
+        message_header, message_payload = wrapper.split
         SS.add(whoami, 'process')
         return 'it worked'
       end # def process(message_instance)

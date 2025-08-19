@@ -17,7 +17,7 @@ module SmartMessage
     def initialize(circuit_breaker_options = {})
       @subscribers = Hash.new(Array.new)
       @router_pool = Concurrent::CachedThreadPool.new
-      
+
       # Configure circuit breakers
       configure_circuit_breakers(circuit_breaker_options)
       at_exit do
@@ -84,18 +84,18 @@ module SmartMessage
 
     def add(message_class, process_method_as_string, filter_options = {})
       klass = String(message_class)
-      
+
       # Create subscription entry with filter options
       subscription = {
         process_method: process_method_as_string,
         filters: filter_options
       }
-      
+
       # Check if this exact subscription already exists
       existing_subscription = @subscribers[klass].find do |sub|
         sub[:process_method] == process_method_as_string && sub[:filters] == filter_options
       end
-      
+
       unless existing_subscription
         @subscribers[klass] += [subscription]
       end
@@ -124,18 +124,18 @@ module SmartMessage
     # Route a wrapper to appropriate message processors
     # @param wrapper [SmartMessage::Wrapper::Base] The message wrapper
     def route(wrapper)
-      message_header = wrapper._sm_header
+      message_header = wrapper.header
       message_klass = message_header.message_class
       return nil if @subscribers[message_klass].empty?
-      
+
       @subscribers[message_klass].each do |subscription|
         # Extract subscription details
         message_processor = subscription[:process_method]
         filters = subscription[:filters]
-        
+
         # Check if message matches filters
         next unless message_matches_filters?(message_header, filters)
-        
+
         SS.add(message_klass, message_processor, 'routed' )
         @router_pool.post do
           # Use circuit breaker to protect message processing
@@ -154,7 +154,7 @@ module SmartMessage
                           .call(wrapper)
             end
           end
-          
+
           # Handle circuit breaker fallback responses
           if circuit_result.is_a?(Hash) && circuit_result[:circuit_breaker]
             handle_circuit_breaker_fallback(circuit_result, wrapper, message_processor)
@@ -167,7 +167,7 @@ module SmartMessage
     # @return [Hash] Circuit breaker statistics
     def circuit_breaker_stats
       stats = {}
-      
+
       begin
         if respond_to?(:circuit)
           breaker = circuit(:message_processor)
@@ -186,7 +186,7 @@ module SmartMessage
       rescue => e
         stats[:error] = "Failed to get circuit breaker stats: #{e.message}"
       end
-      
+
       stats
     end
 
@@ -204,7 +204,7 @@ module SmartMessage
     # Shutdown the router pool with timeout and fallback
     def shutdown_pool
       @router_pool.shutdown
-      
+
       # Wait for graceful shutdown, force kill if timeout
       unless @router_pool.wait_for_termination(3)
         @router_pool.kill
@@ -218,23 +218,23 @@ module SmartMessage
     def message_matches_filters?(message_header, filters)
       # If no filters specified, accept all messages (backward compatibility)
       return true if filters.nil? || filters.empty? || filters.values.all?(&:nil?)
-      
+
       # Check from filter
       if filters[:from]
         from_match = filter_value_matches?(message_header.from, filters[:from])
         return false unless from_match
       end
-      
+
       # Check to/broadcast filters (OR logic between them)
       if filters[:broadcast] || filters[:to]
         broadcast_match = filters[:broadcast] && message_header.to.nil?
         to_match = filters[:to] && filter_value_matches?(message_header.to, filters[:to])
-        
+
         # If either broadcast or to filter is specified, at least one must match
         combined_match = (broadcast_match || to_match)
         return false unless combined_match
       end
-      
+
       true
     end
 
@@ -245,7 +245,7 @@ module SmartMessage
     # @return [Boolean] True if the value matches any filter in the array
     def filter_value_matches?(value, filter_array)
       return false if value.nil? || filter_array.nil?
-      
+
       filter_array.any? do |filter|
         case filter
         when String
@@ -270,19 +270,19 @@ module SmartMessage
     def configure_circuit_breakers(options = {})
       # Ensure CircuitBreaker module is available
       return unless defined?(SmartMessage::CircuitBreaker::DEFAULT_CONFIGS)
-      
+
       # Configure message processor circuit breaker
       default_config = SmartMessage::CircuitBreaker::DEFAULT_CONFIGS[:message_processor]
       return unless default_config
-      
+
       processor_config = default_config.merge(options[:message_processor] || {})
-      
+
       # Define the circuit using the class-level DSL
       self.class.circuit :message_processor do
-        threshold failures: processor_config[:threshold][:failures], 
+        threshold failures: processor_config[:threshold][:failures],
                  within: processor_config[:threshold][:within].seconds
         reset_after processor_config[:reset_after].seconds
-        
+
         # Configure storage backend
         case processor_config[:storage]
         when :redis
@@ -301,7 +301,7 @@ module SmartMessage
         else
           storage BreakerMachines::Storage::Memory.new
         end
-        
+
         # Default fallback for message processing failures
         fallback do |exception|
           {
@@ -316,7 +316,7 @@ module SmartMessage
           }
         end
       end
-      
+
     end
 
     # Handle circuit breaker fallback responses
@@ -325,25 +325,25 @@ module SmartMessage
     # @param message_payload [String] The message payload
     # @param message_processor [String] The processor that failed
     def handle_circuit_breaker_fallback(circuit_result, wrapper, message_processor)
-      message_header = wrapper._sm_header
-      
+      message_header = wrapper.header
+
       # Log circuit breaker activation
       if $DEBUG
         puts "Circuit breaker activated for processor: #{message_processor}"
         puts "Error: #{circuit_result[:circuit_breaker][:error]}"
         puts "Message: #{message_header.message_class} from #{message_header.from}"
       end
-      
+
       # Send to dead letter queue
       SmartMessage::DeadLetterQueue.default.enqueue(wrapper,
         error: circuit_result[:circuit_breaker][:error],
         retry_count: 0,
         transport: 'circuit_breaker'
       )
-      
+
       # TODO: Integrate with structured logging when implemented
       # TODO: Emit metrics/events for monitoring
-      
+
       # Record the failure in simple stats
       SS.add(message_header.message_class, message_processor, 'circuit_breaker_fallback')
     end

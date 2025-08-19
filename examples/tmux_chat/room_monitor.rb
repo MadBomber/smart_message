@@ -63,8 +63,7 @@ class RoomMonitor < BaseAgent
   end
 
   def handle_chat_message(wrapper)
-    message_header = wrapper._sm_header
-    message_payload = wrapper._sm_payload
+    message_header, message_payload = wrapper.split
     chat_data = JSON.parse(message_payload)
     
     return unless chat_data['room_id'] == @room_id
@@ -96,8 +95,7 @@ class RoomMonitor < BaseAgent
   end
 
   def handle_system_notification(wrapper)
-    message_header = wrapper._sm_header
-    message_payload = wrapper._sm_payload
+    message_header, message_payload = wrapper.split
     notif_data = JSON.parse(message_payload)
     
     return unless notif_data['room_id'] == @room_id

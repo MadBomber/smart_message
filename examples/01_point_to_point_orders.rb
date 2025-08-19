@@ -37,8 +37,7 @@ class OrderMessage < SmartMessage::Base
 
   # Default processing - just logs the order
   def self.process(wrapper)
-    message_header = wrapper._sm_header
-    message_payload = wrapper._sm_payload
+    message_header, message_payload = wrapper.split
     order_data = JSON.parse(message_payload)
     puts "📋 Order received: #{order_data['order_id']} for $#{order_data['amount']}"
   end
@@ -65,8 +64,7 @@ class PaymentResponseMessage < SmartMessage::Base
   end
 
   def self.process(wrapper)
-    message_header = wrapper._sm_header
-    message_payload = wrapper._sm_payload
+    message_header, message_payload = wrapper.split
     response_data = JSON.parse(message_payload)
     status_emoji = case response_data['status']
                    when 'success' then '✅'
@@ -123,8 +121,7 @@ class PaymentService
   end
 
   def handle_order(wrapper)
-    message_header = wrapper._sm_header
-    message_payload = wrapper._sm_payload
+    message_header, message_payload = wrapper.split
     order_data = JSON.parse(message_payload)
     payment_id = "PAY-#{@payment_counter += 1}"
     
