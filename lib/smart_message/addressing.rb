@@ -6,6 +6,28 @@ module SmartMessage
   # Addressing configuration module for SmartMessage::Base
   # Handles from, to, and reply_to addressing at both class and instance levels
   module Addressing
+    
+    # DSL context for header block processing
+    class HeaderDSL
+      def initialize(message_class)
+        @message_class = message_class
+      end
+
+      # Set default from value for this message class
+      def from(entity_id)
+        @message_class.from(entity_id)
+      end
+
+      # Set default to value for this message class
+      def to(entity_id)
+        @message_class.to(entity_id)
+      end
+
+      # Set default reply_to value for this message class
+      def reply_to(entity_id)
+        @message_class.reply_to(entity_id)
+      end
+    end
     def self.included(base)
       base.extend(ClassMethods)
       base.class_eval do
@@ -24,7 +46,14 @@ module SmartMessage
         @from = entity_id
         # Update the header with the new value
         _sm_header.from = entity_id if _sm_header
+        self  # Return self for method chaining
       end
+    end
+    
+    # Setter shortcut for cleaner assignment syntax
+    def from=(entity_id)
+      @from = entity_id
+      _sm_header.from = entity_id if _sm_header
     end
     
     def from_configured?; !from.nil?; end
@@ -41,7 +70,14 @@ module SmartMessage
         @to = entity_id
         # Update the header with the new value
         _sm_header.to = entity_id if _sm_header
+        self  # Return self for method chaining
       end
+    end
+    
+    # Setter shortcut for cleaner assignment syntax
+    def to=(entity_id)
+      @to = entity_id
+      _sm_header.to = entity_id if _sm_header
     end
     
     def to_configured?;   !to.nil?; end
@@ -58,7 +94,14 @@ module SmartMessage
         @reply_to = entity_id
         # Update the header with the new value
         _sm_header.reply_to = entity_id if _sm_header
+        self  # Return self for method chaining
       end
+    end
+    
+    # Setter shortcut for cleaner assignment syntax
+    def reply_to=(entity_id)
+      @reply_to = entity_id
+      _sm_header.reply_to = entity_id if _sm_header
     end
     
     def reply_to_configured?; !reply_to.nil?; end
@@ -69,6 +112,19 @@ module SmartMessage
     end
 
     module ClassMethods
+      #########################################################
+      ## Header DSL support
+      
+      # Header DSL block processor
+      # Allows: header do; from "service"; to "target"; end
+      def header(&block)
+        if block_given?
+          # Create a DSL context to capture header configuration
+          dsl = HeaderDSL.new(self)
+          dsl.instance_eval(&block)
+        end
+      end
+
       #########################################################
       ## class-level addressing configuration
       

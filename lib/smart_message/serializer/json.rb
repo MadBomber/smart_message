@@ -7,9 +7,11 @@ require 'json'  # STDLIB
 module SmartMessage::Serializer
   class JSON < Base
     def do_encode(message_instance)
-      # TODO: is this the right place to insert an automated-invisible
-      #       message header?
-      message_instance.to_json
+      # Use the wrapper-aware approach: serialize only the payload portion
+      # The header should remain separate and unencrypted
+      message_hash = message_instance.to_h
+      payload_portion = message_hash[:_sm_payload]
+      ::JSON.generate(payload_portion)
     end
 
     def do_decode(payload)

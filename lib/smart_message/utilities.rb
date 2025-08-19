@@ -25,6 +25,12 @@ module SmartMessage
       self.class.description
     end
 
+    # Clean accessor to the SmartMessage header object
+    # Provides more intuitive API than _sm_header
+    def header
+      _sm_header
+    end
+
     # returns a collection of class Set that consists of
     # the symbolized values of the property names of the message
     # without the injected '_sm_' properties that support
@@ -55,21 +61,27 @@ module SmartMessage
         puts "\nContent:"
         puts "-" * 20
         
-        # Get content data, converting to symbols and filtering out nils and _sm_ properties
-        content_data = to_h
-          .reject { |key, value| key.to_s.start_with?('_sm_') || value.nil? }
+        # Get payload data (message properties excluding header)
+        content_data = get_payload_data.reject { |key, value| value.nil? }
         content_data = deep_symbolize_keys(content_data)
         ap content_data
       else
         # Show only message content (excluding _sm_ properties and nil values)
-        content_data = to_h
-          .reject { |key, value| key.to_s.start_with?('_sm_') || value.nil? }
+        content_data = get_payload_data.reject { |key, value| value.nil? }
         content_data = deep_symbolize_keys(content_data)
         ap content_data
       end
     end
 
     private
+
+    # Extract payload data (all properties except _sm_header)
+    def get_payload_data
+      self.class.properties.each_with_object({}) do |prop, hash|
+        next if prop == :_sm_header
+        hash[prop.to_sym] = self[prop]
+      end
+    end
 
     # Recursively convert all string keys to symbols in nested hashes and arrays
     def deep_symbolize_keys(obj)

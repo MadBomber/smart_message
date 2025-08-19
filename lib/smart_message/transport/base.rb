@@ -30,7 +30,21 @@ module SmartMessage
         {}
       end
 
-      # Publish a message with circuit breaker protection
+      # Publish a wrapper with circuit breaker protection (new two-level serialization)
+      # @param wrapper [SmartMessage::Wrapper::Base] Complete message wrapper
+      def publish_wrapper(wrapper)
+        circuit(:transport_publish).wrap do
+          do_publish_wrapper(wrapper)
+        end
+      rescue => e
+        # Re-raise if it's not a circuit breaker fallback
+        raise unless e.is_a?(Hash) && e[:circuit_breaker]
+        
+        # Handle circuit breaker fallback
+        handle_wrapper_publish_fallback(e, wrapper)
+      end
+
+      # Legacy publish method for backward compatibility
       # @param message_header [SmartMessage::Header] Message routing information
       # @param message_payload [String] Serialized message content
       def publish(message_header, message_payload)
@@ -43,6 +57,13 @@ module SmartMessage
         
         # Handle circuit breaker fallback
         handle_publish_fallback(e, message_header, message_payload)
+      end
+
+      # Template method for wrapper publishing (implement in subclasses)
+      # @param wrapper [SmartMessage::Wrapper::Base] Complete message wrapper
+      def do_publish_wrapper(wrapper)
+        # Default implementation: extract header and payload for legacy compatibility
+        do_publish(wrapper._sm_header, wrapper._sm_payload)
       end
 
       # Template method for actual publishing (implement in subclasses)
@@ -185,6 +206,14 @@ module SmartMessage
             }
           end
         end
+      end
+
+      # Handle wrapper publish circuit breaker fallback
+      # @param fallback_result [Hash] The circuit breaker fallback result
+      # @param wrapper [SmartMessage::Wrapper::Base] The message wrapper
+      def handle_wrapper_publish_fallback(fallback_result, wrapper)
+        # Delegate to legacy handler for now
+        handle_publish_fallback(fallback_result, wrapper._sm_header, wrapper._sm_payload)
       end
 
       # Handle publish circuit breaker fallback

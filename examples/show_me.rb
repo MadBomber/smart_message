@@ -1,12 +1,15 @@
 #!/usr/bin/env ruby
 # show_me.rb - Demonstrates the pretty_print method on SmartMessage instances
 
-require_relative 'lib/smart_message'
+require_relative '../lib/smart_message'
 
 # Define a sample order message
 class OrderMessage < SmartMessage::Base
   version 1
   description "A message representing an e-commerce order"
+
+  from 'e-commerce-api'
+  to 'order-processor'
 
   property :order_id, required: true
   property :customer_name, required: true
@@ -22,6 +25,9 @@ end
 class UserNotificationMessage < SmartMessage::Base
   version 2
   description "A notification message for users"
+
+  from 'notification-service'
+  to 'user-app'
 
   property :user_id, required: true
   property :notification_type, required: true
@@ -41,8 +47,6 @@ puts "\n1. Order Message Example:"
 puts "-" * 30
 
 order = OrderMessage.new(
-  from: "e-commerce-api",
-  to: "order-processor",
   order_id: "ORD-2024-001",
   customer_name: "Jane Smith",
   customer_email: "jane.smith@example.com",
@@ -89,8 +93,6 @@ puts "\n\n2. User Notification Message Example:"
 puts "-" * 40
 
 notification = UserNotificationMessage.new(
-  from: "notification-service",
-  to: "user-app",
   user_id: "user_789",
   notification_type: "order_update",
   title: "Your Order Has Shipped!",
@@ -114,12 +116,13 @@ puts "\n\n3. Simple Message Example (Content Only):"
 puts "-" * 40
 
 class SimpleMessage < SmartMessage::Base
+  from 'greeting-service'
+  
   property :greeting, required: true
   property :recipient
 end
 
 simple = SimpleMessage.new(
-  from: "greeting-service",
   greeting: "Hello, World!",
   recipient: "Everyone"
 )

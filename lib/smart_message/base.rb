@@ -105,6 +105,43 @@ module SmartMessage
     ###########################################################
     ## class methods
 
+    class << self
+      # Create message instance from wrapper object
+      # Deserializes the payload using the serializer info from header
+      def from_wrapper(wrapper)
+        header = wrapper._sm_header
+        serialized_payload = wrapper._sm_payload
+        
+        # Determine serializer from header
+        if header.serializer
+          serializer_class = Object.const_get(header.serializer)
+          serializer = serializer_class.new
+          
+          # Deserialize payload back to message
+          deserialized_data = serializer.decode(serialized_payload)
+          
+          # Create new message instance with the deserialized data
+          # The deserialized data should be a hash that can be used to construct the message
+          if deserialized_data.is_a?(Hash)
+            # Extract the message properties (excluding header)
+            message_props = deserialized_data.reject { |key, value| key.to_s.start_with?('_sm_') }
+            # Convert string keys to symbols for compatibility with keyword arguments
+            symbol_props = message_props.transform_keys(&:to_sym)
+            message = self.new(**symbol_props)
+            message._sm_header = header
+            message
+          else
+            # If it's already a message object, just update the header
+            deserialized_data._sm_header = header
+            deserialized_data
+          end
+        else
+          raise SmartMessage::Errors::SerializerNotConfigured,
+            "Cannot deserialize wrapper: no serializer specified in header"
+        end
+      end
+    end
+
   end # class Base
 end # module SmartMessage
 

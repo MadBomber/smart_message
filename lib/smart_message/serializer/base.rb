@@ -2,6 +2,7 @@
 # encoding: utf-8
 # frozen_string_literal: true
 
+require 'json'  # STDLIB
 require_relative '../circuit_breaker'
 
 module SmartMessage::Serializer
@@ -42,7 +43,11 @@ module SmartMessage::Serializer
 
     # Template methods for actual serialization (implement in subclasses)
     def do_encode(message_instance)
-      raise ::SmartMessage::Errors::NotImplemented
+      # Default implementation: serialize only the payload portion for wrapper architecture
+      # Subclasses can override this for specific serialization formats
+      message_hash = message_instance.to_h
+      payload_portion = message_hash[:_sm_payload]
+      ::JSON.generate(payload_portion)
     end
 
     def do_decode(payload)

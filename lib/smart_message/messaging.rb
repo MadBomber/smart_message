@@ -21,23 +21,88 @@ module SmartMessage
       serializer.encode(self)
     end
 
+    # Convert message to hash with _sm_header and _sm_payload structure
+    # This is the foundation for wrapper architecture
+    def to_h
+      # Update header with serializer info before converting
+      _sm_header.serializer = serializer.class.to_s if serializer_configured?
+      
+      {
+        :_sm_header => header_hash_with_symbols,
+        :_sm_payload => payload_hash_with_symbols
+      }
+    end
+
+    # Convert message to wrapper object
+    # Creates a wrapper with header (clear) and serialized payload
+    def to_wrapper
+      # Update header with current serializer info
+      _sm_header.serializer = serializer.class.to_s if serializer_configured?
+      
+      # Serialize the payload
+      serialized_payload = encode
+      
+      # Create wrapper with header and serialized payload
+      SmartMessage::Wrapper::Base.new(
+        header: _sm_header,
+        payload: serialized_payload
+      )
+    end
+
     # NOTE: you publish instances; but, you subscribe/unsubscribe at
     #       the class-level
     def publish
       # Validate the complete message before publishing (now uses overridden validate!)
       validate!
       
-      # TODO: move all of the _sm_ property processes into the wrapper
+      # Update header with current publication info
       _sm_header.published_at   = Time.now
       _sm_header.publisher_pid  = Process.pid
 
-      payload = encode
-
+      # Two-level serialization:
+      # Level 1: Serialize payload using configured serializer (may be encrypted/compressed)
+      # Level 2: Wrapper as JSON for routing/monitoring access to headers
+      
+      wrapper = to_wrapper
+      
       raise Errors::TransportNotConfigured if transport_missing?
-      transport.publish(_sm_header, payload)
+      
+      # Transport now receives wrapper instead of separate header/payload
+      # The wrapper contains header (clear) and serialized payload
+      transport.publish_wrapper(wrapper)
 
       SS.add(_sm_header.message_class, 'publish')
       SS.get(_sm_header.message_class, 'publish')
     end # def publish
+
+    private
+
+    # Convert header to hash with symbol keys
+    def header_hash_with_symbols
+      _sm_header.to_hash.transform_keys(&:to_sym)
+    end
+    
+    # Extract all non-header properties into a hash with symbol keys
+    # Performs deep symbolization on nested structures
+    def payload_hash_with_symbols
+      self.class.properties.each_with_object({}) do |prop, hash|
+        next if prop == :_sm_header
+        hash[prop.to_sym] = deep_symbolize_keys(self[prop])
+      end
+    end
+
+    # Recursively convert all string keys to symbols in nested hashes and arrays
+    def deep_symbolize_keys(obj)
+      case obj
+      when Hash
+        obj.each_with_object({}) do |(key, value), result|
+          result[key.to_sym] = deep_symbolize_keys(value)
+        end
+      when Array
+        obj.map { |item| deep_symbolize_keys(item) }
+      else
+        obj
+      end
+    end
   end
 end

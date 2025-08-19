@@ -57,5 +57,10 @@ module SmartMessage
     property :reply_to,
       required: false,
       description: "Optional unique identifier of the entity that should receive replies to this message. Defaults to 'from' entity if not specified"
+    
+    # Serialization tracking for wrapper architecture
+    property :serializer,
+      required: false,
+      description: "Class name of the serializer used to encode the payload (e.g., 'SmartMessage::Serializer::JSON'). Used by DLQ and cross-serializer gateway patterns"
   end
 end
