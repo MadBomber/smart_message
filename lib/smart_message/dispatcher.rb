@@ -216,7 +216,7 @@ module SmartMessage
         if message_class_obj&.respond_to?(:ddq_enabled?) && message_class_obj.ddq_enabled?
           ddq = get_ddq_for_subscriber(message_klass, subscriber_id)
           if ddq&.contains?(decoded_message.uuid)
-            logger.info { "[SmartMessage::Dispatcher] Skipping duplicate for #{subscriber_id}: #{decoded_message.uuid}" }
+            logger.warn { "[SmartMessage::Dispatcher] Skipping duplicate for #{subscriber_id}: #{decoded_message.uuid} | Header: #{decoded_message._sm_header.to_h}" }
             next  # Skip this subscriber, continue to next
           end
         end

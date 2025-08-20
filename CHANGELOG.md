@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.10] 2025-08-20
+### Added
+- **Handler-Scoped Message Deduplication**: Advanced DDQ (Deduplication Queue) system with automatic handler isolation
+  - Handler-only DDQ scoping using `"MessageClass:HandlerMethod"` key format for natural isolation
+  - Automatic subscriber identification eliminates need for explicit `me:` parameter in API
+  - Cross-process deduplication support with independent DDQ instances per handler
+  - Memory and Redis storage backends with O(1) performance using hybrid Array + Set data structure
+  - Seamless integration with dispatcher - no changes required to existing subscription code
+  - Per-handler statistics and monitoring capabilities with DDQ utilization tracking
+  - Thread-safe circular buffer implementation with automatic eviction of oldest entries
+  - Configuration DSL: `ddq_size`, `ddq_storage`, `enable_deduplication!`, `disable_deduplication!`
+  - Comprehensive documentation and examples demonstrating distributed message processing scenarios
+
+### Fixed
+- **Message Filtering Logic**: Fixed critical bug in subscription filtering where nil broadcast filters caused incorrect behavior
+  - **Root Cause**: `filters.key?(:broadcast)` returned true even when broadcast value was nil
+  - **Solution**: Changed condition to check for non-nil values: `filters[:to] || filters[:broadcast]`
+  - **Impact**: Subscription filtering now works correctly with nil filter values and maintains backward compatibility
+- **Circuit Breaker Test Compatibility**: Added error handling for non-existent message classes in DDQ initialization
+  - Added rescue blocks around `constantize` calls to gracefully handle fake test classes
+  - DDQ initialization now skips gracefully for test classes that cannot be constantized
+  - Maintains proper DDQ functionality for real message classes while supporting test scenarios
+
 ## [0.0.9] 2025-08-20
 ### Added
 - **Advanced Logging Configuration System**: Comprehensive logger configuration with multiple output formats and options

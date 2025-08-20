@@ -16,37 +16,53 @@ SmartMessage is designed around the principle that **messages should be independ
 
 ## Architecture Overview
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    SmartMessage::Base                       │
-│  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐│
-│  │    Message      │ │   Transport     │ │   Serializer    ││
-│  │   Properties    │ │     Plugin      │ │     Plugin      ││
-│  │                 │ │                 │ │                 ││
-│  │ • user_id       │ │ • publish()     │ │ • encode()      ││
-│  │ • action        │ │ • subscribe()   │ │ • decode()      ││
-│  │ • timestamp     │ │ • receive()     │ │                 ││
-│  └─────────────────┘ └─────────────────┘ └─────────────────┘│
-└─────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-                    ┌─────────────────────┐
-                    │     Dispatcher      │
-                    │                     │
-                    │ • Route messages    │
-                    │ • Thread pool       │
-                    │ • Subscriptions     │
-                    └─────────────────────┘
-                                │
-                                ▼
-                    ┌─────────────────────┐
-                    │  Message Handlers   │
-                    │                     │
-                    │ • Default handler   │
-                    │ • Block handlers    │
-                    │ • Proc handlers     │
-                    │ • Method handlers   │
-                    └─────────────────────┘
+```mermaid
+graph TB
+    subgraph "SmartMessage Core"
+        Base[SmartMessage::Base]
+        Header[Message Header<br/>• UUID<br/>• Timestamps<br/>• Addressing]
+        Props[Message Properties<br/>• Business Data<br/>• Validation<br/>• Versioning]
+    end
+    
+    subgraph "Plugin System"
+        Transport[Transport Plugin<br/>• publish()<br/>• subscribe()<br/>• Memory/Redis/STDOUT]
+        Serializer[Serializer Plugin<br/>• encode()<br/>• decode()<br/>• JSON/Custom]
+        Logger[Logger Plugin<br/>• Structured logging<br/>• Multiple outputs<br/>• Colorization]
+    end
+    
+    subgraph "Message Processing"
+        Dispatcher[Dispatcher<br/>• Route messages<br/>• Thread pool<br/>• Subscriptions<br/>• DDQ management]
+        DDQ[Deduplication Queue<br/>• Handler-scoped<br/>• Memory/Redis storage<br/>• O(1) performance<br/>• Circular buffer]
+        Handlers[Message Handlers<br/>• Default handler<br/>• Block handlers<br/>• Proc handlers<br/>• Method handlers]
+    end
+    
+    subgraph "Reliability Layer"
+        CircuitBreaker[Circuit Breaker<br/>• Failure thresholds<br/>• Automatic fallback<br/>• Recovery detection]
+        DLQ[Dead Letter Queue<br/>• Failed messages<br/>• Replay mechanism<br/>• JSON Lines format]
+    end
+    
+    subgraph "Monitoring"
+        Stats[Statistics<br/>• Message counts<br/>• Processing metrics<br/>• Thread pool status]
+        Filters[Message Filtering<br/>• Entity-aware routing<br/>• Regex patterns<br/>• Broadcast handling]
+    end
+    
+    Base --> Header
+    Base --> Props
+    Base --> Transport
+    Base --> Serializer
+    Base --> Logger
+    
+    Transport --> Dispatcher
+    Dispatcher --> DDQ
+    Dispatcher --> Handlers
+    Dispatcher --> Stats
+    Dispatcher --> Filters
+    
+    Transport --> CircuitBreaker
+    CircuitBreaker --> DLQ
+    
+    DDQ -.-> Stats
+    Handlers -.-> Stats
 ```
 
 ## Core Components
@@ -126,38 +142,84 @@ end
 
 ### 4. Dispatcher
 
-Routes incoming messages to appropriate handlers using concurrent processing.
+Routes incoming messages to appropriate handlers using concurrent processing with integrated deduplication.
 
 **Key Responsibilities:**
 - Message routing based on class
-- Thread pool management
+- Thread pool management  
 - Subscription catalog management
-- Statistics collection
+- Handler-scoped DDQ management
+- Message filtering and statistics collection
 
-**Location:** `lib/smart_message/dispatcher.rb:11-147`
+**Location:** `lib/smart_message/dispatcher.rb`
 
 ```ruby
 dispatcher = SmartMessage::Dispatcher.new
 dispatcher.add("MyMessage", "MyMessage.process")
 dispatcher.route(header, payload)
+
+# DDQ integration is automatic when enabled
+MyMessage.enable_deduplication!
 ```
 
-### 5. Message Headers
+### 5. Deduplication Queue (DDQ)
 
-Standard metadata attached to every message.
+Handler-scoped message deduplication system preventing duplicate processing.
+
+**Key Responsibilities:**
+- UUID-based duplicate detection
+- Handler isolation (each handler gets own DDQ)
+- Memory and Redis storage backends
+- O(1) performance with hybrid Array + Set data structure
+
+**Architecture:**
+```mermaid
+graph LR
+    subgraph "Handler A DDQ"
+        A1[Circular Array]
+        A2[Lookup Set]
+        A3[Mutex Lock]
+    end
+    
+    subgraph "Handler B DDQ"
+        B1[Circular Array]
+        B2[Lookup Set] 
+        B3[Mutex Lock]
+    end
+    
+    Message[Incoming Message<br/>UUID: abc-123] --> Dispatcher
+    Dispatcher --> |Check Handler A| A2
+    Dispatcher --> |Check Handler B| B2
+    
+    A2 --> |Not Found| ProcessA[Process with Handler A]
+    B2 --> |Found| SkipB[Skip Handler B - Duplicate]
+    
+    ProcessA --> |Add UUID| A1
+    ProcessA --> |Add UUID| A2
+```
+
+**Location:** `lib/smart_message/deduplication.rb`, `lib/smart_message/ddq/`
+
+### 6. Message Headers
+
+Standard metadata attached to every message with entity addressing support.
 
 **Key Responsibilities:**
 - Message identification (UUID)
-- Routing information (message class)
+- Routing information (message class, version)
 - Tracking data (timestamps, process IDs)
+- Entity addressing (from, to, reply_to)
 
-**Location:** `lib/smart_message/header.rb:9-20`
+**Location:** `lib/smart_message/header.rb`
 
 ```ruby
 header = message._sm_header
 puts header.uuid          # "550e8400-e29b-41d4-a716-446655440000"
 puts header.message_class # "MyMessage"
 puts header.published_at  # 2025-08-17 10:30:00 UTC
+puts header.from          # "payment-service"
+puts header.to            # "order-service"
+puts header.version       # 1
 ```
 
 ## Message Lifecycle
@@ -177,17 +239,27 @@ end
 
 ### 2. Subscription Phase
 ```ruby
+# Basic subscription
 OrderMessage.subscribe
-# Registers "OrderMessage.process" with dispatcher
+
+# Subscription with filtering
+OrderMessage.subscribe(from: /^payment-.*/, to: 'order-service')
+OrderMessage.subscribe('PaymentService.process', broadcast: true)
+
+# Each subscription gets its own DDQ automatically
+# DDQ Key: "OrderMessage:OrderMessage.process"
+# DDQ Key: "OrderMessage:PaymentService.process"
 ```
 
 ### 3. Publishing Phase
 ```ruby
 order = OrderMessage.new(order_id: "123", amount: 99.99)
+order.from("order-service").to("payment-service")
 order.publish
-# 1. Creates header with UUID, timestamp, etc.
-# 2. Encodes message via serializer
+# 1. Creates header with UUID, timestamp, addressing
+# 2. Encodes message via serializer  
 # 3. Sends via transport
+# 4. Circuit breaker monitors for failures
 ```
 
 ### 4. Receiving Phase
@@ -195,9 +267,10 @@ order.publish
 # Transport receives message
 transport.receive(header, payload)
 # 1. Routes to dispatcher
-# 2. Dispatcher finds subscribers
-# 3. Spawns thread for processing
-# 4. Calls registered message handlers
+# 2. Dispatcher checks DDQ for duplicates per handler
+# 3. Applies message filters (from/to/broadcast)
+# 4. Spawns thread for processing matching handlers
+# 5. Marks UUID as processed in handler's DDQ
 ```
 
 ### 5. Message Handler Processing
@@ -382,29 +455,19 @@ dlq.enqueue(header, payload, error: "Validation failed")
 
 **DLQ Architecture:**
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Message Publishing                       │
-│                           │                                 │
-│                           ▼                                 │
-│                  ┌─────────────────┐                        │
-│                  │ Circuit Breaker │                        │
-│                  │   (Monitoring)   │                        │
-│                  └─────────────────┘                        │
-│                     │           │                           │
-│              Success │           │ Failure                  │
-│                     ▼           ▼                           │
-│              ┌──────────┐ ┌─────────────┐                  │
-│              │Transport │ │Dead Letter  │                  │
-│              │          │ │   Queue     │                  │
-│              └──────────┘ └─────────────┘                  │
-│                                │                            │
-│                                ▼                            │
-│                         ┌─────────────┐                     │
-│                         │   Replay    │                     │
-│                         │ Mechanism   │                     │
-│                         └─────────────┘                     │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    Publish[Message Publishing]
+    CB[Circuit Breaker<br/>Monitoring]
+    Transport[Transport<br/>Success]
+    DLQ[Dead Letter Queue<br/>Failure Storage]
+    Replay[Replay Mechanism<br/>Manual/Automated]
+    
+    Publish --> CB
+    CB --> |Success| Transport
+    CB --> |Failure| DLQ
+    DLQ --> Replay
+    Replay --> |Retry| Publish
 ```
 
 **DLQ Features:**
@@ -417,7 +480,7 @@ dlq.enqueue(header, payload, error: "Validation failed")
 
 ### Built-in Statistics
 
-SmartMessage automatically collects processing statistics:
+SmartMessage automatically collects processing statistics including DDQ metrics:
 
 ```ruby
 # Statistics are collected for:
@@ -427,6 +490,11 @@ SS.add(message_class, process_method, 'routed')
 # Access statistics
 puts SS.stat
 puts SS.get("MyMessage", "publish")
+
+# DDQ-specific statistics
+stats = OrderMessage.ddq_stats
+puts "DDQ utilization: #{stats[:utilization]}%"
+puts "Current count: #{stats[:current_count]}"
 ```
 
 ### Monitoring Points
@@ -435,6 +503,8 @@ puts SS.get("MyMessage", "publish")
 2. **Message Routing**: Count of routed messages per processor
 3. **Thread Pool**: Queue length, completed tasks, running status
 4. **Transport Status**: Connection status, message counts
+5. **DDQ Metrics**: Utilization, duplicate detection rates, memory usage
+6. **Message Filtering**: Filter match rates, entity-aware routing statistics
 
 ## Configuration Architecture
 

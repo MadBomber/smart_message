@@ -19,6 +19,7 @@ SmartMessage is a message abstraction framework that decouples business logic fr
 - **Concurrent Processing**: Thread-safe message routing using `Concurrent::CachedThreadPool`
 - **Advanced Logging System**: Comprehensive logging with colorized console output, JSON structured logging, and file rolling
 - **Built-in Statistics**: Message processing metrics and monitoring
+- **Message Deduplication**: Handler-scoped deduplication queues (DDQ) with memory or Redis storage for preventing duplicate message processing
 - **Development Tools**: STDOUT and in-memory transports for testing
 - **Production Ready**: Redis transport with automatic reconnection and error handling
 - **Dead Letter Queue**: File-based DLQ with JSON Lines format for failed message capture and replay
@@ -201,7 +202,103 @@ DevService.subscribe(to: /^(dev|staging)-.*/)
 ProdService.subscribe(to: /^prod-.*/)
 ```
 
-### 5. Entity Addressing
+### 5. Message Deduplication
+
+SmartMessage provides handler-scoped message deduplication to prevent duplicate processing of messages with the same UUID. Each handler gets its own Deduplication Queue (DDQ) that tracks recently processed message UUIDs.
+
+#### Basic Deduplication Setup
+
+```ruby
+class OrderMessage < SmartMessage::Base
+  version 1
+  property :order_id, required: true
+  property :amount, required: true
+  
+  from "order-service"
+  
+  # Configure deduplication
+  ddq_size 100              # Track last 100 message UUIDs
+  ddq_storage :memory       # Use memory storage (or :redis for distributed)
+  enable_deduplication!     # Enable deduplication for this message class
+  
+  def self.process(message)
+    puts "Processing order: #{message.order_id}"
+    # Business logic here
+  end
+end
+```
+
+#### Handler-Scoped Isolation
+
+Each handler gets its own DDQ scope, preventing cross-contamination between different subscribers:
+
+```ruby
+# Each handler gets separate deduplication tracking
+OrderMessage.subscribe('PaymentService.process')     # DDQ: "OrderMessage:PaymentService.process"
+OrderMessage.subscribe('FulfillmentService.handle')  # DDQ: "OrderMessage:FulfillmentService.handle"
+OrderMessage.subscribe('AuditService.log_order')     # DDQ: "OrderMessage:AuditService.log_order"
+
+# Same handler across message classes = separate DDQs
+PaymentMessage.subscribe('PaymentService.process')   # DDQ: "PaymentMessage:PaymentService.process"
+InvoiceMessage.subscribe('PaymentService.process')   # DDQ: "InvoiceMessage:PaymentService.process"
+```
+
+#### Storage Options
+
+```ruby
+# Memory-based DDQ (single process)
+class LocalMessage < SmartMessage::Base
+  ddq_size 50
+  ddq_storage :memory
+  enable_deduplication!
+end
+
+# Redis-based DDQ (distributed/multi-process)
+class DistributedMessage < SmartMessage::Base
+  ddq_size 1000
+  ddq_storage :redis, redis_url: 'redis://localhost:6379', redis_db: 1
+  enable_deduplication!
+end
+```
+
+#### DDQ Statistics and Management
+
+```ruby
+# Check deduplication configuration
+config = OrderMessage.ddq_config
+puts "Enabled: #{config[:enabled]}"
+puts "Size: #{config[:size]}"
+puts "Storage: #{config[:storage]}"
+
+# Get DDQ statistics
+stats = OrderMessage.ddq_stats
+puts "Current count: #{stats[:current_count]}"
+puts "Utilization: #{stats[:utilization]}%"
+
+# Clear DDQ if needed
+OrderMessage.clear_ddq!
+
+# Check if specific UUID is duplicate
+OrderMessage.duplicate_uuid?("some-uuid-123")
+```
+
+#### How Deduplication Works
+
+1. **Message Receipt**: When a message arrives, the dispatcher checks the handler's DDQ for the message UUID
+2. **Duplicate Detection**: If UUID exists in DDQ, the message is ignored (logged but not processed)
+3. **Processing**: If UUID is new, the message is processed by the handler
+4. **UUID Storage**: After successful processing, the UUID is added to the handler's DDQ
+5. **Circular Buffer**: When DDQ reaches capacity, oldest UUIDs are evicted to make room for new ones
+
+#### Benefits
+
+- **Handler Isolation**: Each handler maintains independent deduplication state
+- **Cross-Process Support**: Redis DDQ enables deduplication across multiple processes
+- **Memory Efficient**: Circular buffer with configurable size limits memory usage
+- **High Performance**: O(1) UUID lookup using hybrid array + set data structure
+- **Automatic Integration**: Seamlessly works with existing subscription patterns
+
+### 6. Entity Addressing
 
 SmartMessage supports entity-to-entity addressing with FROM/TO/REPLY_TO fields for advanced message routing. You can configure addressing using three different approaches:
 
@@ -412,9 +509,10 @@ Pluggable message encoding/decoding:
 #### Dispatcher
 Concurrent message routing engine that:
 - Uses thread pools for async processing
-- Routes messages to subscribed handlers
-- Provides processing statistics
+- Routes messages to subscribed handlers with handler-scoped deduplication
+- Provides processing statistics and DDQ management
 - Handles graceful shutdown
+- Maintains separate DDQ instances per handler for isolated deduplication tracking
 
 ### Plugin Architecture
 
