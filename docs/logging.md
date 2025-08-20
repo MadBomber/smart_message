@@ -1,452 +1,508 @@
 # Logging in SmartMessage
 
-SmartMessage provides flexible logging capabilities through its plugin architecture. This document covers the built-in default logger as well as how to create custom loggers.
+SmartMessage provides comprehensive logging capabilities with support for multiple output formats, colorization, structured logging, and file rolling. Built on the Lumberjack logging framework, it offers production-ready features with flexible configuration options.
 
 ## Table of Contents
 
-- [Default Logger](#default-logger)
+- [Quick Start](#quick-start)
 - [Configuration Options](#configuration-options)
-- [Output Destinations](#output-destinations)
-- [Log Levels](#log-levels)
-- [Message Lifecycle Logging](#message-lifecycle-logging)
-- [Rails Integration](#rails-integration)
-- [Custom Loggers](#custom-loggers)
+- [Output Formats](#output-formats)
+- [Colorized Console Output](#colorized-console-output)
+- [File Rolling](#file-rolling)
+- [Structured Logging](#structured-logging)
+- [Application Integration](#application-integration)
+- [SmartMessage Integration](#smartmessage-integration)
 - [Examples](#examples)
+- [Best Practices](#best-practices)
 
-## Default Logger
+## Quick Start
 
-SmartMessage includes a built-in `SmartMessage::Logger::Default` class that automatically detects your environment and chooses the best logging approach:
-
-- **Rails Applications**: Uses `Rails.logger` with tagged logging
-- **Standalone Ruby**: Uses Ruby's standard `Logger` class with file output
-
-### Quick Start
+Configure SmartMessage logging through the global configuration block:
 
 ```ruby
-class MyMessage < SmartMessage::Base
-  property :content
-  
-  config do
-    transport SmartMessage::Transport::StdoutTransport.new
-    serializer SmartMessage::Serializer::JSON.new
-    logger SmartMessage::Logger::Default.new  # Zero configuration!
-  end
+SmartMessage.configure do |config|
+  config.logger = STDOUT              # Output destination
+  config.log_level = :info           # Log level
+  config.log_format = :text          # Format
+  config.log_colorize = true         # Enable colors
 end
+
+# Access the logger in your application
+logger = SmartMessage.configuration.default_logger
+logger.info("Application started", component: "main")
 ```
 
 ## Configuration Options
 
-The default logger accepts several configuration options:
+### Global Configuration
 
-### Basic Configuration
-
-```ruby
-# Use defaults (Rails.logger or log/smart_message.log)
-logger SmartMessage::Logger::Default.new
-
-# Custom log file path
-logger SmartMessage::Logger::Default.new(
-  log_file: '/var/log/my_app/messages.log'
-)
-
-# Custom log level
-logger SmartMessage::Logger::Default.new(
-  level: Logger::DEBUG
-)
-
-# Both custom file and level
-logger SmartMessage::Logger::Default.new(
-  log_file: 'logs/custom.log',
-  level: Logger::WARN
-)
-```
-
-## Output Destinations
-
-The default logger supports multiple output destinations:
-
-### File Logging (Default)
+All logging configuration is done through the `SmartMessage.configure` block:
 
 ```ruby
-# Default file location (Rails convention)
-logger SmartMessage::Logger::Default.new
-# → log/smart_message.log
-
-# Custom file path
-logger SmartMessage::Logger::Default.new(
-  log_file: '/var/log/application/messages.log'
-)
-```
-
-**Features:**
-- Automatic log rotation (10 files, 10MB each)
-- Directory creation if needed
-- Timestamped entries with clean formatting
-
-### STDOUT Logging
-
-Perfect for containerized applications (Docker, Kubernetes):
-
-```ruby
-logger SmartMessage::Logger::Default.new(
-  log_file: STDOUT,
-  level: Logger::INFO
-)
-```
-
-### STDERR Logging
-
-For error-focused logging:
-
-```ruby
-logger SmartMessage::Logger::Default.new(
-  log_file: STDERR,
-  level: Logger::WARN
-)
-```
-
-### In-Memory Logging (Testing)
-
-```ruby
-require 'stringio'
-
-logger SmartMessage::Logger::Default.new(
-  log_file: StringIO.new,
-  level: Logger::DEBUG
-)
-```
-
-## Log Levels
-
-The default logger supports all standard Ruby log levels:
-
-| Level | Numeric Value | Description |
-|-------|--------------|-------------|
-| `Logger::DEBUG` | 0 | Detailed debugging information |
-| `Logger::INFO` | 1 | General information messages |
-| `Logger::WARN` | 2 | Warning messages |
-| `Logger::ERROR` | 3 | Error messages |
-| `Logger::FATAL` | 4 | Fatal error messages |
-
-### Environment-Based Defaults
-
-The default logger automatically sets appropriate log levels based on your environment:
-
-- **Rails Production**: `Logger::INFO`
-- **Rails Test**: `Logger::ERROR`
-- **Rails Development**: `Logger::DEBUG`
-- **Non-Rails**: `Logger::INFO`
-
-## Message Lifecycle Logging
-
-The default logger automatically logs key events in the message lifecycle:
-
-### Message Creation
-
-```ruby
-# Logged at DEBUG level
-message = MyMessage.new(content: "Hello")
-# → [DEBUG] [SmartMessage] Created: MyMessage - {content: "Hello"}
-```
-
-### Message Publishing
-
-```ruby
-# Logged at INFO level
-message.publish
-# → [INFO] [SmartMessage] Published: MyMessage via StdoutTransport
-```
-
-### Message Reception
-
-```ruby
-# Logged at INFO level when message is received
-# → [INFO] [SmartMessage] Received: MyMessage (45 bytes)
-```
-
-### Message Processing
-
-```ruby
-# Logged at INFO level after processing
-# → [INFO] [SmartMessage] Processed: MyMessage - Success
-```
-
-### Subscription Management
-
-```ruby
-# Logged at INFO level
-MyMessage.subscribe
-# → [INFO] [SmartMessage] Subscribed: MyMessage
-
-MyMessage.unsubscribe
-# → [INFO] [SmartMessage] Unsubscribed: MyMessage
-```
-
-### Error Logging
-
-```ruby
-# Logged at ERROR level with full stack trace (DEBUG level)
-# → [ERROR] [SmartMessage] Error in message processing: RuntimeError - Something went wrong
-# → [DEBUG] [SmartMessage] Backtrace: ...
-```
-
-## Rails Integration
-
-When running in a Rails application, the default logger provides enhanced integration:
-
-### Automatic Detection
-
-```ruby
-# Automatically uses Rails.logger when available
-logger SmartMessage::Logger::Default.new
-```
-
-### Tagged Logging
-
-```ruby
-# In Rails, all SmartMessage logs are tagged
-Rails.logger.tagged('SmartMessage') do
-  # All SmartMessage logging happens here
+SmartMessage.configure do |config|
+  # Required: Output destination
+  config.logger = STDOUT                    # or file path, STDERR
+  
+  # Optional: Logging behavior
+  config.log_level = :info                 # :debug, :info, :warn, :error, :fatal
+  config.log_format = :text                # :text, :json
+  config.log_colorize = true               # Enable colorized console output
+  config.log_include_source = false        # Include file/line information
+  config.log_structured_data = false       # Enable structured metadata
+  
+  # Optional: File rolling options
+  config.log_options = {
+    roll_by_size: true,
+    max_file_size: 10 * 1024 * 1024,       # 10 MB
+    keep_files: 5,                          # Keep 5 old files
+    roll_by_date: false,                    # Alternative: date-based rolling
+    date_pattern: '%Y-%m-%d'                # Daily pattern
+  }
 end
 ```
 
-### Rails Log File Location
+### Configuration Details
+
+| Option | Type | Default | Description |
+|--------|------|---------|-------------|
+| `logger` | String/IO | Required | Output destination (file path, STDOUT, STDERR) |
+| `log_level` | Symbol | `:info` | Log level (`:debug`, `:info`, `:warn`, `:error`, `:fatal`) |
+| `log_format` | Symbol | `:text` | Output format (`:text`, `:json`) |
+| `log_colorize` | Boolean | `false` | Enable colorized console output |
+| `log_include_source` | Boolean | `false` | Include source file and line information |
+| `log_structured_data` | Boolean | `false` | Enable structured data logging |
+| `log_options` | Hash | `{}` | Additional Lumberjack options |
+
+## Output Formats
+
+### Text Format (Default)
+
+Human-readable text output with optional colorization:
 
 ```ruby
-# Uses Rails.root/log/smart_message.log when Rails is detected
-logger SmartMessage::Logger::Default.new
-# → Rails.root.join('log', 'smart_message.log')
+SmartMessage.configure do |config|
+  config.logger = STDOUT
+  config.log_format = :text
+  config.log_colorize = true
+end
+
+logger = SmartMessage.configuration.default_logger
+logger.info("User login successful", user_id: 12345)
+# Output: 2025-01-15 10:30:45 [INFO] User login successful user_id=12345
 ```
 
-### Rails Environment Handling
+### JSON Format
 
-The logger respects Rails environment settings:
-
-- **Production**: INFO level, structured logging
-- **Development**: DEBUG level, verbose output  
-- **Test**: ERROR level, minimal output
-
-## Custom Loggers
-
-You can create custom loggers by inheriting from `SmartMessage::Logger::Base`:
-
-### Basic Custom Logger
+Machine-readable structured JSON output:
 
 ```ruby
-class SmartMessage::Logger::MyCustomLogger < SmartMessage::Logger::Base
-  def initialize(external_logger)
-    @logger = external_logger
-  end
-  
-  def log_message_created(message)
-    @logger.debug "Created message: #{message.class.name}"
-  end
-  
-  def log_message_published(message, transport)
-    @logger.info "Published #{message.class.name} via #{transport.class.name}"
-  end
-  
-  # Implement other lifecycle methods as needed...
+SmartMessage.configure do |config|
+  config.logger = "log/application.log"
+  config.log_format = :json
+  config.log_structured_data = true
+  config.log_include_source = true
+end
+
+logger = SmartMessage.configuration.default_logger
+logger.info("User action", user_id: 12345, action: "login")
+# Output: {"timestamp":"2025-01-15T10:30:45.123Z","level":"INFO","message":"User action","user_id":12345,"action":"login","source":"app.rb:42:in `authenticate`"}
+```
+
+## Colorized Console Output
+
+SmartMessage provides colorized console output for improved readability during development:
+
+```ruby
+SmartMessage.configure do |config|
+  config.logger = STDOUT
+  config.log_format = :text
+  config.log_colorize = true
+end
+
+logger = SmartMessage.configuration.default_logger
+logger.debug("Debug message")    # Green background, black text, bold
+logger.info("Info message")      # Bright white text
+logger.warn("Warning message")   # Yellow background, white bold text
+logger.error("Error message")    # Light red background, white bold text
+logger.fatal("Fatal message")    # Light red background, yellow bold text
+```
+
+### Color Scheme
+
+| Level | Foreground | Background | Style |
+|-------|------------|------------|-------|
+| DEBUG | Black | Green | Bold |
+| INFO | Bright White | None | None |
+| WARN | White | Yellow | Bold |
+| ERROR | White | Light Red | Bold |
+| FATAL | Yellow | Light Red | Bold |
+
+**Note:** Colorization is automatically disabled for file output to keep log files clean.
+
+## File Rolling
+
+SmartMessage supports both size-based and date-based log file rolling:
+
+### Size-Based Rolling
+
+```ruby
+SmartMessage.configure do |config|
+  config.logger = "log/application.log"
+  config.log_options = {
+    roll_by_size: true,
+    max_file_size: 10 * 1024 * 1024,  # 10 MB
+    keep_files: 5                      # Keep 5 old files
+  }
 end
 ```
 
-### Wrapper for Third-Party Loggers
+Files are named: `application.log`, `application.log.1`, `application.log.2`, etc.
+
+### Date-Based Rolling
 
 ```ruby
-# Semantic Logger example
-class SmartMessage::Logger::SemanticLogger < SmartMessage::Logger::Base
-  def initialize(semantic_logger = nil)
-    @logger = semantic_logger || SemanticLogger['SmartMessage']
+SmartMessage.configure do |config|
+  config.logger = "log/application.log"
+  config.log_options = {
+    roll_by_date: true,
+    date_pattern: '%Y-%m-%d'  # Daily rolling
+  }
+end
+```
+
+Files are named: `application.log.2025-01-15`, `application.log.2025-01-14`, etc.
+
+### Rolling Options
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `roll_by_size` | Boolean | Enable size-based rolling |
+| `max_file_size` | Integer | Maximum file size in bytes |
+| `keep_files` | Integer | Number of old files to keep |
+| `roll_by_date` | Boolean | Enable date-based rolling |
+| `date_pattern` | String | Date format pattern |
+
+## Structured Logging
+
+Enable structured data logging to include metadata with your log entries:
+
+```ruby
+SmartMessage.configure do |config|
+  config.logger = "log/application.log"
+  config.log_format = :json
+  config.log_structured_data = true
+  config.log_include_source = true
+end
+
+logger = SmartMessage.configuration.default_logger
+
+# Log with structured data
+logger.info("User registration", 
+            user_id: "user123",
+            email: "user@example.com",
+            registration_source: "web",
+            timestamp: Time.now.iso8601)
+
+# Log with block for conditional data
+logger.warn("Database slow query") do
+  {
+    query: "SELECT * FROM users WHERE status = ?",
+    duration_ms: 1500,
+    table: "users",
+    slow_query: true
+  }
+end
+```
+
+## Application Integration
+
+### Accessing the Logger
+
+The configured logger is available globally:
+
+```ruby
+# Get the globally configured logger
+logger = SmartMessage.configuration.default_logger
+
+# Use in your application
+logger.info("Application starting", version: "1.0.0")
+logger.warn("Configuration missing", config_key: "database_url")
+logger.error("Service unavailable", service: "payment_gateway")
+```
+
+### Class-Level Integration
+
+```ruby
+class OrderService
+  def initialize
+    @logger = SmartMessage.configuration.default_logger
   end
   
-  def log_message_created(message)
-    @logger.debug "Message created", message_class: message.class.name
-  end
-  
-  def log_error(context, error)
-    @logger.error "Error in #{context}", exception: error
+  def process_order(order)
+    @logger.info("Processing order", 
+                 order_id: order.id,
+                 customer_id: order.customer_id,
+                 amount: order.amount)
+    
+    begin
+      # Process order logic
+      result = perform_processing(order)
+      
+      @logger.info("Order completed", 
+                   order_id: order.id,
+                   status: "success",
+                   processing_time_ms: result[:duration])
+      
+    rescue StandardError => e
+      @logger.error("Order processing failed",
+                    order_id: order.id,
+                    error: e.message,
+                    error_class: e.class.name)
+      raise
+    end
   end
 end
 ```
 
-### Multi-Logger (Broadcast)
+## SmartMessage Integration
+
+SmartMessage classes automatically use the configured logger:
 
 ```ruby
-class SmartMessage::Logger::MultiLogger < SmartMessage::Logger::Base
-  def initialize(*loggers)
-    @loggers = loggers
+class OrderMessage < SmartMessage::Base
+  property :order_id, required: true
+  property :customer_id, required: true
+  property :amount, required: true
+  
+  config do
+    transport SmartMessage::Transport::StdoutTransport.new
+    serializer SmartMessage::Serializer::Json.new
+    from 'order-service'
   end
   
-  def log_message_created(message)
-    @loggers.each { |logger| logger.log_message_created(message) }
+  def process
+    # Logger is automatically available
+    logger.info("Processing order message",
+                message_id: _sm_header.uuid,
+                order_id: order_id,
+                customer_id: customer_id,
+                amount: amount)
+    
+    # Log the complete message structure
+    logger.debug("Message details",
+                 header: _sm_header.to_h,
+                 payload: _sm_payload,
+                 full_message: to_h)
+    
+    # Process the order
+    case amount
+    when 0..100
+      logger.info("Small order processed", order_id: order_id)
+    when 101..1000
+      logger.warn("Medium order requires review", order_id: order_id)
+    else
+      logger.error("Large order requires manual approval", 
+                   order_id: order_id, 
+                   amount: amount)
+    end
   end
-  
-  # Other methods follow same pattern...
 end
-
-# Usage
-logger SmartMessage::Logger::MultiLogger.new(
-  SmartMessage::Logger::Default.new(log_file: 'app.log'),
-  SmartMessage::Logger::Default.new(log_file: STDOUT),
-  SmartMessage::Logger::MyCustomLogger.new(external_system)
-)
 ```
 
 ## Examples
 
-### Development Setup
+### Development Configuration
+
+Perfect for local development with colorized console output:
 
 ```ruby
-class OrderMessage < SmartMessage::Base
-  property :order_id, String, required: true
-  property :customer_id, String, required: true
-  property :amount, Float, required: true
-  
-  config do
-    transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
-    
-    # Verbose logging for development
-    logger SmartMessage::Logger::Default.new(
-      log_file: STDOUT,
-      level: Logger::DEBUG
-    )
-  end
-  
-  def self.process(message_header, message_payload)
-    data = JSON.parse(message_payload)
-    
-    # Logger is available in process method
-    logger.info "Processing order #{data['order_id']}"
-    
-    # Business logic here
-    result = process_order(data)
-    
-    logger.info "Order #{data['order_id']} completed: #{result}"
-    result
-  end
+SmartMessage.configure do |config|
+  config.logger = STDOUT
+  config.log_level = :debug
+  config.log_format = :text
+  config.log_colorize = true
+  config.log_include_source = true
 end
 ```
 
-### Production Setup
+### Production Configuration
+
+Production setup with JSON logging and file rolling:
 
 ```ruby
-class NotificationMessage < SmartMessage::Base
-  property :recipient, String, required: true
-  property :subject, String, required: true
-  property :body, String, required: true
-  
-  config do
-    transport SmartMessage::Transport::RedisTransport.new
-    serializer SmartMessage::Serializer::JSON.new
-    
-    # Production logging with file rotation
-    logger SmartMessage::Logger::Default.new(
-      log_file: '/var/log/app/notifications.log',
-      level: Logger::INFO
-    )
-  end
+SmartMessage.configure do |config|
+  config.logger = "/var/log/app/smartmessage.log"
+  config.log_level = :info
+  config.log_format = :json
+  config.log_colorize = false
+  config.log_structured_data = true
+  config.log_include_source = false
+  config.log_options = {
+    roll_by_size: true,
+    max_file_size: 50 * 1024 * 1024,  # 50 MB
+    keep_files: 10
+  }
 end
 ```
 
-### Docker/Kubernetes Setup
+### Docker/Container Configuration
+
+Container-friendly setup with structured STDOUT logging:
 
 ```ruby
-class EventMessage < SmartMessage::Base
-  property :event_type, String, required: true
-  property :data, Hash, required: true
-  
-  config do
-    transport SmartMessage::Transport::RedisTransport.new(
-      redis_url: ENV['REDIS_URL']
-    )
-    serializer SmartMessage::Serializer::JSON.new
-    
-    # Container-friendly STDOUT logging
-    logger SmartMessage::Logger::Default.new(
-      log_file: STDOUT,
-      level: ENV['LOG_LEVEL']&.upcase&.to_sym || Logger::INFO
-    )
-  end
+SmartMessage.configure do |config|
+  config.logger = STDOUT
+  config.log_level = ENV['LOG_LEVEL']&.downcase&.to_sym || :info
+  config.log_format = :json
+  config.log_colorize = false
+  config.log_structured_data = true
+  config.log_include_source = true
 end
 ```
 
-### Testing Setup
+### Testing Configuration
+
+Minimal logging for test environments:
 
 ```ruby
-# In test_helper.rb or similar
-class TestMessage < SmartMessage::Base
-  property :test_data, Hash
-  
-  config do
-    transport SmartMessage::Transport::MemoryTransport.new
-    serializer SmartMessage::Serializer::JSON.new
-    
-    # Minimal logging for tests
-    logger SmartMessage::Logger::Default.new(
-      log_file: StringIO.new,
-      level: Logger::FATAL  # Only fatal errors in tests
-    )
-  end
+SmartMessage.configure do |config|
+  config.logger = STDERR
+  config.log_level = :error
+  config.log_format = :text
+  config.log_colorize = false
 end
 ```
 
-### Instance-Level Logger Override
+### Multiple Logger Configurations
+
+You can create multiple logger instances for different purposes:
 
 ```ruby
-# Different logger for specific instances
-class PriorityMessage < SmartMessage::Base
-  property :priority, String
-  property :data, Hash
-  
-  config do
-    transport SmartMessage::Transport::RedisTransport.new
-    serializer SmartMessage::Serializer::JSON.new
-    logger SmartMessage::Logger::Default.new  # Default logger
-  end
+# Configure global logger
+SmartMessage.configure do |config|
+  config.logger = "log/application.log"
+  config.log_level = :info
+  config.log_format = :json
 end
 
-# Override logger for high-priority messages
-priority_logger = SmartMessage::Logger::Default.new(
-  log_file: '/var/log/priority.log',
-  level: Logger::DEBUG
+# Create additional loggers for specific needs
+console_logger = SmartMessage::Logger::Lumberjack.new(
+  log_file: STDERR,
+  level: :warn,
+  format: :text,
+  colorize: true
 )
 
-urgent_message = PriorityMessage.new(priority: 'urgent', data: {...})
-urgent_message.logger(priority_logger)  # Override for this instance
-urgent_message.publish
+debug_logger = SmartMessage::Logger::Lumberjack.new(
+  log_file: "log/debug.log",
+  level: :debug,
+  format: :text,
+  include_source: true
+)
+
+# Use in application
+console_logger.warn("Service degraded")
+debug_logger.debug("Detailed debugging info", state: app_state)
 ```
 
 ## Best Practices
 
-1. **Use the default logger** unless you have specific requirements
-2. **Log to STDOUT** in containerized environments
-3. **Use appropriate log levels** - avoid DEBUG in production
-4. **Tag your logs** for better searchability
-5. **Consider structured logging** for production systems
-6. **Test your logging** - ensure logs are helpful for debugging
-7. **Monitor log volume** - excessive logging can impact performance
-8. **Rotate log files** to prevent disk space issues (default logger handles this)
+### 1. Environment-Based Configuration
 
-## Troubleshooting
+Configure logging based on your environment:
 
-### No logs appearing
-- Check log level settings
-- Verify file permissions
-- Ensure logger is configured
+```ruby
+case ENV['RAILS_ENV'] || ENV['ENVIRONMENT']
+when 'production'
+  SmartMessage.configure do |config|
+    config.logger = "/var/log/app/smartmessage.log"
+    config.log_level = :info
+    config.log_format = :json
+    config.log_structured_data = true
+    config.log_options = { roll_by_size: true, max_file_size: 50.megabytes, keep_files: 10 }
+  end
+when 'development'
+  SmartMessage.configure do |config|
+    config.logger = STDOUT
+    config.log_level = :debug
+    config.log_format = :text
+    config.log_colorize = true
+    config.log_include_source = true
+  end
+when 'test'
+  SmartMessage.configure do |config|
+    config.logger = STDERR
+    config.log_level = :error
+    config.log_format = :text
+  end
+end
+```
 
-### Too much logging
-- Increase log level (DEBUG → INFO → WARN → ERROR)
-- Consider filtering in production
+### 2. Structured Data
 
-### Performance issues
-- Lower log level in production
-- Use asynchronous logging for high-volume systems
-- Consider structured logging formats
+Use structured data for better log analysis:
 
-### Rails integration not working
-- Ensure Rails is loaded before SmartMessage
-- Check that `Rails.logger` is available
-- Verify Rails environment is set correctly
+```ruby
+# Good: Structured data
+logger.info("User action", 
+            user_id: user.id, 
+            action: "login", 
+            ip_address: request.ip,
+            user_agent: request.user_agent)
 
-For more troubleshooting tips, see the [Troubleshooting Guide](troubleshooting.md).
+# Avoid: String interpolation
+logger.info("User #{user.id} logged in from #{request.ip}")
+```
+
+### 3. Appropriate Log Levels
+
+Use log levels appropriately:
+
+- **DEBUG**: Detailed information for diagnosing problems
+- **INFO**: General information about program execution
+- **WARN**: Something unexpected happened, but the application is still working
+- **ERROR**: A serious problem occurred, but the application can continue
+- **FATAL**: A very serious error occurred, application may not be able to continue
+
+### 4. Performance Considerations
+
+- Use appropriate log levels in production (avoid DEBUG)
+- Consider async logging for high-volume applications
+- Use structured data instead of string concatenation
+- Be mindful of log volume and storage costs
+
+### 5. Security
+
+- Never log sensitive data (passwords, tokens, credit card numbers)
+- Sanitize user input before logging
+- Use structured data to avoid log injection attacks
+
+```ruby
+# Good: Structured data prevents injection
+logger.info("User input received", user_input: params[:query])
+
+# Avoid: Direct string interpolation
+logger.info("User searched for: #{params[:query]}")
+```
+
+### 6. Testing
+
+Test your logging configuration:
+
+```ruby
+# Test that logs are being generated
+require 'stringio'
+
+log_output = StringIO.new
+SmartMessage.configure do |config|
+  config.logger = log_output
+  config.log_level = :debug
+end
+
+logger = SmartMessage.configuration.default_logger
+logger.info("Test message")
+
+assert_includes log_output.string, "Test message"
+```
+
+For more information, see the comprehensive logging example at `examples/show_logger.rb`.

@@ -17,6 +17,7 @@ SmartMessage is a message abstraction framework that decouples business logic fr
 - **Flexible Message Handlers**: Multiple subscription patterns - default methods, custom methods, blocks, procs, and lambdas
 - **Dual-Level Configuration**: Class and instance-level plugin overrides for gateway patterns
 - **Concurrent Processing**: Thread-safe message routing using `Concurrent::CachedThreadPool`
+- **Advanced Logging System**: Comprehensive logging with colorized console output, JSON structured logging, and file rolling
 - **Built-in Statistics**: Message processing metrics and monitoring
 - **Development Tools**: STDOUT and in-memory transports for testing
 - **Production Ready**: Redis transport with automatic reconnection and error handling
@@ -284,6 +285,104 @@ end
 - **Broadcast**: Omit `to` field (nil) for message broadcast to all subscribers  
 - **Request-Reply**: Use `reply_to` field to specify response routing
 - **Gateway Patterns**: Override addressing at instance level for message forwarding
+
+## Logging Configuration
+
+SmartMessage includes a comprehensive logging system with support for multiple output formats, colorization, and file rolling capabilities.
+
+### Basic Logging Configuration
+
+```ruby
+# Configure SmartMessage logging
+SmartMessage.configure do |config|
+  config.logger = STDOUT              # Output destination (file path, STDOUT, STDERR)
+  config.log_level = :info           # Log level (:debug, :info, :warn, :error, :fatal)
+  config.log_format = :text          # Output format (:text, :json)
+  config.log_colorize = true         # Enable colorized console output
+  config.log_include_source = false  # Include source file/line information
+  config.log_structured_data = false # Enable structured data logging
+end
+
+# Access the configured logger in your application
+logger = SmartMessage.configuration.default_logger
+logger.info("Application started", component: "main", pid: Process.pid)
+```
+
+### Advanced Logging Features
+
+#### Colorized Console Output
+```ruby
+SmartMessage.configure do |config|
+  config.logger = STDOUT
+  config.log_colorize = true
+  config.log_format = :text
+end
+
+logger = SmartMessage.configuration.default_logger
+logger.debug("Debug message")    # Green background, white text
+logger.info("Info message")      # White text
+logger.warn("Warning message")   # Yellow background, white bold text
+logger.error("Error message")    # Light red background, white bold text
+logger.fatal("Fatal message")    # Light red background, yellow bold text
+```
+
+#### JSON Structured Logging
+```ruby
+SmartMessage.configure do |config|
+  config.logger = "log/application.log"
+  config.log_format = :json
+  config.log_structured_data = true
+  config.log_include_source = true
+end
+
+logger = SmartMessage.configuration.default_logger
+logger.info("User action", 
+            user_id: 12345, 
+            action: "login", 
+            ip_address: "192.168.1.1")
+# Output: {"timestamp":"2025-01-15T10:30:45.123Z","level":"INFO","message":"User action","user_id":12345,"action":"login","ip_address":"192.168.1.1","source":"app.rb:42:in `authenticate`"}
+```
+
+#### File Rolling Configuration
+```ruby
+SmartMessage.configure do |config|
+  config.logger = "log/application.log"
+  config.log_options = {
+    # Size-based rolling
+    roll_by_size: true,
+    max_file_size: 10 * 1024 * 1024,  # 10 MB
+    keep_files: 5,                     # Keep 5 old files
+    
+    # Date-based rolling (alternative to size-based)
+    roll_by_date: false,               # Set to true for date-based
+    date_pattern: '%Y-%m-%d'           # Daily rolling pattern
+  }
+end
+```
+
+### SmartMessage Integration
+
+SmartMessage classes automatically use the configured logger:
+
+```ruby
+class OrderMessage < SmartMessage::Base
+  property :order_id, required: true
+  property :amount, required: true
+  
+  def process
+    # Logger is automatically available
+    logger.info("Processing order", 
+                order_id: order_id, 
+                amount: amount,
+                header: _sm_header.to_h,
+                payload: _sm_payload)
+  end
+end
+
+# Messages inherit the global logger configuration
+message = OrderMessage.new(order_id: "123", amount: 99.99)
+message.publish  # Uses configured logger for any internal logging
+```
 
 ## Architecture
 

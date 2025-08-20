@@ -7,7 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.9] 2025-08-20
 ### Added
+- **Advanced Logging Configuration System**: Comprehensive logger configuration with multiple output formats and options
+  - New SmartMessage configuration options: `log_level`, `log_format`, `log_colorize`, `log_include_source`, `log_structured_data`, `log_options`
+  - Support for symbol-based log levels: `:info`, `:debug`, `:warn`, `:error`, `:fatal`
+  - Colorized console output with customizable color schemes using ANSI terminal colors
+  - File-based logging without colorization for clean log files
+  - JSON structured logging support with metadata inclusion
+  - Log rolling capabilities: size-based and date-based rolling with configurable retention
+  - Source location tracking for debugging (file, line number, method)
+  - Complete Lumberjack logger integration with SmartMessage configuration system
+  - New comprehensive logger demonstration: `examples/show_logger.rb`
+  - Application-level logger access through `SmartMessage.configuration.default_logger`
 - **Transport Layer Abstraction**: Complete refactoring from legacy Broker to modern Transport architecture
   - New `SmartMessage::Transport` module providing pluggable message delivery backends
   - Transport registry system for dynamic plugin discovery and registration
