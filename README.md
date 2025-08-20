@@ -51,10 +51,17 @@ class OrderMessage < SmartMessage::Base
   # Add a description for the message class
   description "Represents customer order data for processing and fulfillment"
   
-  # Configure entity addressing
+  # Configure entity addressing (Method 1: Direct methods)
   from 'order-service'
   to 'fulfillment-service'  # Point-to-point message
   reply_to 'order-service'  # Responses come back here
+  
+  # Alternative Method 2: Using header block
+  # header do
+  #   from 'order-service'
+  #   to 'fulfillment-service'
+  #   reply_to 'order-service'
+  # end
   
   # Required properties with validation
   property :order_id, 
@@ -195,10 +202,10 @@ ProdService.subscribe(to: /^prod-.*/)
 
 ### 5. Entity Addressing
 
-SmartMessage supports entity-to-entity addressing with FROM/TO/REPLY_TO fields for advanced message routing:
+SmartMessage supports entity-to-entity addressing with FROM/TO/REPLY_TO fields for advanced message routing. You can configure addressing using three different approaches:
 
+#### Method 1: Direct Class Methods
 ```ruby
-# Point-to-point messaging
 class PaymentMessage < SmartMessage::Base
   version 1
   from 'payment-service'     # Required: sender identity
@@ -208,26 +215,67 @@ class PaymentMessage < SmartMessage::Base
   property :amount, required: true
   property :account_id, required: true
 end
+```
 
-# Broadcast messaging (no 'to' specified)
+#### Method 2: Header Block DSL
+```ruby
+class PaymentMessage < SmartMessage::Base
+  version 1
+  
+  # Configure all addressing in a single block
+  header do
+    from 'payment-service'
+    to 'bank-gateway'
+    reply_to 'payment-service'
+  end
+  
+  property :amount, required: true
+  property :account_id, required: true
+end
+```
+
+#### Method 3: Instance-Level Configuration
+```ruby
+
+# Create payment instance
+payment = PaymentMessage.new(amount: 100.00, account_id: "ACCT-123")
+
+# Override addressing at instance level
+payment.to('backup-gateway')  # Method chaining supported
+payment.from('urgent-processor')
+
+# Alternative setter syntax
+payment.from = 'urgent-processor'
+payment.to = 'backup-gateway'
+
+# Access addressing (shortcut methods)
+puts payment.from      # => 'urgent-processor'
+puts payment.to        # => 'backup-gateway'
+puts payment.reply_to  # => 'payment-service'
+
+# Access via header (full path)
+puts payment._sm_header.from      # => 'urgent-processor'
+puts payment._sm_header.to        # => 'backup-gateway'
+puts payment._sm_header.reply_to  # => 'payment-service'
+
+# Publish with updated addressing
+payment.publish
+```
+
+#### Broadcast Messaging Example
+```ruby
 class SystemAnnouncementMessage < SmartMessage::Base
   version 1
-  from 'admin-service'       # Required: sender identity
-  # No 'to' field = broadcast to all subscribers
+  
+  # Using header block for broadcast configuration
+  header do
+    from 'admin-service'  # Required: sender identity
+    # No 'to' field = broadcast to all subscribers
+  end
   
   property :message, required: true
   property :priority, default: 'normal'
 end
-
-# Instance-level addressing override
-payment = PaymentMessage.new(amount: 100.00, account_id: "ACCT-123")
-payment.to('backup-gateway')  # Override destination for this instance
-payment.publish
-
-# Access addressing information
-puts payment._sm_header.from      # => 'payment-service'
-puts payment._sm_header.to        # => 'backup-gateway'
-puts payment._sm_header.reply_to  # => 'payment-service'
 ```
 
 #### Messaging Patterns Supported

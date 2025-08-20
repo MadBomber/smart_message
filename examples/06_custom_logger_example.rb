@@ -62,7 +62,8 @@ class SmartMessage::Logger::FileLogger < SmartMessage::Logger::Base
     @log_file_path = log_file_path
     
     # Ensure log directory exists
-    FileUtils.mkdir_p(File.dirname(@log_file_path))
+    log_dir = File.dirname(@log_file_path)
+    FileUtils.mkdir_p(log_dir) unless Dir.exist?(log_dir)
     
     # This is Ruby's standard Logger class from the 'logger' library
     # You could replace this with Rails.logger or any other logger:
@@ -76,24 +77,25 @@ class SmartMessage::Logger::FileLogger < SmartMessage::Logger::Base
     end
   end
   
-  def log_message_created(message)
-    @logger.info("MESSAGE_CREATED: #{message.class.name} - #{message.to_h}")
+  # Standard logging methods
+  def debug(message = nil, &block)
+    @logger.debug(message || block.call)
   end
   
-  def log_message_published(message, transport)
-    @logger.info("MESSAGE_PUBLISHED: #{message.class.name} via #{transport.class.name}")
+  def info(message = nil, &block)
+    @logger.info(message || block.call)
   end
   
-  def log_message_received(message_class, payload)
-    @logger.info("MESSAGE_RECEIVED: #{message_class.name} - #{payload}")
+  def warn(message = nil, &block)
+    @logger.warn(message || block.call)
   end
   
-  def log_message_processed(message_class, result)
-    @logger.info("MESSAGE_PROCESSED: #{message_class.name} - Result: #{result}")
+  def error(message = nil, &block)
+    @logger.error(message || block.call)
   end
   
-  def log_error(message, error)
-    @logger.error("MESSAGE_ERROR: #{message} - #{error.class.name}: #{error.message}")
+  def fatal(message = nil, &block)
+    @logger.fatal(message || block.call)
   end
 end
 
@@ -105,54 +107,47 @@ class SmartMessage::Logger::JSONLogger < SmartMessage::Logger::Base
     @log_file_path = log_file_path
     
     # Ensure log directory exists
-    FileUtils.mkdir_p(File.dirname(@log_file_path))
+    log_dir = File.dirname(@log_file_path)
+    FileUtils.mkdir_p(log_dir) unless Dir.exist?(log_dir)
   end
   
-  def log_message_created(message)
+  # Standard logging methods with JSON output
+  def debug(message = nil, &block)
     write_log_entry({
-      event: 'message_created',
-      message_class: message.class.name,
-      message_id: message._sm_header&.message_id,
-      timestamp: Time.now.iso8601,
-      data: message.to_h
-    })
-  end
-  
-  def log_message_published(message, transport)
-    write_log_entry({
-      event: 'message_published',
-      message_class: message.class.name,
-      message_id: message._sm_header&.message_id,
-      transport: transport.class.name,
+      level: 'DEBUG',
+      message: message || block&.call,
       timestamp: Time.now.iso8601
     })
   end
   
-  def log_message_received(message_class, payload)
+  def info(message = nil, &block)
     write_log_entry({
-      event: 'message_received',
-      message_class: message_class.name,
-      payload_size: payload.length,
+      level: 'INFO',
+      message: message || block&.call,
       timestamp: Time.now.iso8601
     })
   end
   
-  def log_message_processed(message_class, result)
+  def warn(message = nil, &block)
     write_log_entry({
-      event: 'message_processed',
-      message_class: message_class.name,
-      result: result.to_s,
+      level: 'WARN',
+      message: message || block&.call,
       timestamp: Time.now.iso8601
     })
   end
   
-  def log_error(message, error)
+  def error(message = nil, &block)
     write_log_entry({
-      event: 'error',
-      message: message.to_s,
-      error_class: error.class.name,
-      error_message: error.message,
-      backtrace: error.backtrace&.first(5),
+      level: 'ERROR',
+      message: message || block&.call,
+      timestamp: Time.now.iso8601
+    })
+  end
+  
+  def fatal(message = nil, &block)
+    write_log_entry({
+      level: 'FATAL',
+      message: message || block&.call,
       timestamp: Time.now.iso8601
     })
   end
@@ -168,24 +163,24 @@ end
 
 # Console Logger with Emoji Implementation
 class SmartMessage::Logger::EmojiConsoleLogger < SmartMessage::Logger::Base
-  def log_message_created(message)
-    puts "🏗️  Created: #{message.class.name} with data: #{message.to_h}"
+  def debug(message = nil, &block)
+    puts "🐛 DEBUG: #{message || block&.call}"
   end
   
-  def log_message_published(message, transport)
-    puts "📤 Published: #{message.class.name} via #{transport.class.name}"
+  def info(message = nil, &block)
+    puts "ℹ️  INFO: #{message || block&.call}"
   end
   
-  def log_message_received(message_class, payload)
-    puts "📥 Received: #{message_class.name} (#{payload.length} bytes)"
+  def warn(message = nil, &block)
+    puts "⚠️  WARN: #{message || block&.call}"
   end
   
-  def log_message_processed(message_class, result)
-    puts "⚙️  Processed: #{message_class.name} → #{result}"
+  def error(message = nil, &block)
+    puts "❌ ERROR: #{message || block&.call}"
   end
   
-  def log_error(message, error)
-    puts "❌ Error: #{message} → #{error.class.name}: #{error.message}"
+  def fatal(message = nil, &block)
+    puts "💀 FATAL: #{message || block&.call}"
   end
 end
 
@@ -198,60 +193,58 @@ class SmartMessage::Logger::RubyLoggerWrapper < SmartMessage::Logger::Base
     @logger = ruby_logger || Logger.new(STDOUT)
   end
   
-  def log_message_created(message)
-    @logger.debug { "SmartMessage created: #{message.class.name} ID: #{message._sm_header&.message_id}" }
+  # Standard logging methods that delegate to the Ruby logger
+  def debug(message = nil, &block)
+    @logger.debug(message, &block)
   end
   
-  def log_message_published(message, transport)
-    @logger.info { "SmartMessage published: #{message.class.name} via #{transport.class.name}" }
+  def info(message = nil, &block)
+    @logger.info(message, &block)
   end
   
-  def log_message_received(message_class, payload)
-    @logger.info { "SmartMessage received: #{message_class.name}" }
+  def warn(message = nil, &block)
+    @logger.warn(message, &block)
   end
   
-  def log_message_processed(message_class, result)
-    @logger.info { "SmartMessage processed: #{message_class.name}" }
+  def error(message = nil, &block)
+    @logger.error(message, &block)
   end
   
-  def log_error(message, error)
-    @logger.error { "SmartMessage error: #{message} - #{error.message}" }
-    @logger.debug { error.backtrace.join("\n") }
+  def fatal(message = nil, &block)
+    @logger.fatal(message, &block)
   end
 end
 
 # Example: Rails Logger Wrapper (for Rails applications)
 # Uncomment and use this in your Rails application
 # class SmartMessage::Logger::RailsLogger < SmartMessage::Logger::Base
-#   def log_message_created(message)
-#     Rails.logger.tagged('SmartMessage', message.class.name) do
-#       Rails.logger.info "Message created with ID: #{message._sm_header&.message_id}"
-#     end
-#   end
-#   
-#   def log_message_published(message, transport)
-#     Rails.logger.tagged('SmartMessage', message.class.name) do
-#       Rails.logger.info "Message published via #{transport.class.name}"
-#     end
-#   end
-#   
-#   def log_message_received(message_class, payload)
-#     Rails.logger.tagged('SmartMessage', message_class.name) do
-#       Rails.logger.info "Message received (#{payload.length} bytes)"
-#     end
-#   end
-#   
-#   def log_message_processed(message_class, result)
-#     Rails.logger.tagged('SmartMessage', message_class.name) do
-#       Rails.logger.info "Message processed successfully"
-#     end
-#   end
-#   
-#   def log_error(message, error)
+#   def debug(message = nil, &block)
 #     Rails.logger.tagged('SmartMessage') do
-#       Rails.logger.error "Error: #{message}"
-#       Rails.logger.error "#{error.class.name}: #{error.message}"
-#       Rails.logger.debug error.backtrace.join("\n")
+#       Rails.logger.debug(message || block&.call)
+#     end
+#   end
+#   
+#   def info(message = nil, &block)
+#     Rails.logger.tagged('SmartMessage') do
+#       Rails.logger.info(message || block&.call)
+#     end
+#   end
+#   
+#   def warn(message = nil, &block)
+#     Rails.logger.tagged('SmartMessage') do
+#       Rails.logger.warn(message || block&.call)
+#     end
+#   end
+#   
+#   def error(message = nil, &block)
+#     Rails.logger.tagged('SmartMessage') do
+#       Rails.logger.error(message || block&.call)
+#     end
+#   end
+#   
+#   def fatal(message = nil, &block)
+#     Rails.logger.tagged('SmartMessage') do
+#       Rails.logger.fatal(message || block&.call)
 #     end
 #   end
 # end
@@ -262,24 +255,24 @@ class SmartMessage::Logger::MultiLogger < SmartMessage::Logger::Base
     @loggers = loggers
   end
   
-  def log_message_created(message)
-    @loggers.each { |logger| logger.log_message_created(message) }
+  def debug(message = nil, &block)
+    @loggers.each { |logger| logger.debug(message, &block) }
   end
   
-  def log_message_published(message, transport)
-    @loggers.each { |logger| logger.log_message_published(message, transport) }
+  def info(message = nil, &block)
+    @loggers.each { |logger| logger.info(message, &block) }
   end
   
-  def log_message_received(message_class, payload)
-    @loggers.each { |logger| logger.log_message_received(message_class, payload) }
+  def warn(message = nil, &block)
+    @loggers.each { |logger| logger.warn(message, &block) }
   end
   
-  def log_message_processed(message_class, result)
-    @loggers.each { |logger| logger.log_message_processed(message_class, result) }
+  def error(message = nil, &block)
+    @loggers.each { |logger| logger.error(message, &block) }
   end
   
-  def log_error(message, error)
-    @loggers.each { |logger| logger.log_error(message, error) }
+  def fatal(message = nil, &block)
+    @loggers.each { |logger| logger.fatal(message, &block) }
   end
 end
 
@@ -314,7 +307,7 @@ class OrderProcessingMessage < SmartMessage::Base
     message_header, message_payload = wrapper.split
     # Simulate the logger being called during processing
     if logger
-      logger.log_message_received(self, message_payload)
+      logger.info { "[SmartMessage] Received: #{self.name} (#{message_payload.bytesize} bytes)" }
     end
     
     # Process the message
@@ -325,7 +318,7 @@ class OrderProcessingMessage < SmartMessage::Base
     
     # Log processing completion
     if logger
-      logger.log_message_processed(self, result)
+      logger.info { "[SmartMessage] Processed: #{self.name} - #{result}" }
     end
     
     result
@@ -334,15 +327,15 @@ class OrderProcessingMessage < SmartMessage::Base
   # Override publish to demonstrate logging hooks
   def publish
     # Log message creation
-    logger_instance = logger || self.class.logger
+    logger_instance = self.class.logger || SmartMessage::Logger.default
     if logger_instance
-      logger_instance.log_message_created(self)
+      logger_instance.debug { "[SmartMessage] Created: #{self.class.name}" }
     end
     
     # Log publishing
     transport_instance = transport || self.class.transport
     if logger_instance
-      logger_instance.log_message_published(self, transport_instance)
+      logger_instance.info { "[SmartMessage] Published: #{self.class.name} via #{transport_instance.class.name.split('::').last}" }
     end
     
     # Call original publish method
@@ -350,7 +343,7 @@ class OrderProcessingMessage < SmartMessage::Base
   rescue => error
     # Log any errors during publishing
     if logger_instance
-      logger_instance.log_error("Failed to publish #{self.class.name}", error)
+      logger_instance.error { "[SmartMessage] Error: Failed to publish #{self.class.name} - #{error.class.name}: #{error.message}" }
     end
     raise
   end
@@ -380,7 +373,7 @@ class NotificationMessage < SmartMessage::Base
   def self.process(wrapper)
     message_header, message_payload = wrapper.split
     if logger
-      logger.log_message_received(self, message_payload)
+      logger.info { "[SmartMessage] Received: #{self.name} (#{message_payload.bytesize} bytes)" }
     end
     
     notification_data = JSON.parse(message_payload)
@@ -389,7 +382,7 @@ class NotificationMessage < SmartMessage::Base
     puts "📬 Notification: #{result}"
     
     if logger
-      logger.log_message_processed(self, result)
+      logger.info { "[SmartMessage] Processed: #{self.name} - #{result}" }
     end
     
     result
@@ -588,10 +581,8 @@ class LoggerDemo
       
       # Simulate an error during processing
       if OrderProcessingMessage.logger
-        OrderProcessingMessage.logger.log_error(
-          "Simulated error for demo",
-          StandardError.new("Invalid order data provided")
-        )
+        error = StandardError.new("Invalid order data provided")
+        OrderProcessingMessage.logger.error { "[SmartMessage] Error: Simulated error for demo - #{error.class.name}: #{error.message}" }
       end
       
     rescue => error

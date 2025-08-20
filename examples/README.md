@@ -16,6 +16,8 @@ ruby 05_proc_handlers.rb
 ruby 06_custom_logger_example.rb
 ruby 07_error_handling_scenarios.rb
 ruby 08_entity_addressing.rb
+ruby 09_regex_filtering_microservices.rb
+ruby 10_header_block_configuration.rb
 ```
 
 ## Examples Overview
@@ -265,6 +267,73 @@ payment.publish
 - **Response Management**: Structured request-reply workflows
 - **Runtime Configuration**: Dynamic addressing based on conditions
 - **Integration Patterns**: Gateway support for external systems
+
+---
+
+### 10. Header Block Configuration (Addressing DSL)
+**File:** `10_header_block_configuration.rb`
+
+**Scenario:** Comprehensive demonstration of SmartMessage's flexible header configuration options, showing three different methods for setting addressing fields.
+
+**Key Features:**
+- Direct class methods for addressing configuration
+- Header block DSL for clean, grouped configuration
+- Mixed approach combining both methods
+- Instance-level addressing overrides with method chaining
+- Setter syntax for addressing fields
+- Automatic header synchronization with instance values
+- Configuration checking and validation methods
+
+**Configuration Methods Demonstrated:**
+```ruby
+# Method 1: Direct class methods
+class DirectMethodMessage < SmartMessage::Base
+  from 'service-a'
+  to 'service-b'
+  reply_to 'service-a-callback'
+end
+
+# Method 2: Header block DSL
+class HeaderBlockMessage < SmartMessage::Base
+  header do
+    from 'service-x'
+    to 'service-y'
+    reply_to 'service-x-callback'
+  end
+end
+
+# Method 3: Mixed approach
+class MixedConfigMessage < SmartMessage::Base
+  header do
+    from 'mixed-service'
+    to 'target-service'
+  end
+  reply_to 'mixed-callback'  # Outside block
+end
+```
+
+**Instance-Level Features:**
+- **Method Chaining**: `msg.from('sender').to('recipient').reply_to('callback')`
+- **Setter Syntax**: `msg.from = 'sender'`, `msg.to = 'recipient'`
+- **Shortcut Accessors**: `msg.from`, `msg.to`, `msg.reply_to`
+- **Header Access**: `msg._sm_header.from`, `msg._sm_header.to`
+- **Configuration Checks**: `msg.from_configured?`, `msg.to_missing?`
+- **Reset Methods**: `msg.reset_from`, `msg.reset_to`, `msg.reset_reply_to`
+
+**What You'll Learn:**
+- How to choose the best configuration method for your use case
+- Benefits of header block DSL for grouped configuration
+- Dynamic addressing overrides at runtime
+- Three ways to access addressing values
+- How headers automatically sync with instance changes
+- Configuration validation and checking methods
+
+**Benefits:**
+- **Clean Syntax**: Header block groups related configuration
+- **Flexibility**: Multiple configuration approaches to suit different styles
+- **Runtime Control**: Instance-level overrides for dynamic routing
+- **Consistency**: Headers stay synchronized with instance values
+- **Validation**: Built-in methods to check configuration state
 
 ## Message Patterns Demonstrated
 

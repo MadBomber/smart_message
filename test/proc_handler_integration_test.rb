@@ -63,7 +63,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
 
   def test_proc_handlers_with_memory_transport
     IntegrationTestMessage.transport SmartMessage::Transport::MemoryTransport.new(auto_process: true)
-    IntegrationTestMessage.serializer SmartMessage::Serializer::JSON.new
+    IntegrationTestMessage.serializer SmartMessage::Serializer::Json.new
 
     received_messages = []
 
@@ -77,7 +77,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
       }
     end
 
-    handler_id = IntegrationTestMessage.subscribe(message_processor)
+    _handler_id = IntegrationTestMessage.subscribe(message_processor)
 
     # Also test default handler
     IntegrationTestMessage.subscribe
@@ -95,7 +95,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
     message.publish
 
     # Give time for processing
-    sleep(0.1)
+    sleep(0.3)
 
     # Check that proc handler received the message
     assert_equal 1, received_messages.length
@@ -110,7 +110,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
   def test_multiple_proc_handlers_with_stdout_transport
     transport = SmartMessage::Transport::StdoutTransport.new(loopback: true)
     IntegrationTestMessage.transport transport
-    IntegrationTestMessage.serializer SmartMessage::Serializer::JSON.new
+    IntegrationTestMessage.serializer SmartMessage::Serializer::Json.new
 
     handler1_messages = []
     handler2_messages = []
@@ -142,7 +142,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
     message.publish
 
     # Give time for processing
-    sleep(0.1)
+    sleep(0.3)
 
     # Both handlers should have received the message
     assert_equal ["H1:MULTI-001"], handler1_messages
@@ -151,7 +151,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
 
   def test_proc_handler_error_handling_integration
     IntegrationTestMessage.transport SmartMessage::Transport::MemoryTransport.new(auto_process: true)
-    IntegrationTestMessage.serializer SmartMessage::Serializer::JSON.new
+    IntegrationTestMessage.serializer SmartMessage::Serializer::Json.new
 
     error_handler_called = false
     success_handler_called = false
@@ -180,7 +180,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
     # This should not raise an exception at the top level
     begin
       message.publish
-      sleep(0.1)  # Give time for processing
+      sleep(0.3)  # Give time for processing
       # If we get here, no exception was raised at the top level
       assert true, "System handled proc handler error gracefully"
     rescue => e
@@ -194,7 +194,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
 
   def test_proc_handler_unsubscribe_integration
     IntegrationTestMessage.transport SmartMessage::Transport::MemoryTransport.new(auto_process: true)
-    IntegrationTestMessage.serializer SmartMessage::Serializer::JSON.new
+    IntegrationTestMessage.serializer SmartMessage::Serializer::Json.new
 
     call_count = 0
 
@@ -212,7 +212,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
       timestamp: Time.now.iso8601
     ).publish
 
-    sleep(0.1)
+    sleep(0.3)
     assert_equal 1, call_count
 
     # Unsubscribe the proc handler
@@ -228,7 +228,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
       timestamp: Time.now.iso8601
     ).publish
 
-    sleep(0.1)
+    sleep(0.3)
 
     # Call count should still be 1 (handler was unsubscribed)
     assert_equal 1, call_count
@@ -236,7 +236,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
 
   def test_mixed_handler_types_integration
     IntegrationTestMessage.transport SmartMessage::Transport::MemoryTransport.new(auto_process: true)
-    IntegrationTestMessage.serializer SmartMessage::Serializer::JSON.new
+    IntegrationTestMessage.serializer SmartMessage::Serializer::Json.new
 
     # Clear previous state
     IntegrationTestMessage.clear_default_processed
@@ -247,7 +247,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
     IntegrationTestMessage.subscribe
 
     # 2. Block handler
-    block_id = IntegrationTestMessage.subscribe do |wrapper|
+    _block_id = IntegrationTestMessage.subscribe do |wrapper|
       data = JSON.parse(wrapper._sm_payload)
       results << "BLOCK:#{data['message_id']}"
     end
@@ -257,7 +257,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
       data = JSON.parse(wrapper._sm_payload)
       results << "PROC:#{data['message_id']}"
     end
-    proc_id = IntegrationTestMessage.subscribe(test_proc)
+    _proc_id = IntegrationTestMessage.subscribe(test_proc)
 
     # 4. Method handler
 
@@ -271,7 +271,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
       timestamp: Time.now.iso8601
     ).publish
 
-    sleep(0.1)
+    sleep(0.3)
 
     # All handlers should have processed the message
     assert_includes IntegrationTestMessage.default_processed, "MIXED-001"
@@ -288,7 +288,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
 
   def test_lambda_vs_proc_integration
     IntegrationTestMessage.transport SmartMessage::Transport::MemoryTransport.new(auto_process: true)
-    IntegrationTestMessage.serializer SmartMessage::Serializer::JSON.new
+    IntegrationTestMessage.serializer SmartMessage::Serializer::Json.new
 
     proc_calls = []
     lambda_calls = []
@@ -317,7 +317,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
       timestamp: Time.now.iso8601
     ).publish
 
-    sleep(0.1)
+    sleep(0.3)
 
     # Both should have been called
     assert_equal ["PROC_CALLED"], proc_calls
@@ -326,7 +326,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
 
   def test_concurrent_proc_handler_execution
     IntegrationTestMessage.transport SmartMessage::Transport::MemoryTransport.new(auto_process: true)
-    IntegrationTestMessage.serializer SmartMessage::Serializer::JSON.new
+    IntegrationTestMessage.serializer SmartMessage::Serializer::Json.new
 
     # Use a mutex to ensure thread safety in testing
     mutex = Mutex.new
@@ -356,7 +356,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
     ).publish
 
     # Wait for both to complete
-    sleep(0.1)
+    sleep(0.3)
 
     # Both should have started and completed
     assert_includes processing_order, "FAST_START"

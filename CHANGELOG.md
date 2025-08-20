@@ -7,6 +7,90 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Transport Layer Abstraction**: Complete refactoring from legacy Broker to modern Transport architecture
+  - New `SmartMessage::Transport` module providing pluggable message delivery backends
+  - Transport registry system for dynamic plugin discovery and registration
+  - Base transport class with standardized interface for all implementations
+  - Memory, STDOUT, and Redis transport implementations with production-ready features
+  - File-based transport support for inter-process communication
+- **Message Wrapper Architecture**: Unified message envelope system for cleaner dataflow
+  - New `SmartMessage::Wrapper::Base` class consolidating header and payload
+  - Simplified method signatures throughout message processing pipeline
+  - `_sm_` prefixed properties to avoid collision with user message definitions
+  - Support for different initialization patterns and automatic header generation
+- **HeaderDSL for Configuration**: Simplified message class setup with declarative syntax
+  - New `SmartMessage::Addressing::HeaderDSL` providing cleaner class-level configuration
+  - Declarative `from`, `to`, `reply_to` methods for entity addressing
+  - Automatic header field configuration without boilerplate code
+- **Advanced Message Filtering**: Regular expression support for flexible subscription patterns
+  - Regex pattern matching for `from:` and `to:` filters (e.g., `from: /^payment-.*/`)
+  - Array filters combining exact strings and patterns: `from: ['admin', /^system-.*/]`
+  - Environment-based routing patterns for dev/staging/production separation
+  - Service pattern routing for microservices architecture
+  - New example demonstrating regex filtering in microservices (`09_regex_filtering_microservices.rb`)
+- **Performance Benchmarking Tools**: Comprehensive performance measurement infrastructure
+  - New benchmark suite comparing thread pool and Ractor implementations
+  - JSON-based benchmark result storage with detailed metrics
+  - Benchmark comparison tool for analyzing performance across runs
+  - Ractor-based message processing implementation for parallel execution
+- **Improved Documentation Structure**: Complete documentation overhaul
+  - New modular documentation in `docs/` directory covering all major features
+  - Dedicated guides for transports, serializers, dispatcher, and filtering
+  - Architecture overview with component relationships
+  - Troubleshooting guide for common issues
+  - Example README with comprehensive usage patterns
+
+### Changed
+- **BREAKING: Transport API Migration**: Complete replacement of Broker with Transport
+  - All `broker` references must be updated to `transport`
+  - `SmartMessage::Broker` removed in favor of `SmartMessage::Transport`
+  - Transport implementations now in `lib/smart_message/transport/` directory
+  - Updated all examples and tests to use new transport terminology
+- **Simplified Module Structure**: Cleaner separation of concerns
+  - Extracted addressing logic into `SmartMessage::Addressing` module
+  - Separated messaging functionality into `SmartMessage::Messaging` module
+  - Created dedicated `SmartMessage::Plugins` module for plugin management
+  - Moved versioning logic to `SmartMessage::Versioning` module
+  - Utilities consolidated in `SmartMessage::Utilities` module
+- **Enhanced Error Messages**: More descriptive error handling throughout
+  - Improved header validation error messages with context
+  - Better transport registration error reporting
+  - Clearer serialization failure messages
+
+### Fixed
+- **Message Processing Simplification**: Removed unnecessary complexity in message wrapper
+  - Eliminated redundant processing steps in wrapper initialization
+  - Streamlined header and payload handling
+  - Fixed potential race conditions in concurrent message processing
+- **Header Method Handling**: Improved reliability of header field access
+  - Fixed edge cases in header method delegation
+  - Ensured consistent behavior across all header field operations
+  - Better error messages for invalid header operations
+
+### Enhanced
+- **Developer Experience**: Significant improvements to API usability
+  - More intuitive transport registration and discovery
+  - Cleaner message class definition with HeaderDSL
+  - Simplified subscription syntax with powerful filtering
+  - Better separation between framework internals and user code
+- **Testing Infrastructure**: Expanded test coverage
+  - New tests for transport layer abstraction
+  - Comprehensive filtering tests including regex patterns
+  - Performance benchmark test suite
+  - Proc handler integration tests
+- **Example Programs**: Enhanced educational value
+  - Added performance benchmarking examples
+  - New regex filtering demonstration for microservices
+  - Dead letter queue demonstration with retry scenarios
+  - Updated all examples to use modern transport architecture
+
+### Deprecated
+- **Broker System**: Legacy broker implementation marked for removal
+  - `SmartMessage::Broker` and all subclasses deprecated
+  - Migration path provided through transport layer
+  - Broker terminology replaced with transport throughout codebase
+
 ## [0.0.8] 2025-08-19
 
 ### Added

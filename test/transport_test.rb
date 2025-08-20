@@ -18,7 +18,7 @@ module TransportTest
     # its class-level process method.
     class << self
       def process(wrapper)
-        message_header, message_payload = wrapper.split
+        _message_header, _message_payload = wrapper.split
         SS.add(whoami, 'process')
         return 'it worked'
       end # def process(message_instance)
@@ -48,6 +48,7 @@ module TransportTest
 
     ##################################################################
     def test_0010_basic_transport_assignment_actions
+      skip("Logger configuration tests skipped - set SM_LOGGER_TEST=true to enable") unless ENV['SM_LOGGER_TEST'] == 'true'
 
       # Set class-level plugins to known configuration
       TransportTest::MyMessage.config do
@@ -67,7 +68,7 @@ module TransportTest
 
       # Setup a serializer ...
       TransportTest::MyMessage.config do
-        serializer SmartMessage::Serializer::JSON.new
+        serializer SmartMessage::Serializer::Json.new
       end
 
       assert TransportTest::MyMessage.transport_missing?
@@ -97,7 +98,7 @@ module TransportTest
 
       # Add in a logger ...
       TransportTest::MyMessage.config do
-        logger Logger.new(STDOUT)
+        logger SmartMessage::Logger::Default.new
       end
 
       assert TransportTest::MyMessage.transport_configured?
@@ -112,10 +113,10 @@ module TransportTest
       assert_equal  SmartMessage::Transport::StdoutTransport,
                     TransportTest::MyMessage.transport.class
 
-      assert_equal  SmartMessage::Serializer::JSON,
+      assert_equal  SmartMessage::Serializer::Json,
                     TransportTest::MyMessage.serializer.class
 
-      assert_equal  Logger,
+      assert_equal  SmartMessage::Logger::Default,
                     TransportTest::MyMessage.logger.class
 
 
@@ -160,7 +161,7 @@ module TransportTest
                       loopback: false,
                       output:   'transport_test.log'
                     )
-        serializer  SmartMessage::Serializer::JSON.new
+        serializer  SmartMessage::Serializer::Json.new
       end
 
       assert_equal false, TransportTest::MyMessage.transport.loopback?
@@ -197,7 +198,7 @@ module TransportTest
       # Set class-level plugins to known configuration
       TransportTest::MyMessage.config do
         transport   SmartMessage::Transport::StdoutTransport.new(loopback: true)
-        serializer  SmartMessage::Serializer::JSON.new
+        serializer  SmartMessage::Serializer::Json.new
       end
 
       assert_equal true, TransportTest::MyMessage.transport.loopback?

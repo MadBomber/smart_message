@@ -48,7 +48,7 @@ module PublishTest
   class Test < Minitest::Test
     def setup
       PublishTest::CommonMessageConfig.config do
-        serializer  SmartMessage::Serializer::JSON.new
+        serializer  SmartMessage::Serializer::Json.new
         transport   SmartMessage::Transport::StdoutTransport.new
       end
 

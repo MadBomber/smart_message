@@ -15,7 +15,7 @@ module SmartMessage
     # TODO: setup forwardable for some @router_pool methods
 
     def initialize(circuit_breaker_options = {})
-      @subscribers = Hash.new(Array.new)
+      @subscribers = Hash.new { |h, k| h[k] = [] }
       @router_pool = Concurrent::CachedThreadPool.new
 
       # Configure circuit breakers
@@ -23,7 +23,20 @@ module SmartMessage
       at_exit do
         shutdown_pool
       end
+      
+      logger.debug { "[SmartMessage::Dispatcher] Initialized with circuit breaker options: #{circuit_breaker_options}" }
+    rescue => e
+      logger.error { "[SmartMessage] Error in dispatcher initialization: #{e.class.name} - #{e.message}" }
+      raise
     end
+    
+    private
+    
+    def logger
+      @logger ||= SmartMessage::Logger.default
+    end
+    
+    public
 
 
     def what_can_i_do?
@@ -97,7 +110,7 @@ module SmartMessage
       end
 
       unless existing_subscription
-        @subscribers[klass] += [subscription]
+        @subscribers[klass] << subscription
       end
     end
 
@@ -117,16 +130,18 @@ module SmartMessage
 
     # complete reset all subscriptions
     def drop_all!
-      @subscribers = Hash.new(Array.new)
+      @subscribers = Hash.new { |h, k| h[k] = [] }
     end
 
 
-    # Route a wrapper to appropriate message processors
-    # @param wrapper [SmartMessage::Wrapper::Base] The message wrapper
-    def route(wrapper)
-      message_header = wrapper.header
+    # Route a decoded message to appropriate message processors
+    # @param decoded_message [SmartMessage::Base] The decoded message instance
+    def route(decoded_message)
+      message_header = decoded_message._sm_header
       message_klass = message_header.message_class
-      return nil if @subscribers[message_klass].empty?
+      logger.debug { "[SmartMessage::Dispatcher] Routing message #{message_klass} to #{@subscribers[message_klass]&.size || 0} subscribers" }
+      logger.debug { "[SmartMessage::Dispatcher] Available subscribers: #{@subscribers.keys}" }
+      return nil if @subscribers[message_klass].nil? || @subscribers[message_klass].empty?
 
       @subscribers[message_klass].each do |subscription|
         # Extract subscription details
@@ -143,21 +158,21 @@ module SmartMessage
             # Check if this is a proc handler or a regular method call
             if proc_handler?(message_processor)
               # Call the proc handler via SmartMessage::Base
-              SmartMessage::Base.call_proc_handler(message_processor, wrapper)
+              SmartMessage::Base.call_proc_handler(message_processor, decoded_message)
             else
-              # Method call logic with wrapper
+              # Method call logic with decoded message
               parts         = message_processor.split('.')
               target_klass  = parts[0]
               class_method  = parts[1]
               target_klass.constantize
                           .method(class_method)
-                          .call(wrapper)
+                          .call(decoded_message)
             end
           end
 
           # Handle circuit breaker fallback responses
           if circuit_result.is_a?(Hash) && circuit_result[:circuit_breaker]
-            handle_circuit_breaker_fallback(circuit_result, wrapper, message_processor)
+            handle_circuit_breaker_fallback(circuit_result, decoded_message, message_processor)
           end
         end
       end
@@ -321,21 +336,19 @@ module SmartMessage
 
     # Handle circuit breaker fallback responses
     # @param circuit_result [Hash] The circuit breaker fallback result
-    # @param message_header [SmartMessage::Header] The message header
-    # @param message_payload [String] The message payload
+    # @param decoded_message [SmartMessage::Base] The decoded message instance
     # @param message_processor [String] The processor that failed
-    def handle_circuit_breaker_fallback(circuit_result, wrapper, message_processor)
-      message_header = wrapper.header
+    def handle_circuit_breaker_fallback(circuit_result, decoded_message, message_processor)
+      message_header = decoded_message._sm_header
 
-      # Log circuit breaker activation
-      if $DEBUG
-        puts "Circuit breaker activated for processor: #{message_processor}"
-        puts "Error: #{circuit_result[:circuit_breaker][:error]}"
-        puts "Message: #{message_header.message_class} from #{message_header.from}"
-      end
+      # Always log circuit breaker activation for debugging
+      error_msg = circuit_result[:circuit_breaker][:error]
+      logger.error { "[SmartMessage::Dispatcher] Circuit breaker activated for processor: #{message_processor}" }
+      logger.error { "[SmartMessage::Dispatcher] Error: #{error_msg}" }
+      logger.error { "[SmartMessage::Dispatcher] Message: #{message_header.message_class} from #{message_header.from}" }
 
       # Send to dead letter queue
-      SmartMessage::DeadLetterQueue.default.enqueue(wrapper,
+      SmartMessage::DeadLetterQueue.default.enqueue(decoded_message,
         error: circuit_result[:circuit_breaker][:error],
         retry_count: 0,
         transport: 'circuit_breaker'

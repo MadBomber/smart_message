@@ -61,6 +61,6 @@ module SmartMessage
     # Serialization tracking for wrapper architecture
     property :serializer,
       required: false,
-      description: "Class name of the serializer used to encode the payload (e.g., 'SmartMessage::Serializer::JSON'). Used by DLQ and cross-serializer gateway patterns"
+      description: "Class name of the serializer used to encode the payload (e.g., 'SmartMessage::Serializer::Json'). Used by DLQ and cross-serializer gateway patterns"
   end
 end

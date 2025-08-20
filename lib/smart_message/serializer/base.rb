@@ -13,7 +13,20 @@ module SmartMessage::Serializer
     # provide basic configuration
     def initialize
       configure_serializer_circuit_breakers
+      
+      logger.debug { "[SmartMessage::Serializer::#{self.class.name.split('::').last}] Initialized" }
+    rescue => e
+      logger&.error { "[SmartMessage] Error in serializer initialization: #{e.class.name} - #{e.message}" }
+      raise
     end
+    
+    private
+    
+    def logger
+      @logger ||= SmartMessage::Logger.default
+    end
+    
+    public
 
     def encode(message_instance)
       circuit(:serializer).wrap do
@@ -40,6 +53,8 @@ module SmartMessage::Serializer
         raise
       end
     end
+    
+    private
 
     # Template methods for actual serialization (implement in subclasses)
     def do_encode(message_instance)
@@ -86,13 +101,10 @@ module SmartMessage::Serializer
 
     # Handle serializer circuit breaker fallback
     def handle_serializer_fallback(fallback_result, operation, data)
-      if $DEBUG
-        puts "Serializer circuit breaker activated: #{self.class.name}"
-        puts "Operation: #{operation}"
-        puts "Error: #{fallback_result[:circuit_breaker][:error]}"
-      end
-      
-      # TODO: Integrate with structured logging when implemented
+      # Integrate with structured logging
+      logger.error { "[SmartMessage::Serializer] Circuit breaker activated: #{self.class.name}" }
+      logger.error { "[SmartMessage::Serializer] Operation: #{operation}" }
+      logger.error { "[SmartMessage::Serializer] Error: #{fallback_result[:circuit_breaker][:error]}" }
       
       # Return the fallback result
       fallback_result

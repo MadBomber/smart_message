@@ -40,10 +40,17 @@ class WelcomeMessage < SmartMessage::Base
   # Add a description for the message class
   description "Welcomes new users after successful signup"
   
-  # Configure entity addressing
+  # Configure entity addressing (Method 1: Direct methods)
   from 'user-service'           # Required: identifies sender
   to 'notification-service'     # Optional: specific recipient
   reply_to 'user-service'       # Optional: where responses go
+  
+  # Alternative Method 2: Using header block
+  # header do
+  #   from 'user-service'
+  #   to 'notification-service'
+  #   reply_to 'user-service'
+  # end
   
   # Define message properties
   property :user_name

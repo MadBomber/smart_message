@@ -5,13 +5,12 @@
 require 'json'  # STDLIB
 
 module SmartMessage::Serializer
-  class JSON < Base
+  class Json < Base
     def do_encode(message_instance)
-      # Use the wrapper-aware approach: serialize only the payload portion
-      # The header should remain separate and unencrypted
+      # Single-tier serialization: serialize the complete message structure
+      # This includes both header and payload for full message reconstruction
       message_hash = message_instance.to_h
-      payload_portion = message_hash[:_sm_payload]
-      ::JSON.generate(payload_portion)
+      ::JSON.generate(message_hash)
     end
 
     def do_decode(payload)

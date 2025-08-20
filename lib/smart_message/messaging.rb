@@ -33,46 +33,38 @@ module SmartMessage
       }
     end
 
-    # Convert message to wrapper object
-    # Creates a wrapper with header (clear) and serialized payload
-    def to_wrapper
-      # Update header with current serializer info
-      _sm_header.serializer = serializer.class.to_s if serializer_configured?
-      
-      # Serialize the payload
-      serialized_payload = encode
-      
-      # Create wrapper with header and serialized payload
-      SmartMessage::Wrapper::Base.new(
-        header: _sm_header,
-        payload: serialized_payload
-      )
-    end
 
     # NOTE: you publish instances; but, you subscribe/unsubscribe at
     #       the class-level
     def publish
-      # Validate the complete message before publishing (now uses overridden validate!)
-      validate!
-      
-      # Update header with current publication info
-      _sm_header.published_at   = Time.now
-      _sm_header.publisher_pid  = Process.pid
+      begin
+        # Validate the complete message before publishing (now uses overridden validate!)
+        validate!
+        
+        # Update header with current publication info
+        _sm_header.published_at   = Time.now
+        _sm_header.publisher_pid  = Process.pid
+        _sm_header.serializer     = serializer.class.to_s if serializer_configured?
 
-      # Two-level serialization:
-      # Level 1: Serialize payload using configured serializer (may be encrypted/compressed)
-      # Level 2: Wrapper as JSON for routing/monitoring access to headers
-      
-      wrapper = to_wrapper
-      
-      raise Errors::TransportNotConfigured if transport_missing?
-      
-      # Transport now receives wrapper instead of separate header/payload
-      # The wrapper contains header (clear) and serialized payload
-      transport.publish_wrapper(wrapper)
+        # Single-tier serialization: serialize entire message with designated serializer
+        serialized_message = encode
+        
+        raise Errors::TransportNotConfigured if transport_missing?
+        
+        # Transport receives the message class name (for channel routing) and serialized message
+        (self.class.logger || SmartMessage::Logger.default).debug { "[SmartMessage::Messaging] About to call transport.publish" }
+        transport.publish(_sm_header.message_class, serialized_message)
+        (self.class.logger || SmartMessage::Logger.default).debug { "[SmartMessage::Messaging] transport.publish completed" }
+        
+        # Log the message publish
+        (self.class.logger || SmartMessage::Logger.default).info { "[SmartMessage] Published: #{self.class.name} via #{transport.class.name.split('::').last}" }
 
-      SS.add(_sm_header.message_class, 'publish')
-      SS.get(_sm_header.message_class, 'publish')
+        SS.add(_sm_header.message_class, 'publish')
+        SS.get(_sm_header.message_class, 'publish')
+      rescue => e
+        (self.class.logger || SmartMessage::Logger.default).error { "[SmartMessage] Error in message publishing: #{e.class.name} - #{e.message}" }
+        raise
+      end
     end # def publish
 
     private

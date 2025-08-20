@@ -80,8 +80,7 @@ module DispatcherTest
 
       # simulate the reception of a specific and route it to all of its
       # subscribed-to processes.
-      wrapper = SmartMessage::Wrapper::Base.new(header: @m1._sm_header, payload: @m1.to_s)
-      @dispatcher.route(wrapper)
+      @dispatcher.route(@m1)
 
       # NOTE: this shows that the messages are not being "processed"
       #       in the order that they were published.
@@ -95,7 +94,8 @@ module DispatcherTest
 
     # The business logic for process a received subscribed-to message
     # is implemented as a class method.
-    def self.processer_one(message_header, encoded_message)
+    def self.processer_one(wrapper)
+      message_header, encoded_message = wrapper.split
       debug_me(' = ONE ='){[ :message_header, :encoded_message]}
       unless 'DispatcherTest::MyMessage' == message_header.message_class
         puts "ERROR:  Expected DispatcherTest::MyMessage"
@@ -107,7 +107,8 @@ module DispatcherTest
     end
 
 
-    def self.processer_two(message_header, encoded_message)
+    def self.processer_two(wrapper)
+      message_header, encoded_message = wrapper.split
       debug_me(' == TWO =='){[ :message_header, :encoded_message]}
       unless 'DispatcherTest::MyMessage' == message_header.message_class
         puts "ERROR:  Expected DispatcherTest::MyMessage"

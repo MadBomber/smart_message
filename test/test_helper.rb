@@ -12,6 +12,11 @@ end
 
 require 'smart_message'
 
+# Configure SmartMessage to use STDERR for test suite logging
+SmartMessage.configure do |config|
+  config.logger = STDERR
+end
+
 require 'minitest/autorun'
 require 'minitest/power_assert'
 require 'shoulda'
@@ -29,6 +34,6 @@ unless defined?(DebugMeDefaultOptions)
   ivar: true,      # Include instance variables in the output
   cvar: true,      # Include class variables in the output
   cconst: true,    # Include class constants
-  file: File.open('test.log', 'a')    # The output file
+  file: File.open('smart_message_test.log', 'a')    # The output file
   }
 end

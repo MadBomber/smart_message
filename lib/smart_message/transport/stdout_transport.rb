@@ -27,30 +27,22 @@ module SmartMessage
         @options[:loopback]
       end
 
-      # Publish wrapper to STDOUT (two-level serialization)
-      def do_publish_wrapper(wrapper)
-        # Level 2 serialization: wrapper as JSON for monitoring/routing
-        wrapper_json = wrapper.to_json
-
-        @output.puts format_wrapper_message(wrapper, wrapper_json)
+      # Publish message to STDOUT (single-tier serialization)
+      def do_publish(message_class, serialized_message)
+        logger.debug { "[SmartMessage::StdoutTransport] do_publish called" }
+        logger.debug { "[SmartMessage::StdoutTransport] message_class: #{message_class}" }
+        
+        @output.puts format_message(message_class, serialized_message)
         @output.flush
 
         # If loopback is enabled, route the message back through the dispatcher
         if loopback?
-          receive(wrapper)
+          logger.debug { "[SmartMessage::StdoutTransport] Loopback enabled, calling receive" }
+          receive(message_class, serialized_message)
         end
-      end
-
-      # Legacy publish method for backward compatibility
-      def do_publish(message_header, message_payload)
-        @output.puts format_message(message_header, message_payload)
-        @output.flush
-
-        # If loopback is enabled, route the message back through the dispatcher
-        if loopback?
-          wrapper = SmartMessage::Wrapper::Base.new(header: message_header, payload: message_payload)
-          receive(wrapper)
-        end
+      rescue => e
+        logger.error { "[SmartMessage] Error in stdout transport do_publish: #{e.class.name} - #{e.message}" }
+        raise
       end
 
       def connected?
@@ -63,28 +55,14 @@ module SmartMessage
 
       private
 
-      def format_wrapper_message(wrapper, wrapper_json)
-        <<~MESSAGE
-
-          ===================================================
-          == SmartMessage Wrapper Published via STDOUT Transport
-          == Two-Level Serialization Demo:
-          == Level 1 (Payload): #{wrapper.payload} [#{wrapper.header.serializer}]
-          == Level 2 (Wrapper): #{wrapper_json} [JSON]
-          == Header: #{wrapper.header.inspect}
-          == Payload: #{wrapper.payload}
-          ===================================================
-
-        MESSAGE
-      end
-
-      def format_message(message_header, message_payload)
+      def format_message(message_class, serialized_message)
         <<~MESSAGE
 
           ===================================================
           == SmartMessage Published via STDOUT Transport
-          == Header: #{message_header.inspect}
-          == Payload: #{message_payload}
+          == Single-Tier Serialization:
+          == Message Class: #{message_class}
+          == Serialized Message: #{serialized_message}
           ===================================================
 
         MESSAGE

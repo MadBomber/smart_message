@@ -10,7 +10,7 @@ module MessageFilteringTest
     
     class << self
       def process(wrapper)
-        message_header, message_payload = wrapper.split
+        message_header, _message_payload = wrapper.split
         # Track processed messages for testing
         SS.add(whoami, 'process')
         SS.add(whoami, 'processed_messages', message_header.uuid)
@@ -25,7 +25,7 @@ module MessageFilteringTest
       # Configure transport with loopback for testing
       FilterTestMessage.config do
         transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
-        serializer SmartMessage::Serializer::JSON.new
+        serializer SmartMessage::Serializer::Json.new
       end
       
       # Clear any existing subscriptions
@@ -47,7 +47,7 @@ module MessageFilteringTest
       directed_msg.publish
       
       # Give time for processing
-      sleep(0.1)
+      sleep(0.3)
       
       # Should have processed both messages
       assert_equal 2, SS.get('MessageFilteringTest::FilterTestMessage', 'process')
@@ -68,7 +68,7 @@ module MessageFilteringTest
       directed_msg.publish
       
       # Give time for processing
-      sleep(0.1)
+      sleep(0.3)
       
       # Should have processed only the broadcast message
       assert_equal 1, SS.get('MessageFilteringTest::FilterTestMessage', 'process')
@@ -94,7 +94,7 @@ module MessageFilteringTest
       broadcast_msg.publish
       
       # Give time for processing
-      sleep(0.1)
+      sleep(0.3)
       
       # Should have processed only the order-service message
       assert_equal 1, SS.get('MessageFilteringTest::FilterTestMessage', 'process')
@@ -115,7 +115,7 @@ module MessageFilteringTest
       other_msg.publish
       
       # Give time for processing
-      sleep(0.1)
+      sleep(0.3)
       
       # Should have processed only the payment-service message
       assert_equal 1, SS.get('MessageFilteringTest::FilterTestMessage', 'process')
@@ -141,7 +141,7 @@ module MessageFilteringTest
       other_msg.publish
       
       # Give time for processing
-      sleep(0.1)
+      sleep(0.3)
       
       # Should have processed broadcast + my-service messages (2 total)
       assert_equal 2, SS.get('MessageFilteringTest::FilterTestMessage', 'process')
@@ -170,7 +170,7 @@ module MessageFilteringTest
       other_to_me.publish
       
       # Give time for processing
-      sleep(0.1)
+      sleep(0.3)
       
       # Should have processed only the admin->my-service message
       assert_equal 1, SS.get('MessageFilteringTest::FilterTestMessage', 'process')
@@ -196,7 +196,7 @@ module MessageFilteringTest
       user_msg.publish
       
       # Give time for processing
-      sleep(0.1)
+      sleep(0.3)
       
       # Should have processed admin + system messages (2 total)
       assert_equal 2, SS.get('MessageFilteringTest::FilterTestMessage', 'process')
@@ -222,7 +222,7 @@ module MessageFilteringTest
       user_msg.publish
       
       # Give time for processing
-      sleep(0.1)
+      sleep(0.3)
       
       # Should have processed payment-service + payment-gateway messages (2 total)
       assert_equal 2, SS.get('MessageFilteringTest::FilterTestMessage', 'process')
@@ -248,7 +248,7 @@ module MessageFilteringTest
       prod_msg.publish
       
       # Give time for processing
-      sleep(0.1)
+      sleep(0.3)
       
       # Should have processed dev + staging messages (2 total)
       assert_equal 2, SS.get('MessageFilteringTest::FilterTestMessage', 'process')
@@ -279,7 +279,7 @@ module MessageFilteringTest
       user_msg.publish
       
       # Give time for processing
-      sleep(0.1)
+      sleep(0.3)
       
       # Should have processed admin + system-worker + monitoring messages (3 total)
       assert_equal 3, SS.get('MessageFilteringTest::FilterTestMessage', 'process')
@@ -308,7 +308,7 @@ module MessageFilteringTest
       no_match_from.publish
       
       # Give time for processing
-      sleep(0.1)
+      sleep(0.3)
       
       # Should have processed only the admin->prod message (1 total)
       assert_equal 1, SS.get('MessageFilteringTest::FilterTestMessage', 'process')

@@ -2,7 +2,7 @@
 # examples/01_point_to_point_orders.rb
 #
 # 1-to-1 Messaging Example: Order Processing System
-# 
+#
 # This example demonstrates point-to-point messaging between an OrderService
 # and a PaymentService. Each order gets processed by exactly one payment processor.
 
@@ -11,69 +11,69 @@ require_relative '../lib/smart_message'
 puts "=== SmartMessage Example: Point-to-Point Order Processing ==="
 puts
 
+SmartMessage.configure do |config|
+  config.logger = STDERR
+end
+
 # Define the Order Message
 class OrderMessage < SmartMessage::Base
   description "Represents customer orders for processing through the payment system"
-  
-  property :order_id, 
+
+  property :order_id,
     description: "Unique identifier for the order (e.g., ORD-1001)"
-  property :customer_id, 
+  property :customer_id,
     description: "Unique identifier for the customer placing the order"
-  property :amount, 
+  property :amount,
     description: "Total order amount in decimal format (e.g., 99.99)"
-  property :currency, 
+  property :currency,
     default: 'USD',
     description: "ISO currency code for the order (defaults to USD)"
-  property :payment_method, 
+  property :payment_method,
     description: "Payment method selected by customer (credit_card, debit_card, paypal, etc.)"
-  property :items, 
+  property :items,
     description: "Array of item names or descriptions included in the order"
 
   # Configure to use memory transport for this example
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
 
   # Default processing - just logs the order
-  def self.process(wrapper)
-    message_header, message_payload = wrapper.split
-    order_data = JSON.parse(message_payload)
-    puts "📋 Order received: #{order_data['order_id']} for $#{order_data['amount']}"
+  def self.process(message)
+    puts "📋 Order received: #{message.order_id} for $#{message.amount}"
   end
 end
 
-# Define the Payment Response Message  
+# Define the Payment Response Message
 class PaymentResponseMessage < SmartMessage::Base
   description "Contains payment processing results sent back to the order system"
-  
-  property :order_id, 
+
+  property :order_id,
     description: "Reference to the original order being processed"
-  property :payment_id, 
+  property :payment_id,
     description: "Unique identifier for the payment transaction (e.g., PAY-5001)"
-  property :status, 
+  property :status,
     description: "Payment processing status: 'success', 'failed', or 'pending'"
-  property :message, 
+  property :message,
     description: "Human-readable description of the payment result"
-  property :processed_at, 
+  property :processed_at,
     description: "ISO8601 timestamp when the payment was processed"
 
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
 
-  def self.process(wrapper)
-    message_header, message_payload = wrapper.split
-    response_data = JSON.parse(message_payload)
-    status_emoji = case response_data['status']
+  def self.process(message)
+    status_emoji = case message.status
                    when 'success' then '✅'
                    when 'failed' then '❌'
                    when 'pending' then '⏳'
                    else '❓'
                    end
-    
-    puts "#{status_emoji} Payment #{response_data['status']}: Order #{response_data['order_id']} - #{response_data['message']}"
+
+    puts "#{status_emoji} Payment #{message.status}: Order #{message.order_id} - #{message.message}"
   end
 end
 
@@ -86,9 +86,9 @@ class OrderService
 
   def create_order(customer_id:, amount:, payment_method:, items:)
     order_id = "ORD-#{@order_counter += 1}"
-    
+
     puts "\n🏪 OrderService: Creating order #{order_id}"
-    
+
     order = OrderMessage.new(
       order_id: order_id,
       customer_id: customer_id,
@@ -97,10 +97,10 @@ class OrderService
       items: items,
       from: 'OrderService'
     )
-    
+
     puts "🏪 OrderService: Sending order to payment processing..."
     order.publish
-    
+
     order_id
   end
 end
@@ -110,48 +110,46 @@ class PaymentService
   def initialize
     puts "💳 PaymentService: Starting up..."
     @payment_counter = 5000
-    
+
     # Subscribe to order messages with custom processor
     OrderMessage.subscribe('PaymentService.process_order')
   end
 
-  def self.process_order(wrapper)
+  def self.process_order(message)
     processor = new
-    processor.handle_order(wrapper)
+    processor.handle_order(message)
   end
 
-  def handle_order(wrapper)
-    message_header, message_payload = wrapper.split
-    order_data = JSON.parse(message_payload)
+  def handle_order(message)
     payment_id = "PAY-#{@payment_counter += 1}"
-    
-    puts "💳 PaymentService: Processing payment for order #{order_data['order_id']}"
-    
+
+    puts "💳 PaymentService: Processing payment for order #{message.order_id}"
+
     # Simulate payment processing logic
-    success = simulate_payment_processing(order_data)
-    
+    success = simulate_payment_processing(message)
+
     # Send response back
     response = PaymentResponseMessage.new(
-      order_id: order_data['order_id'],
+      order_id: message.order_id,
       payment_id: payment_id,
       status: success ? 'success' : 'failed',
       message: success ? 'Payment processed successfully' : 'Insufficient funds',
       processed_at: Time.now.iso8601,
       from: 'PaymentService'
     )
-    
+
     puts "💳 PaymentService: Sending payment response..."
     response.publish
   end
 
   private
 
-  def simulate_payment_processing(order_data)
+  def simulate_payment_processing(message)
     # Simulate processing time
     sleep(0.1)
-    
+
     # Simulate success/failure based on amount (fail large orders for demo)
-    order_data['amount'] < 1000
+    message.amount < 1000
   end
 end
 
@@ -159,18 +157,18 @@ end
 class OrderProcessingDemo
   def run
     puts "🚀 Starting Order Processing Demo\n"
-    
+
     # Start services
     order_service = OrderService.new
     payment_service = PaymentService.new
-    
+
     # Subscribe to payment responses
     PaymentResponseMessage.subscribe
-    
+
     puts "\n" + "="*60
     puts "Processing Sample Orders"
     puts "="*60
-    
+
     # Create some sample orders
     orders = [
       {
@@ -180,7 +178,7 @@ class OrderProcessingDemo
         items: ["Widget A", "Widget B"]
       },
       {
-        customer_id: "CUST-002", 
+        customer_id: "CUST-002",
         amount: 1299.99,  # This will fail (too large)
         payment_method: "debit_card",
         items: ["Premium Widget", "Extended Warranty"]
@@ -196,15 +194,15 @@ class OrderProcessingDemo
     orders.each_with_index do |order_params, index|
       puts "\n--- Order #{index + 1} ---"
       order_id = order_service.create_order(**order_params)
-      
+
       # Brief pause between orders for clarity
       sleep(0.5)
     end
-    
+
     # Give time for all async processing to complete
     puts "\n⏳ Waiting for all payments to process..."
     sleep(2)
-    
+
     puts "\n✨ Demo completed!"
     puts "\nThis example demonstrated:"
     puts "• Point-to-point messaging between OrderService and PaymentService"

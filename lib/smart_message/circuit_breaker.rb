@@ -182,7 +182,8 @@ module SmartMessage
               sent_to_dlq = true
             rescue => dlq_error
               # DLQ storage failed - log but don't raise
-              puts "Warning: Failed to store message in DLQ: #{dlq_error.message}" if $DEBUG
+              # Note: Logger might not be available in circuit breaker context
+              warn "Warning: Failed to store message in DLQ: #{dlq_error.message}"
             end
           end
           

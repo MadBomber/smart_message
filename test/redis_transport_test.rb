@@ -15,7 +15,7 @@ module RedisTransportTest
 
     class << self
       def process(wrapper)
-        message_header, message_payload = wrapper.split
+        _message_header, _message_payload = wrapper.split
         SS.add(whoami, 'process')
         return 'processed'
       end
@@ -29,7 +29,7 @@ module RedisTransportTest
 
     class << self
       def process(wrapper)
-        message_header, message_payload = wrapper.split
+        _message_header, _message_payload = wrapper.split
         SS.add(whoami, 'process')
         return 'processed_another'
       end
@@ -96,7 +96,7 @@ module RedisTransportTest
           db: 15,
           auto_subscribe: false
         )
-        serializer SmartMessage::Serializer::JSON.new
+        serializer SmartMessage::Serializer::Json.new
       end
 
       message = RedisTransportTest::TestMessage.new(
@@ -126,7 +126,7 @@ module RedisTransportTest
           auto_subscribe: true,
           debug: false
         )
-        serializer SmartMessage::Serializer::JSON.new
+        serializer SmartMessage::Serializer::Json.new
       end
 
       # Clear subscription database
@@ -190,7 +190,7 @@ module RedisTransportTest
         reset_serializer
         
         transport shared_transport
-        serializer SmartMessage::Serializer::JSON.new
+        serializer SmartMessage::Serializer::Json.new
       end
 
       # Configure AnotherTestMessage with same transport
@@ -200,7 +200,7 @@ module RedisTransportTest
         reset_serializer
         
         transport shared_transport
-        serializer SmartMessage::Serializer::JSON.new
+        serializer SmartMessage::Serializer::Json.new
       end
 
       # Clear subscription database
@@ -273,7 +273,7 @@ module RedisTransportTest
           auto_subscribe: true,
           debug: false
         )
-        serializer SmartMessage::Serializer::JSON.new
+        serializer SmartMessage::Serializer::Json.new
       end
 
       # Clear subscription database

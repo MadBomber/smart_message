@@ -116,12 +116,23 @@ module SmartMessage
           from: from_filter
         }
 
-        # TODO: Add proper logging here
-
-        raise Errors::TransportNotConfigured if transport_missing?
-        transport.subscribe(message_class, process_method, filter_options)
+        # Add proper logging
+        logger = SmartMessage::Logger.default
         
-        process_method
+        begin
+          raise Errors::TransportNotConfigured if transport_missing?
+          transport.subscribe(message_class, process_method, filter_options)
+          
+          # Log successful subscription
+          handler_desc = block_given? || process_method.respond_to?(:call) ? " with block/proc handler" : ""
+          logger.info { "[SmartMessage] Subscribed: #{self.name}#{handler_desc}" }
+          logger.debug { "[SmartMessage::Subscription] Subscribed #{message_class} with filters: #{filter_options}" }
+          
+          process_method
+        rescue => e
+          logger.error { "[SmartMessage] Error in message subscription: #{e.class.name} - #{e.message}" }
+          raise
+        end
       end
 
       # Remove this process_method for this message class from the
@@ -132,15 +143,25 @@ module SmartMessage
       def unsubscribe(process_method = nil)
         message_class   = whoami
         process_method  = message_class + '.process' if process_method.nil?
-        # TODO: Add proper logging here
-
-        if transport_configured?
-          transport.unsubscribe(message_class, process_method)
-          
-          # If this was a proc handler, clean it up from the registry
-          if proc_handler?(process_method)
-            unregister_proc_handler(process_method)
+        # Add proper logging
+        logger = SmartMessage::Logger.default
+        
+        begin
+          if transport_configured?
+            transport.unsubscribe(message_class, process_method)
+            
+            # If this was a proc handler, clean it up from the registry
+            if proc_handler?(process_method)
+              unregister_proc_handler(process_method)
+            end
+            
+            # Log successful unsubscription
+            logger.info { "[SmartMessage] Unsubscribed: #{self.name}" }
+            logger.debug { "[SmartMessage::Subscription] Unsubscribed #{message_class} from #{process_method}" }
           end
+        rescue => e
+          logger.error { "[SmartMessage] Error in message unsubscription: #{e.class.name} - #{e.message}" }
+          raise
         end
       end
 

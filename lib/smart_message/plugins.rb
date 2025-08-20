@@ -29,33 +29,41 @@ module SmartMessage
     ## instance-level transport configuration
 
     def transport(klass_or_instance = nil)
-      klass_or_instance.nil? ? @transport || self.class.class_variable_get(:@@transport) : @transport = klass_or_instance
+      if klass_or_instance.nil?
+        # Return instance transport, class transport, or global configuration
+        @transport || self.class.class_variable_get(:@@transport) || SmartMessage::Transport.default
+      else
+        @transport = klass_or_instance
+      end
     end
 
-    def transport_configured?;  !transport.nil?;   end
-    def transport_missing?;      transport.nil?;   end
+    def transport_configured?;  !transport_missing?;   end
+    def transport_missing?
+      # Check if transport is explicitly configured (without fallback to defaults)
+      @transport.nil? && 
+        (self.class.class_variable_get(:@@transport) rescue nil).nil?
+    end
     def reset_transport;        @transport = nil;  end
 
-    #########################################################
-    ## instance-level logger configuration
-
-    def logger(klass_or_instance = nil)
-      klass_or_instance.nil? ? @logger || self.class.class_variable_get(:@@logger) : @logger = klass_or_instance
-    end
-
-    def logger_configured?;     !logger.nil?; end
-    def logger_missing?;         logger.nil?; end
-    def reset_logger;           @logger = nil;  end
 
     #########################################################
     ## instance-level serializer configuration
 
     def serializer(klass_or_instance = nil)
-      klass_or_instance.nil? ? @serializer || self.class.class_variable_get(:@@serializer) : @serializer = klass_or_instance
+      if klass_or_instance.nil?
+        # Return instance serializer, class serializer, or global configuration
+        @serializer || self.class.class_variable_get(:@@serializer) || SmartMessage::Serializer.default
+      else
+        @serializer = klass_or_instance
+      end
     end
 
-    def serializer_configured?; !serializer.nil?;   end
-    def serializer_missing?;     serializer.nil?;   end
+    def serializer_configured?; !serializer_missing?;   end
+    def serializer_missing?
+      # Check if serializer is explicitly configured (without fallback to defaults)
+      @serializer.nil? && 
+        (self.class.class_variable_get(:@@serializer) rescue nil).nil?
+    end
     def reset_serializer;       @serializer = nil;  end
 
     module ClassMethods
@@ -70,18 +78,31 @@ module SmartMessage
       ## class-level transport configuration
 
       def transport(klass_or_instance = nil)
-        klass_or_instance.nil? ? class_variable_get(:@@transport) : class_variable_set(:@@transport, klass_or_instance)
+        if klass_or_instance.nil?
+          # Return class-level transport or fall back to global configuration
+          class_variable_get(:@@transport) || SmartMessage::Transport.default
+        else
+          class_variable_set(:@@transport, klass_or_instance)
+        end
       end
 
-      def transport_configured?;  !transport.nil?;   end
-      def transport_missing?;      transport.nil?;   end
+      def transport_configured?;  !transport_missing?;   end
+      def transport_missing?
+        # Check if class-level transport is explicitly configured (without fallback to defaults)
+        (class_variable_get(:@@transport) rescue nil).nil?
+      end
       def reset_transport;       class_variable_set(:@@transport, nil);  end
 
       #########################################################
       ## class-level logger configuration
 
       def logger(klass_or_instance = nil)
-        klass_or_instance.nil? ? class_variable_get(:@@logger) : class_variable_set(:@@logger, klass_or_instance)
+        if klass_or_instance.nil?
+          # Return class-level logger or fall back to global configuration
+          class_variable_get(:@@logger) || SmartMessage::Logger.default
+        else
+          class_variable_set(:@@logger, klass_or_instance)
+        end
       end
 
       def logger_configured?;     !logger.nil?;   end
@@ -92,11 +113,19 @@ module SmartMessage
       ## class-level serializer configuration
 
       def serializer(klass_or_instance = nil)
-        klass_or_instance.nil? ? class_variable_get(:@@serializer) : class_variable_set(:@@serializer, klass_or_instance)
+        if klass_or_instance.nil?
+          # Return class-level serializer or fall back to global configuration
+          class_variable_get(:@@serializer) || SmartMessage::Serializer.default
+        else
+          class_variable_set(:@@serializer, klass_or_instance)
+        end
       end
 
-      def serializer_configured?; !serializer.nil?;   end
-      def serializer_missing?;     serializer.nil?;   end
+      def serializer_configured?; !serializer_missing?;   end
+      def serializer_missing?
+        # Check if class-level serializer is explicitly configured (without fallback to defaults)
+        (class_variable_get(:@@serializer) rescue nil).nil?
+      end
       def reset_serializer;      class_variable_set(:@@serializer, nil);  end
     end
   end

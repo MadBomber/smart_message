@@ -22,22 +22,21 @@ module SmartMessage
       end
 
       # Publish message to memory queue
-      def do_publish(message_header, message_payload)
+      def do_publish(message_class, serialized_message)
         @message_mutex.synchronize do
           # Prevent memory overflow
           @messages.shift if @messages.size >= @options[:max_messages]
           
           @messages << {
-            header: message_header,
-            payload: message_payload,
+            message_class: message_class,
+            serialized_message: serialized_message,
             published_at: Time.now
           }
         end
 
         # Auto-process if enabled
         if @options[:auto_process]
-          wrapper = SmartMessage::Wrapper::Base.new(header: message_header, payload: message_payload)
-          receive(wrapper)
+          receive(message_class, serialized_message)
         end
       end
 
@@ -60,7 +59,7 @@ module SmartMessage
       def process_all
         messages_to_process = @message_mutex.synchronize { @messages.dup }
         messages_to_process.each do |msg|
-          receive(msg[:header], msg[:payload])
+          receive(msg[:message_class], msg[:serialized_message])
         end
       end
 

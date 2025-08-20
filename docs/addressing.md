@@ -63,15 +63,52 @@ end
 
 ### Class-Level Configuration
 
-Set default addressing for all instances of a message class:
+Set default addressing for all instances of a message class using three different approaches:
 
+#### Method 1: Direct Class Methods
 ```ruby
 class PaymentMessage < SmartMessage::Base
   version 1
   
-  # Class-level addressing
+  # Class-level addressing using direct methods
   from 'payment-service'
   to 'bank-gateway'
+  reply_to 'payment-service'
+  
+  property :amount, required: true
+  property :account_id, required: true
+end
+```
+
+#### Method 2: Header Block DSL
+```ruby
+class PaymentMessage < SmartMessage::Base
+  version 1
+  
+  # Class-level addressing using header block
+  header do
+    from 'payment-service'
+    to 'bank-gateway'
+    reply_to 'payment-service'
+  end
+  
+  property :amount, required: true
+  property :account_id, required: true
+end
+```
+
+#### Method 3: Mixed Approach
+```ruby
+class PaymentMessage < SmartMessage::Base
+  version 1
+  
+  # You can mix approaches if needed
+  header do
+    from 'payment-service'
+    to 'bank-gateway'
+  end
+  
+  # Additional addressing outside the block
   reply_to 'payment-service'
   
   property :amount, required: true
@@ -87,27 +124,54 @@ puts payment._sm_header.reply_to # => 'payment-service'
 
 ### Instance-Level Overrides
 
-Override addressing for specific message instances:
+Override addressing for specific message instances using multiple approaches:
 
+#### Method Chaining
 ```ruby
 class FlexibleMessage < SmartMessage::Base
-  from 'service-a'
-  to 'service-b'
+  header do
+    from 'service-a'
+    to 'service-b'
+  end
   
   property :data
 end
 
-# Override addressing for this instance
+# Override addressing using method chaining
 message = FlexibleMessage.new(data: "test")
 message.from('different-sender')
-message.to('different-recipient')
-message.reply_to('different-reply-service')
+       .to('different-recipient')
+       .reply_to('different-reply-service')
 
 puts message.from     # => 'different-sender'
 puts message.to       # => 'different-recipient' 
 puts message.reply_to # => 'different-reply-service'
+```
 
-# Class defaults remain unchanged
+#### Setter Methods
+```ruby
+# Override addressing using setter syntax
+message = FlexibleMessage.new(data: "test")
+message.from = 'different-sender'
+message.to = 'different-recipient'
+message.reply_to = 'different-reply-service'
+```
+
+#### Accessing Addressing Values
+```ruby
+# Three ways to access addressing values
+
+# 1. Direct shortcut methods
+puts message.from      # => 'different-sender'
+puts message.to        # => 'different-recipient'
+puts message.reply_to  # => 'different-reply-service'
+
+# 2. Via header object
+puts message._sm_header.from      # => 'different-sender'
+puts message._sm_header.to        # => 'different-recipient'
+puts message._sm_header.reply_to  # => 'different-reply-service'
+
+# 3. Class defaults remain unchanged
 puts FlexibleMessage.from # => 'service-a'
 puts FlexibleMessage.to   # => 'service-b'
 ```
@@ -257,27 +321,69 @@ message.publish  # Raises SmartMessage::Errors::ValidationError
 # => "The property 'from' From entity ID is required for message routing and replies"
 ```
 
+### Checking Address Configuration
+```ruby
+class ValidatedMessage < SmartMessage::Base
+  header do
+    from 'my-service'
+    to 'target-service'
+  end
+  
+  property :data
+end
+
+# Class-level checks
+puts ValidatedMessage.from_configured?     # => true
+puts ValidatedMessage.to_configured?       # => true
+puts ValidatedMessage.reply_to_configured? # => false
+puts ValidatedMessage.reply_to_missing?    # => true
+
+# Instance-level checks
+message = ValidatedMessage.new(data: "test")
+puts message.from_configured?     # => true
+puts message.to_missing?          # => false
+
+# Reset addressing
+message.reset_from
+puts message.from_configured?     # => false
+puts message.from                 # => nil
+```
+
 ## Header Access
 
 Access addressing information from message headers:
 
 ```ruby
 class SampleMessage < SmartMessage::Base
-  from 'sample-service'
-  to 'target-service'
-  reply_to 'callback-service'
+  # Using header block for configuration
+  header do
+    from 'sample-service'
+    to 'target-service'
+    reply_to 'callback-service'
+  end
   
   property :content
 end
 
 message = SampleMessage.new(content: "Hello")
-header = message._sm_header
 
+# Access via shortcut methods (recommended)
+puts message.from      # => 'sample-service'
+puts message.to        # => 'target-service'  
+puts message.reply_to  # => 'callback-service'
+
+# Access via header object
+header = message._sm_header
 puts header.from      # => 'sample-service'
 puts header.to        # => 'target-service'  
 puts header.reply_to  # => 'callback-service'
 puts header.uuid      # => Generated UUID
 puts header.message_class  # => 'SampleMessage'
+
+# Headers automatically sync with instance changes
+message.to = 'new-target'
+puts message.to           # => 'new-target'
+puts header.to            # => 'new-target' (automatically updated)
 ```
 
 ## Integration with Dispatcher

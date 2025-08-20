@@ -26,20 +26,35 @@ module SmartMessage
       @file_path = File.expand_path(file_path)
       @mutex = Mutex.new
       ensure_directory_exists
+      
+      logger.debug { "[SmartMessage::DeadLetterQueue] Initialized with file path: #{@file_path}" }
+    rescue => e
+      logger&.error { "[SmartMessage] Error in dead letter queue initialization: #{e.class.name} - #{e.message}" }
+      raise
     end
+    
+    private
+    
+    def logger
+      @logger ||= SmartMessage::Logger.default
+    end
+    
+    public
 
     # Core FIFO queue operations
 
     # Add a failed message to the dead letter queue
-    # @param wrapper [SmartMessage::Wrapper::Base] The message wrapper
+    # @param message [SmartMessage::Base] The message instance
     # @param error_info [Hash] Error details including :error, :retry_count, :transport, etc.
-    def enqueue(wrapper, error_info = {})
-      message_header, message_payload = wrapper.split
+    def enqueue(message, error_info = {})
+      message_header = message._sm_header
+      message_payload = message.encode
+
       entry = {
         timestamp: Time.now.iso8601,
         header: message_header.to_hash,
         payload: message_payload,
-        payload_format: error_info[:serializer] || 'json',  # Track serialization format
+        payload_format: error_info[:serializer] || 'json',
         error: error_info[:error] || 'Unknown error',
         retry_count: error_info[:retry_count] || 0,
         transport: error_info[:transport],
@@ -77,7 +92,7 @@ module SmartMessage
         oldest_entry
       end
     rescue JSON::ParserError => e
-      puts "Warning: Corrupted DLQ entry skipped: #{e.message}" if $DEBUG
+      logger.warn { "[SmartMessage] Warning: Corrupted DLQ entry skipped: #{e.message}" }
       nil
     end
 
@@ -209,8 +224,10 @@ module SmartMessage
       read_entries_with_filter do |entry|
         stats[:total] += 1
         
-        message_class = entry.dig(:header, :message_class) || 'Unknown'
-        stats[:by_class][message_class] += 1
+        full_class_name = entry.dig(:header, :message_class) || 'Unknown'
+        # Extract short class name (everything after the last ::)
+        short_class_name = full_class_name.split('::').last || full_class_name
+        stats[:by_class][short_class_name] += 1
         
         error = entry[:error] || 'Unknown error'
         stats[:by_error][error] += 1
@@ -286,11 +303,11 @@ module SmartMessage
         JSON.parse(payload, symbolize_names: true)
       else
         # For unknown formats, assume JSON as fallback but log warning
-        puts "Warning: Unknown payload format '#{format}', attempting JSON" if $DEBUG
+        logger.warn { "[SmartMessage] Warning: Unknown payload format '#{format}', attempting JSON" }
         JSON.parse(payload, symbolize_names: true)
       end
     rescue JSON::ParserError => e
-      puts "Error: Failed to deserialize payload as #{format}: #{e.message}" if $DEBUG
+      logger.error { "[SmartMessage] Error in payload deserialization: #{e.class.name} - #{e.message}" }
       nil
     end
 
@@ -310,7 +327,7 @@ module SmartMessage
       message._sm_header.to = header_data[:to] if header_data[:to]
       message._sm_header.reply_to = header_data[:reply_to] if header_data[:reply_to]
     rescue => e
-      puts "Warning: Failed to restore some header fields: #{e.message}" if $DEBUG
+      logger.warn { "[SmartMessage] Warning: Failed to restore some header fields: #{e.message}" }
     end
 
     # Generic file reading iterator with error handling

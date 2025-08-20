@@ -18,7 +18,20 @@ module SmartMessage
         @dispatcher = options[:dispatcher] || SmartMessage::Dispatcher.new
         configure
         configure_transport_circuit_breakers
+        
+        logger.debug { "[SmartMessage::Transport::#{self.class.name.split('::').last}] Initialized with options: #{@options}" }
+      rescue => e
+        logger&.error { "[SmartMessage] Error in transport initialization: #{e.class.name} - #{e.message}" }
+        raise
       end
+      
+      private
+      
+      def logger
+        @logger ||= SmartMessage::Logger.default
+      end
+      
+      public
 
       # Transport-specific configuration
       def configure
@@ -30,46 +43,28 @@ module SmartMessage
         {}
       end
 
-      # Publish a wrapper with circuit breaker protection (new two-level serialization)
-      # @param wrapper [SmartMessage::Wrapper::Base] Complete message wrapper
-      def publish_wrapper(wrapper)
+      # Publish a message with circuit breaker protection
+      # @param message_class [String] The message class name (used for channel routing)
+      # @param serialized_message [String] Complete serialized message content
+      def publish(message_class, serialized_message)
         circuit(:transport_publish).wrap do
-          do_publish_wrapper(wrapper)
+          do_publish(message_class, serialized_message)
         end
       rescue => e
+        # Log the exception for debugging
+        logger.error { "[SmartMessage] Error in transport publish: #{e.class.name} - #{e.message}" }
+        
         # Re-raise if it's not a circuit breaker fallback
         raise unless e.is_a?(Hash) && e[:circuit_breaker]
 
         # Handle circuit breaker fallback
-        handle_wrapper_publish_fallback(e, wrapper)
-      end
-
-      # Legacy publish method for backward compatibility
-      # @param message_header [SmartMessage::Header] Message routing information
-      # @param message_payload [String] Serialized message content
-      def publish(message_header, message_payload)
-        circuit(:transport_publish).wrap do
-          do_publish(message_header, message_payload)
-        end
-      rescue => e
-        # Re-raise if it's not a circuit breaker fallback
-        raise unless e.is_a?(Hash) && e[:circuit_breaker]
-
-        # Handle circuit breaker fallback
-        handle_publish_fallback(e, message_header, message_payload)
-      end
-
-      # Template method for wrapper publishing (implement in subclasses)
-      # @param wrapper [SmartMessage::Wrapper::Base] Complete message wrapper
-      def do_publish_wrapper(wrapper)
-        # Default implementation: extract header and payload for legacy compatibility
-        do_publish(wrapper.header, wrapper.payload)
+        handle_publish_fallback(e, message_class, serialized_message)
       end
 
       # Template method for actual publishing (implement in subclasses)
-      # @param message_header [SmartMessage::Header] Message routing information
-      # @param message_payload [String] Serialized message content
-      def do_publish(message_header, message_payload)
+      # @param message_class [String] The message class name (used for channel routing)
+      # @param serialized_message [String] Complete serialized message content
+      def do_publish(message_class, serialized_message)
         raise NotImplementedError, 'Transport must implement #do_publish'
       end
 
@@ -155,12 +150,30 @@ module SmartMessage
         end
       end
 
-      # Receive and route a wrapper (called by transport implementations)
-      # @param wrapper [SmartMessage::Wrapper::Base] Complete message wrapper
+      # Receive and route a message (called by transport implementations)
+      # @param message_class [String] The message class name
+      # @param serialized_message [String] The serialized message content
       protected
 
-      def receive(wrapper)
-        @dispatcher.route(wrapper)
+      def receive(message_class, serialized_message)
+        # Decode the message using the class's configured serializer
+        
+        # Add defensive check for message_class type
+        unless message_class.respond_to?(:constantize)
+          logger.error { "[SmartMessage] Invalid message_class type: #{message_class.class.name} - #{message_class.inspect}" }
+          logger.error { "[SmartMessage] Expected String, got: #{message_class.class.name}" }
+          raise ArgumentError, "message_class must be a String, got #{message_class.class.name}"
+        end
+        
+        message_class_obj = message_class.constantize
+        decoded_message = message_class_obj.decode(serialized_message)
+        
+        @dispatcher.route(decoded_message)
+      rescue => e
+        logger.error { "[SmartMessage] Error in transport receive: #{e.class.name} - #{e.message}" }
+        logger.error { "[SmartMessage] message_class: #{message_class.inspect} (#{message_class.class.name})" }
+        logger.error { "[SmartMessage] serialized_message length: #{serialized_message&.length}" }
+        raise
       end
 
       # Configure circuit breakers for transport operations
@@ -207,38 +220,28 @@ module SmartMessage
         end
       end
 
-      # Handle wrapper publish circuit breaker fallback
-      # @param fallback_result [Hash] The circuit breaker fallback result
-      # @param wrapper [SmartMessage::Wrapper::Base] The message wrapper
-      def handle_wrapper_publish_fallback(fallback_result, wrapper)
-        # Delegate to legacy handler for now
-        handle_publish_fallback(fallback_result, wrapper.header, wrapper.payload)
-      end
-
       # Handle publish circuit breaker fallback
       # @param fallback_result [Hash] The circuit breaker fallback result
-      # @param message_header [SmartMessage::Header] The message header
-      # @param message_payload [String] The message payload
-      def handle_publish_fallback(fallback_result, message_header, message_payload)
+      # @param message_class [String] The message class name
+      # @param serialized_message [String] The serialized message
+      def handle_publish_fallback(fallback_result, message_class, serialized_message)
         # Log the circuit breaker activation
-        if $DEBUG
-          puts "Transport publish circuit breaker activated: #{self.class.name}"
-          puts "Error: #{fallback_result[:circuit_breaker][:error]}"
-          puts "Message: #{message_header.message_class}"
-          puts "Sent to DLQ: #{fallback_result[:circuit_breaker][:sent_to_dlq]}"
-        end
+        logger.error { "[SmartMessage::Transport] Circuit breaker activated: #{self.class.name}" }
+        logger.error { "[SmartMessage::Transport] Error: #{fallback_result[:circuit_breaker][:error]}" }
+        logger.error { "[SmartMessage::Transport] Message: #{message_class}" }
+        logger.info { "[SmartMessage::Transport] Sent to DLQ: #{fallback_result[:circuit_breaker][:sent_to_dlq]}" }
 
         # If message wasn't sent to DLQ by circuit breaker, send it now
         unless fallback_result.dig(:circuit_breaker, :sent_to_dlq)
           begin
             SmartMessage::DeadLetterQueue.default.enqueue(
-              message_header,
-              message_payload,
+              message_class,
+              serialized_message,
               error: fallback_result.dig(:circuit_breaker, :error) || 'Circuit breaker activated',
               transport: self.class.name
             )
           rescue => dlq_error
-            puts "Warning: Failed to store message in DLQ: #{dlq_error.message}" if $DEBUG
+            logger.warn { "[SmartMessage] Warning: Failed to store message in DLQ: #{dlq_error.message}" }
           end
         end
 

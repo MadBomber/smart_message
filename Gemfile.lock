@@ -6,7 +6,9 @@ PATH
       breaker_machines
       concurrent-ruby
       hashie
+      lumberjack
       redis
+      zeitwerk
 
 GEM
   remote: https://rubygems.org/
@@ -41,6 +43,7 @@ GEM
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
     logger (1.7.0)
+    lumberjack (1.4.0)
     minitest (5.25.5)
     minitest-power_assert (0.3.1)
       minitest
