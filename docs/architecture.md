@@ -25,14 +25,14 @@ graph TB
     end
     
     subgraph "Plugin System"
-        Transport[Transport Plugin<br/>• publish()<br/>• subscribe()<br/>• Memory/Redis/STDOUT]
-        Serializer[Serializer Plugin<br/>• encode()<br/>• decode()<br/>• JSON/Custom]
+        Transport[Transport Plugin<br/>• publish<br/>• subscribe<br/>• Memory/Redis/STDOUT]
+        Serializer[Serializer Plugin<br/>• encode<br/>• decode<br/>• JSON/Custom]
         Logger[Logger Plugin<br/>• Structured logging<br/>• Multiple outputs<br/>• Colorization]
     end
     
     subgraph "Message Processing"
         Dispatcher[Dispatcher<br/>• Route messages<br/>• Thread pool<br/>• Subscriptions<br/>• DDQ management]
-        DDQ[Deduplication Queue<br/>• Handler-scoped<br/>• Memory/Redis storage<br/>• O(1) performance<br/>• Circular buffer]
+        DDQ[Deduplication Queue<br/>• Handler-scoped<br/>• Memory/Redis storage<br/>• O1 performance<br/>• Circular buffer]
         Handlers[Message Handlers<br/>• Default handler<br/>• Block handlers<br/>• Proc handlers<br/>• Method handlers]
     end
     
@@ -187,7 +187,7 @@ graph LR
         B3[Mutex Lock]
     end
     
-    Message[Incoming Message<br/>UUID: abc-123] --> Dispatcher
+    Message[Incoming Message<br/>UUID abc-123] --> Dispatcher
     Dispatcher --> |Check Handler A| A2
     Dispatcher --> |Check Handler B| B2
     
