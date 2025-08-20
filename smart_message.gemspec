@@ -43,6 +43,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'breaker_machines'
   spec.add_dependency 'zeitwerk'
   spec.add_dependency 'lumberjack'
+  spec.add_dependency 'colorize'
 
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'rake'

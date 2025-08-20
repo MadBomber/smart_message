@@ -4,6 +4,7 @@ PATH
     smart_message (0.0.9)
       activesupport
       breaker_machines
+      colorize
       concurrent-ruby
       hashie
       lumberjack
@@ -35,6 +36,7 @@ GEM
       concurrent-ruby (~> 1.3)
       state_machines (>= 0.50.0)
       zeitwerk (~> 2.7)
+    colorize (1.1.0)
     concurrent-ruby (1.3.5)
     connection_pool (2.5.3)
     debug_me (1.1.1)

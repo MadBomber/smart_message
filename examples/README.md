@@ -18,6 +18,8 @@ ruby 07_error_handling_scenarios.rb
 ruby 08_entity_addressing.rb
 ruby 09_regex_filtering_microservices.rb
 ruby 10_header_block_configuration.rb
+ruby 11_global_configuration_example.rb
+ruby show_logger.rb
 ```
 
 ## Examples Overview
@@ -539,6 +541,37 @@ class MyCustomTransport < SmartMessage::Transport::Base
   end
 end
 ```
+
+---
+
+### Show Logger Demonstration
+**File:** `show_logger.rb`
+
+**Scenario:** Comprehensive demonstration of SmartMessage's enhanced logging capabilities, showing how applications can use the SmartMessage logger directly and configure various Lumberjack options.
+
+**Key Features:**
+- Colorized console output for different log levels
+- JSON and text log formatting
+- File-based logging with rolling (size and date-based)
+- Application logger patterns and direct logger usage
+- Multiple logger configurations
+- Integration with SmartMessage classes
+
+**What You'll Learn:**
+- How to configure SmartMessage's global logger settings
+- Different log output formats (text vs JSON)
+- Colorized logging for console output
+- File rolling strategies for production use
+- How to use the SmartMessage logger directly in applications
+- Best practices for structured logging
+- Integration patterns between application code and SmartMessage classes
+
+**Demonstrates:**
+- `SmartMessage.configure` block usage for logger configuration
+- `log_level`, `log_format`, `log_colorize`, and `log_options` settings
+- Direct access to `SmartMessage.configuration.default_logger`
+- Creating multiple logger instances with different configurations
+- Practical application patterns using the logger
 
 ## Production Considerations
 

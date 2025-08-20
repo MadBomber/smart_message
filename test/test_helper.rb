@@ -14,7 +14,9 @@ require 'smart_message'
 
 # Configure SmartMessage to use STDERR for test suite logging
 SmartMessage.configure do |config|
-  config.logger = STDERR
+  config.logger    = STDERR
+  config.log_level = :warn
+  config.log_colorize = true
 end
 
 require 'minitest/autorun'

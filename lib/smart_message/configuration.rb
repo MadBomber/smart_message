@@ -32,6 +32,23 @@ module SmartMessage
   #     config.logger = :default                      # Framework default
   #   end
   #
+  #   # Configure Lumberjack logger options:
+  #   SmartMessage.configure do |config|
+  #     config.logger = :default                      # Use framework default
+  #     config.log_level = :debug                     # :debug, :info, :warn, :error, :fatal
+  #     config.log_format = :json                     # :text or :json
+  #     config.log_include_source = true              # Include file:line source info
+  #     config.log_structured_data = true             # Include structured message data
+  #     config.log_colorize = true                    # Enable colorized output (console only)
+  #     config.log_options = {                        # Additional Lumberjack options
+  #       roll_by_date: true,                         # Enable date-based log rolling
+  #       date_pattern: '%Y-%m-%d',                   # Date pattern for rolling
+  #       roll_by_size: true,                         # Enable size-based log rolling
+  #       max_file_size: 50 * 1024 * 1024,            # Max file size before rolling (50 MB)
+  #       keep_files: 10                              # Number of rolled files to keep
+  #     }
+  #   end
+  #
   #   # Use custom logger:
   #   SmartMessage.configure do |config|
   #     config.logger = MyApp::Logger.new             # Custom logger object
@@ -58,7 +75,7 @@ module SmartMessage
   #     end
   #   end
   class Configuration
-    attr_accessor :transport, :serializer
+    attr_accessor :transport, :serializer, :log_level, :log_format, :log_include_source, :log_structured_data, :log_colorize, :log_options
     attr_reader :logger
     
     def initialize
@@ -66,6 +83,12 @@ module SmartMessage
       @transport = nil
       @serializer = nil
       @logger_explicitly_set_to_nil = false
+      @log_level = nil
+      @log_format = nil
+      @log_include_source = nil
+      @log_structured_data = nil
+      @log_colorize = nil
+      @log_options = {}
     end
     
     # Custom logger setter to track explicit nil assignment
@@ -80,6 +103,12 @@ module SmartMessage
       @transport = nil
       @serializer = nil
       @logger_explicitly_set_to_nil = false
+      @log_level = nil
+      @log_format = nil
+      @log_include_source = nil
+      @log_structured_data = nil
+      @log_colorize = nil
+      @log_options = {}
     end
     
     # Check if logger is configured (including explicit nil for no logging)
@@ -113,10 +142,10 @@ module SmartMessage
         framework_default_logger
       when String
         # String path means use Lumberjack logger with that file path
-        SmartMessage::Logger::Lumberjack.new(log_file: @logger)
+        SmartMessage::Logger::Lumberjack.new(**logger_options.merge(log_file: @logger))
       when STDOUT, STDERR
         # STDOUT/STDERR constants mean use Lumberjack logger with that output
-        SmartMessage::Logger::Lumberjack.new(log_file: @logger)
+        SmartMessage::Logger::Lumberjack.new(**logger_options.merge(log_file: @logger))
       else
         @logger
       end
@@ -136,7 +165,22 @@ module SmartMessage
     
     # Framework's built-in default logger (Lumberjack)
     def framework_default_logger
-      SmartMessage::Logger::Lumberjack.new
+      SmartMessage::Logger::Lumberjack.new(**logger_options)
+    end
+    
+    # Build logger options from configuration
+    def logger_options
+      options = {}
+      options[:level] = @log_level if @log_level
+      options[:format] = @log_format if @log_format
+      options[:include_source] = @log_include_source unless @log_include_source.nil?
+      options[:structured_data] = @log_structured_data unless @log_structured_data.nil?
+      options[:colorize] = @log_colorize unless @log_colorize.nil?
+      
+      # Merge in log_options (for roll_by_date, roll_by_size, max_file_size, etc.)
+      options.merge!(@log_options) if @log_options && @log_options.is_a?(Hash)
+      
+      options
     end
     
     # Framework's built-in default transport (Redis)

@@ -4,6 +4,7 @@
 
 require 'lumberjack'
 require 'fileutils'
+require 'colorize'
 
 module SmartMessage
   module Logger
@@ -33,26 +34,34 @@ module SmartMessage
     #       level: :debug,
     #       format: :json,                      # :text or :json
     #       include_source: true,               # Include source location
-    #       structured_data: true               # Log structured message data
+    #       structured_data: true,              # Log structured message data
+    #       colorize: true,                     # Enable colorized output (console only)
+    #       roll_by_date: true,                 # Enable date-based log rolling
+    #       max_file_size: 50 * 1024 * 1024     # Max file size before rolling (50 MB)
     #     )
     #   end
     #
-    #   # Log to STDOUT with JSON format
+    #   # Log to STDOUT with colorized JSON format
     #   config do
     #     logger SmartMessage::Logger::Lumberjack.new(
     #       log_file: STDOUT,
-    #       format: :json
+    #       format: :json,
+    #       colorize: true
     #     )
     #   end
     class Lumberjack < Base
-      attr_reader :logger, :log_file, :level, :format, :include_source, :structured_data
+      attr_reader :logger, :log_file, :level, :format, :include_source, :structured_data, :colorize
 
-      def initialize(log_file: nil, level: nil, format: :text, include_source: true, structured_data: true)
+      def initialize(log_file: nil, level: nil, format: :text, include_source: true, structured_data: true, colorize: false, **options)
         @log_file = log_file || default_log_file
         @level = level || default_log_level
         @format = format
         @include_source = include_source
         @structured_data = structured_data
+        @options = options
+        
+        # Set colorize after @log_file is set so console_output? works correctly
+        @colorize = colorize && console_output?
 
         @logger = setup_lumberjack_logger
       end
@@ -62,23 +71,38 @@ module SmartMessage
       # These methods capture caller information and add structured data
 
       def debug(message = nil, **structured_data, &block)
-        log_with_caller(:debug, 1, structured_data, &block) if message || block_given?
+        return unless message || block_given?
+        structured_data[:message] = message if message
+        log_with_caller(:debug, 1, structured_data, &block)
       end
 
       def info(message = nil, **structured_data, &block)
-        log_with_caller(:info, 1, structured_data, &block) if message || block_given?
+        return unless message || block_given?
+        structured_data[:message] = message if message
+        log_with_caller(:info, 1, structured_data, &block)
       end
 
       def warn(message = nil, **structured_data, &block)
-        log_with_caller(:warn, 1, structured_data, &block) if message || block_given?
+        return unless message || block_given?
+        structured_data[:message] = message if message
+        log_with_caller(:warn, 1, structured_data, &block)
       end
 
       def error(message = nil, **structured_data, &block)
-        log_with_caller(:error, 1, structured_data, &block) if message || block_given?
+        return unless message || block_given?
+        structured_data[:message] = message if message
+        log_with_caller(:error, 1, structured_data, &block)
       end
 
       def fatal(message = nil, **structured_data, &block)
-        log_with_caller(:fatal, 1, structured_data, &block) if message || block_given?
+        return unless message || block_given?
+        structured_data[:message] = message if message
+        log_with_caller(:fatal, 1, structured_data, &block)
+      end
+
+      # Check if output is going to console (STDOUT/STDERR)
+      def console_output?
+        @log_file == STDOUT || @log_file == STDERR
       end
 
       private
@@ -90,12 +114,98 @@ module SmartMessage
           FileUtils.mkdir_p(log_dir) unless Dir.exist?(log_dir)
         end
 
-        # Configure the Lumberjack logger
-        ::Lumberjack::Logger.new(@log_file,
-          level: normalize_level(@level),
-          formatter: create_formatter,
-          buffer_size: 0  # Disable buffering for immediate output
-        )
+        # For STDOUT/STDERR, use Device::Writer with template for colorization
+        if console_output?
+          device = ::Lumberjack::Device::Writer.new(@log_file, template: create_template)
+          ::Lumberjack::Logger.new(device, level: normalize_level(@level))
+        else
+          # Build Lumberjack options for file-based logging
+          lumberjack_options = {
+            level: normalize_level(@level),
+            formatter: create_formatter,
+            buffer_size: 0  # Disable buffering for immediate output
+          }
+          
+          # Add log rolling options if specified
+          if @options[:roll_by_date]
+            lumberjack_options[:date_pattern] = @options[:date_pattern] || '%Y-%m-%d'
+          end
+          
+          if @options[:roll_by_size]
+            lumberjack_options[:max_size] = @options[:max_file_size] || (10 * 1024 * 1024) # 10 MB
+            lumberjack_options[:keep] = @options[:keep_files] || 5
+          end
+
+          # Configure the Lumberjack logger
+          ::Lumberjack::Logger.new(@log_file, lumberjack_options)
+        end
+      end
+
+      def create_template
+        # Template for Device::Writer (used for console output)
+        colorize_enabled = @colorize
+        include_source = @include_source
+        
+        case @format
+        when :json
+          # JSON template - return lambda that formats as JSON
+          lambda do |entry|
+            data = {
+              timestamp: entry.time.strftime('%Y-%m-%d %H:%M:%S.%3N'),
+              level: entry.severity_label,
+              message: entry.message
+            }
+
+            # Add source location if available
+            if include_source && entry.tags[:source]
+              data[:source] = entry.tags[:source]
+            end
+
+            # Add any structured data
+            entry.tags.each do |key, value|
+              next if key == :source
+              data[key] = value
+            end
+
+            data.to_json + "\n"
+          end
+        else
+          # Text template with optional colorization
+          lambda do |entry|
+            require 'colorize' if colorize_enabled
+            
+            timestamp = entry.time.strftime('%Y-%m-%d %H:%M:%S.%3N')
+            level = entry.severity_label.ljust(5)
+            source_info = include_source && entry.tags[:source] ? " #{entry.tags[:source]}" : ""
+
+            line = "[#{timestamp}] #{level} --#{source_info} : #{entry.message}"
+            
+            if colorize_enabled
+              # Apply colorization with custom color scheme
+              case entry.severity_label.downcase.to_sym
+              when :debug
+                # Debug: dark green background, white foreground, bold
+                line.white.bold.on_green
+              when :info
+                # Info: bright white foreground (no background)
+                line.light_white
+              when :warn
+                # Warn: yellow background, white foreground, bold
+                line.white.bold.on_yellow
+              when :error
+                # Error: red background, white foreground, bold
+                line.white.bold.on_red
+              when :fatal
+                # Fatal: bright red background, yellow foreground, bold
+                line.yellow.bold.on_light_red
+              else
+                line
+              end
+            else
+              line
+            end
+          end
+        end
       end
 
       def create_formatter
@@ -123,7 +233,7 @@ module SmartMessage
             data.to_json + "\n"
           end
         else
-          # Text formatter similar to default logger but with source info
+          # Text formatter for file output (no colorization)
           ::Lumberjack::Formatter.new do |entry|
             timestamp = entry.time.strftime('%Y-%m-%d %H:%M:%S.%3N')
             level = entry.severity_label.ljust(5)
@@ -208,6 +318,7 @@ module SmartMessage
           :info
         end
       end
+      
     end
   end
 end
