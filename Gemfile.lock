@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    smart_message (0.0.9)
+    smart_message (0.0.10)
       activesupport
       breaker_machines
       colorize

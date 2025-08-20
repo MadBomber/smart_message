@@ -70,11 +70,11 @@ module SmartMessage
       # @param block [Proc] Alternative way to pass a processing block
       # @return [String] The identifier used for this subscription
       #
-      # @example Using default handler (all messages)
+      # @example Using default handler 
       #   MyMessage.subscribe
       #
       # @example Using custom method name with filtering
-      #   MyMessage.subscribe("MyService.handle_message", to: 'my-service')
+      #   MyMessage.subscribe("MyService.handle_message", from: ['order-service'])
       #
       # @example Using a block with broadcast filtering
       #   MyMessage.subscribe(broadcast: true) do |header, payload|
@@ -82,11 +82,11 @@ module SmartMessage
       #     puts "Received broadcast: #{data}"
       #   end
       #
-      # @example Entity-specific filtering
-      #   MyMessage.subscribe(to: 'order-service', from: ['payment', 'user'])
+      # @example Entity-specific filtering (receives only messages from payment service)
+      #   MyMessage.subscribe("OrderService.process", from: ['payment'])
       #
-      # @example Broadcast + directed messages
-      #   MyMessage.subscribe(to: 'my-service', broadcast: true)
+      # @example Explicit to filter 
+      #   MyMessage.subscribe("AdminService.handle", to: 'admin', broadcast: false)
       def subscribe(process_method = nil, broadcast: nil, to: nil, from: nil, &block)
         message_class = whoami
         
@@ -105,11 +105,14 @@ module SmartMessage
         end
         # If process_method is a String, use it as-is
 
+        # Subscriber identity is derived from the process method (handler)
+        # This ensures each handler gets its own DDQ scope per message class
+        
         # Normalize string filters to arrays
         to_filter = normalize_filter_value(to)
         from_filter = normalize_filter_value(from)
         
-        # Create filter options
+        # Create filter options (no explicit subscriber identity needed)
         filter_options = {
           broadcast: broadcast,
           to: to_filter,

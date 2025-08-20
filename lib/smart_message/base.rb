@@ -12,6 +12,7 @@ require_relative './subscription.rb'
 require_relative './versioning.rb'
 require_relative './messaging.rb'
 require_relative './utilities.rb'
+require_relative './deduplication.rb'
 
 module SmartMessage
   # The foundation class for the smart message
@@ -26,6 +27,7 @@ module SmartMessage
     include SmartMessage::Versioning
     include SmartMessage::Messaging
     include SmartMessage::Utilities
+    include SmartMessage::Deduplication
 
     include Hashie::Extensions::Coercion
     include Hashie::Extensions::DeepMerge
