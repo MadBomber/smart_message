@@ -256,19 +256,17 @@ request.publish
 
 # In user-service handler:
 class UserLookupRequest
-  def self.process(header, payload)
-    request_data = JSON.parse(payload)
-    
+  def self.process(decoded_message)
     # Process lookup...
-    user_data = UserService.find(request_data['user_id'])
+    user_data = UserService.find(decoded_message.user_id)
     
     # Send response back to reply_to address
     response = UserLookupResponse.new(
-      user_id: request_data['user_id'],
-      request_id: request_data['request_id'],
+      user_id: decoded_message.user_id,
+      request_id: decoded_message.request_id,
       user_data: user_data
     )
-    response.to(header.reply_to)  # Send to original reply_to
+    response.to(decoded_message._sm_header.reply_to)  # Send to original reply_to
     response.publish
   end
 end

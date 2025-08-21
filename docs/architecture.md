@@ -77,7 +77,7 @@ The foundation class that all messages inherit from, built on `Hashie::Dash`.
 - Message lifecycle management
 - Header generation and management
 
-**Location:** `lib/smart_message/base.rb:11-278`
+**Location:** `lib/smart_message/base.rb:17-199`
 
 ```ruby
 class MyMessage < SmartMessage::Base
@@ -107,12 +107,13 @@ Handles message delivery and routing between systems.
 ```ruby
 # Transport interface
 class CustomTransport < SmartMessage::Transport::Base
-  def publish(message_header, message_payload)
+  def do_publish(message_class, serialized_message)
     # Send message via your transport
   end
   
-  def subscribe(message_class, process_method)
-    # Set up subscription
+  def subscribe(message_class, process_method, filter_options = {})
+    # Set up subscription via dispatcher
+    @dispatcher.add(message_class, process_method, filter_options)
   end
 end
 ```
@@ -130,12 +131,14 @@ Handles encoding and decoding of message content.
 
 ```ruby
 class CustomSerializer < SmartMessage::Serializer::Base
-  def encode(message_instance)
-    # Convert to wire format
+  def do_encode(message_instance)
+    # Convert message instance to wire format
+    # Default implementation uses message_instance.to_h
   end
   
-  def decode(payload)
-    # Convert from wire format
+  def do_decode(payload)
+    # Convert from wire format back to hash
+    # Must return hash compatible with message initialization
   end
 end
 ```
@@ -156,7 +159,7 @@ Routes incoming messages to appropriate handlers using concurrent processing wit
 ```ruby
 dispatcher = SmartMessage::Dispatcher.new
 dispatcher.add("MyMessage", "MyMessage.process")
-dispatcher.route(header, payload)
+dispatcher.route(decoded_message)
 
 # DDQ integration is automatic when enabled
 MyMessage.enable_deduplication!
@@ -200,6 +203,13 @@ graph LR
 
 **Location:** `lib/smart_message/deduplication.rb`, `lib/smart_message/ddq/`
 
+**Key Features:**
+- Handler-scoped deduplication (each handler gets its own DDQ)
+- UUID-based duplicate detection
+- Multiple storage backends (Memory, Redis)
+- O(1) performance with hybrid Array + Set data structure
+- Thread-safe operations with mutex locks
+
 ### 6. Message Headers
 
 Standard metadata attached to every message with entity addressing support.
@@ -217,9 +227,12 @@ header = message._sm_header
 puts header.uuid          # "550e8400-e29b-41d4-a716-446655440000"
 puts header.message_class # "MyMessage"
 puts header.published_at  # 2025-08-17 10:30:00 UTC
+puts header.publisher_pid # 12345
 puts header.from          # "payment-service"
 puts header.to            # "order-service"
+puts header.reply_to      # "payment-service" (defaults to from)
 puts header.version       # 1
+puts header.serializer    # "SmartMessage::Serializer::JSON"
 ```
 
 ## Message Lifecycle
@@ -264,13 +277,14 @@ order.publish
 
 ### 4. Receiving Phase
 ```ruby
-# Transport receives message
-transport.receive(header, payload)
-# 1. Routes to dispatcher
-# 2. Dispatcher checks DDQ for duplicates per handler
-# 3. Applies message filters (from/to/broadcast)
-# 4. Spawns thread for processing matching handlers
-# 5. Marks UUID as processed in handler's DDQ
+# Transport receives serialized message
+transport.receive(message_class, serialized_message)
+# 1. Decodes message using class's configured serializer
+# 2. Routes decoded message to dispatcher
+# 3. Dispatcher checks DDQ for duplicates per handler
+# 4. Applies message filters (from/to/broadcast)
+# 5. Spawns thread for processing matching handlers
+# 6. Marks UUID as processed in handler's DDQ after successful processing
 ```
 
 ### 5. Message Handler Processing
@@ -278,43 +292,42 @@ transport.receive(header, payload)
 SmartMessage supports multiple handler types, routed through the dispatcher:
 
 ```ruby
-# Default handler (self.process method)
-def self.process(message_header, message_payload)
-  data = JSON.parse(message_payload)
-  order = new(data)
+# Default handler (self.process method) - receives decoded message instance
+def self.process(decoded_message)
+  order = decoded_message  # Already a fully decoded OrderMessage instance
   fulfill_order(order)
 end
 
-# Block handler (inline processing)
-OrderMessage.subscribe do |header, payload|
-  data = JSON.parse(payload)
-  quick_processing(data)
+# Block handler (inline processing) - receives decoded message instance
+OrderMessage.subscribe do |decoded_message|
+  quick_processing(decoded_message)
 end
 
-# Proc handler (reusable across message types)
-audit_proc = proc do |header, payload|
-  AuditService.log_message(header.message_class, payload)
+# Proc handler (reusable across message types) - receives decoded message instance
+audit_proc = proc do |decoded_message|
+  AuditService.log_message(decoded_message.class.name, decoded_message)
 end
 OrderMessage.subscribe(audit_proc)
 
-# Method handler (service class processing)
+# Method handler (service class processing) - receives decoded message instance
 class OrderService
-  def self.process_order(header, payload)
-    data = JSON.parse(payload)
-    complex_business_logic(data)
+  def self.process_order(decoded_message)
+    complex_business_logic(decoded_message)
   end
 end
 OrderMessage.subscribe("OrderService.process_order")
 ```
 
 **Handler Routing Process:**
-1. Dispatcher receives message and header
+1. Dispatcher receives decoded message instance
 2. Looks up all registered handlers for message class
-3. For each handler:
+3. For each handler that matches filters:
+   - Checks DDQ for duplicates (handler-scoped)
    - **String handlers**: Resolves to class method via constantize
    - **Proc handlers**: Calls proc directly from registry
-4. Executes handlers in parallel threads
-5. Collects statistics and handles errors
+4. Executes handlers in parallel threads with circuit breaker protection
+5. Marks UUID as processed in handler's DDQ after successful completion
+6. Collects statistics and handles errors
 
 ## Plugin System Architecture
 
@@ -364,10 +377,15 @@ end
 The dispatcher uses `Concurrent::CachedThreadPool` for processing:
 
 ```ruby
-# Each message processing happens in its own thread
+# Each message processing happens in its own thread with circuit breaker protection
 @router_pool.post do
-  # Message processing happens here
-  target_class.constantize.process(header, payload)
+  circuit_result = circuit(:message_processor).wrap do
+    if proc_handler?(message_processor)
+      SmartMessage::Base.call_proc_handler(message_processor, decoded_message)
+    else
+      target_class.constantize.method(class_method).call(decoded_message)
+    end
+  end
 end
 ```
 
@@ -396,11 +414,13 @@ puts "Completed tasks: #{status[:completed_task_count]}"
 Processing exceptions are isolated to prevent cascade failures:
 
 ```ruby
-begin
-  target_class.constantize.process(header, payload)
-rescue Exception => e
-  # Log error but don't crash the dispatcher
-  # TODO: Add proper exception logging
+circuit_result = circuit(:message_processor).wrap do
+  # Handler execution with circuit breaker protection
+end
+
+# Handle circuit breaker fallback responses
+if circuit_result.is_a?(Hash) && circuit_result[:circuit_breaker]
+  handle_circuit_breaker_fallback(circuit_result, decoded_message, message_processor)
 end
 ```
 
@@ -415,6 +435,7 @@ module SmartMessage::Errors
   class NotImplemented < RuntimeError; end
   class ReceivedMessageNotSubscribed < RuntimeError; end
   class UnknownMessageClass < RuntimeError; end
+  class ValidationError < RuntimeError; end
 end
 ```
 
@@ -425,13 +446,12 @@ end
 SmartMessage integrates BreakerMachines for production-grade reliability:
 
 ```ruby
-# Transport operations protected by circuit breakers
+# Circuit breakers are automatically configured for all transports
 class MyTransport < SmartMessage::Transport::Base
-  circuit :transport_publish do
-    threshold failures: 5, within: 30.seconds
-    reset_after 15.seconds
-    fallback SmartMessage::CircuitBreaker::Fallbacks.dead_letter_queue
-  end
+  # Inherits circuit breaker configuration:
+  # - :transport_publish for publishing operations
+  # - :transport_subscribe for subscription operations
+  # - Automatic DLQ fallback for failed publishes
 end
 ```
 
@@ -450,7 +470,7 @@ message.publish  # If transport fails, goes to DLQ
 
 # Manual capture for business logic failures
 dlq = SmartMessage::DeadLetterQueue.default
-dlq.enqueue(header, payload, error: "Validation failed")
+dlq.enqueue(decoded_message, error: "Validation failed", transport: "manual")
 ```
 
 **DLQ Architecture:**
@@ -536,7 +556,9 @@ When a message needs a plugin:
 
 ```ruby
 def transport
-  @transport || @@transport || raise(Errors::TransportNotConfigured)
+  @transport || self.class.class_variable_get(:@@transport) || raise(Errors::TransportNotConfigured)
+rescue NameError
+  raise(Errors::TransportNotConfigured)
 end
 ```
 

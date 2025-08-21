@@ -36,9 +36,9 @@ SmartMessage supports multiple ways to handle incoming messages:
 ### 1. Default Handler Pattern (using `self.process`)
 ```ruby
 class SensorDataMessage < SmartMessage::Base
-  def self.process(message_header, message_payload)
+  def self.process(decoded_message)
     # This gets called when a SensorDataMessage is received
-    data = JSON.parse(message_payload)
+    # decoded_message is already a message instance
     puts "Sensor reading: #{data['value']}"
   end
 end
@@ -51,7 +51,7 @@ SensorDataMessage.subscribe  # Uses "SensorDataMessage.process"
 class ThermostatService
   def self.handle_sensor_data(message_header, message_payload)
     # Custom processing logic
-    data = JSON.parse(message_payload)
+    # decoded_message is already a message instance
     adjust_temperature(data)
   end
 end
@@ -99,8 +99,8 @@ Looking at the smart home IoT example:
 
 ```ruby
 class SensorDataMessage < SmartMessage::Base
-  def self.process(message_header, message_payload)
-    sensor_data = JSON.parse(message_payload)
+  def self.process(decoded_message)
+    sensor_# decoded_message is already a message instance
     icon = case sensor_data['device_type']
            when 'thermostat' then '🌡️'
            when 'security_camera' then '📹'
@@ -145,8 +145,8 @@ A single message type can have multiple subscribers with different handlers usin
 ```ruby
 # Default handler for logging
 class SensorDataMessage < SmartMessage::Base
-  def self.process(message_header, message_payload)
-    data = JSON.parse(message_payload)
+  def self.process(decoded_message)
+    # decoded_message is already a message instance
     puts "📊 Sensor data logged: #{data['device_id']}"
   end
 end
@@ -154,7 +154,7 @@ end
 # Custom method handler for specific services
 class ThermostatService
   def self.handle_sensor_data(message_header, message_payload)
-    data = JSON.parse(message_payload)
+    # decoded_message is already a message instance
     return unless data['device_type'] == 'thermostat'
     adjust_temperature(data['value'])
   end
@@ -197,10 +197,10 @@ SensorDataMessage.subscribe(database_logger)  # Proc handler
 
 ```ruby
 class SensorDataMessage < SmartMessage::Base
-  def self.process(message_header, message_payload)
+  def self.process(decoded_message)
     # This runs in its own thread
     # Be careful with shared state
-    data = JSON.parse(message_payload)
+    # decoded_message is already a message instance
     
     # Thread-safe operations
     update_local_cache(data)
@@ -216,9 +216,9 @@ Handlers should include proper error handling:
 
 ```ruby
 class SensorDataMessage < SmartMessage::Base
-  def self.process(message_header, message_payload)
+  def self.process(decoded_message)
     begin
-      data = JSON.parse(message_payload)
+      # decoded_message is already a message instance
       
       # Validate required fields
       raise "Missing device_id" unless data['device_id']
@@ -310,9 +310,9 @@ PaymentEventMessage.subscribe(audit_logger)
 
 ### 1. Keep Handlers Fast
 ```ruby
-def self.process(message_header, message_payload)
+def self.process(decoded_message)
   # Quick validation
-  data = JSON.parse(message_payload)
+  # decoded_message is already a message instance
   return unless valid_message?(data)
   
   # Delegate heavy work to background jobs
@@ -348,7 +348,7 @@ SensorDataMessage.subscribe do |h, p|; process_stuff(p); end
 ### 3. Filter Messages Early
 ```ruby
 def self.handle_thermostat_data(message_header, message_payload)
-  data = JSON.parse(message_payload)
+  # decoded_message is already a message instance
   
   # Filter early to avoid unnecessary processing
   return unless data['device_type'] == 'thermostat'
@@ -361,11 +361,11 @@ end
 
 ### 4. Include Logging and Monitoring
 ```ruby
-def self.process(message_header, message_payload)
+def self.process(decoded_message)
   start_time = Time.now
   
   begin
-    data = JSON.parse(message_payload)
+    # decoded_message is already a message instance
     logger.info "Processing sensor data from #{data['device_id']}"
     
     # Business logic here

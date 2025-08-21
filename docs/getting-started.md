@@ -64,10 +64,9 @@ class WelcomeMessage < SmartMessage::Base
   end
 
   # Define how to process received messages
-  def self.process(message_header, message_payload)
-    # Decode the message
-    data = JSON.parse(message_payload)
-    welcome = new(data)
+  def self.process(decoded_message)
+    # decoded_message is already a message instance
+    welcome = decoded_message
     
     # Process the welcome message
     puts "🎉 Welcome #{welcome.user_name}!"
@@ -294,9 +293,9 @@ class NotificationMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
 
-  def self.process(message_header, message_payload)
-    data = JSON.parse(message_payload)
-    notification = new(data)
+  def self.process(decoded_message)
+    # decoded_message is already a message instance
+    notification = decoded_message
     
     # Send email, SMS, push notification, etc.
     send_notification(notification)

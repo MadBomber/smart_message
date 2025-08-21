@@ -187,10 +187,10 @@ puts dispatcher.subscribers["MyMessage"]
 When a transport receives a message, it calls the dispatcher:
 
 ```ruby
-# Transport receives message and routes it
-transport.receive(message_header, message_payload)
-# This internally calls:
-dispatcher.route(message_header, message_payload)
+# Transport receives serialized message and routes it
+transport.receive(message_class, serialized_message)
+# This internally decodes the message and calls:
+dispatcher.route(decoded_message)
 ```
 
 ### 2. Subscription Lookup
@@ -198,12 +198,12 @@ dispatcher.route(message_header, message_payload)
 The dispatcher finds all registered handlers:
 
 ```ruby
-def route(message_header, message_payload)
-  message_klass = message_header.message_class
+def route(decoded_message)
+  message_klass = decoded_message._sm_header.message_class
   return nil if @subscribers[message_klass].empty?
   
-  @subscribers[message_klass].each do |message_processor|
-    # Process each handler
+  @subscribers[message_klass].each do |subscription|
+    # Process each handler with filters
   end
 end
 ```
@@ -213,16 +213,17 @@ end
 Each handler is processed in its own thread, with support for both method and proc handlers:
 
 ```ruby
-@subscribers[message_klass].each do |message_processor|
+@subscribers[message_klass].each do |subscription|
+  message_processor = subscription[:process_method]
   SS.add(message_klass, message_processor, 'routed')
   
   @router_pool.post do
-    # This runs in a separate thread
-    begin
+    # This runs in a separate thread with circuit breaker protection
+    circuit_result = circuit(:message_processor).wrap do
       # Check if this is a proc handler or a regular method call
       if proc_handler?(message_processor)
         # Call the proc handler via SmartMessage::Base
-        SmartMessage::Base.call_proc_handler(message_processor, message_header, message_payload)
+        SmartMessage::Base.call_proc_handler(message_processor, decoded_message)
       else
         # Original method call logic
         parts = message_processor.split('.')
@@ -231,11 +232,13 @@ Each handler is processed in its own thread, with support for both method and pr
         
         target_klass.constantize
                     .method(class_method)
-                    .call(message_header, message_payload)
+                    .call(decoded_message)
       end
-    rescue Exception => e
-      # Error handling - doesn't crash the dispatcher
-      puts "Error processing message: #{e.message}" if $DEBUG
+    end
+    
+    # Handle circuit breaker fallback if triggered
+    if circuit_result.is_a?(Hash) && circuit_result[:circuit_breaker]
+      handle_circuit_breaker_fallback(circuit_result, decoded_message, message_processor)
     end
   end
 end

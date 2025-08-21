@@ -93,10 +93,9 @@ The DLQ operates as a First-In-First-Out queue:
 ```ruby
 dlq = SmartMessage::DeadLetterQueue.default
 
-# Add a failed message
+# Add a failed message (accepts decoded message instance)
 entry = dlq.enqueue(
-  message_header,      # SmartMessage::Header object
-  message_payload,     # Serialized message string
+  decoded_message,     # SmartMessage::Base instance
   error: "Connection timeout",
   retry_count: 0,
   transport: "Redis",

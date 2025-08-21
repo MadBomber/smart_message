@@ -23,9 +23,8 @@ class NotificationMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
 
-  def self.process(message_header, message_payload)
-    data = JSON.parse(message_payload)
-    notification = new(data)
+  def self.process(decoded_message)
+    notification = decoded_message
     
     case notification.channel
     when 'email'
@@ -91,9 +90,8 @@ class UserRegisteredEvent < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
 
-  def self.process(message_header, message_payload)
-    data = JSON.parse(message_payload)
-    event = new(data)
+  def self.process(decoded_message)
+    event = decoded_message
     
     # Fan out to multiple handlers
     send_welcome_email(event)
@@ -157,9 +155,9 @@ class WelcomeEmailMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
 
-  def self.process(message_header, message_payload)
-    data = JSON.parse(message_payload)
-    message = new(data)
+  def self.process(decoded_message)
+    # decoded_message is already a message instance
+    message = decoded_message
     
     puts "📧 Sending welcome email to #{message.email} (#{message.name})"
     # Email sending logic here
@@ -176,9 +174,9 @@ class AnalyticsMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
 
-  def self.process(message_header, message_payload)
-    data = JSON.parse(message_payload)
-    event = new(data)
+  def self.process(decoded_message)
+    # decoded_message is already a message instance
+    event = decoded_message
     
     puts "📊 Tracking event: #{event.event_type} for user #{event.user_id}"
     # Analytics tracking logic here
@@ -214,9 +212,9 @@ class OrderCreatedMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
 
-  def self.process(message_header, message_payload)
-    data = JSON.parse(message_payload)
-    order = new(data)
+  def self.process(decoded_message)
+    # decoded_message is already a message instance
+    order = decoded_message
     
     # Validate order
     if valid_order?(order)
@@ -257,9 +255,9 @@ class InventoryReservationMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
 
-  def self.process(message_header, message_payload)
-    data = JSON.parse(message_payload)
-    reservation = new(data)
+  def self.process(decoded_message)
+    # decoded_message is already a message instance
+    reservation = decoded_message
     
     success = reserve_inventory(reservation.items)
     
@@ -294,9 +292,9 @@ class PaymentProcessingMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
 
-  def self.process(message_header, message_payload)
-    data = JSON.parse(message_payload)
-    payment = new(data)
+  def self.process(decoded_message)
+    # decoded_message is already a message instance
+    payment = decoded_message
     
     success = process_payment(payment)
     
@@ -367,9 +365,9 @@ class LogMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
 
-  def self.process(message_header, message_payload)
-    data = JSON.parse(message_payload)
-    log_entry = new(data)
+  def self.process(decoded_message)
+    # decoded_message is already a message instance
+    log_entry = decoded_message
     
     formatted_message = format_log_entry(log_entry)
     
@@ -417,9 +415,9 @@ class MetricMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
 
-  def self.process(message_header, message_payload)
-    data = JSON.parse(message_payload)
-    metric = new(data)
+  def self.process(decoded_message)
+    # decoded_message is already a message instance
+    metric = decoded_message
     
     # Store metric (would typically go to monitoring system)
     store_metric(metric)
@@ -501,9 +499,9 @@ class MessageGateway < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
 
-  def self.process(message_header, message_payload)
-    data = JSON.parse(message_payload)
-    gateway_message = new(data)
+  def self.process(decoded_message)
+    # decoded_message is already a message instance
+    gateway_message = decoded_message
     
     # Transform and forward to destination system
     case gateway_message.destination_system
@@ -567,8 +565,8 @@ class EmailSystemMessage < SmartMessage::Base
   property :original_payload
   property :source
 
-  def self.process(message_header, message_payload)
-    puts "📧 Email system processed message from #{JSON.parse(message_payload)['source']}"
+  def self.process(decoded_message)
+    puts "📧 Email system processed message from #{decoded_message.source}"
   end
 end
 
@@ -576,8 +574,8 @@ class SMSSystemMessage < SmartMessage::Base
   property :original_payload
   property :source
 
-  def self.process(message_header, message_payload)
-    puts "📱 SMS system processed message from #{JSON.parse(message_payload)['source']}"
+  def self.process(decoded_message)
+    puts "📱 SMS system processed message from #{decoded_message.source}"
   end
 end
 
@@ -587,8 +585,8 @@ class AuditSystemMessage < SmartMessage::Base
   property :source_system
   property :processed_at
 
-  def self.process(message_header, message_payload)
-    puts "📋 Audit system logged event from #{JSON.parse(message_payload)['source_system']}"
+  def self.process(decoded_message)
+    puts "📋 Audit system logged event from #{decoded_message.source_system}"
   end
 end
 
@@ -626,9 +624,9 @@ class ResilientMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
 
-  def self.process(message_header, message_payload)
-    data = JSON.parse(message_payload)
-    message = new(data)
+  def self.process(decoded_message)
+    # decoded_message is already a message instance
+    message = decoded_message
     
     begin
       # Simulate potentially failing operation
@@ -694,9 +692,9 @@ class DeadLetterMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
 
-  def self.process(message_header, message_payload)
-    data = JSON.parse(message_payload)
-    dead_letter = new(data)
+  def self.process(decoded_message)
+    # decoded_message is already a message instance
+    dead_letter = decoded_message
     
     puts "💀 Message sent to dead letter queue:"
     puts "   Original: #{dead_letter.original_message}"
@@ -796,9 +794,9 @@ end
 class TestMessage < SmartMessage::Base
   property :data
   
-  def self.process(message_header, message_payload)
-    data = JSON.parse(message_payload)
-    message = new(data)
+  def self.process(decoded_message)
+    # decoded_message is already a message instance
+    message = decoded_message
     puts "Processed test message: #{message.data}"
   end
 end

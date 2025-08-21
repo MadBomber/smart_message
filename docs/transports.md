@@ -169,9 +169,9 @@ class OrderMessage < SmartMessage::Base
     serializer SmartMessage::Serializer::JSON.new
   end
   
-  def self.process(message_header, message_payload)
-    order_data = JSON.parse(message_payload)
-    order = new(order_data)
+  def self.process(decoded_message)
+    # decoded_message is already a message instance
+    order = decoded_message
     puts "Processing order #{order.order_id} for $#{order.amount}"
     # Your business logic here
   end
