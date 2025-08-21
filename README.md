@@ -37,11 +37,11 @@ gem 'smart_message'
 
 And then execute:
 
-    $ bundle install
+    bundle install
 
 Or install it yourself as:
 
-    $ gem install smart_message
+    gem install smart_message
 
 ## Quick Start
 
@@ -51,43 +51,43 @@ Or install it yourself as:
 class OrderMessage < SmartMessage::Base
   # Declare schema version for compatibility tracking
   version 2
-  
+
   # Add a description for the message class
   description "Represents customer order data for processing and fulfillment"
-  
+
   # Configure entity addressing (Method 1: Direct methods)
   from 'order-service'
   to 'fulfillment-service'  # Point-to-point message
   reply_to 'order-service'  # Responses come back here
-  
+
   # Alternative Method 2: Using header block
   # header do
   #   from 'order-service'
   #   to 'fulfillment-service'
   #   reply_to 'order-service'
   # end
-  
+
   # Required properties with validation
-  property :order_id, 
+  property :order_id,
     required: true,
     message: "Order ID is required",
     validate: ->(v) { v.is_a?(String) && v.length > 0 },
     validation_message: "Order ID must be a non-empty string",
     description: "Unique order identifier"
-    
-  property :customer_id, 
+
+  property :customer_id,
     required: true,
     message: "Customer ID is required",
     description: "Customer's unique ID"
-    
-  property :amount, 
+
+  property :amount,
     required: true,
     message: "Amount is required",
     validate: ->(v) { v.is_a?(Numeric) && v > 0 },
     validation_message: "Amount must be a positive number",
     description: "Total order amount in dollars"
-    
-  property :items, 
+
+  property :items,
     default: [],
     description: "Array of ordered items"
 
@@ -102,11 +102,11 @@ class OrderMessage < SmartMessage::Base
     # Decode the message
     order_data = JSON.parse(message_payload)
     order = new(order_data)
-    
+
     # Process the order
     puts "Processing order #{order.order_id} for customer #{order.customer_id}"
     puts "Amount: $#{order.amount}"
-    
+
     # Your business logic here
     process_order(order)
   end
@@ -125,7 +125,7 @@ end
 # Create and publish a message (automatically validated before publishing)
 order = OrderMessage.new(
   order_id: "ORD-123",
-  customer_id: "CUST-456", 
+  customer_id: "CUST-456",
   amount: 99.99,
   items: ["Widget A", "Widget B"]
 )
@@ -195,7 +195,7 @@ OrderMessage.subscribe(to: /^(dev|staging)-.*/)
 
 # Combined filtering
 OrderMessage.subscribe(
-  from: /^admin-.*/, 
+  from: /^admin-.*/,
   to: ['order-service', /^fulfillment-.*/]
 )
 
@@ -215,14 +215,14 @@ class OrderMessage < SmartMessage::Base
   version 1
   property :order_id, required: true
   property :amount, required: true
-  
+
   from "order-service"
-  
+
   # Configure deduplication
   ddq_size 100              # Track last 100 message UUIDs
   ddq_storage :memory       # Use memory storage (or :redis for distributed)
   enable_deduplication!     # Enable deduplication for this message class
-  
+
   def self.process(message)
     puts "Processing order: #{message.order_id}"
     # Business logic here
@@ -311,7 +311,7 @@ class PaymentMessage < SmartMessage::Base
   from 'payment-service'     # Required: sender identity
   to 'bank-gateway'          # Optional: specific recipient
   reply_to 'payment-service' # Optional: where responses go
-  
+
   property :amount, required: true
   property :account_id, required: true
 end
@@ -321,14 +321,14 @@ end
 ```ruby
 class PaymentMessage < SmartMessage::Base
   version 1
-  
+
   # Configure all addressing in a single block
   header do
     from 'payment-service'
     to 'bank-gateway'
     reply_to 'payment-service'
   end
-  
+
   property :amount, required: true
   property :account_id, required: true
 end
@@ -366,13 +366,13 @@ payment.publish
 ```ruby
 class SystemAnnouncementMessage < SmartMessage::Base
   version 1
-  
+
   # Using header block for broadcast configuration
   header do
     from 'admin-service'  # Required: sender identity
     # No 'to' field = broadcast to all subscribers
   end
-  
+
   property :message, required: true
   property :priority, default: 'normal'
 end
@@ -381,7 +381,7 @@ end
 #### Messaging Patterns Supported
 
 - **Point-to-Point**: Set `to` field for direct entity targeting
-- **Broadcast**: Omit `to` field (nil) for message broadcast to all subscribers  
+- **Broadcast**: Omit `to` field (nil) for message broadcast to all subscribers
 - **Request-Reply**: Use `reply_to` field to specify response routing
 - **Gateway Patterns**: Override addressing at instance level for message forwarding
 
@@ -435,9 +435,9 @@ SmartMessage.configure do |config|
 end
 
 logger = SmartMessage.configuration.default_logger
-logger.info("User action", 
-            user_id: 12345, 
-            action: "login", 
+logger.info("User action",
+            user_id: 12345,
+            action: "login",
             ip_address: "192.168.1.1")
 # Output: {"timestamp":"2025-01-15T10:30:45.123Z","level":"INFO","message":"User action","user_id":12345,"action":"login","ip_address":"192.168.1.1","source":"app.rb:42:in `authenticate`"}
 ```
@@ -451,7 +451,7 @@ SmartMessage.configure do |config|
     roll_by_size: true,
     max_file_size: 10 * 1024 * 1024,  # 10 MB
     keep_files: 5,                     # Keep 5 old files
-    
+
     # Date-based rolling (alternative to size-based)
     roll_by_date: false,               # Set to true for date-based
     date_pattern: '%Y-%m-%d'           # Daily rolling pattern
@@ -467,11 +467,11 @@ SmartMessage classes automatically use the configured logger:
 class OrderMessage < SmartMessage::Base
   property :order_id, required: true
   property :amount, required: true
-  
+
   def process
     # Logger is automatically available
-    logger.info("Processing order", 
-                order_id: order_id, 
+    logger.info("Processing order",
+                order_id: order_id,
                 amount: amount,
                 header: _sm_header.to_h,
                 payload: _sm_payload)
@@ -573,7 +573,7 @@ transport.process_all  # Process all pending messages
 
 ```ruby
 # Basic Redis configuration
-transport = SmartMessage::Transport.create(:redis, 
+transport = SmartMessage::Transport.create(:redis,
   url: 'redis://localhost:6379',
   db: 0
 )
@@ -608,7 +608,7 @@ The Redis transport uses the message class name as the Redis channel name, enabl
 ```ruby
 class WebhookTransport < SmartMessage::Transport::Base
   def default_options
-    { 
+    {
       webhook_url: "https://api.example.com/webhooks",
       timeout: 30,
       retries: 3
@@ -623,19 +623,19 @@ class WebhookTransport < SmartMessage::Transport::Base
   def publish(message_header, message_payload)
     http = Net::HTTP.new(@uri.host, @uri.port)
     http.use_ssl = @uri.scheme == 'https'
-    
+
     request = Net::HTTP::Post.new(@uri)
     request['Content-Type'] = 'application/json'
     request['X-Message-Class'] = message_header.message_class
     request.body = message_payload
-    
+
     response = http.request(request)
     raise "Webhook failed: #{response.code}" unless response.code.to_i < 400
   end
 
   def subscribe(message_class, process_method)
     super
-    # For webhooks, subscription would typically be configured 
+    # For webhooks, subscription would typically be configured
     # externally on the webhook provider's side
   end
 end
@@ -645,7 +645,7 @@ SmartMessage::Transport.register(:webhook, WebhookTransport)
 
 # Use the transport
 MyMessage.config do
-  transport SmartMessage::Transport.create(:webhook, 
+  transport SmartMessage::Transport.create(:webhook,
     webhook_url: "https://api.myservice.com/messages"
   )
 end
@@ -676,7 +676,7 @@ Declare your message schema version using the `version` class method:
 ```ruby
 class OrderMessage < SmartMessage::Base
   version 2  # Schema version 2
-  
+
   property :order_id, required: true
   property :customer_email  # Added in version 2
 end
@@ -689,22 +689,22 @@ Properties support multiple validation types with custom error messages:
 ```ruby
 class UserMessage < SmartMessage::Base
   version 1
-  
+
   # Required field validation (Hashie built-in)
-  property :user_id, 
+  property :user_id,
     required: true,
     message: "User ID is required and cannot be blank"
-  
+
   # Custom validation with lambda
   property :age,
     validate: ->(v) { v.is_a?(Integer) && v.between?(1, 120) },
     validation_message: "Age must be an integer between 1 and 120"
-  
+
   # Email validation with regex
   property :email,
     validate: /\A[\w+\-.]+@[a-z\d\-]+(\.[a-z\d\-]+)*\.[a-z]+\z/i,
     validation_message: "Must be a valid email address"
-  
+
   # Inclusion validation with array
   property :status,
     validate: ['active', 'inactive', 'pending'],
@@ -782,20 +782,20 @@ Use the `description` DSL method to document what your message class represents:
 ```ruby
 class OrderMessage < SmartMessage::Base
   description "Represents customer order data for processing and fulfillment"
-  
+
   property :order_id, required: true
   property :amount, required: true
 end
 
-class UserMessage < SmartMessage::Base  
+class UserMessage < SmartMessage::Base
   description "Handles user management operations including registration and updates"
-  
+
   property :user_id, required: true
   property :email, required: true
 end
 
 # Access descriptions
-puts OrderMessage.description  
+puts OrderMessage.description
 # => "Represents customer order data for processing and fulfillment"
 
 puts UserMessage.description
@@ -816,7 +816,7 @@ class MyMessage < SmartMessage::Base
   property :data
 end
 
-puts MyMessage.description  
+puts MyMessage.description
 # => "MyMessage is a SmartMessage"
 ```
 
@@ -827,10 +827,10 @@ Combine class descriptions with property descriptions for comprehensive document
 ```ruby
 class FullyDocumented < SmartMessage::Base
   description "A fully documented message class for demonstration purposes"
-  
-  property :id, 
+
+  property :id,
     description: "Unique identifier for the record"
-  property :name, 
+  property :name,
     description: "Display name for the entity"
   property :status,
     description: "Current processing status",
