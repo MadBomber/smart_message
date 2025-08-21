@@ -1,0 +1,51 @@
+<svg width="600" height="200" xmlns="http://www.w3.org/2000/svg">
+  <!-- First Row: SMART -->
+  <!-- S Block -->
+  <rect x="20" y="20" width="60" height="60" fill="#4CAF50" stroke="#2E7D32" stroke-width="2" rx="5"/>
+  <text x="50" y="58" font-family="Arial, sans-serif" font-size="36" font-weight="bold" text-anchor="middle" fill="white">S</text>
+  
+  <!-- M Block -->
+  <rect x="100" y="20" width="60" height="60" fill="#2196F3" stroke="#1565C0" stroke-width="2" rx="5"/>
+  <text x="130" y="58" font-family="Arial, sans-serif" font-size="36" font-weight="bold" text-anchor="middle" fill="white">M</text>
+  
+  <!-- A Block -->
+  <rect x="180" y="20" width="60" height="60" fill="#FF9800" stroke="#E65100" stroke-width="2" rx="5"/>
+  <text x="210" y="58" font-family="Arial, sans-serif" font-size="36" font-weight="bold" text-anchor="middle" fill="white">A</text>
+  
+  <!-- R Block -->
+  <rect x="260" y="20" width="60" height="60" fill="#9C27B0" stroke="#6A1B9A" stroke-width="2" rx="5"/>
+  <text x="290" y="58" font-family="Arial, sans-serif" font-size="36" font-weight="bold" text-anchor="middle" fill="white">R</text>
+  
+  <!-- T Block -->
+  <rect x="340" y="20" width="60" height="60" fill="#F44336" stroke="#C62828" stroke-width="2" rx="5"/>
+  <text x="370" y="58" font-family="Arial, sans-serif" font-size="36" font-weight="bold" text-anchor="middle" fill="white">T</text>
+  
+  <!-- Second Row: MESSAGE -->
+  <!-- M Block -->
+  <rect x="20" y="110" width="60" height="60" fill="#607D8B" stroke="#37474F" stroke-width="2" rx="5"/>
+  <text x="50" y="148" font-family="Arial, sans-serif" font-size="36" font-weight="bold" text-anchor="middle" fill="white">M</text>
+  
+  <!-- E Block -->
+  <rect x="100" y="110" width="60" height="60" fill="#795548" stroke="#4E342E" stroke-width="2" rx="5"/>
+  <text x="130" y="148" font-family="Arial, sans-serif" font-size="36" font-weight="bold" text-anchor="middle" fill="white">E</text>
+  
+  <!-- S Block -->
+  <rect x="180" y="110" width="60" height="60" fill="#009688" stroke="#00695C" stroke-width="2" rx="5"/>
+  <text x="210" y="148" font-family="Arial, sans-serif" font-size="36" font-weight="bold" text-anchor="middle" fill="white">S</text>
+  
+  <!-- S Block -->
+  <rect x="260" y="110" width="60" height="60" fill="#FF5722" stroke="#D84315" stroke-width="2" rx="5"/>
+  <text x="290" y="148" font-family="Arial, sans-serif" font-size="36" font-weight="bold" text-anchor="middle" fill="white">S</text>
+  
+  <!-- A Block -->
+  <rect x="340" y="110" width="60" height="60" fill="#CDDC39" stroke="#827717" stroke-width="2" rx="5"/>
+  <text x="370" y="148" font-family="Arial, sans-serif" font-size="36" font-weight="bold" text-anchor="middle" fill="white">A</text>
+  
+  <!-- G Block -->
+  <rect x="420" y="110" width="60" height="60" fill="#3F51B5" stroke="#283593" stroke-width="2" rx="5"/>
+  <text x="450" y="148" font-family="Arial, sans-serif" font-size="36" font-weight="bold" text-anchor="middle" fill="white">G</text>
+  
+  <!-- E Block -->
+  <rect x="500" y="110" width="60" height="60" fill="#E91E63" stroke="#AD1457" stroke-width="2" rx="5"/>
+  <text x="530" y="148" font-family="Arial, sans-serif" font-size="36" font-weight="bold" text-anchor="middle" fill="white">E</text>
+</svg>

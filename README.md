@@ -1,3 +1,5 @@
+<img src="smart_message.svg" alt="SmartMessage Logo" align="left" width="420" height="200" />
+
 # SmartMessage
 
 [![Gem Version](https://badge.fury.io/rb/smart_message.svg)](https://badge.fury.io/rb/smart_message)
