@@ -48,6 +48,8 @@ Or install it yourself as:
 ### 1. Define a Message Class
 
 ```ruby
+require 'smart_message'
+
 class OrderMessage < SmartMessage::Base
   # Declare schema version for compatibility tracking
   version 2
@@ -98,17 +100,13 @@ class OrderMessage < SmartMessage::Base
   end
 
   # Business logic for processing received messages
-  def self.process(message_header, message_payload)
-    # Decode the message
-    order_data = JSON.parse(message_payload)
-    order = new(order_data)
-
-    # Process the order
-    puts "Processing order #{order.order_id} for customer #{order.customer_id}"
-    puts "Amount: $#{order.amount}"
+  def self.process(message_instance)
+    # Message instance is already decoded and validated
+    puts "Processing order #{message_instance.order_id} for customer #{message_instance.customer_id}"
+    puts "Amount: $#{message_instance.amount}"
 
     # Your business logic here
-    process_order(order)
+    process_order(message_instance)
   end
 
   private
@@ -154,20 +152,23 @@ OrderMessage.subscribe
 OrderMessage.subscribe("PaymentService.process_order")
 
 # 3. Block handler (NEW!)
-OrderMessage.subscribe do |header, payload|
+OrderMessage.subscribe do |wrapper|
+  header, payload = wrapper.split
   order_data = JSON.parse(payload)
   puts "Quick processing: Order #{order_data['order_id']}"
 end
 
 # 4. Proc handler (NEW!)
-order_processor = proc do |header, payload|
+order_processor = proc do |wrapper|
+  header, payload = wrapper.split
   order_data = JSON.parse(payload)
   EmailService.send_confirmation(order_data['customer_id'])
 end
 OrderMessage.subscribe(order_processor)
 
 # 5. Lambda handler (NEW!)
-audit_handler = lambda do |header, payload|
+audit_handler = lambda do |wrapper|
+  header, payload = wrapper.split
   AuditLog.record("Order processed at #{header.published_at}")
 end
 OrderMessage.subscribe(audit_handler)
@@ -223,8 +224,8 @@ class OrderMessage < SmartMessage::Base
   ddq_storage :memory       # Use memory storage (or :redis for distributed)
   enable_deduplication!     # Enable deduplication for this message class
 
-  def self.process(message)
-    puts "Processing order: #{message.order_id}"
+  def self.process(message_instance)
+    puts "Processing order: #{message_instance.order_id}"
     # Business logic here
   end
 end
