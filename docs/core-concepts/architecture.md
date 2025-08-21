@@ -245,7 +245,7 @@ class OrderMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport.create(:memory)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
 end
 ```

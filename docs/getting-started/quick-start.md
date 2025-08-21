@@ -1,3 +1,4 @@
+
 # Getting Started with SmartMessage
 
 This guide will help you get up and running with SmartMessage quickly.
@@ -25,7 +26,38 @@ gem install smart_message
 ## Requirements
 
 - Ruby >= 3.0.0
-- No additional system dependencies
+- No additional system dependencies for basic usage
+
+## Transport Options
+
+SmartMessage supports multiple transport layers:
+
+### Built-in Transports
+
+- **Memory Transport** - Perfect for development and testing. No external dependencies required.
+- **STDOUT Transport** - Great for debugging and logging. No external dependencies.
+- **Redis Transport** - Production-ready transport for distributed systems. Requires Redis server.
+
+### Redis Installation (Optional)
+
+The Redis transport is built-in but requires Redis server to be installed. However, **you don't need Redis just to play around** - the Memory transport works great for development and testing.
+
+If you want to use Redis transport:
+
+**macOS:**
+```bash
+brew install redis
+brew services start redis
+```
+
+**Ubuntu/Debian:**
+```bash
+sudo apt-get update
+sudo apt-get install redis-server
+```
+
+**Other Transports:**
+Additional transport layers (RabbitMQ, Kafka, etc.) are available as separate plugin repositories. Check the [Transports documentation](../reference/transports.md) for more information.
 
 ## Your First Message
 
@@ -60,7 +92,7 @@ class WelcomeMessage < SmartMessage::Base
   # Configure the transport (where messages go)
   config do
     transport SmartMessage::Transport.create(:stdout, loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
 
   # Define how to process received messages
@@ -185,7 +217,7 @@ Serializers handle message encoding/decoding:
 
 ```ruby
 # JSON serialization (built-in)
-serializer SmartMessage::Serializer::JSON.new
+serializer SmartMessage::Serializer::Json.new
 ```
 
 ### Message Handlers
@@ -290,7 +322,7 @@ class NotificationMessage < SmartMessage::Base
 
   config do
     transport SmartMessage::Transport.create(:memory, auto_process: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
 
   def self.process(decoded_message)
@@ -333,7 +365,7 @@ class EventMessage < SmartMessage::Base
 
   config do
     transport SmartMessage::Transport.create(:stdout, output: 'events.log')
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
 end
 

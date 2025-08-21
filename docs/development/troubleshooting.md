@@ -39,7 +39,7 @@ class MyMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport.create(:stdout)  # No loopback
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
 end
 
@@ -47,7 +47,7 @@ end
 class MyMessage < SmartMessage::Base
   config do
     transport SmartMessage::Transport.create(:stdout, loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
 end
 ```
@@ -102,7 +102,7 @@ MyMessage.new(data: "test").publish
 class MyMessage < SmartMessage::Base
   config do
     transport SmartMessage::Transport.create(:memory)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
 end
 ```
@@ -114,7 +114,7 @@ class ProblematicMessage < SmartMessage::Base
   property :data
   
   config do
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
 end
 
@@ -154,7 +154,7 @@ class MyMessage < SmartMessage::Base
   property :data
   
   config do
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
     # Missing transport!
   end
 end
@@ -165,7 +165,7 @@ MyMessage.new(data: "test").publish  # Throws TransportNotConfigured
 class MyMessage < SmartMessage::Base
   config do
     transport SmartMessage::Transport.create(:memory)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
 end
 ```
@@ -471,7 +471,7 @@ class MyMessage < SmartMessage::Base
   # Reconfigure
   config do
     transport SmartMessage::Transport.create(:memory)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
 end
 ```

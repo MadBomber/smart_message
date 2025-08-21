@@ -320,7 +320,7 @@ class FilterTest < Minitest::Test
     @transport = SmartMessage::Transport.create(:memory, auto_process: true)
     TestMessage.config do
       transport @transport
-      serializer SmartMessage::Serializer::JSON.new
+      serializer SmartMessage::Serializer::Json.new
     end
     TestMessage.unsubscribe!
   end

@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Documentation Website**: MkDocs-based documentation site with GitHub Pages deployment
+  - Added `mkdocs.yml` configuration with Material theme and SmartMessage branding
+  - Created GitHub Actions workflow (`.github/workflows/deploy-github-pages.yml`) for automatic documentation deployment
+  - Reorganized documentation structure into logical sections: Getting Started, Core Concepts, Reference, and Development
+  - Added custom CSS styling for improved header visibility and readability
+  - Integrated SmartMessage logo and branding throughout the documentation
+  - Documentation now automatically deploys to GitHub Pages on push to master branch
+  - Live documentation available at: https://madbomber.github.io/smart_message/
+
 ## [0.0.10] 2025-08-20
 ### Added
 - **Handler-Scoped Message Deduplication**: Advanced DDQ (Deduplication Queue) system with automatic handler isolation

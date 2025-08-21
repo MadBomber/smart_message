@@ -26,7 +26,7 @@ The default serializer that converts messages to/from JSON format.
 
 ```ruby
 # Basic usage
-serializer = SmartMessage::Serializer::JSON.new
+serializer = SmartMessage::Serializer::Json.new
 
 # Configure in message class
 class UserMessage < SmartMessage::Base
@@ -35,7 +35,7 @@ class UserMessage < SmartMessage::Base
   property :preferences
   
   config do
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
 end
 

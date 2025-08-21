@@ -694,7 +694,7 @@ RSpec.describe "Message Processing" do
   before do
     TestMessage.config do
       transport transport
-      serializer SmartMessage::Serializer::JSON.new
+      serializer SmartMessage::Serializer::Json.new
     end
     
     TestMessage.subscribe

@@ -1,3 +1,4 @@
+
 # Message Deduplication
 
 SmartMessage provides a comprehensive message deduplication system using Deduplication Queues (DDQ) to prevent duplicate processing of messages with the same UUID. The system is designed with handler-scoped isolation, ensuring that different message handlers maintain independent deduplication state.

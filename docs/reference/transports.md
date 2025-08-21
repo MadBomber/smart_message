@@ -166,7 +166,7 @@ class OrderMessage < SmartMessage::Base
       url: 'redis://localhost:6379',
       db: 1
     )
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
   
   def self.process(decoded_message)
@@ -243,7 +243,7 @@ redis_transport = SmartMessage::Transport.create(:redis,
 [OrderMessage, PaymentMessage, ShippingMessage].each do |msg_class|
   msg_class.config do
     transport redis_transport
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
   
   # Subscribe to each message type (creates separate Redis subscriptions)
@@ -285,7 +285,7 @@ class ProductionMessage < SmartMessage::Base
       reconnect_attempts: 10,
       reconnect_delay: 5
     )
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
     logger Logger.new(STDOUT)
   end
 end
@@ -302,7 +302,7 @@ class TestMessage < SmartMessage::Base
       db: 15,  # Use separate database for tests
       auto_subscribe: true
     )
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
 end
 
@@ -411,7 +411,7 @@ class OrderMessage < SmartMessage::Base
   # All instances use this transport by default
   config do
     transport SmartMessage::Transport.create(:memory, auto_process: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
 end
 ```

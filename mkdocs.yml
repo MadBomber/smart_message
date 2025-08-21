@@ -1,0 +1,174 @@
+site_name: SmartMessage Documentation
+site_description: "Intelligent messages that know what to do and how to do it"
+site_author: "madbomber"
+site_url: "https://madbomber.github.io/smart_message/"
+
+repo_name: "madbomber/smart_message"
+repo_url: "https://github.com/madbomber/smart_message"
+edit_uri: "edit/master/docs/"
+
+theme:
+  name: material
+  language: en
+
+  # Logo and favicon
+  logo: assets/smart_message.jpg
+  favicon: assets/smart_message.jpg
+
+  # Color palette
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: brown
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: brown
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+  # Font configuration
+  font:
+    text: Roboto
+    code: Roboto Mono
+
+  # Theme features
+  features:
+    # Navigation
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.path
+    - navigation.indexes
+    - navigation.top
+
+    # Table of contents
+    - toc.follow
+
+    # Search
+    - search.suggest
+    - search.highlight
+    - search.share
+
+    # Header
+    - header.autohide
+
+    # Content
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - content.tooltips
+    - content.action.edit
+    - content.action.view
+
+# Plugins
+plugins:
+  - search:
+      separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+  - macros
+
+# Extensions
+markdown_extensions:
+  # Python Markdown
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - toc:
+      permalink: true
+      title: On this page
+
+  # Python Markdown Extensions
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: madbomber
+      repo: smart_message
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# Additional CSS and JavaScript
+extra_css:
+  - assets/stylesheets/extra.css
+
+extra_javascript:
+  - assets/javascripts/mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+# Extra content
+extra:
+  # Version string
+  version: 0.1.11
+
+  # Social media links
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/madbomber/smart_message
+      name: GitHub Repository
+
+  # Generator notice
+  generator: false
+
+# Navigation with icons
+nav:
+  - Home: index.md
+  - 🚀 Getting Started:
+      - Quick Start: getting-started/quick-start.md
+      - Examples: getting-started/examples.md
+  - 📖 Core Concepts:
+      - Architecture: core-concepts/architecture.md
+      - Properties: core-concepts/properties.md
+      - Addressing: core-concepts/addressing.md
+      - Dispatcher: core-concepts/dispatcher.md
+      - Message Filtering: core-concepts/message-filtering.md
+      - Message Processing: core-concepts/message-processing.md
+  - 🔌 Reference:
+      - Transports: reference/transports.md
+      - Serializers: reference/serializers.md
+      - Logging: reference/logging.md
+      - Dead Letter Queue: reference/dead-letter-queue.md
+      - Message Deduplication: reference/message-deduplication.md
+      - Proc Handlers: reference/proc-handlers.md
+  - ⚙️ Development:
+      - Troubleshooting: development/troubleshooting.md
+      - Ideas & Roadmap: development/ideas.md
+
+# Copyright
+copyright: Copyright &copy; 2025 madbomber

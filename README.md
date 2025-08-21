@@ -1,11 +1,23 @@
-<img src="smart_message.svg" alt="SmartMessage Logo" align="left" width="420" height="200" />
+<table border="0">
+<tr>
+<td width="30%" valign="top">
+
+<img src="docs/assets/smart_message.jpg" alt="SmartMessage Logo" />
+
+</td>
+<td width="70%" valign="top">
 
 # SmartMessage
 
-[![Gem Version](https://badge.fury.io/rb/smart_message.svg)](https://badge.fury.io/rb/smart_message)
-[![Ruby](https://img.shields.io/badge/ruby-%3E%3D%203.0.0-ruby.svg)](https://www.ruby-lang.org/en/)
+Can Walk, Talk, and Think at the Same Time
 
-SmartMessage is a message abstraction framework that decouples business logic from message transports and serialization formats. Much like ActiveRecord abstracts models from database implementations, SmartMessage abstracts messages from their backend transport and serialization mechanisms.
+**SmartMessage** is a powerful Ruby framework that transforms ordinary messages into intelligent, self-aware entities capable of routing themselves, validating their contents, and executing business logic. By abstracting away the complexities of transport mechanisms (Redis, RabbitMQ, Kafka) and serialization formats (JSON, MessagePack), SmartMessage lets you focus on what matters: your business logic.
+
+Think of SmartMessage as ActiveRecord for messaging - just as ActiveRecord frees you from database-specific SQL, SmartMessage liberates your messages from transport-specific implementations. Each message knows how to validate itself, where it came from, where it's going, and what to do when it arrives. With built-in support for filtering, versioning, deduplication, and concurrent processing, SmartMessage provides enterprise-grade messaging capabilities with the simplicity Ruby developers love.
+
+</td>
+</tr>
+</table>
 
 ## Features
 
@@ -42,6 +54,28 @@ And then execute:
 Or install it yourself as:
 
     gem install smart_message
+
+### Redis Transport Setup
+
+To use the built-in Redis transport, you'll need to have Redis server installed:
+
+**macOS:**
+```bash
+brew install redis
+brew services start redis  # To start Redis as a service
+```
+
+**Ubuntu/Debian:**
+```bash
+sudo apt-get update
+sudo apt-get install redis-server
+```
+
+**CentOS/RHEL/Fedora:**
+```bash
+sudo yum install redis
+sudo systemctl start redis
+```
 
 ## Quick Start
 
