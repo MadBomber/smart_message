@@ -31,7 +31,7 @@ class MicroserviceMessage < SmartMessage::Base
   # Configure with STDOUT transport for demo visibility
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
 end
 

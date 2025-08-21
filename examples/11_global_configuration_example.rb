@@ -59,7 +59,12 @@ class NotificationMessage < SmartMessage::Base
   property :message
   property :priority, default: 'normal'
   
-  # No config block needed - automatically uses global configuration!
+  # Explicitly use global configuration for demonstration
+  config do
+    transport SmartMessage::Transport.default
+    serializer SmartMessage::Serializer.default
+    logger SmartMessage::Logger.default
+  end
   
   def self.process(wrapper)
     message_header, message_payload = wrapper.split
@@ -80,7 +85,12 @@ class OrderStatusMessage < SmartMessage::Base
   property :status
   property :customer_id
   
-  # Also uses global configuration automatically
+  # Explicitly use global configuration for demonstration
+  config do
+    transport SmartMessage::Transport.default
+    serializer SmartMessage::Serializer.default
+    logger SmartMessage::Logger.default
+  end
   
   def self.process(wrapper)
     message_header, message_payload = wrapper.split
@@ -98,14 +108,15 @@ class OrderStatusMessage < SmartMessage::Base
   end
 end
 
-# Subscribe to messages to see them in action
-NotificationMessage.subscribe
-OrderStatusMessage.subscribe
-
 puts "   Message classes configured automatically!"
 puts
 
-# Example 4: Creating and publishing messages
+# Subscribe to messages to see them in action (after configuration is complete)
+# Message classes now explicitly use global configuration via config blocks
+NotificationMessage.subscribe
+OrderStatusMessage.subscribe
+
+# Example 5: Creating and publishing messages
 puts "4. Publishing Messages (using global configuration):"
 
 notification = NotificationMessage.new(

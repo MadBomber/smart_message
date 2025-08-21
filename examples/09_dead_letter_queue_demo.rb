@@ -45,7 +45,7 @@ class PaymentMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport.create(:memory)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
   
   def self.process(wrapper)
@@ -68,7 +68,7 @@ class OrderMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport.create(:memory)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
   
   def self.process(wrapper)
@@ -90,7 +90,7 @@ class NotificationMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport.create(:memory)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
   
   def self.process(wrapper)

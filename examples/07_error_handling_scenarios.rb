@@ -50,7 +50,7 @@ class UserRegistrationMessage < SmartMessage::Base
 
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
 
   def self.process(wrapper)
@@ -99,7 +99,7 @@ class UserRegistrationMessageV2 < SmartMessage::Base
 
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
 
   def self.process(wrapper)
@@ -121,7 +121,7 @@ class MultiRequiredMessage < SmartMessage::Base
 
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
 end
 

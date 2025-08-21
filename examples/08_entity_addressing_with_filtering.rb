@@ -16,7 +16,7 @@ puts "=" * 50
 
 # Configure transport for demo
 transport = SmartMessage::Transport.create(:stdout, loopback: true)
-serializer = SmartMessage::Serializer::JSON.new
+serializer = SmartMessage::Serializer::Json.new
 
 # =============================================================================
 # Example 1: Entity-Aware Message Filtering
@@ -37,7 +37,7 @@ class ServiceMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport.create(:stdout, loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
   
   # Different handlers for different subscription filters
@@ -154,7 +154,7 @@ class AlertMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport.create(:stdout, loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
   
   def self.process_critical_or_broadcast(wrapper)
@@ -262,7 +262,7 @@ class OrderMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport.create(:stdout, loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
   
   def self.process_high_priority(wrapper)
@@ -357,7 +357,7 @@ class ServiceRequest < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport.create(:stdout, loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
   
   def self.process_api_requests(wrapper)

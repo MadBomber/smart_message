@@ -293,7 +293,7 @@ class OrderProcessingMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
     
     # Configure multi-logger to demonstrate different logging approaches
     logger SmartMessage::Logger::MultiLogger.new(
@@ -364,7 +364,7 @@ class NotificationMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
     
     # Use only file logger for notifications
     logger SmartMessage::Logger::FileLogger.new('logs/notifications.log', level: Logger::WARN)
@@ -401,7 +401,7 @@ class StandardLoggerMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
     
     # Example 1: Using Ruby's standard Logger directly
     # Create a standard Ruby logger that logs to STDOUT
@@ -439,7 +439,7 @@ class DefaultLoggerMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
     
     # Use the built-in default logger - simplest option!
     logger SmartMessage::Logger::Default.new
@@ -466,16 +466,19 @@ class PriorityOrderService
   end
   
   def process_priority_order(order_data)
-    # Create message with instance-level logger override
-    message = OrderProcessingMessage.new(**order_data, from: 'PriorityOrderService')
+    # Use class-level logger override for this specific processing
+    original_logger = OrderProcessingMessage.logger
+    OrderProcessingMessage.logger(@priority_logger)
     
-    # Override the logger at instance level
-    message.logger(@priority_logger)
-    
-    puts "⚡ Processing priority order with dedicated logger"
-    message.publish
-    
-    message
+    begin
+      message = OrderProcessingMessage.new(**order_data, from: 'PriorityOrderService')
+      puts "⚡ Processing priority order with dedicated logger"
+      message.publish
+      message
+    ensure
+      # Restore original logger
+      OrderProcessingMessage.logger(original_logger)
+    end
   end
 end
 

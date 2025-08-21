@@ -32,7 +32,7 @@ class UserEventMessage < SmartMessage::Base
 
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
 
   # Default processor - just logs the event

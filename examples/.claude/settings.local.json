@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "additionalDirectories": [
+      "/Users/dewayne/sandbox/git_repos/madbomber/smart_message"
+    ],
+    "allow": [
+      "Bash(ruby:*)"
+    ]
+  }
+}

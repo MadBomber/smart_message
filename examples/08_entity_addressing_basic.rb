@@ -15,7 +15,7 @@ puts "=" * 50
 
 # Configure transport for demo
 transport = SmartMessage::Transport.create(:stdout, loopback: true)
-serializer = SmartMessage::Serializer::JSON.new
+serializer = SmartMessage::Serializer::Json.new
 
 # =============================================================================
 # Example 1: Point-to-Point Messaging
@@ -40,7 +40,7 @@ class OrderMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport.create(:stdout, loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
   
   def self.process(wrapper)
@@ -93,7 +93,7 @@ class SystemAnnouncementMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport.create(:stdout, loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
   
   def self.process(wrapper)
@@ -145,7 +145,7 @@ class UserLookupRequest < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport.create(:stdout, loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
   
   def self.process(wrapper)
@@ -179,7 +179,7 @@ class UserLookupResponse < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport.create(:stdout, loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
   
   def self.process(wrapper)
@@ -251,7 +251,7 @@ class PaymentMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport.create(:stdout, loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
   
   def self.process(wrapper)
@@ -326,7 +326,7 @@ class ExternalAPIMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport.create(:stdout, loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
   
   def self.process(wrapper)

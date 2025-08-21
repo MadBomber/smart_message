@@ -37,7 +37,7 @@ class ChatMessage < SmartMessage::Base
 
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
 
   def self.process(wrapper)
@@ -66,7 +66,7 @@ class BotCommandMessage < SmartMessage::Base
 
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
 
   def self.process(wrapper)
@@ -95,7 +95,7 @@ class SystemNotificationMessage < SmartMessage::Base
 
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
+    serializer SmartMessage::Serializer::Json.new
   end
 
   def self.process(wrapper)
