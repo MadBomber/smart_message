@@ -713,7 +713,4 @@ end
 
 ## Next Steps
 
-- [Thread Safety](thread-safety.md) - Understanding concurrent processing
-- [Statistics & Monitoring](monitoring.md) - Detailed monitoring guide
-- [Custom Transports](custom-transports.md) - How transports interact with the dispatcher
-- [Troubleshooting](troubleshooting.md) - Common dispatcher issues
+- [Troubleshooting](../development/troubleshooting.md) - Common dispatcher issues

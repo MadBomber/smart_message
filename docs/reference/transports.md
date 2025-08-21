@@ -689,7 +689,6 @@ end
 
 ## Next Steps
 
-- [Custom Transports](custom-transports.md) - Build your own transport
 - [Serializers](serializers.md) - Understanding message serialization
-- [Dispatcher](dispatcher.md) - Message routing and processing
-- [Examples](examples.md) - Real-world transport usage patterns
+- [Dispatcher](../core-concepts/dispatcher.md) - Message routing and processing
+- [Examples](../getting-started/examples.md) - Real-world transport usage patterns

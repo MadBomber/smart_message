@@ -447,5 +447,4 @@ end
 
 - [Dispatcher Documentation](dispatcher.md) - How filtering integrates with message routing
 - [Entity Addressing](addressing.md) - Understanding `from`, `to`, and `reply_to` fields  
-- [Examples](examples.md) - Complete working examples with filtering
-- [Testing Guide](testing.md) - Best practices for testing filtered subscriptions
+- [Examples](../getting-started/examples.md) - Complete working examples with filtering

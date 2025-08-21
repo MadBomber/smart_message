@@ -569,7 +569,5 @@ end
 
 ## Next Steps
 
-- [Custom Serializers](custom-serializers.md) - Build your own serializer
 - [Transports](transports.md) - How serializers work with transports
-- [Message Headers](headers.md) - Understanding message metadata
-- [Examples](examples.md) - Real-world serialization patterns
+- [Examples](../getting-started/examples.md) - Real-world serialization patterns

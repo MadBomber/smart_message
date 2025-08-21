@@ -296,16 +296,15 @@ payment.to('backup-gateway')  # Override destination
 payment.publish
 ```
 
-For more details, see [Entity Addressing](addressing.md).
+For more details, see [Entity Addressing](../core-concepts/addressing.md).
 
 ## Next Steps
 
 Now that you have the basics working, explore:
 
-- [Architecture Overview](architecture.md) - Understand how SmartMessage works
+- [Architecture Overview](../core-concepts/architecture.md) - Understand how SmartMessage works
 - [Examples](examples.md) - See more practical use cases
-- [Transports](transports.md) - Learn about different transport options
-- [Custom Transports](custom-transports.md) - Build your own transport
+- [Transports](../reference/transports.md) - Learn about different transport options
 
 ## Common Patterns
 
@@ -379,6 +378,5 @@ EventMessage.new(
 
 ## Need Help?
 
-- Check the [Troubleshooting Guide](troubleshooting.md)
-- Review the [API Reference](api-reference.md)
+- Check the [Troubleshooting Guide](../development/troubleshooting.md)
 - Look at more [Examples](examples.md)

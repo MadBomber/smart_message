@@ -1,0 +1,51 @@
+/* Custom styles for SmartMessage documentation */
+
+/* Make header/navigation text more prominent */
+.md-header__title {
+  font-size: 1.2rem !important;
+  font-weight: 700 !important;
+}
+
+.md-header__topic {
+  font-weight: 600 !important;
+}
+
+/* Make navigation tabs larger and bolder */
+.md-tabs__link {
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Active tab styling */
+.md-tabs__link--active {
+  font-weight: 700 !important;
+}
+
+/* Navigation drawer items */
+.md-nav__link {
+  font-size: 0.85rem !important;
+}
+
+.md-nav__link--active {
+  font-weight: 600 !important;
+}
+
+/* Section headers in navigation */
+.md-nav__title {
+  font-weight: 700 !important;
+  font-size: 0.9rem !important;
+}
+
+/* Search bar text */
+.md-search__input {
+  font-size: 0.9rem !important;
+}
+
+/* Make the site name in header extra prominent */
+.md-header__title .md-header__ellipsis {
+  font-size: 1.3rem !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.5px;
+}
