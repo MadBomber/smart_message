@@ -3,7 +3,8 @@
 <td width="30%" valign="top">
 
 <img src="docs/assets/smart_message.jpg" alt="SmartMessage Logo" />
-
+<br/>
+See [Documentation Website](https://madbomber.github.io/smart_message/)
 </td>
 <td width="70%" valign="top">
 
