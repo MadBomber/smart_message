@@ -1,5 +1,7 @@
 #!/usr/bin/env ruby
 
+HEALTH_CHECK_RATE = 5 # seconds; setting to zero gets overruns and 1300+ msg/sec
+
 require 'smart_message'
 require 'smart_message/transport/redis_transport'
 require 'smart_message/serializer/json'
@@ -38,11 +40,11 @@ class HealthDepartment
                     when 'failed' then "\e[31m"     # Red
                     else "\e[0m"                     # Reset
                     end
-      
+
       puts "#{status_color}#{message.service_name}: #{message.status.upcase}\e[0m #{message.details}"
       @logger.info("Received health status: #{message.service_name} = #{message.status} (#{message.details})")
     end
-    
+
     puts "🏥 Health Department started"
     puts "   Monitoring city services health status..."
     puts "   Will send HealthCheck broadcasts every 5 seconds"
@@ -64,7 +66,7 @@ class HealthDepartment
   def start_monitoring
     loop do
       send_health_check
-      sleep(5)
+      sleep(HEALTH_CHECK_RATE)
     end
   rescue => e
     puts "🏥 Error in health monitoring: #{e.message}"
@@ -78,17 +80,17 @@ class HealthDepartment
     @check_counter += 1
     check_id = SecureRandom.uuid
     timestamp = Time.now.strftime('%Y-%m-%d %H:%M:%S')
-    
+
     health_check = Messages::HealthCheckMessage.new(
       timestamp: timestamp,
       check_id: check_id,
       from: @service_name,
       to: nil  # Broadcast
     )
-    
+
     puts "🏥 Broadcasting health check ##{@check_counter} (#{check_id[0..7]}...)"
     @logger.info("Broadcasting health check ##{@check_counter} (#{check_id})")
-    
+
     health_check.publish
   rescue => e
     puts "🏥 Error sending health check: #{e.message}"

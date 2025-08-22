@@ -16,6 +16,10 @@ class RedisStats
     @previous_command_stats = {}
     @max_publish_rate = 0.0  # Track maximum publish rate seen
     @max_rates = Hash.new(0.0)  # Track max rates for each command
+    @baseline_messages = nil  # Track starting message count
+    @session_messages = 0  # Messages since monitor started
+    @baseline_commands = {}  # Track starting command counts
+    @session_commands = {}   # Commands since monitor started
     @refresh_rate = 2
     
     # Get terminal size with fallback
@@ -219,13 +223,13 @@ class RedisStats
   def build_header
     uptime = (Time.now - @start_time).to_i
     title = "📊 Redis Statistics Dashboard"
-    subtitle = "SmartMessage City Demo | Uptime: #{format_duration(uptime)}"
+    subtitle = "Session: #{format_duration(uptime)} | Messages: #{@session_messages}"
     
     # Center text within terminal width
     title_line = title.center(@terminal_width)
     subtitle_line = subtitle.center(@terminal_width)
     
-    title_line
+    "#{title_line}\n#{subtitle_line}"
   end
 
   def build_separator
@@ -259,10 +263,18 @@ class RedisStats
     total_publishes = publish_stats[:calls]
     publish_rate = calculate_publish_rate(publish_stats)
     
+    # Initialize baseline on first run
+    if @baseline_messages.nil?
+      @baseline_messages = total_publishes
+    end
+    
+    # Calculate session messages
+    @session_messages = total_publishes - @baseline_messages
+    
     lines << "   📊 Channels: #{pubsub_channels} active, #{pubsub_patterns} patterns"
     lines << "   👥 Clients: #{pubsub_clients} subscribed"
-    lines << "   📨 Messages: #{format_number(total_publishes)} total, #{publish_rate}/sec (max)"
-    lines << "   📡 Avg Latency: #{publish_stats[:avg_latency]}μs"
+    lines << "   📨 Messages: #{format_number(@session_messages)} this session, #{format_number(total_publishes)} all-time"
+    lines << "   📡 Rate: #{publish_rate}/sec (max) | Avg Latency: #{publish_stats[:avg_latency]}μs"
     
     lines
   end
@@ -328,9 +340,21 @@ class RedisStats
       stats = extract_command_stats(cmdstats_info, cmd[:key])
       next if stats[:calls] == 0
       
+      # Initialize baseline on first run
+      if @baseline_commands[cmd[:key]].nil?
+        @baseline_commands[cmd[:key]] = stats[:calls]
+        @session_commands[cmd[:key]] = 0
+      else
+        @session_commands[cmd[:key]] = stats[:calls] - @baseline_commands[cmd[:key]]
+      end
+      
       rate = calculate_command_rate(cmd[:key], stats)
       
-      lines << "   📈 #{cmd[:name].ljust(12)} #{format_number(stats[:calls])} calls | #{rate}/sec (max) | #{stats[:avg_latency]}μs avg"
+      # Format: session calls, all-time calls
+      session_calls = format_number(@session_commands[cmd[:key]])
+      total_calls = format_number(stats[:calls])
+      
+      lines << "   📈 #{cmd[:name].ljust(12)} #{session_calls} this session, #{total_calls} all-time | #{rate}/sec (max) | #{stats[:avg_latency]}μs avg"
     end
     
     # Get total command summary from stats section
@@ -627,6 +651,11 @@ class RedisStats
   def calculate_command_rate(command_key, current_stats)
     current_calls = current_stats[:calls]
     key_sym = command_key.to_sym
+    
+    # For publish command, use the existing @max_publish_rate to keep consistency
+    if command_key == "publish"
+      return @max_publish_rate.round(1).to_s
+    end
     
     # If we have previous stats for this command, calculate the rate
     if @previous_command_stats[key_sym]
