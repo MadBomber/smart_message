@@ -14,6 +14,8 @@ class RedisStats
     @channel_stats = Hash.new { |h, k| h[k] = { last_count: 0, rate: 0, total_messages: 0 } }
     @previous_stats = {}
     @previous_command_stats = {}
+    @max_publish_rate = 0.0  # Track maximum publish rate seen
+    @max_rates = Hash.new(0.0)  # Track max rates for each command
     @refresh_rate = 2
     
     # Get terminal size with fallback
@@ -43,8 +45,10 @@ class RedisStats
     # Show cursor, disable alternate screen buffer
     print "\e[?1049l"    # Disable alternate screen buffer
     print "\e[?25h"      # Show cursor
+    print "\e[0m"        # Reset all attributes
     print "\e[2J"        # Clear screen
     print "\e[H"         # Move cursor to home position
+    system("stty echo 2>/dev/null")  # Re-enable echo
   end
 
   def show_startup_message
@@ -67,6 +71,8 @@ class RedisStats
 
   def cleanup_and_exit
     restore_terminal
+    system("stty sane 2>/dev/null")  # Reset terminal settings
+    system("tput reset 2>/dev/null")  # Full terminal reset
     puts "\n📊 Redis statistics monitor shutting down..."
     show_final_summary
     exit(0)
@@ -112,11 +118,15 @@ class RedisStats
     end
   rescue => e
     restore_terminal
+    system("stty sane 2>/dev/null")
+    system("tput reset 2>/dev/null")
     puts "❌ Error monitoring Redis stats: #{e.message}"
     puts "#{e.backtrace.first(3).join("\n")}"
     exit(1)
   ensure
     restore_terminal
+    system("stty sane 2>/dev/null")
+    system("tput reset 2>/dev/null")
   end
 
   def render_dashboard
@@ -235,19 +245,23 @@ class RedisStats
     channels = @redis.pubsub("channels")
     total_subscribers = 0
     
-    info = @redis.info("stats")
-    pubsub_channels = info["pubsub_channels"] || 0
-    pubsub_patterns = info["pubsub_patterns"] || 0
-    pubsub_clients = info["pubsub_clients"] || 0
+    stats_info = @redis.info("stats")
+    pubsub_channels = stats_info["pubsub_channels"] || 0
+    pubsub_patterns = stats_info["pubsub_patterns"] || 0
     
-    # Calculate message activity
-    publish_stats = extract_command_stats(info, "publish")
+    # Get client info for pubsub_clients
+    clients_info = @redis.info("clients")
+    pubsub_clients = clients_info["pubsub_clients"] || 0
+    
+    # Get command stats from commandstats section
+    cmdstats_info = @redis.info("commandstats")
+    publish_stats = extract_command_stats(cmdstats_info, "publish")
     total_publishes = publish_stats[:calls]
     publish_rate = calculate_publish_rate(publish_stats)
     
     lines << "   📊 Channels: #{pubsub_channels} active, #{pubsub_patterns} patterns"
     lines << "   👥 Clients: #{pubsub_clients} subscribed"
-    lines << "   📨 Messages: #{format_number(total_publishes)} total, #{publish_rate}/sec"
+    lines << "   📨 Messages: #{format_number(total_publishes)} total, #{publish_rate}/sec (max)"
     lines << "   📡 Avg Latency: #{publish_stats[:avg_latency]}μs"
     
     lines
@@ -300,7 +314,8 @@ class RedisStats
     lines << "📊 COMMAND STATISTICS:"
     lines << "-" * 40
 
-    info = @redis.info("stats")
+    # Get command stats from commandstats section
+    cmdstats_info = @redis.info("commandstats")
     
     # Extract key pub/sub commands
     commands = [
@@ -310,17 +325,18 @@ class RedisStats
     ]
     
     commands.each do |cmd|
-      stats = extract_command_stats(info, cmd[:key])
+      stats = extract_command_stats(cmdstats_info, cmd[:key])
       next if stats[:calls] == 0
       
       rate = calculate_command_rate(cmd[:key], stats)
       
-      lines << "   📈 #{cmd[:name].ljust(12)} #{format_number(stats[:calls])} calls | #{rate}/sec | #{stats[:avg_latency]}μs avg"
+      lines << "   📈 #{cmd[:name].ljust(12)} #{format_number(stats[:calls])} calls | #{rate}/sec (max) | #{stats[:avg_latency]}μs avg"
     end
     
-    # Total command summary
-    total_commands = info["total_commands_processed"]&.to_i || 0
-    current_ops = info["instantaneous_ops_per_sec"]&.to_i || 0
+    # Get total command summary from stats section
+    stats_info = @redis.info("stats")
+    total_commands = stats_info["total_commands_processed"]&.to_i || 0
+    current_ops = stats_info["instantaneous_ops_per_sec"]&.to_i || 0
     
     lines << ""
     lines << "   📊 Total Commands: #{format_number(total_commands)}"
@@ -334,7 +350,8 @@ class RedisStats
     lines << "⏱️  LATENCY METRICS:"
     lines << "-" * 40
 
-    info = @redis.info("stats")
+    # Get latency stats from commandstats section
+    cmdstats_info = @redis.info("commandstats")
     
     # Extract latency percentiles for pub/sub commands
     latency_data = [
@@ -343,8 +360,8 @@ class RedisStats
     ]
     
     latency_data.each do |cmd_data|
-      if info[cmd_data[:key]]
-        percentiles = parse_latency_percentiles(info[cmd_data[:key]])
+      if cmdstats_info[cmd_data[:key]]
+        percentiles = parse_latency_percentiles(cmdstats_info[cmd_data[:key]])
         lines << "   ⏱️  #{cmd_data[:cmd].ljust(10)} P50: #{percentiles[:p50]}μs | P99: #{percentiles[:p99]}μs | P99.9: #{percentiles[:p999]}μs"
       end
     end
@@ -545,15 +562,25 @@ class RedisStats
 
   # Advanced metrics helper methods
   def extract_command_stats(info, command_key)
-    cmdstat_key = "cmdstat_#{command_key}"
-    cmdstat_data = info[cmdstat_key]
+    # Redis gem returns commandstats with keys like "publish" not "cmdstat_publish"
+    # The value is already parsed into a Hash
+    cmdstat_data = info[command_key]
     
-    if cmdstat_data
-      # Parse: "calls=8081,usec=47004,usec_per_call=5.82,rejected_calls=0,failed_calls=0"
+    if cmdstat_data && cmdstat_data.is_a?(Hash)
+      # Already parsed by Redis gem
+      {
+        calls: cmdstat_data["calls"].to_i,
+        total_usec: cmdstat_data["usec"].to_f,
+        avg_latency: cmdstat_data["usec_per_call"].to_f.round(2),
+        rejected: cmdstat_data["rejected_calls"].to_i,
+        failed: cmdstat_data["failed_calls"].to_i
+      }
+    elsif cmdstat_data && cmdstat_data.is_a?(String)
+      # Fallback for raw string format (shouldn't happen with Redis gem)
       stats = {}
       cmdstat_data.split(',').each do |pair|
         key, value = pair.split('=')
-        stats[key.to_sym] = value.to_f
+        stats[key.to_sym] = value.to_f if key && value
       end
       
       {
@@ -575,33 +602,50 @@ class RedisStats
   end
 
   def calculate_publish_rate(publish_stats)
-    return "0.0" if @previous_command_stats.empty?
-    
     current_calls = publish_stats[:calls]
-    previous_calls = @previous_command_stats.dig(:publish, :calls) || current_calls
     
-    calls_delta = current_calls - previous_calls
-    rate = calls_delta.to_f / @refresh_rate
+    # If we have previous stats, calculate the rate
+    if @previous_command_stats[:publish]
+      previous_calls = @previous_command_stats[:publish][:calls]
+      calls_delta = current_calls - previous_calls
+      rate = calls_delta.to_f / @refresh_rate
+      
+      # Track the maximum rate we've seen
+      @max_publish_rate = rate if rate > @max_publish_rate
+    else
+      # First run - no rate yet but store the baseline
+      rate = 0.0
+    end
     
-    # Update previous stats
+    # Update previous stats for next calculation
     @previous_command_stats[:publish] = publish_stats
     
-    rate.round(1).to_s
+    # Always return the maximum rate we've seen
+    @max_publish_rate.round(1).to_s
   end
 
   def calculate_command_rate(command_key, current_stats)
-    return "0.0" if @previous_command_stats.empty?
-    
     current_calls = current_stats[:calls]
-    previous_calls = @previous_command_stats.dig(command_key.to_sym, :calls) || current_calls
+    key_sym = command_key.to_sym
     
-    calls_delta = current_calls - previous_calls
-    rate = calls_delta.to_f / @refresh_rate
+    # If we have previous stats for this command, calculate the rate
+    if @previous_command_stats[key_sym]
+      previous_calls = @previous_command_stats[key_sym][:calls]
+      calls_delta = current_calls - previous_calls
+      rate = calls_delta.to_f / @refresh_rate
+      
+      # Track the maximum rate we've seen for this command
+      @max_rates[key_sym] = rate if rate > @max_rates[key_sym]
+    else
+      # First run - no rate yet but store the baseline
+      rate = 0.0
+    end
     
-    # Update previous stats
-    @previous_command_stats[command_key.to_sym] = current_stats
+    # Update previous stats for next calculation
+    @previous_command_stats[key_sym] = current_stats
     
-    rate.round(1).to_s
+    # Always return the maximum rate we've seen
+    @max_rates[key_sym].round(1).to_s
   end
 
   def estimate_channel_message_rate(message_type)

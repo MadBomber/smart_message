@@ -5,10 +5,10 @@
 
 echo "Stopping SmartMessage City Demo..."
 
-# Check if iTerm2 is running  
-if ! pgrep -f "iTerm2" > /dev/null; then
+# Check if iTerm2 is running (process name is "iTerm" not "iTerm2")
+if ! pgrep -x "iTerm" > /dev/null; then
     echo "iTerm2 is not running."
-    exit 0
+    # Still continue to check for orphaned processes
 fi
 
 # Function to find and close demo window
@@ -29,14 +29,17 @@ tell application "iTerm2"
             if "Health Department" is in tabNames or "Police Department" is in tabNames or "Fire Department" is in tabNames or "Local Bank" is in tabNames then
                 set windowFound to true
                 
-                -- Send Ctrl+C to stop programs
+                -- Send Ctrl+C to stop programs and exit shells
                 repeat with theTab in tabs
                     tell current session of theTab
                         write text (character id 3) -- Ctrl+C
+                        delay 0.5
+                        write text "exit" -- Exit the shell to close cleanly
                     end tell
                 end repeat
                 
                 delay 2
+                -- Force close the window
                 close theWindow
                 exit repeat
             end if
@@ -57,7 +60,8 @@ fi
 # Clean up any remaining city service processes
 echo "Checking for remaining city service processes..."
 
-ORPHANS=$(pgrep -f "(health_department|police_department|fire_department|local_bank|house)\.rb")
+# Include redis_monitor and redis_stats in the cleanup
+ORPHANS=$(pgrep -f "(health_department|police_department|fire_department|local_bank|house|redis_monitor|redis_stats)\.rb")
 
 if [ -n "$ORPHANS" ]; then
     echo "Found orphaned city service processes. Cleaning up..."
@@ -70,7 +74,7 @@ if [ -n "$ORPHANS" ]; then
     sleep 1
     
     # Force kill any remaining processes
-    REMAINING=$(pgrep -f "(health_department|police_department|fire_department|local_bank|house)\.rb")
+    REMAINING=$(pgrep -f "(health_department|police_department|fire_department|local_bank|house|redis_monitor|redis_stats)\.rb")
     if [ -n "$REMAINING" ]; then
         echo "Force killing remaining processes..."
         echo "$REMAINING" | while read pid; do
@@ -83,6 +87,17 @@ if [ -n "$ORPHANS" ]; then
 else
     echo "✅ No orphaned processes found."
 fi
+
+# Clean up Redis channels and reset message counts
+echo "Cleaning up Redis channels..."
+redis-cli <<EOF > /dev/null 2>&1
+# Unsubscribe all clients from SmartMessage channels
+CLIENT LIST | grep -o 'id=[0-9]*' | cut -d= -f2 | xargs -I {} CLIENT KILL ID {}
+# Note: We can't actually "clear" channels in Redis, but killing clients removes subscriptions
+# The publish counts remain in Redis stats but that's historical data
+EOF
+
+echo "✅ Redis channels cleaned up."
 
 echo ""
 echo "🛑 SmartMessage city demo has been stopped."

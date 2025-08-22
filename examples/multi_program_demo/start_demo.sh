@@ -28,7 +28,7 @@ tell application "iTerm2"
         write text "cd '$DEMO_DIR'"
         write text "clear"
         write text "echo 'Starting Health Department...'"
-        write text "ruby health_department.rb"
+        write text "ruby health_department.rb; exit"
     end tell
     
     -- Tab 2: Police Department
@@ -39,7 +39,7 @@ tell application "iTerm2"
             write text "cd '$DEMO_DIR'"
             write text "clear"
             write text "echo 'Starting Police Department...'"
-            write text "ruby police_department.rb"
+            write text "ruby police_department.rb; exit"
         end tell
     end tell
     
@@ -51,7 +51,7 @@ tell application "iTerm2"
             write text "cd '$DEMO_DIR'"
             write text "clear"
             write text "echo 'Starting Fire Department...'"
-            write text "ruby fire_department.rb"
+            write text "ruby fire_department.rb; exit"
         end tell
     end tell
     
@@ -63,7 +63,7 @@ tell application "iTerm2"
             write text "cd '$DEMO_DIR'"
             write text "clear"
             write text "echo 'Starting Local Bank...'"
-            write text "ruby local_bank.rb"
+            write text "ruby local_bank.rb; exit"
         end tell
     end tell
     
@@ -75,7 +75,7 @@ tell application "iTerm2"
             write text "cd '$DEMO_DIR'"
             write text "clear"
             write text "echo 'Starting House #1...'"
-            write text "ruby house.rb '456 Oak Street'"
+            write text "ruby house.rb '456 Oak Street'; exit"
         end tell
     end tell
     
@@ -87,7 +87,7 @@ tell application "iTerm2"
             write text "cd '$DEMO_DIR'"
             write text "clear"
             write text "echo 'Starting House #2...'"
-            write text "ruby house.rb '789 Pine Lane'"
+            write text "ruby house.rb '789 Pine Lane'; exit"
         end tell
     end tell
     
@@ -99,7 +99,7 @@ tell application "iTerm2"
             write text "cd '$DEMO_DIR'"
             write text "clear"
             write text "echo 'Starting Redis Message Monitor...'"
-            write text "ruby redis_monitor.rb"
+            write text "ruby redis_monitor.rb; exit"
         end tell
     end tell
     
@@ -111,7 +111,7 @@ tell application "iTerm2"
             write text "cd '$DEMO_DIR'"
             write text "clear"
             write text "echo 'Starting Redis Statistics Dashboard...'"
-            write text "ruby redis_stats.rb"
+            write text "ruby redis_stats.rb; exit"
         end tell
     end tell
     
@@ -165,6 +165,8 @@ STATUS COLORS:
 Ready! Watch the city come alive with emergency services!
 ========================================================
 CONTROL_PANEL_EOF"
+            write text "# Type 'exit' or use ./stop_demo.sh to close all tabs"
+            write text "bash"
         end tell
     end tell
     
