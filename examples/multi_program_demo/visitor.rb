@@ -1,12 +1,9 @@
 #!/usr/bin/env ruby
 
 require 'smart_message'
-# require 'smart_message/transport/redis_transport'
-# require 'smart_message/serializer/json'
 require 'ruby_llm'
 require 'logger'
 require 'json'
-require 'securerandom'
 
 # Dynamically require all message files in the messages directory
 Dir[File.join(__dir__, 'messages', '*.rb')].each { |file| require file }
