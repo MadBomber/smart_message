@@ -22,6 +22,7 @@ class LocalBank
     setup_logging
     setup_messaging
     setup_signal_handlers
+    setup_health_monitor
   end
 
   def setup_logging
@@ -63,6 +64,26 @@ class LocalBank
     end
   end
 
+  def setup_health_monitor
+    @health_timer_mutex = Mutex.new
+    @health_timer = nil
+    start_health_countdown_timer
+  end
+
+  def start_health_countdown_timer
+    @health_timer_mutex.synchronize do
+      @health_timer&.kill  # Kill existing timer if any
+      @health_timer = Thread.new do
+        sleep(10)  # 10 second countdown
+        shutdown_due_to_health_failure
+      end
+    end
+  end
+
+  def reset_health_timer
+    start_health_countdown_timer
+  end
+
   def start_operations
     loop do
       simulate_bank_activity
@@ -76,7 +97,17 @@ class LocalBank
 
   private
 
+  def shutdown_due_to_health_failure
+    covid_message = "🦠 EMERGENCY SHUTDOWN: Health Department has shut down all city services due to COVID-19 outbreak"
+    puts "\n#{covid_message}"
+    puts "🏦 #{@service_name} closing immediately..."
+    @logger.fatal(covid_message)
+    @logger.fatal("#{@service_name} shutting down - no health checks received for more than 10 seconds")
+    exit(1)
+  end
+
   def respond_to_health_check(health_check)
+    reset_health_timer  # Reset the countdown timer
     uptime = (Time.now - @start_time).to_i
     
     # Simulate occasional system issues
