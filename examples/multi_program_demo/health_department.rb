@@ -3,16 +3,13 @@
 HEALTH_CHECK_RATE = 5 # seconds; setting to zero gets overruns and 1300+ msg/sec
 
 require 'smart_message'
-require 'smart_message/transport/redis_transport'
-require 'smart_message/serializer/json'
-require 'securerandom'
-require 'logger'
 require_relative 'messages/health_check_message'
 require_relative 'messages/health_status_message'
 
 class HealthDepartment
   def initialize
-    @service_name = 'health-department'
+    @service_name  = 'health-department'
+    Messages::HealthCheckMessage.from(@service_name)
     @check_counter = 0
     setup_logging
     setup_messaging
@@ -81,12 +78,7 @@ class HealthDepartment
     check_id = SecureRandom.uuid
     timestamp = Time.now.strftime('%Y-%m-%d %H:%M:%S')
 
-    health_check = Messages::HealthCheckMessage.new(
-      timestamp: timestamp,
-      check_id: check_id,
-      from: @service_name,
-      to: nil  # Broadcast
-    )
+    health_check = Messages::HealthCheckMessage.new(check_id: check_id)
 
     puts "🏥 Broadcasting health check ##{@check_counter} (#{check_id[0..7]}...)"
     @logger.info("Broadcasting health check ##{@check_counter} (#{check_id})")

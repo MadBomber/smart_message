@@ -5,6 +5,9 @@
 
 DEMO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+echo "Removing old log files..."
+rm -f $DEMO_DIR/*.log
+
 # Check if iTerm2 is available
 if ! ls /Applications/iTerm.app &>/dev/null; then
     echo "Error: iTerm2 is not installed."
@@ -18,10 +21,10 @@ echo "Starting SmartMessage City Demo in iTerm2..."
 osascript <<EOF
 tell application "iTerm2"
     activate
-    
+
     -- Create new window
     set newWindow to (create window with default profile)
-    
+
     -- Tab 1: Health Department (already created)
     tell current session of current tab of newWindow
         set name to "Health Department"
@@ -30,7 +33,7 @@ tell application "iTerm2"
         write text "echo 'Starting Health Department...'"
         write text "ruby health_department.rb; exit"
     end tell
-    
+
     -- Tab 2: Police Department
     tell newWindow
         set newTab to (create tab with default profile)
@@ -42,7 +45,7 @@ tell application "iTerm2"
             write text "ruby police_department.rb; exit"
         end tell
     end tell
-    
+
     -- Tab 3: Fire Department
     tell newWindow
         set newTab to (create tab with default profile)
@@ -54,7 +57,7 @@ tell application "iTerm2"
             write text "ruby fire_department.rb; exit"
         end tell
     end tell
-    
+
     -- Tab 4: Local Bank
     tell newWindow
         set newTab to (create tab with default profile)
@@ -66,7 +69,7 @@ tell application "iTerm2"
             write text "ruby local_bank.rb; exit"
         end tell
     end tell
-    
+
     -- Tab 5: House #1
     tell newWindow
         set newTab to (create tab with default profile)
@@ -78,7 +81,7 @@ tell application "iTerm2"
             write text "ruby house.rb '456 Oak Street'; exit"
         end tell
     end tell
-    
+
     -- Tab 6: House #2
     tell newWindow
         set newTab to (create tab with default profile)
@@ -90,8 +93,32 @@ tell application "iTerm2"
             write text "ruby house.rb '789 Pine Lane'; exit"
         end tell
     end tell
-    
-    -- Tab 7: Redis Monitor
+
+    -- Tab 7: Emergency Dispatch (911)
+    tell newWindow
+        set newTab to (create tab with default profile)
+        tell current session of newTab
+            set name to "911 Dispatch"
+            write text "cd '$DEMO_DIR'"
+            write text "clear"
+            write text "echo 'Starting Emergency Dispatch Center (911)...'"
+            write text "ruby emergency_dispatch_center.rb; exit"
+        end tell
+    end tell
+
+    -- Tab 8: Citizen Caller
+    tell newWindow
+        set newTab to (create tab with default profile)
+        tell current session of newTab
+            set name to "Citizen"
+            write text "cd '$DEMO_DIR'"
+            write text "clear"
+            write text "echo 'Starting Citizen 911 Caller...'"
+            write text "sleep 3; ruby citizen.rb auto; exit"
+        end tell
+    end tell
+
+    -- Tab 9: Redis Monitor
     tell newWindow
         set newTab to (create tab with default profile)
         tell current session of newTab
@@ -102,8 +129,8 @@ tell application "iTerm2"
             write text "ruby redis_monitor.rb; exit"
         end tell
     end tell
-    
-    -- Tab 8: Redis Statistics
+
+    -- Tab 10: Redis Statistics
     tell newWindow
         set newTab to (create tab with default profile)
         tell current session of newTab
@@ -114,8 +141,8 @@ tell application "iTerm2"
             write text "ruby redis_stats.rb; exit"
         end tell
     end tell
-    
-    -- Tab 9: Control Panel
+
+    -- Tab 11: Control Panel
     tell newWindow
         set newTab to (create tab with default profile)
         tell current session of newTab
@@ -127,19 +154,21 @@ tell application "iTerm2"
 
 CITY SERVICES:
   Tab 1: Health Department (broadcasts health checks every 5s)
-  Tab 2: Police Department (responds to bank alarms)
-  Tab 3: Fire Department (responds to house fires)
+  Tab 2: Police Department (responds to alarms & 911 calls)
+  Tab 3: Fire Department (responds to fires & 911 emergencies)
   Tab 4: Local Bank (occasional silent alarms)
   Tab 5: House #1 (456 Oak Street)
   Tab 6: House #2 (789 Pine Lane)
-  Tab 7: Redis Monitor (real-time message traffic)
-  Tab 8: Redis Statistics (performance dashboard)
-  Tab 9: Control Panel (this tab)
+  Tab 7: 911 Dispatch (emergency call routing center)
+  Tab 8: Citizen (makes 911 calls automatically)
+  Tab 9: Redis Monitor (real-time message traffic)
+  Tab 10: Redis Statistics (performance dashboard)
+  Tab 11: Control Panel (this tab)
 
 CONTROLS:
   ./stop_demo.sh     - Stop all city services
   Cmd+W             - Close current tab
-  Cmd+1,2,3,4,5,6,7,8,9 - Switch to tab
+  Cmd+1,2,3,4,5,6,7,8,9,0 - Switch to tab
   Ctrl+C            - Stop service in current tab
 
 MESSAGE FLOWS:
@@ -147,16 +176,19 @@ MESSAGE FLOWS:
   Health Status: All Services -> Health Dept (colored output)
   Bank Alarms:   Bank -> Police (silent alarm system)
   House Fires:   Houses -> Fire Dept (emergency response)
+  911 Calls:     Citizen -> 911 Dispatch -> Police/Fire
   Emergencies:   All -> Health Dept (incident resolution)
 
 WHAT TO WATCH:
   Tab 1: Health status with GREEN/YELLOW/ORANGE/RED colors
-  Tab 2: Police dispatching units to bank robberies
-  Tab 3: Fire trucks responding to house fires
+  Tab 2: Police dispatching units to crimes & accidents
+  Tab 3: Fire trucks responding to fires, medical & rescue calls
   Tab 4: Bank triggering occasional silent alarms
   Tab 5/6: Houses occasionally catching fire
-  Tab 7: Real-time Redis message traffic (color-coded)
-  Tab 8: Redis performance metrics & pub/sub statistics
+  Tab 7: 911 dispatch routing emergency calls
+  Tab 8: Citizens calling 911 with various emergencies
+  Tab 9: Real-time Redis message traffic (color-coded)
+  Tab 10: Redis performance metrics & pub/sub statistics
 
 STATUS COLORS:
   🟢 Green: healthy    🟡 Yellow: warning
@@ -169,33 +201,35 @@ CONTROL_PANEL_EOF"
             write text "bash"
         end tell
     end tell
-    
+
     -- Switch back to first tab
     tell newWindow
         select (first tab)
     end tell
-    
+
 end tell
 EOF
-
 
 if [ $? -eq 0 ]; then
     echo ""
     echo "✅ City Demo started successfully in iTerm2!"
     echo ""
     echo "🏥 Tab 1: Health Department - monitors all city services"
-    echo "🚔 Tab 2: Police Department - responds to bank alarms"
-    echo "🚒 Tab 3: Fire Department - responds to house fires"
+    echo "🚔 Tab 2: Police Department - responds to alarms & 911 calls"
+    echo "🚒 Tab 3: Fire Department - responds to fires & 911 emergencies"
     echo "🏦 Tab 4: Local Bank - triggers occasional alarms"
     echo "🏠 Tab 5/6: Houses - occasionally catch fire"
-    echo "🔍 Tab 7: Redis Monitor - real-time message traffic"
-    echo "📊 Tab 8: Redis Statistics - performance dashboard"
+    echo "📞 Tab 7: 911 Dispatch - emergency call routing center"
+    echo "👤 Tab 8: Citizen - makes 911 calls automatically"
+    echo "🔍 Tab 9: Redis Monitor - real-time message traffic"
+    echo "📊 Tab 10: Redis Statistics - performance dashboard"
     echo ""
-    echo "📱 Use Cmd+1,2,3,4,5,6,7,8,9 to switch between tabs"
+    echo "📱 Use Cmd+1,2,3,4,5,6,7,8,9,0 to switch between tabs"
     echo "🛑 Run ./stop_demo.sh to stop all services"
     echo ""
     echo "🌟 Watch Tab 1 for colored health status updates!"
-    echo "🔍 Check Tab 7 for real-time message traffic & Tab 8 for Redis stats!"
+    echo "📞 Watch Tab 7 for 911 dispatch routing & Tab 8 for citizen emergencies!"
+    echo "🔍 Check Tab 9 for real-time message traffic & Tab 10 for Redis stats!"
 else
     echo "❌ Failed to start demo. Please check that iTerm2 is installed and running."
     exit 1

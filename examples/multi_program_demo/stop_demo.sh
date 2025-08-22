@@ -26,7 +26,7 @@ tell application "iTerm2"
             end repeat
             
             -- Check if this window has our city demo tabs
-            if "Health Department" is in tabNames or "Police Department" is in tabNames or "Fire Department" is in tabNames or "Local Bank" is in tabNames then
+            if "Health Department" is in tabNames or "Police Department" is in tabNames or "Fire Department" is in tabNames or "Local Bank" is in tabNames or "911 Dispatch" is in tabNames then
                 set windowFound to true
                 
                 -- Send Ctrl+C to stop programs and exit shells
@@ -60,8 +60,8 @@ fi
 # Clean up any remaining city service processes
 echo "Checking for remaining city service processes..."
 
-# Include redis_monitor and redis_stats in the cleanup
-ORPHANS=$(pgrep -f "(health_department|police_department|fire_department|local_bank|house|redis_monitor|redis_stats)\.rb")
+# Include all demo programs in the cleanup
+ORPHANS=$(pgrep -f "(health_department|police_department|fire_department|local_bank|house|emergency_dispatch_center|citizen|redis_monitor|redis_stats)\.rb")
 
 if [ -n "$ORPHANS" ]; then
     echo "Found orphaned city service processes. Cleaning up..."
@@ -74,7 +74,7 @@ if [ -n "$ORPHANS" ]; then
     sleep 1
     
     # Force kill any remaining processes
-    REMAINING=$(pgrep -f "(health_department|police_department|fire_department|local_bank|house|redis_monitor|redis_stats)\.rb")
+    REMAINING=$(pgrep -f "(health_department|police_department|fire_department|local_bank|house|emergency_dispatch_center|citizen|redis_monitor|redis_stats)\.rb")
     if [ -n "$REMAINING" ]; then
         echo "Force killing remaining processes..."
         echo "$REMAINING" | while read pid; do
