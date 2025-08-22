@@ -5,7 +5,7 @@ site_url: "https://madbomber.github.io/smart_message/"
 
 repo_name: "madbomber/smart_message"
 repo_url: "https://github.com/madbomber/smart_message"
-edit_uri: "edit/master/docs/"
+edit_uri: "edit/main/docs/"
 
 theme:
   name: material
