@@ -158,9 +158,9 @@ class PoliceDepartment
 
   def check_incident_resolutions
     @active_incidents.each do |incident_id, incident|
-      # Simulate incident resolution after 30-120 seconds
+      # Simulate incident resolution after 10-15 seconds
       duration = (Time.now - incident[:start_time]).to_i
-      if duration > rand(30..120)
+      if duration > rand(10..15)
         resolve_incident(incident_id, incident, duration)
       end
     end

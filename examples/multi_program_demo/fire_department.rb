@@ -179,13 +179,13 @@ class FireDepartment
 
   def check_fire_resolutions
     @active_fires.each do |fire_id, fire|
-      # Fire resolution time depends on severity
+      # Fire resolution time depends on severity (10-15 seconds)
       base_time = case fire[:severity]
-                 when 'small' then 15..45
-                 when 'medium' then 30..90
-                 when 'large' then 60..180
-                 when 'out_of_control' then 120..300
-                 else 30..90
+                 when 'small' then 10..12
+                 when 'medium' then 11..13
+                 when 'large' then 12..14
+                 when 'out_of_control' then 13..15
+                 else 11..13
                  end
       
       duration = (Time.now - fire[:start_time]).to_i

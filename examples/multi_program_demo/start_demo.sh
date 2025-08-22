@@ -91,7 +91,31 @@ tell application "iTerm2"
         end tell
     end tell
     
-    -- Tab 7: Control Panel
+    -- Tab 7: Redis Monitor
+    tell newWindow
+        set newTab to (create tab with default profile)
+        tell current session of newTab
+            set name to "Redis Monitor"
+            write text "cd '$DEMO_DIR'"
+            write text "clear"
+            write text "echo 'Starting Redis Message Monitor...'"
+            write text "ruby redis_monitor.rb"
+        end tell
+    end tell
+    
+    -- Tab 8: Redis Statistics
+    tell newWindow
+        set newTab to (create tab with default profile)
+        tell current session of newTab
+            set name to "Redis Statistics"
+            write text "cd '$DEMO_DIR'"
+            write text "clear"
+            write text "echo 'Starting Redis Statistics Dashboard...'"
+            write text "ruby redis_stats.rb"
+        end tell
+    end tell
+    
+    -- Tab 9: Control Panel
     tell newWindow
         set newTab to (create tab with default profile)
         tell current session of newTab
@@ -108,12 +132,14 @@ CITY SERVICES:
   Tab 4: Local Bank (occasional silent alarms)
   Tab 5: House #1 (456 Oak Street)
   Tab 6: House #2 (789 Pine Lane)
-  Tab 7: Control Panel (this tab)
+  Tab 7: Redis Monitor (real-time message traffic)
+  Tab 8: Redis Statistics (performance dashboard)
+  Tab 9: Control Panel (this tab)
 
 CONTROLS:
   ./stop_demo.sh     - Stop all city services
   Cmd+W             - Close current tab
-  Cmd+1,2,3,4,5,6,7 - Switch to tab
+  Cmd+1,2,3,4,5,6,7,8,9 - Switch to tab
   Ctrl+C            - Stop service in current tab
 
 MESSAGE FLOWS:
@@ -129,6 +155,8 @@ WHAT TO WATCH:
   Tab 3: Fire trucks responding to house fires
   Tab 4: Bank triggering occasional silent alarms
   Tab 5/6: Houses occasionally catching fire
+  Tab 7: Real-time Redis message traffic (color-coded)
+  Tab 8: Redis performance metrics & pub/sub statistics
 
 STATUS COLORS:
   🟢 Green: healthy    🟡 Yellow: warning
@@ -158,11 +186,14 @@ if [ $? -eq 0 ]; then
     echo "🚒 Tab 3: Fire Department - responds to house fires"
     echo "🏦 Tab 4: Local Bank - triggers occasional alarms"
     echo "🏠 Tab 5/6: Houses - occasionally catch fire"
+    echo "🔍 Tab 7: Redis Monitor - real-time message traffic"
+    echo "📊 Tab 8: Redis Statistics - performance dashboard"
     echo ""
-    echo "📱 Use Cmd+1,2,3,4,5,6,7 to switch between tabs"
+    echo "📱 Use Cmd+1,2,3,4,5,6,7,8,9 to switch between tabs"
     echo "🛑 Run ./stop_demo.sh to stop all services"
     echo ""
     echo "🌟 Watch Tab 1 for colored health status updates!"
+    echo "🔍 Check Tab 7 for real-time message traffic & Tab 8 for Redis stats!"
 else
     echo "❌ Failed to start demo. Please check that iTerm2 is installed and running."
     exit 1
