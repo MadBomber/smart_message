@@ -27,7 +27,7 @@ module Messages
     property :status, required: true,
       validate: ->(v) { VALID_STATUS.include?(v) },
       validation_message: "Status must be: #{VALID_STATUS.join(', ')}",
-      description: "Current operational status of the service (healthy/warning/critical/failed)"
+      description: "Current operational status of the service. Valid values: #{VALID_STATUS.join(', ')}"
 
     property :details,
       description: "Additional status information describing current service conditions"

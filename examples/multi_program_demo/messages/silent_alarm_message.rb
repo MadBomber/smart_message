@@ -20,18 +20,19 @@ module Messages
     serializer SmartMessage::Serializer::Json.new
 
     VALID_ALARM_TYPES = %w[robbery vault_breach suspicious_activity]
+    VALID_SEVERITY = %w[low medium high critical]
 
     property :bank_name, required: true, description: "Official name of the bank triggering the alarm (e.g., 'First National Bank')"
     property :location, required: true, description: "Physical address of the bank location where alarm was triggered"
     property :alarm_type, required: true,
       validate: ->(v) { VALID_ALARM_TYPES.include?(v) },
       validation_message: "Alarm type must be: #{VALID_ALARM_TYPES.join(', ')}",
-      description: "Type of security incident detected (VALID_ALARM_TYPES.join(', '))"
+      description: "Type of security incident detected. Valid values: #{VALID_ALARM_TYPES.join(', ')}"
     property :timestamp, required: true, description: "Exact time when the alarm was triggered (YYYY-MM-DD HH:MM:SS format)"
     property :severity, required: true,
-      validate: ->(v) { %w[low medium high critical].include?(v) },
-      validation_message: "Severity must be low, medium, high, or critical",
-      description: "Urgency level of the security threat (low/medium/high/critical)"
+      validate: ->(v) { VALID_SEVERITY.include?(v) },
+      validation_message: "Severity must be: #{VALID_SEVERITY.join(', ')}",
+      description: "Urgency level of the security threat. Valid values: #{VALID_SEVERITY.join(', ')}"
     property :details, description: "Additional descriptive information about the security incident and current situation"
   end
 end

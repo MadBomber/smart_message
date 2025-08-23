@@ -35,7 +35,7 @@ module Messages
     property :priority, required: true,
       validate: ->(v) { VALID_PRIORITY.include?(v) },
       validation_message: "Priority must be: #{VALID_PRIORITY.join(', ')}",
-      description: "Response urgency level determining dispatch speed #{VALID_PRIORITY.join(', ')}"
+      description: "Response urgency level determining dispatch speed. Valid values: #{VALID_PRIORITY.join(', ')}"
 
     property :estimated_arrival,
       description: "Projected time for first unit arrival at the scene (e.g., '5 minutes')"

@@ -27,7 +27,9 @@ module Messages
                         description: 'Street address or location where fire engines should respond to the emergency'
 
     property :fire_type, required: true,
-                         description: "Classification of the fire type requiring specific suppression methods (e.g., 'kitchen', 'electrical')"
+                         validate: ->(v) { VALID_FIRE_TYPES.include?(v) },
+                         validation_message: "Fire type must be: #{VALID_FIRE_TYPES.join(', ')}",
+                         description: "Classification of the fire type requiring specific suppression methods. Valid values: #{VALID_FIRE_TYPES.join(', ')}"
 
     property :equipment_needed,
              description: 'Specialized firefighting equipment and tools required for this specific fire type'
