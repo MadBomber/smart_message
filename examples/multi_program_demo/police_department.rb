@@ -1,87 +1,66 @@
 #!/usr/bin/env ruby
+# examples/multi_program_demo/police_department.rb
 
-require 'smart_message'
-require 'smart_message/transport/redis_transport'
-require 'smart_message/serializer/json'
-require 'securerandom'
-require 'logger'
+require_relative '../../lib/smart_message'
 require_relative 'messages/health_check_message'
 require_relative 'messages/health_status_message'
 require_relative 'messages/silent_alarm_message'
 require_relative 'messages/police_dispatch_message'
 require_relative 'messages/emergency_resolved_message'
+require_relative 'messages/emergency_911_message'
+
+require_relative 'common/health_monitor'
+require_relative 'common/logger'
 
 class PoliceDepartment
+  include Common::HealthMonitor
+  include Common::Logger
+
   def initialize
-    @service_name = 'police-department'
+    @service_name = 'police_department'
     @status = 'healthy'
     @start_time = Time.now
     @active_incidents = {}
     @available_units = ['Unit-101', 'Unit-102', 'Unit-103', 'Unit-104']
-    setup_logging
+
     setup_messaging
     setup_signal_handlers
     setup_health_monitor
   end
 
-  def setup_logging
-    log_file = File.join(__dir__, 'police_department.log')
-    @logger = Logger.new(log_file)
-    @logger.level = Logger::INFO
-    @logger.formatter = proc do |severity, datetime, progname, msg|
-      "#{datetime.strftime('%Y-%m-%d %H:%M:%S')} [#{severity}] #{msg}\n"
-    end
-    @logger.info("Police Department logging started")
-  end
 
   def setup_messaging
-    # Subscribe to health checks
-    Messages::HealthCheckMessage.subscribe(broadcast: true) do |message|
-      respond_to_health_check(message)
-    end
+    Messages::EmergencyResolvedMessage.from(@service_name)
 
     # Subscribe to silent alarms from banks
     Messages::SilentAlarmMessage.subscribe(to: @service_name) do |message|
+      puts "🚔 DEBUG: Received SilentAlarmMessage to: #{message._sm_header.to}"
       handle_silent_alarm(message)
     end
-    
+
+    # Subscribe to 911 calls routed from dispatch
+    Messages::Emergency911Message.subscribe(to: [@service_name, /police/i]) do |message|
+      puts "🚔 DEBUG: Received Emergency911Message to: #{message._sm_header.to}"
+      handle_911_call(message)
+    end
+
     puts "🚔 Police Department operational"
     puts "   Available units: #{@available_units.join(', ')}"
-    puts "   Responding to health checks and silent alarms"
-    puts "   Logging to: police_department.log"
+    puts "   Responding to health checks, silent alarms, and 911 calls"
     puts "   Press Ctrl+C to stop\n\n"
-    @logger.info("Police Department operational with units: #{@available_units.join(', ')}")
+    logger.info("Police Department operational with units: #{@available_units.join(', ')}")
   end
 
   def setup_signal_handlers
     %w[INT TERM].each do |signal|
       Signal.trap(signal) do
         puts "\n🚔 Police Department signing off..."
-        @logger.info("Police Department signing off")
+        logger.info("Police Department signing off")
         exit(0)
       end
     end
   end
 
-  def setup_health_monitor
-    @health_timer_mutex = Mutex.new
-    @health_timer = nil
-    start_health_countdown_timer
-  end
-
-  def start_health_countdown_timer
-    @health_timer_mutex.synchronize do
-      @health_timer&.kill  # Kill existing timer if any
-      @health_timer = Thread.new do
-        sleep(10)  # 10 second countdown
-        shutdown_due_to_health_failure
-      end
-    end
-  end
-
-  def reset_health_timer
-    start_health_countdown_timer
-  end
 
   def start_service
     loop do
@@ -90,30 +69,28 @@ class PoliceDepartment
     end
   rescue => e
     puts "🚔 Error in police service: #{e.message}"
-    @logger.error("Error in police service: #{e.message}")
+    logger.error("Error in police service: #{e.message}")
     retry
   end
 
   private
 
-  def shutdown_due_to_health_failure
-    covid_message = "🦠 EMERGENCY SHUTDOWN: Health Department has shut down all city services due to COVID-19 outbreak"
-    puts "\n#{covid_message}"
-    puts "🚔 Police Department going offline immediately..."
-    @logger.fatal(covid_message)
-    @logger.fatal("Police Department shutting down - no health checks received for more than 10 seconds")
-    exit(1)
+  def service_emoji
+    "🚔"
   end
 
-  def respond_to_health_check(health_check)
-    reset_health_timer  # Reset the countdown timer
-    uptime = (Time.now - @start_time).to_i
-    
-    # Simulate occasional status changes
-    if rand(100) < 5  # 5% chance of status change
-      @status = ['healthy', 'warning'].sample
-    end
-    
+  def get_status_details
+    # Determine status based on available units and active incidents
+    @status = if @available_units.empty?
+                'critical'
+              elsif @available_units.size <= 1
+                'warning'
+              elsif @active_incidents.size >= 3
+                'warning'
+              else
+                'healthy'
+              end
+
     details = case @status
              when 'healthy' then "All units operational, #{@active_incidents.size} active incidents"
              when 'warning' then "High call volume, #{@active_incidents.size} active incidents"
@@ -121,21 +98,7 @@ class PoliceDepartment
              when 'failed' then "System down, emergency protocols activated"
              end
 
-    status_msg = Messages::HealthStatusMessage.new(
-      service_name: @service_name,
-      status: @status,
-      timestamp: Time.now.strftime('%Y-%m-%d %H:%M:%S'),
-      check_id: health_check.check_id,
-      details: details,
-      uptime_seconds: uptime,
-      from: @service_name,
-      to: nil  # Broadcast to health department
-    )
-    status_msg.publish
-    @logger.info("Sent health status: #{@status} (#{details})")
-  rescue => e
-    puts "🚔 Error responding to health check: #{e.message}"
-    @logger.error("Error responding to health check: #{e.message}")
+    [@status, details]
   end
 
   def handle_silent_alarm(alarm)
@@ -143,8 +106,8 @@ class PoliceDepartment
     puts "🚨 SILENT ALARM: #{alarm.bank_name} at #{alarm.location} - #{alarm.alarm_type.upcase} (#{alarm.severity} severity)"
     puts "   Details: #{alarm.details}" if alarm.details
     puts "   Time: #{alarm.timestamp}"
-    @logger.warn("SILENT ALARM received: #{alarm.alarm_type} at #{alarm.location} (#{alarm.severity} severity)")
-    
+    logger.warn("SILENT ALARM received: #{alarm.alarm_type} at #{alarm.location} (#{alarm.severity} severity)")
+
     # Assign available units
     units_needed = case alarm.severity
                   when 'low' then 1
@@ -174,17 +137,129 @@ class PoliceDepartment
       priority: map_severity_to_priority(alarm.severity),
       estimated_arrival: "#{rand(3..8)} minutes",
       timestamp: Time.now.strftime('%Y-%m-%d %H:%M:%S'),
-      from: @service_name,
-      to: alarm._sm_header.from  # Send back to bank
     )
     dispatch.publish
 
     puts "🚔 Dispatched #{assigned_units.size} units to #{alarm.location}"
     puts "   Available units: #{@available_units.size}"
-    @logger.info("Dispatched units #{assigned_units.join(', ')} to #{alarm.location} (#{dispatch_id})")
+    logger.info("Dispatched units #{assigned_units.join(', ')} to #{alarm.location} (#{dispatch_id})")
   rescue => e
     puts "🚔 Error handling silent alarm: #{e.message}"
-    @logger.error("Error handling silent alarm: #{e.message}")
+    logger.error("Error handling silent alarm: #{e.message}")
+  end
+
+  def handle_911_call(call)
+    # Color code based on emergency type
+    type_color = case call.emergency_type
+                 when 'accident' then "\e[33m"  # Yellow
+                 when 'crime' then "\e[31m"     # Red
+                 else "\e[36m"                  # Cyan
+                 end
+
+    puts "\n#{type_color}🚔 911 CALL RECEIVED\e[0m from dispatch"
+    puts "   📍 Location: #{call.caller_location}"
+    puts "   🚨 Type: #{call.emergency_type.upcase}"
+    puts "   📝 Description: #{call.description}"
+    puts "   👤 Caller: #{call.caller_name || 'Unknown'}"
+
+    logger.warn("911 Call: #{call.emergency_type} at #{call.caller_location} - #{call.description}")
+
+    # Handle based on emergency type
+    case call.emergency_type
+    when 'accident'
+      handle_accident_call(call)
+    when 'crime'
+      handle_crime_call(call)
+    else
+      handle_general_911_call(call)
+    end
+  rescue => e
+    puts "🚔 Error handling 911 call: #{e.message}"
+    logger.error("Error handling 911 call: #{e.message}")
+  end
+
+  def handle_accident_call(call)
+    incident_id = "ACC-#{Time.now.strftime('%H%M%S')}"
+
+    # Determine units needed based on severity
+    units_needed = case call.severity
+                   when 'critical' then 3
+                   when 'high' then 2
+                   else 1
+                   end
+
+    units_needed = [units_needed, @available_units.size].min
+    assigned_units = @available_units.shift(units_needed)
+
+    if assigned_units.empty?
+      puts "🚔 ⚠️  No units available for accident response!"
+      logger.error("No units available for accident at #{call.caller_location}")
+      return
+    end
+
+    @active_incidents[incident_id] = {
+      type: 'accident',
+      location: call.caller_location,
+      units: assigned_units,
+      start_time: Time.now,
+      call: call
+    }
+
+    puts "🚔 Dispatched #{assigned_units.join(', ')} to accident at #{call.caller_location}"
+    puts "   Vehicles involved: #{call.vehicles_involved || 'Unknown'}"
+    puts "   Injuries: #{call.injuries_reported ? 'Yes' : 'No'}"
+    logger.info("Dispatched #{assigned_units.join(', ')} to accident #{incident_id}")
+  end
+
+  def handle_crime_call(call)
+    incident_id = "CRM-#{Time.now.strftime('%H%M%S')}"
+
+    # Determine units based on severity and weapons
+    units_needed = call.weapons_involved ? 3 : 2
+    units_needed = [units_needed, @available_units.size].min
+    assigned_units = @available_units.shift(units_needed)
+
+    if assigned_units.empty?
+      puts "🚔 ⚠️  No units available for crime response!"
+      logger.error("No units available for crime at #{call.caller_location}")
+      return
+    end
+
+    @active_incidents[incident_id] = {
+      type: 'crime',
+      location: call.caller_location,
+      units: assigned_units,
+      start_time: Time.now,
+      call: call
+    }
+
+    puts "🚔 Dispatched #{assigned_units.join(', ')} to crime scene at #{call.caller_location}"
+    puts "   Weapons involved: #{call.weapons_involved ? 'YES' : 'No'}"
+    puts "   Suspects on scene: #{call.suspects_on_scene ? 'YES' : 'Unknown'}"
+    logger.info("Dispatched #{assigned_units.join(', ')} to crime #{incident_id}")
+  end
+
+  def handle_general_911_call(call)
+    incident_id = "GEN-#{Time.now.strftime('%H%M%S')}"
+
+    assigned_units = @available_units.shift(1)
+
+    if assigned_units.empty?
+      puts "🚔 ⚠️  No units available for response!"
+      logger.error("No units available for call at #{call.caller_location}")
+      return
+    end
+
+    @active_incidents[incident_id] = {
+      type: call.emergency_type,
+      location: call.caller_location,
+      units: assigned_units,
+      start_time: Time.now,
+      call: call
+    }
+
+    puts "🚔 Dispatched #{assigned_units.join(', ')} to #{call.emergency_type} at #{call.caller_location}"
+    logger.info("Dispatched #{assigned_units.join(', ')} to #{call.emergency_type} #{incident_id}")
   end
 
   def check_incident_resolutions
@@ -203,7 +278,7 @@ class PoliceDepartment
     @active_incidents.delete(incident_id)
 
     outcomes = ['Suspects apprehended', 'False alarm - all clear', 'Incident resolved peacefully', 'Suspects fled scene']
-    
+
     resolution = Messages::EmergencyResolvedMessage.new(
       incident_id: incident_id,
       incident_type: incident[:type],
@@ -213,17 +288,15 @@ class PoliceDepartment
       duration_minutes: (duration_seconds / 60.0).round(1),
       outcome: outcomes.sample,
       units_involved: incident[:units],
-      from: @service_name,
-      to: nil  # Broadcast
     )
     resolution.publish
 
     puts "🚔 Incident #{incident_id} resolved after #{(duration_seconds / 60.0).round(1)} minutes"
     puts "   Units #{incident[:units].join(', ')} now available"
-    @logger.info("Incident #{incident_id} resolved: #{outcomes.last} after #{(duration_seconds / 60.0).round(1)} minutes")
+    logger.info("Incident #{incident_id} resolved: #{outcomes.last} after #{(duration_seconds / 60.0).round(1)} minutes")
   rescue => e
     puts "🚔 Error resolving incident: #{e.message}"
-    @logger.error("Error resolving incident: #{e.message}")
+    logger.error("Error resolving incident: #{e.message}")
   end
 
   def map_severity_to_priority(severity)

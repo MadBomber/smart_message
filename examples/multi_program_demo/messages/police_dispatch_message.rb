@@ -1,8 +1,9 @@
+#!/usr/bin/env ruby
 # messages/police_dispatch_message.rb
 # Police dispatch message sent by the Police Department in response to emergency calls
 # Contains unit assignments and response details for security incidents and crimes
 
-require 'smart_message'
+require_relative '../../../lib/smart_message'
 
 module Messages
   class PoliceDispatchMessage < SmartMessage::Base
@@ -33,7 +34,7 @@ module Messages
 
     property :priority, required: true,
       validate: ->(v) { VALID_PRIORITY.include?(v) },
-      validation_message: "Priority must be: #{VALID_PRIORITY.join(', )}",
+      validation_message: "Priority must be: #{VALID_PRIORITY.join(', ')}",
       description: "Response urgency level determining dispatch speed #{VALID_PRIORITY.join(', ')}"
 
     property :estimated_arrival,

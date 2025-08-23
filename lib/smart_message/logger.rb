@@ -10,8 +10,8 @@ module SmartMessage
   module Logger
     class << self
       # Global default logger instance
-      def default
-        @default ||= Lumberjack.new
+      def default(options = {})
+        @default ||= Lumberjack.new(**options)
       end
 
       # Set the default logger

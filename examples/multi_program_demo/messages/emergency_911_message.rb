@@ -1,12 +1,16 @@
+#!/usr/bin/env ruby
 # examples/messages/emergency_911_message.rb
 
-require 'smart_message'
+require_relative '../../../lib/smart_message'
 
 module Messages
   class Emergency911Message < SmartMessage::Base
     version 1
 
     description 'Emergency 911 call for reporting fires, crimes, accidents, medical emergencies, or other urgent situations requiring police, fire, or medical response'
+
+    transport  SmartMessage::Transport::RedisTransport.new
+    serializer SmartMessage::Serializer::Json.new
 
     # Caller information
     property :caller_name,

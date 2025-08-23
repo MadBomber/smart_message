@@ -1,8 +1,9 @@
+#!/usr/bin/env ruby
 # messages/silent_alarm_message.rb
 # Silent alarm message sent by banks to the Police Department during security incidents
 # Triggers immediate police response with unit dispatch based on severity level
 
-require 'smart_message'
+require_relative '../../../lib/smart_message'
 
 module Messages
   class SilentAlarmMessage < SmartMessage::Base

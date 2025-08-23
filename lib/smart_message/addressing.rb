@@ -202,6 +202,11 @@ module SmartMessage
         end
       end
       
+      # Setter method for from - allows ClassName.from = 'value' syntax
+      def from=(entity_id)
+        from(entity_id)
+      end
+      
       def from_configured?; !from.nil?; end
       def from_missing?;     from.nil?; end
       def reset_from; 
@@ -224,6 +229,11 @@ module SmartMessage
         end
       end
       
+      # Setter method for to - allows ClassName.to = 'value' syntax
+      def to=(entity_id)
+        to(entity_id)
+      end
+      
       def to_configured?;   !to.nil?; end
       def to_missing?;       to.nil?; end
       def reset_to; 
@@ -244,6 +254,11 @@ module SmartMessage
           addressing_registry[class_name] ||= {}
           addressing_registry[class_name][:reply_to] = entity_id
         end
+      end
+      
+      # Setter method for reply_to - allows ClassName.reply_to = 'value' syntax
+      def reply_to=(entity_id)
+        reply_to(entity_id)
       end
       
       def reply_to_configured?; !reply_to.nil?; end

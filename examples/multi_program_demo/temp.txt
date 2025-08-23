@@ -1,0 +1,39 @@
+==> citizen.rb <==
+# examples/multi_program_demo/citizen.rb
+
+
+==> emergency_dispatch_center.rb <==
+# examples/multi_program_demo/emergency_dispatch_center.rb
+
+
+==> fire_department.rb <==
+# examples/multi_program_demo/fire_department.rb
+
+
+==> health_department.rb <==
+# examples/multi_program_demo/health_department.rb
+
+
+==> house.rb <==
+# examples/multi_program_demo/house.rb
+
+
+==> local_bank.rb <==
+# examples/multi_program_demo/local_bank.rb
+
+
+==> police_department.rb <==
+# examples/multi_program_demo/police_department.rb
+
+
+==> redis_monitor.rb <==
+# examples/multi_program_demo/redis_monitor.rb
+#
+
+==> redis_stats.rb <==
+#!/usr/bin/env ruby
+# Redis Statistics Monitor for SmartMessage Demo
+
+==> visitor.rb <==
+#!/usr/bin/env ruby
+

@@ -1,9 +1,10 @@
+#!/usr/bin/env ruby
 # messages/health_status_message.rb
 #
 # Health status response message sent by city services back to the Health Department
 # Contains operational status with color-coded display (green=healthy, yellow=warning, orange=critical, red=failed)
 
-require 'smart_message'
+require_relative '../../../lib/smart_message'
 
 module Messages
 

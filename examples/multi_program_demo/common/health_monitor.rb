@@ -1,3 +1,4 @@
+#!/usr/bin/env ruby
 # examples/multi_program_demo/common/health_monitor.rb
 # A common module used for system health monitoring
 #
@@ -17,7 +18,7 @@ require_relative '../messages/health_status_message'
 
 module Common
   module HealthMonitor
-    FAIL_SAFE = 10 # seconds
+    FAIL_SAFE = 15 # seconds
 
     def setup_health_monitor
       @health_timer_mutex = Mutex.new
@@ -26,6 +27,8 @@ module Common
       Messages::HealthCheckMessage.subscribe(broadcast: true) do |message|
         respond_to_health_check(message)
       end
+
+      Messages::HealthStatusMessage.from = @service_name
 
       start_health_countdown_timer
     end

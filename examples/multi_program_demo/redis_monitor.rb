@@ -1,4 +1,6 @@
 #!/usr/bin/env ruby
+# examples/multi_program_demo/redis_monitor.rb
+#
 # Redis Monitor for SmartMessage Traffic
 # Shows formatted, real-time message activity
 
@@ -42,23 +44,23 @@ class RedisMonitor
       data = JSON.parse(message)
       header = data['_sm_header'] || {}
       payload = data['_sm_payload'] || {}
-      
+
       timestamp = Time.now.strftime('%H:%M:%S')
       from = header['from'] || 'unknown'
       to = header['to'] || 'broadcast'
       message_class = header['message_class'] || channel
-      
+
       # Color code by message type
       color = message_color(message_class)
-      
+
       puts "#{color}[#{timestamp}] #{message_class}#{color_reset}"
       puts "   📤 From: #{from}"
       puts "   📥 To: #{to}"
-      
+
       # Show relevant payload details
       show_payload_details(message_class, payload)
       puts ""
-      
+
     rescue JSON::ParserError
       # Handle non-JSON messages
       puts "📋 [#{Time.now.strftime('%H:%M:%S')}] #{channel}: #{message[0..100]}..."
@@ -98,7 +100,7 @@ class RedisMonitor
   def message_color(message_class)
     case message_class
     when /Health/ then "\e[32m"      # Green
-    when /Fire/ then "\e[31m"        # Red  
+    when /Fire/ then "\e[31m"        # Red
     when /Police/ then "\e[34m"      # Blue
     when /Alarm/ then "\e[33m"       # Yellow
     when /Emergency/ then "\e[35m"   # Magenta

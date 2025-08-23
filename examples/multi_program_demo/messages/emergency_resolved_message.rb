@@ -1,9 +1,10 @@
+#!/usr/bin/env ruby
 # examples/messages/emergency_resolved_message.rb
 #
 # Emergency resolution message broadcast when incidents are successfully resolved
 # Provides closure notification to all city services about completed emergency responses
 #
-require 'smart_message'
+require_relative '../../../lib/smart_message'
 
 
 module Messages

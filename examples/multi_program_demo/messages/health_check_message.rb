@@ -1,9 +1,10 @@
+#!/usr/bin/env ruby
 # messages/health_check_message.rb
 #
 # Health check message broadcast by the Health Department to monitor city services
 # Sent every 5 seconds to all services to verify operational status
 
-require 'smart_message'
+require_relative '../../../lib/smart_message'
 
 module Messages
 

@@ -1,9 +1,10 @@
+#!/usr/bin/env ruby
 # examples/messages/fire_dispatch_message.rb
 #
 # Fire dispatch message sent by the Fire Department in response to fire emergencies
 # Contains fire engine assignments and specialized equipment details for fire suppression operations
 
-require 'smart_message'
+require_relative '../../../lib/smart_message'
 
 module Messages
   class FireDispatchMessage < SmartMessage::Base
@@ -19,6 +20,8 @@ module Messages
 
     property :engines_assigned, required: true,
                                 description: "Array of fire engine and apparatus call signs responding (e.g., ['Engine-1', 'Ladder-1', 'Rescue-1'])"
+
+    VALID_FIRE_TYPES = %w[fire kitchen electrical basement garage wildfire]
 
     property :location, required: true,
                         description: 'Street address or location where fire engines should respond to the emergency'

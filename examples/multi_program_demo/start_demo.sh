@@ -6,7 +6,7 @@
 DEMO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "Removing old log files..."
-rm -f $DEMO_DIR/*.log
+rm -f $DEMO_DIR/log/*.log
 
 # Check if iTerm2 is available
 if ! ls /Applications/iTerm.app &>/dev/null; then
@@ -231,6 +231,6 @@ if [ $? -eq 0 ]; then
     echo "📞 Watch Tab 7 for 911 dispatch routing & Tab 8 for citizen emergencies!"
     echo "🔍 Check Tab 9 for real-time message traffic & Tab 10 for Redis stats!"
 else
-    echo "❌ Failed to start demo. Please check that iTerm2 is installed and running."
+    echo "��� Failed to start demo. Please check that iTerm2 is installed and running."
     exit 1
 fi

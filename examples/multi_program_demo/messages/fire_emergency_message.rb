@@ -1,9 +1,10 @@
+#!/usr/bin/env ruby
 # examples/messages/fire_emergency_message.rb
 #
 # Fire emergency message sent by houses to the Fire Department when fires are detected
 # Triggers immediate fire department response with engine dispatch based on fire severity and type
 #
-require 'smart_message'
+require_relative '../../../lib/smart_message'
 
 module Messages
   class FireEmergencyMessage < SmartMessage::Base
@@ -14,12 +15,14 @@ module Messages
     transport SmartMessage::Transport::RedisTransport.new
     serializer SmartMessage::Serializer::Json.new
 
+    VALID_FIRE_TYPES = %w[fire kitchen electrical basement garage wildfire]
+
     property :house_address, required: true,
       description: "Full street address of the house where fire was detected"
 
     property :fire_type, required: true,
-      validate: ->(v) { %w[kitchen electrical basement garage wildfire].include?(v) },
-      validation_message: "Fire type must be kitchen, electrical, basement, garage, or wildfire",
+      validate: ->(v) { VALID_FIRE_TYPES.include?(v) },
+      validation_message: "Fire type must be: #{VALID_FIRE_TYPES.join(', ')}",
       description: "Classification of fire origin and type (kitchen/electrical/basement/garage/wildfire)"
 
     property :severity, required: true,
