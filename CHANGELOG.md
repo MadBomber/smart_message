@@ -8,6 +8,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Emergency Services Multi-Program Demo**: Complete emergency dispatch simulation system
+  - Added comprehensive emergency services message definitions with validation
+  - Emergency Dispatch Center (911) routing calls to appropriate departments 
+  - Fire Department, Police Department, and Health Department service implementations
+  - AI-powered visitor generating realistic emergency scenarios with retry logic
+  - Health monitoring system across all city services with status reporting
+  - Continuous observation generation with diverse emergency scenarios every 15 seconds
+
+### Enhanced
+- **Message Definition Property System**: Improved DRY principles and AI integration
+  - Extracted inline array validations into VALID_* constants (VALID_SEVERITY, VALID_EMERGENCY_TYPES, etc.)
+  - Updated property descriptions to use constants dynamically (#{VALID_SEVERITY.join(', ')})
+  - Enhanced property descriptions to include valid values for better AI prompting
+  - Standardized validation message format using constant interpolation across all message types
+- **SmartMessage Class-Level Addressing**: Added setter method support for flexible syntax
+  - Added from=, to=, reply_to= setter methods to complement existing getter methods
+  - Enables both ClassName.from(value) and ClassName.from = value syntax patterns
+  - Maintains backward compatibility while improving developer experience
+
+### Added
 - **Documentation Website**: MkDocs-based documentation site with GitHub Pages deployment
   - Added `mkdocs.yml` configuration with Material theme and SmartMessage branding
   - Created GitHub Actions workflow (`.github/workflows/deploy-github-pages.yml`) for automatic documentation deployment

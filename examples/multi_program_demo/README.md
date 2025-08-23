@@ -10,6 +10,8 @@ The demo simulates a city emergency services network with multiple independent s
 
 | Service | Program File | Purpose | Key Features |
 |---------|-------------|---------|--------------|
+| **Emergency Dispatch Center** | `emergency_dispatch_center.rb` | 911 call routing and coordination | Call triage, department dispatch, call tracking |
+| **Citizen** | `citizen.rb` | 911 emergency call simulation | Realistic emergency scenarios, automatic/manual calling |
 | **Fire Department** | `fire_department.rb` | Fire emergency response coordination | Fire engine dispatch, equipment deployment |
 | **Police Department** | `police_department.rb` | Law enforcement and security response | Unit assignment, crime response, alarm handling |
 | **Local Bank** | `local_bank.rb` | Banking security monitoring | Silent alarm system, robbery detection |
@@ -21,10 +23,11 @@ The demo simulates a city emergency services network with multiple independent s
 
 ## 📨 Message Types
 
-The city uses 7 standardized message types for emergency communication:
+The city uses 8 standardized message types for emergency communication:
 
 ### Emergency Messages
-- **🔥 FireEmergencyMessage** - Fire alerts from houses to Fire Department
+- **📞 Emergency911Message** - Citizen calls to 911 dispatch center
+- **🔥 FireEmergencyMessage** - Fire alerts from houses or 911 to Fire Department
 - **🚨 SilentAlarmMessage** - Security breaches from banks to Police Department
 - **👮 PoliceDispatchMessage** - Police unit coordination responses
 - **🚒 FireDispatchMessage** - Fire suppression deployment responses
@@ -52,29 +55,94 @@ The Visitor service uses RubyLLM for intelligent incident reporting:
 
 ## 📊 Message Flow Diagrams
 
-### Emergency Response Flow
+### 1. 911 Emergency Call Flow
 ```mermaid
-graph TD
-    A[🏠 House] -->|FireEmergencyMessage| B[🚒 Fire Department]
-    C[🏦 Bank] -->|SilentAlarmMessage| D[👮 Police Department]
-    E[🧑‍💼 Visitor] -->|AI-Selected Message| F[Emergency Services]
+sequenceDiagram
+    participant C as 👤 Citizen
+    participant EDC as 📞 Emergency Dispatch (911)
+    participant FD as 🚒 Fire Department
+    participant PD as 👮 Police Department
     
-    B -->|FireDispatchMessage| G[City Services]
-    D -->|PoliceDispatchMessage| G
+    C->>EDC: Emergency911Message
+    Note over C,EDC: Citizen reports emergency<br/>Type: fire, medical, crime, etc.<br/>Severity: critical/high/medium/low
     
-    G -->|EmergencyResolvedMessage| H[All Services]
+    EDC->>EDC: Analyze call & determine dispatch
     
-    subgraph "Fire Emergency"
-        A1[🔥 Smoke Detected] --> A2[Severity Assessment] --> A3[Fire Engine Dispatch]
+    alt Fire/Medical/Rescue/Hazmat Emergency
+        EDC->>FD: FireEmergencyMessage (if fire)
+        EDC->>FD: Emergency911Message (if medical/rescue)
+        FD->>EDC: FireDispatchMessage
     end
     
-    subgraph "Security Emergency"
-        C1[🚨 Robbery Detected] --> C2[Threat Level] --> C3[Police Unit Assignment]
+    alt Crime/Security/Accident Emergency  
+        EDC->>PD: Emergency911Message
+        PD->>EDC: PoliceDispatchMessage
     end
     
-    subgraph "AI Incident Reporting"
-        E1[Witness Event] --> E2[AI Message Selection] --> E3[Property Generation]
-    end
+    Note over EDC: Call tracking & statistics
+```
+
+### 2. Fire Emergency Flow
+```mermaid
+sequenceDiagram
+    participant H as 🏠 House
+    participant FD as 🚒 Fire Department
+    participant All as 📢 All Services
+    
+    H->>FD: FireEmergencyMessage
+    Note over H,FD: Smoke detected<br/>Fire type: electrical/grease/general<br/>Severity: critical/high/medium
+    
+    FD->>FD: Assess fire severity
+    FD->>FD: Dispatch equipment
+    Note over FD: Engine-1, Ladder-1<br/>Rescue-1, Hazmat-1
+    
+    FD->>All: FireDispatchMessage
+    Note over All: Equipment dispatched<br/>ETA: 3-8 minutes
+    
+    FD->>All: EmergencyResolvedMessage
+    Note over All: Fire suppressed<br/>Scene secure
+```
+
+### 3. Security Emergency Flow
+```mermaid
+sequenceDiagram
+    participant B as 🏦 Bank
+    participant PD as 👮 Police Department
+    participant All as 📢 All Services
+    
+    B->>PD: SilentAlarmMessage
+    Note over B,PD: Robbery detected<br/>Alarm type: break_in/robbery<br/>Threat level: high/critical
+    
+    PD->>PD: Assess threat level
+    PD->>PD: Assign units
+    Note over PD: Unit-101, Unit-102<br/>Detective-1, SWAT-Alpha
+    
+    PD->>All: PoliceDispatchMessage
+    Note over All: Units dispatched<br/>Priority: emergency/critical
+    
+    PD->>All: EmergencyResolvedMessage
+    Note over All: Suspects apprehended<br/>Scene secure
+```
+
+### 4. AI Visitor Intelligence Flow
+```mermaid
+sequenceDiagram
+    participant V as 🧑‍💼 Visitor (AI)
+    participant AI as 🤖 RubyLLM
+    participant ES as 🚨 Emergency Services
+    
+    V->>V: Witness incident
+    V->>AI: Analyze available message types
+    Note over V,AI: Dynamic message discovery<br/>Property analysis
+    
+    AI->>V: Select appropriate message type
+    Note over AI: SilentAlarmMessage for robbery<br/>FireEmergencyMessage for fire
+    
+    V->>AI: Generate realistic properties
+    Note over V,AI: Bank names, locations<br/>Fire types, severities
+    
+    V->>ES: Publish selected message
+    Note over ES: Emergency services respond<br/>based on message type
 ```
 
 ### Health Monitoring System
@@ -102,23 +170,24 @@ sequenceDiagram
     Note over FD,H: COVID-19 shutdown if timeout
 ```
 
-### Service Internal Architecture
+### 5. Service Internal Architecture
 ```mermaid
 graph TB
-    subgraph "🚒 Fire Department"
-        FD1[Message Listener] --> FD2[Fire Emergency Handler]
-        FD1 --> FD3[Health Check Handler]
-        FD2 --> FD4[Dispatch Coordinator]
-        FD3 --> FD5[Health Timer Reset]
-        FD4 --> FD6[Equipment Assignment]
+    subgraph "📞 Emergency Dispatch Center (911)"
+        EDC1[911 Call Listener] --> EDC2[Call Analysis Engine]
+        EDC2 --> EDC3[Department Router]
+        EDC3 --> EDC4[Fire Dispatcher]
+        EDC3 --> EDC5[Police Dispatcher]
+        EDC2 --> EDC6[Call Tracking]
+        EDC6 --> EDC7[Statistics Engine]
     end
     
-    subgraph "👮 Police Department"
-        PD1[Message Listener] --> PD2[Security Alert Handler]
-        PD1 --> PD3[Health Check Handler]
-        PD2 --> PD4[Unit Dispatcher]
-        PD3 --> PD5[Health Timer Reset]
-        PD4 --> PD6[Tactical Response]
+    subgraph "👤 Citizen"
+        C1[Emergency Scenarios] --> C2[Random Selection]
+        C2 --> C3[911 Call Generator]
+        C3 --> C4[Message Publisher]
+        C5[Interactive Mode] --> C2
+        C6[Automatic Mode] --> C2
     end
     
     subgraph "🧑‍💼 Smart Visitor (AI-Powered)"
@@ -177,29 +246,42 @@ For non-macOS systems or when not using iTerm2:
 # Terminal 1 - Health monitoring
 ruby health_department.rb
 
-# Terminal 2 - Emergency services
+# Terminal 2 - Emergency dispatch center (911)
+ruby emergency_dispatch_center.rb
+
+# Terminal 3 - Emergency services
 ruby fire_department.rb
 
-# Terminal 3 - Law enforcement
+# Terminal 4 - Law enforcement
 ruby police_department.rb
 
-# Terminal 4 - Banking security
+# Terminal 5 - Banking security
 ruby local_bank.rb
 
-# Terminal 5 - Residential monitoring
+# Terminal 6 - Residential monitoring
 ruby house.rb
 
-# Terminal 6 - AI visitor (optional)
+# Terminal 7 - Citizen 911 caller (optional)
+ruby citizen.rb
+
+# Terminal 8 - AI visitor (optional)
 ruby visitor.rb
 
-# Terminal 7 - Message monitoring (optional)
+# Terminal 9 - Message monitoring (optional)
 ruby redis_monitor.rb
 
-# Terminal 8 - Performance analytics (optional)
+# Terminal 10 - Performance analytics (optional)
 ruby redis_stats.rb
 ```
 
 ## 🎭 Demo Scenarios
+
+### 📞 911 Emergency Call Scenario
+1. **Citizen witnesses emergency** → Generates Emergency911Message with random scenario
+2. **911 Dispatch Center receives call** → Analyzes emergency type and severity
+3. **Call routing** → Dispatches to appropriate departments (Fire/Police)
+4. **Department response** → Services respond with dispatch messages
+5. **Call tracking** → Statistics maintained until resolution
 
 ### 🔥 Fire Emergency Scenario
 1. **House detects smoke** → Publishes FireEmergencyMessage
@@ -224,10 +306,32 @@ ruby redis_stats.rb
 
 ## 📋 Service Details
 
+### Emergency Dispatch Center (`emergency_dispatch_center.rb`)
+```ruby
+# 911 emergency call coordination hub
+- Subscribes to: Emergency911Message (to: '911')
+- Publishes: FireEmergencyMessage, Emergency911Message (routed)
+- Call analysis: Determines which departments to dispatch
+- Call tracking: Maintains active call registry with timestamps
+- Statistics: Tracks calls by type and department dispatches
+- Routing rules: Fire/Medical → Fire Dept, Crime/Security → Police
+```
+
+### Citizen (`citizen.rb`)
+```ruby
+# 911 emergency call simulation system
+- Publishes: Emergency911Message (to: '911')
+- Emergency scenarios: 15+ realistic emergency types
+- Types: fire, medical, crime, accident, hazmat, rescue, other
+- Modes: Interactive (press Enter) or Automatic (15-30 sec intervals)
+- Realistic data: Random caller names, phone numbers, locations
+- Severity levels: critical, high, medium, low
+```
+
 ### Fire Department (`fire_department.rb`)
 ```ruby
 # Handles fire emergencies with equipment dispatch
-- Subscribes to: FireEmergencyMessage, HealthCheckMessage
+- Subscribes to: FireEmergencyMessage, Emergency911Message, HealthCheckMessage
 - Publishes: FireDispatchMessage, HealthStatusMessage, EmergencyResolvedMessage
 - Equipment: Engine-1, Ladder-1, Rescue-1, Hazmat-1
 - Response time: 3-8 minutes based on severity
@@ -236,7 +340,7 @@ ruby redis_stats.rb
 ### Police Department (`police_department.rb`)
 ```ruby
 # Coordinates law enforcement response
-- Subscribes to: SilentAlarmMessage, HealthCheckMessage
+- Subscribes to: SilentAlarmMessage, Emergency911Message, HealthCheckMessage
 - Publishes: PoliceDispatchMessage, HealthStatusMessage, EmergencyResolvedMessage
 - Units: Unit-101, Unit-102, Unit-103, Detective-1, SWAT-Alpha
 - Priority levels: routine, urgent, emergency, critical
