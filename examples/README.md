@@ -15,11 +15,19 @@ ruby 04_redis_smart_home_iot.rb
 ruby 05_proc_handlers.rb
 ruby 06_custom_logger_example.rb
 ruby 07_error_handling_scenarios.rb
-ruby 08_entity_addressing.rb
+ruby 08_entity_addressing_basic.rb
+ruby 08_entity_addressing_with_filtering.rb
+ruby 09_dead_letter_queue_demo.rb
 ruby 09_regex_filtering_microservices.rb
 ruby 10_header_block_configuration.rb
+ruby 10_message_deduplication.rb
 ruby 11_global_configuration_example.rb
 ruby show_logger.rb
+
+# Multi-program city scenario demo
+cd city_scenario
+./start_demo.sh  # Starts all city services
+./stop_demo.sh   # Stops all running services
 ```
 
 ## Examples Overview
@@ -208,7 +216,7 @@ NotificationMessage.subscribe("NotificationService.handle")
 ---
 
 ### 8. Entity Addressing System (Advanced Routing)
-**File:** `08_entity_addressing.rb`
+**Files:** `08_entity_addressing_basic.rb`, `08_entity_addressing_with_filtering.rb`
 
 **Scenario:** Comprehensive demonstration of SmartMessage's entity addressing system showing point-to-point messaging, broadcast patterns, request-reply workflows, and gateway patterns.
 
@@ -272,10 +280,21 @@ payment.publish
 
 ---
 
-### 10. Header Block Configuration (Addressing DSL)
-**File:** `10_header_block_configuration.rb`
+### 9. Dead Letter Queue & Regex Filtering
+**Files:** `09_dead_letter_queue_demo.rb`, `09_regex_filtering_microservices.rb`
 
-**Scenario:** Comprehensive demonstration of SmartMessage's flexible header configuration options, showing three different methods for setting addressing fields.
+**Dead Letter Queue Demo:** Demonstrates handling of undeliverable messages and failed processing scenarios.
+
+**Regex Filtering:** Shows advanced message filtering using regular expressions for microservice routing patterns.
+
+---
+
+### 10. Header Block Configuration & Message Deduplication
+**Files:** `10_header_block_configuration.rb`, `10_message_deduplication.rb`
+
+**Header Block Configuration:** Comprehensive demonstration of SmartMessage's flexible header configuration options, showing three different methods for setting addressing fields.
+
+**Message Deduplication:** Shows strategies for handling duplicate messages in distributed systems.
 
 **Key Features:**
 - Direct class methods for addressing configuration
@@ -541,6 +560,80 @@ class MyCustomTransport < SmartMessage::Transport::Base
   end
 end
 ```
+
+---
+
+### City Emergency Services Scenario (Multi-Service Demo)
+**Directory:** `city_scenario/`
+
+**Scenario:** Complete city emergency services simulation demonstrating complex multi-service messaging patterns with health monitoring, emergency dispatch, and coordinated response systems.
+
+**Key Features:**
+- Multiple independent services communicating through SmartMessage
+- Emergency 911 dispatch center routing calls to appropriate departments
+- Fire and Police departments responding to different emergency types
+- Houses generating fire emergencies and banks triggering silent alarms
+- Health monitoring system checking all services periodically
+- Common mixins for shared functionality (logging, health monitoring)
+- Redis-based transport for production-ready messaging
+
+**Services Included:**
+- `emergency_dispatch_center.rb` - 911 call center routing emergencies
+- `fire_department.rb` - Responds to fires, medical, rescue, and hazmat calls
+- `police_department.rb` - Handles crime, accidents, and silent alarms
+- `health_department.rb` - Monitors health status of all city services
+- `house.rb` - Simulates residential fire emergencies
+- `local_bank.rb` - Triggers silent alarms for security incidents
+- `citizen.rb` - Generates 911 emergency calls
+
+**Messages Used:**
+- `Emergency911Message` - 911 emergency calls with caller details
+- `FireEmergencyMessage` - Fire-specific emergency notifications
+- `FireDispatchMessage` - Fire department dispatch responses
+- `SilentAlarmMessage` - Bank security alerts to police
+- `PoliceDispatchMessage` - Police unit dispatch notifications
+- `EmergencyResolvedMessage` - Incident resolution notifications
+- `HealthCheckMessage` - Service health check broadcasts
+- `HealthStatusMessage` - Service health status responses
+
+**Common Modules:**
+- `Common::HealthMonitor` - Standardized health monitoring for all services
+- `Common::Logger` - Centralized logging configuration
+
+**What You'll Learn:**
+- Building complex multi-service systems with SmartMessage
+- Emergency dispatch routing patterns
+- Service health monitoring and status reporting
+- Message filtering and selective subscription
+- Production-ready Redis transport configuration
+- Extracting common functionality into mixins
+- Coordinated response patterns between services
+- Real-time event simulation and processing
+
+**Running the Demo:**
+```bash
+cd examples/city_scenario
+
+# Start all services (opens multiple terminal windows)
+./start_demo.sh
+
+# Monitor Redis message flow (optional)
+ruby redis_monitor.rb
+
+# View Redis statistics (optional)
+ruby redis_stats.rb
+
+# Stop all services
+./stop_demo.sh
+```
+
+**Architecture Highlights:**
+- **Dispatch Routing**: 911 center analyzes calls and routes to appropriate departments
+- **Service Specialization**: Each department handles specific emergency types
+- **Broadcast Health Checks**: Health department monitors all services simultaneously
+- **Selective Subscriptions**: Services only receive relevant messages using filters
+- **Incident Lifecycle**: Complete tracking from emergency to resolution
+- **Production Patterns**: Demonstrates patterns suitable for production systems
 
 ---
 

@@ -11,7 +11,7 @@ Dir[File.join(__dir__, 'messages', '*.rb')].each { |file| require file }
 
 class Visitor
   include Common::Logger
-  
+
   def initialize
     @service_name = 'visitor'
 
@@ -19,15 +19,6 @@ class Visitor
     logger.info("Visitor initialized - AI-powered message generation system ready")
   end
 
-  # def setup_logging
-  #   log_file = File.join(__dir__, 'visitor.log')
-  #   logger = Logger.new(log_file)
-  #   logger.level = Logger::INFO
-  #   logger.formatter = proc do |severity, datetime, progname, msg|
-  #     "#{datetime.strftime('%Y-%m-%d %H:%M:%S')} [#{severity}] #{msg}\n"
-  #   end
-  #   logger.info("Visitor logging started")
-  # end
 
   def setup_ai
     # Initialize the AI model for intelligent message selection
@@ -45,7 +36,6 @@ class Visitor
 
 
   def configure_rubyllm
-    # TODO: Add some of these configuration items to AIA.config
     RubyLLM.configure do |config|
       config.anthropic_api_key  = ENV.fetch('ANTHROPIC_API_KEY', nil)
       config.deepseek_api_key   = ENV.fetch('DEEPSEEK_API_KEY', nil)
@@ -131,9 +121,10 @@ class Visitor
         context: 'A visitor spotted a child stuck on a roof, unable to get down safely.'
       }
     ]
-    
+
     scenarios.sample
   end
+
 
   def report_observation(scenario = nil)
     scenario ||= generate_observation_scenario
@@ -156,11 +147,11 @@ class Visitor
     retry_count = 0
     message_instance = nil
     validation_errors = []
-    
+
     while retry_count < max_retries
       message_instance = generate_message_instance(selected_message_class, property_descriptions, validation_errors, scenario)
       logger.info("Generated message instance with AI-provided values (attempt #{retry_count + 1})")
-      
+
       # Try to publish the message
       begin
         publish_message(message_instance)
@@ -170,10 +161,10 @@ class Visitor
         retry_count += 1
         error_msg = e.message
         logger.warn("Publishing failed (attempt #{retry_count}): #{error_msg}")
-        
+
         # Parse validation error for specific property and valid values
         validation_error_details = parse_validation_error(error_msg)
-        
+
         if validation_error_details
           # Build detailed error context for AI
           validation_errors = [
@@ -181,7 +172,7 @@ class Visitor
             "Error: #{validation_error_details[:message]}",
             validation_error_details[:valid_values] ? "Valid values are: #{validation_error_details[:valid_values]}" : nil
           ].compact
-          
+
           if retry_count < max_retries && @ai_available
             logger.info("Attempting to fix validation error with AI assistance")
             logger.info("Error details: property=#{validation_error_details[:property]}, valid_values=#{validation_error_details[:valid_values]}")
@@ -201,39 +192,40 @@ class Visitor
     message_instance
   end
 
+
   def run_continuous(interval_seconds = 15)
     puts "👁️  Smart Visitor - AI-Powered Observation Reporting System"
     puts "   Continuously observing the city and reporting incidents"
     puts "   Generating new observations every #{interval_seconds} seconds"
     puts "   Press Ctrl+C to stop\n\n"
-    
+
     observation_count = 0
-    
+
     # Set up signal handler for graceful shutdown
     Signal.trap('INT') do
       puts "\n\n👋 Visitor signing off after #{observation_count} observations."
       logger.info("Visitor stopped after #{observation_count} observations")
       exit(0)
     end
-    
+
     Signal.trap('TERM') do
       puts "\n👋 Visitor terminated after #{observation_count} observations."
       exit(0)
     end
-    
+
     loop do
       observation_count += 1
       scenario = generate_observation_scenario
-      
+
       puts "\n" + "="*60
       puts "📍 OBSERVATION ##{observation_count} - #{Time.now.strftime('%H:%M:%S')}"
       puts "   Type: #{scenario[:type].upcase}"
       puts "   What I see: #{scenario[:description]}"
       puts "   Reporting to emergency services..."
-      
+
       begin
         message = report_observation(scenario)
-        
+
         if message
           puts "   ✅ Report sent via #{message.class.to_s.split('::').last}"
           logger.info("Observation ##{observation_count} reported successfully via #{message.class}")
@@ -245,7 +237,7 @@ class Visitor
         puts "   ❌ Error: #{e.message}"
         logger.error("Error reporting observation ##{observation_count}: #{e.message}")
       end
-      
+
       puts "   💤 Waiting #{interval_seconds} seconds before next observation..."
       sleep(interval_seconds)
     end
@@ -257,13 +249,13 @@ class Visitor
     # Parse validation errors like:
     # "Messages::Emergency911Message#emergency_type: Emergency type must be one of: fire, medical, crime, accident, hazmat, rescue, other"
     # "Messages::SilentAlarmMessage#alarm_type: Alarm type must be: robbery, vault_breach, suspicious_activity"
-    
+
     # Try to match the pattern: ClassName#property: message
     if error_message =~ /Messages::(\w+)#(\w+):\s*(.+)/
       class_name = $1
       property = $2
       message = $3
-      
+
       # Extract valid values if present
       valid_values = nil
       if message =~ /must be(?:\s+one\s+of)?:\s*(.+)/i
@@ -271,7 +263,7 @@ class Visitor
         # Clean up the values string and split
         valid_values = values_str.split(/,\s*/).map(&:strip)
       end
-      
+
       return {
         class_name: class_name,
         property: property,
@@ -279,7 +271,7 @@ class Visitor
         valid_values: valid_values
       }
     end
-    
+
     # Try alternate format for required properties
     if error_message =~ /property\s+'(\w+)'\s+is\s+required/i
       return {
@@ -288,7 +280,7 @@ class Visitor
         valid_values: nil
       }
     end
-    
+
     # Check if it's a validation error even if we can't parse details
     if error_message.include?("ValidationError") || error_message.include?("must be") || error_message.include?("required")
       return {
@@ -297,7 +289,7 @@ class Visitor
         valid_values: nil
       }
     end
-    
+
     nil
   end
 
@@ -334,7 +326,7 @@ class Visitor
       end.join("\n\n")
 
       scenario_context = scenario ? scenario[:context] : "A visitor witnessed a robbery at a local business."
-      
+
       prompt = <<~PROMPT
         You are helping a visitor to a city report an incident they witnessed.
 
@@ -412,10 +404,10 @@ class Visitor
 
       # Enhance descriptions with validation constraints
       enhanced_descriptions = {}
-      
+
       property_descriptions.each do |prop, desc|
         enhanced_desc = desc.to_s
-        
+
         # Add validation info if available
         if message_class.respond_to?(:property_validations) && message_class.property_validations[prop]
           validation = message_class.property_validations[prop]
@@ -423,14 +415,14 @@ class Visitor
             enhanced_desc += " (#{validation[:validation_message]})"
           end
         end
-        
+
         # Check for constant arrays that define valid values (e.g., VALID_ALARM_TYPES)
         const_name = "VALID_#{prop.to_s.upcase}S"
         if message_class.const_defined?(const_name)
           valid_values = message_class.const_get(const_name)
           enhanced_desc += " Valid values: #{valid_values.join(', ')}"
         end
-        
+
         enhanced_descriptions[prop] = enhanced_desc
         logger.info("Property: #{prop} - #{enhanced_desc}")
       end
@@ -457,10 +449,10 @@ class Visitor
       error_context = ""
       if validation_errors.any?
         error_context = <<~ERROR
-          
+
           ⚠️ PREVIOUS ATTEMPT FAILED WITH VALIDATION ERRORS:
           #{validation_errors.map { |e| "  • #{e}" }.join("\n")}
-          
+
           REQUIRED FIX: You MUST correct these specific properties with valid values.
           Only change the properties mentioned in the errors above.
           Keep all other property values the same.
@@ -469,7 +461,7 @@ class Visitor
 
       scenario_context = scenario ? scenario[:context] : "A visitor witnessed a robbery at a local business."
       scenario_desc = scenario ? scenario[:description] : "Witnessed armed robbery"
-      
+
       prompt = <<~PROMPT
         You are helping generate an emergency report message for an incident a visitor witnessed.
 
@@ -611,16 +603,16 @@ end
 if __FILE__ == $0
   begin
     visitor = Visitor.new
-    
+
     # Check for command-line arguments
     if ARGV[0] == '--once' || ARGV[0] == '-o'
       # Single observation mode
       puts "🎯 Smart Visitor - Single Observation Mode"
       scenario = visitor.generate_observation_scenario
       puts "   Observing: #{scenario[:description]}"
-      
+
       message = visitor.report_observation(scenario)
-      
+
       if message
         puts "\n✅ Report successfully generated and published!"
         puts "   Message Type: #{message.class}"
