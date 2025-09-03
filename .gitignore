@@ -8,3 +8,6 @@
 /pkg/
 /spec/reports/
 /tmp/
+/.aigcm_msg/
+site
+.aigcm_msg
