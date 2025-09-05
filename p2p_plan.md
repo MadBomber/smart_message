@@ -22,17 +22,17 @@ class CapabilityRequest < SmartMessage::Base
     transport BunnyFarm::Transport.new  # Retains workflow capabilities
     serializer SmartMessage::Serializer::JSON.new
   end
-  
+
   # BunnyFarm's workflow methods
   def process
     # Message processing with transport abstraction
   end
-  
+
   def success
     # Success handling across any transport
   end
-  
-  def failure  
+
+  def failure
     # Failure handling with transport flexibility
   end
 end
@@ -40,7 +40,7 @@ end
 
 ### Enhanced BunnyFarm Benefits
 1. **Unified Messaging System**: SmartMessage transport abstraction + BunnyFarm workflows
-2. **Multi-Transport Workflows**: Run BunnyFarm patterns across AMQP, Lanet, NATS
+2. **Multi-Transport Workflows**: Run BunnyFarm patterns across rabb, Lanet, NATS
 3. **Stronger Foundation**: Single enhanced gem vs multiple integrations
 4. **Reusable Components**: Enhanced BunnyFarm benefits other projects
 5. **Proven Patterns**: Combines best of both architectural approaches
@@ -51,13 +51,13 @@ end
 
 **Recommended Approach: SmartMessage + Lanet + Existing Brokers**
 - **SmartMessage provides unified messaging API** across all transports
-- **Lanet handles LAN P2P communication** (high-performance local scenarios)  
-- **Existing NATS/AMQP brokers handle WAN** communication and initial discovery
+- **Lanet handles LAN P2P communication** (high-performance local scenarios)
+- **Existing NATS/rabbitmq brokers handle WAN** communication and initial discovery
 - **Registry remains** for global agent discovery and coordination
 
 **Implementation Benefits:**
 - **Unified API**: SmartMessage provides consistent interface across all transports
-- **Transport Abstraction**: Easy to switch or combine Lanet, NATS, AMQP
+- **Transport Abstraction**: Easy to switch or combine Lanet, NATS, rabbitmq
 - **Proven Components**: Leverages existing gems rather than custom implementation
 - **Built-in Security**: Lanet's encryption + SmartMessage's serialization
 - **Flexible Routing**: SmartMessage can intelligently choose transport based on recipient
@@ -70,7 +70,7 @@ class Agent99::LanetTransport < SmartMessage::Transport::Base
     @lanet_sender = Lanet::Sender.new
     @lanet_receiver = Lanet::Receiver.new
   end
-  
+
   def publish(message, options = {})
     target_ip = resolve_agent_ip(message.to)
     @lanet_sender.send_to(target_ip, message.to_json, encrypt: true)
@@ -84,11 +84,11 @@ class Agent99::RequestMessage < SmartMessage::Base
     transport Agent99::SmartTransport.new
     serializer SmartMessage::Serializer::JSON.new
   end
-  
+
   # Agent99 can now use clean messaging API
   def send_capability_request(target_agent, capability)
-    publish :capability_request, 
-            to: target_agent, 
+    publish :capability_request,
+            to: target_agent,
             capability: capability
   end
 end
@@ -101,7 +101,7 @@ end
 2. **Same Machine (Direct)**: Named Pipes transport (OS-level IPC)
 3. **Same Machine (Pub/Sub)**: Redis transport (local pub/sub)
 4. **Same LAN**: Lanet transport (P2P encrypted)
-5. **Reliable Required**: AMQP transport (guaranteed delivery)
+5. **Reliable Required**: rabbitmq transport (guaranteed delivery)
 6. **High Performance**: NATS transport (distributed coordination)
 
 **Transport Performance Characteristics:**
@@ -110,7 +110,7 @@ end
 - **Redis**: ~100μs latency (local network stack)
 - **Lanet**: ~1ms latency (LAN P2P encrypted)
 - **NATS**: ~2ms latency (high-performance distributed)
-- **AMQP**: ~5ms latency (reliable enterprise messaging)
+- **rabbitmq**: ~5ms latency (reliable enterprise messaging)
 
 ## SmartMessage Transport Extension System
 
@@ -131,7 +131,7 @@ gem 'smart_message'                         # Memory + Redis
 
 # Transport extensions (install as needed)
 gem 'smart_message-transport-named_pipes'   # OS-level IPC for same-machine
-gem 'smart_message-transport-amqp'          # Enterprise reliability
+gem 'smart_message-transport-rabbitmq'          # Enterprise reliability
 gem 'smart_message-transport-lanet'         # LAN P2P optimization
 gem 'smart_message-transport-nats'          # High-performance distributed
 ```
@@ -217,7 +217,7 @@ end
 - Health monitoring and connection management per transport
 
 **Security Integration:**
-- Transport-specific security implementations (Lanet encryption, AMQP SSL, etc.)
+- Transport-specific security implementations (Lanet encryption, rabbitmq SSL, etc.)
 - SmartMessage can layer additional security through serialization
 - Enhanced BunnyFarm maintains message workflow integrity across transports
 - Centralized key management through Agent99 registry integration
@@ -225,13 +225,13 @@ end
 ## Revised Implementation Roadmap
 
 ### Phase 1: Enhanced BunnyFarm Foundation (Weeks 1-4)
-1. **BunnyFarm + SmartMessage Integration**: 
+1. **BunnyFarm + SmartMessage Integration**:
    - Replace `BunnyFarm::Message` with `SmartMessage::Base`
    - Migrate BunnyFarm's workflow capabilities to SmartMessage pattern
    - Maintain automatic routing and configuration flexibility
-2. **Multi-Transport Support**: 
+2. **Multi-Transport Support**:
    - Add transport abstraction while preserving BunnyFarm workflows
-   - Implement AMQP transport plugin using existing BunnyFarm patterns
+   - Implement rabbitmq transport plugin using existing BunnyFarm patterns
    - Design plugin architecture for future transports
 3. **Enhanced Workflow System**:
    - Extend BunnyFarm's process/success/failure pattern across transports
@@ -239,31 +239,31 @@ end
    - Maintain BunnyFarm's K.I.S.S. design philosophy
 
 ### Phase 2: Agent99 Integration (Weeks 5-6)
-1. **Replace Agent99's AMQP Client**: 
-   - Substitute basic AMQP client with enhanced BunnyFarm
+1. **Replace Agent99's rabbitmq Client**:
+   - Substitute basic rabbitmq client with enhanced BunnyFarm
    - Map Agent99 message patterns to enhanced BunnyFarm workflows
    - Maintain existing Agent99 API compatibility
-2. **Workflow Integration**: 
+2. **Workflow Integration**:
    - Leverage enhanced BunnyFarm's workflow capabilities for agent processing
    - Add success/failure handling to Agent99 message types
    - Implement automatic routing for agent-to-agent communication
 
 ### Phase 3: Lanet P2P Integration (Weeks 7-8)
-1. **Lanet Transport Plugin**: 
+1. **Lanet Transport Plugin**:
    - Add Lanet transport to enhanced BunnyFarm system
    - Implement BunnyFarm workflow patterns over Lanet P2P
    - Network discovery integration (registry + Lanet scanning)
-2. **Intelligent Routing**: 
-   - Smart transport selection (LAN via Lanet, WAN via AMQP)
+2. **Intelligent Routing**:
+   - Smart transport selection (LAN via Lanet, WAN via rabbitmq)
    - Fallback mechanisms and connection health monitoring
    - Complete hybrid P2P system with workflow support
 
 ### Phase 4: Production Readiness (Weeks 9-10)
-1. **System Integration**: 
+1. **System Integration**:
    - End-to-end testing of Agent99 + Enhanced BunnyFarm + Lanet
    - Performance optimization and monitoring
    - Documentation and migration guides
-2. **Advanced Features**: 
+2. **Advanced Features**:
    - Load balancing and auto-scaling capabilities
    - Advanced security and authentication integration
    - Backward compatibility validation
@@ -282,7 +282,7 @@ end
 7. What's the plugin registration mechanism for transport discovery?
 8. How do we manage transport-specific configuration and connection pooling?
 
-### Lanet Integration Questions  
+### Lanet Integration Questions
 9. How does Lanet handle enhanced BunnyFarm workflow messages?
 10. Can Lanet's network discovery integrate with Agent99's registry system?
 11. What are Lanet's performance characteristics compared to other transports?
@@ -307,7 +307,7 @@ This plan proposes enhancing BunnyFarm with SmartMessage capabilities first, cre
 
 **Key Advantages:**
 - **Unified Messaging System**: Enhanced BunnyFarm becomes the messaging layer for Agent99
-- **Automatic Optimization**: Smart routing (LAN via Lanet, WAN via AMQP) with workflow support
+- **Automatic Optimization**: Smart routing (LAN via Lanet, WAN via rabbitmq) with workflow support
 - **Built-in Security**: Lanet encryption + SmartMessage abstraction + BunnyFarm reliability
 - **Extensibility**: Plugin architecture in enhanced BunnyFarm supports future transports
 - **Reusability**: Enhanced BunnyFarm becomes valuable for broader Ruby ecosystem
