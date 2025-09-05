@@ -1,0 +1,53 @@
+<svg width="800" height="300" xmlns="http://www.w3.org/2000/svg" style="background: transparent;">
+  <defs>
+    <style>
+      .title { font: bold 18px sans-serif; fill: #e1e5e9; text-anchor: middle; }
+      .label { font: 14px sans-serif; fill: #c9d1d9; text-anchor: middle; }
+      .small-label { font: 12px sans-serif; fill: #8b949e; text-anchor: middle; }
+      .box { fill: #21262d; stroke: #30363d; stroke-width: 2; rx: 8; }
+      .highlight-box { fill: #0d1117; stroke: #f85149; stroke-width: 2; rx: 8; }
+      .arrow { stroke: #58a6ff; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .data-flow { stroke: #56d364; stroke-width: 2; fill: none; marker-end: url(#arrowhead-green); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#58a6ff" />
+    </marker>
+    <marker id="arrowhead-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#56d364" />
+    </marker>
+  </defs>
+  
+  <!-- Title -->
+  <text x="400" y="30" class="title">Redis Basic Transport Architecture</text>
+  
+  <!-- Publisher -->
+  <rect x="50" y="80" width="120" height="60" class="box"/>
+  <text x="110" y="105" class="label">Publisher</text>
+  <text x="110" y="125" class="small-label">OrderMessage</text>
+  
+  <!-- Redis Server -->
+  <rect x="340" y="80" width="120" height="60" class="highlight-box"/>
+  <text x="400" y="100" class="label">Redis Server</text>
+  <text x="400" y="115" class="small-label">Channel:</text>
+  <text x="400" y="130" class="small-label">"OrderMessage"</text>
+  
+  <!-- Subscriber -->
+  <rect x="630" y="80" width="120" height="60" class="box"/>
+  <text x="690" y="105" class="label">Subscriber</text>
+  <text x="690" y="125" class="small-label">Thread-based</text>
+  
+  <!-- Arrows -->
+  <line x1="170" y1="110" x2="340" y2="110" class="arrow"/>
+  <text x="255" y="105" class="small-label">PUBLISH</text>
+  
+  <line x1="460" y1="110" x2="630" y2="110" class="data-flow"/>
+  <text x="545" y="105" class="small-label">SUBSCRIBE</text>
+  
+  <!-- Key Features -->
+  <text x="400" y="180" class="label">Key Characteristics:</text>
+  <text x="400" y="200" class="small-label">• Direct Redis pub/sub channels</text>
+  <text x="400" y="215" class="small-label">• Channel name = Message class name</text>
+  <text x="400" y="230" class="small-label">• No pattern matching or persistence</text>
+  <text x="400" y="245" class="small-label">• Simplest implementation, lowest overhead</text>
+  <text x="400" y="260" class="small-label">• Fire-and-forget messaging</text>
+</svg>
