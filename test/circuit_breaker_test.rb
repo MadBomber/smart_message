@@ -139,7 +139,7 @@ class CircuitBreakerTest < Minitest::Test
       # Cause some failures
       5.times do
         @dispatcher.route(@test_message)
-        sleep 0.3
+        sleep 0.1
       end
 
       # Reset and verify
@@ -251,7 +251,7 @@ class CircuitBreakerTest < Minitest::Test
       @transport.publish(header, '{"content": "test message"}')
       
       # Allow time for async processing
-      sleep 0.5
+      sleep 0.2
 
       # Verify message was processed
       assert_equal 1, @transport.message_count

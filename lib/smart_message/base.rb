@@ -162,8 +162,6 @@ module SmartMessage
       # @param serialized_message [String] The serialized message content
       # @return [SmartMessage::Base] The decoded message instance
       def decode(serialized_message)
-        logger = SmartMessage::Logger.default
-
         begin
           (self.logger || SmartMessage::Logger.default).info { "[SmartMessage] Received: #{self.name} (#{serialized_message.bytesize} bytes)" }
 
