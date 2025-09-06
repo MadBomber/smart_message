@@ -690,7 +690,7 @@ Now that you understand the basics, explore these advanced topics:
 
 1. **[Advanced Routing Patterns](redis-queue-patterns.md)** - Complex routing scenarios
 2. **[Production Deployment](redis-queue-production.md)** - Production-ready configurations
-3. **[Complete Transport Reference](../transports/redis-queue.md)** - Full API documentation
+3. **[Complete Transport Reference](../transports/redis-queue-transport.md)** - Full API documentation
 
 Or dive into the [complete examples](https://github.com/madbomber/smart_message/tree/main/examples/redis_queue) to see real-world usage patterns.
 

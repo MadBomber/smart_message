@@ -1,28 +1,32 @@
 # Redis Queue Transport
 
-The Redis Queue Transport is SmartMessage's most advanced transport, providing **RabbitMQ-style queue/exchange routing** using Redis Lists as persistent FIFO queues. Built on Ruby's **Async framework** for modern fiber-based concurrency, it combines Redis's exceptional performance with intelligent message routing capabilities, offering 10x faster latency than RabbitMQ while maintaining identical routing syntax.
+The **Redis Queue Transport** is SmartMessage's most advanced transport implementation, providing RabbitMQ-style queue/exchange routing using Redis Lists as persistent FIFO queues. Built on Ruby's Async framework for modern fiber-based concurrency, it combines Redis's exceptional performance with intelligent message routing capabilities.
 
 ## Overview
 
-Unlike traditional Redis pub/sub which provides simple fire-and-forget messaging, the Redis Queue Transport implements:
+Redis Queue Transport is perfect for:
+- **High-throughput applications** - 100K+ messages/second with minimal latency
+- **Complex routing scenarios** - RabbitMQ-style pattern matching with Redis performance
+- **Load-balanced processing** - Consumer groups for horizontal scaling
+- **Persistent message queues** - Messages survive service restarts
+- **Modern async applications** - Built on Ruby's Async framework
 
-- **Async/Fiber-based concurrency** for thousands of concurrent subscriptions with minimal overhead
-- **Pattern-based subscriptions** with RabbitMQ-compatible wildcard syntax
-- **Persistent message queues** using Redis Lists (LPUSH/BRPOP operations)
-- **Load balancing** through consumer groups  
-- **Enhanced routing keys** with from/to addressing
-- **Queue monitoring** and comprehensive statistics
-- **Fluent subscription API** for complex routing scenarios
-- **Test-friendly design** with proper async lifecycle management
+## Key Features
+
+- 🚀 **RabbitMQ-Style Routing** - Pattern-based subscriptions with familiar syntax
+- ⚡ **Ultra-High Performance** - ~0.5ms latency, 100K+ messages/second  
+- 🧬 **Async/Fiber Architecture** - Thousands of concurrent subscriptions
+- 🔄 **Persistent Queues** - Redis Lists (LPUSH/BRPOP) for message durability
+- ⚖️ **Load Balancing** - Consumer groups for horizontal scaling
+- 🎯 **Enhanced Routing** - Multi-segment routing keys with from/to addressing
+- 📊 **Queue Monitoring** - Comprehensive statistics and health monitoring
+- 🛠️ **Fluent API** - Chainable subscription building for complex routing
 
 ## Architecture
 
-```
-Publisher → Routing Engine → Pattern Match → Redis List → Async Consumer  
-          (in-memory)     (segment-based)   (LPUSH/BRPOP) (fiber-cooperative)
-```
+![Redis Queue Architecture](../assets/images/redis-queue-architecture.svg)
 
-This architecture provides the routing intelligence of message brokers with the performance characteristics of in-memory data structures. Built on Ruby's Async framework, it uses cooperative fiber-based concurrency instead of preemptive threading, enabling massive scalability with minimal resource overhead.
+The Redis Queue Transport combines the routing intelligence of message brokers with Redis's performance characteristics. Built on Ruby's Async framework, it uses cooperative fiber-based concurrency for massive scalability with minimal resource overhead.
 
 ### Performance Comparison
 
