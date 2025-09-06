@@ -7,7 +7,7 @@
 # - Method 3: Instance-level overrides
 # - Shortcut accessor methods for addressing
 
-require_relative '../lib/smart_message'
+require_relative '../../lib/smart_message'
 
 puts "🎯 SmartMessage Header Block Configuration Demo"
 puts "=" * 50

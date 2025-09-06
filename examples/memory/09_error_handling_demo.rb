@@ -11,7 +11,7 @@
 # These scenarios help developers understand SmartMessage's robust error handling
 # and how to build resilient message-based systems.
 
-require_relative '../lib/smart_message'
+require_relative '../../lib/smart_message'
 
 puts "=== SmartMessage Example: Error Handling Scenarios ==="
 puts

@@ -6,7 +6,7 @@
 # This example demonstrates publish-subscribe messaging where one event publisher
 # sends notifications to multiple subscribers (email service, SMS service, audit logger).
 
-require_relative '../lib/smart_message'
+require_relative '../../lib/smart_message'
 
 puts "=== SmartMessage Example: Publish-Subscribe Event Notifications ==="
 puts

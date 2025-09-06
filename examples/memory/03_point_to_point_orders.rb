@@ -6,7 +6,7 @@
 # This example demonstrates point-to-point messaging between an OrderService
 # and a PaymentService. Each order gets processed by exactly one payment processor.
 
-require_relative '../lib/smart_message'
+require_relative '../../lib/smart_message'
 
 puts "=== SmartMessage Example: Point-to-Point Order Processing ==="
 puts

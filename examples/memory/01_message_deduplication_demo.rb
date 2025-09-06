@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # examples/10_message_deduplication.rb
 
-require_relative '../lib/smart_message'
+require_relative '../../lib/smart_message'
 
 # Example demonstrating message deduplication with DDQ (Deduplication Queue)
 

@@ -7,7 +7,7 @@
 # can send messages to multiple chat rooms, and other agents receive and respond
 # to messages based on their interests and capabilities.
 
-require_relative '../lib/smart_message'
+require_relative '../../lib/smart_message'
 
 puts "=== SmartMessage Example: Many-to-Many Distributed Chat ==="
 puts

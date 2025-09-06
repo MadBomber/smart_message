@@ -7,7 +7,7 @@
 # in SmartMessage, showing different ways to subscribe to messages beyond
 # the traditional self.process method.
 
-require_relative '../lib/smart_message'
+require_relative '../../lib/smart_message'
 
 puts "=== SmartMessage Proc and Block Handler Example ==="
 puts

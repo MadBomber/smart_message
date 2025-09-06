@@ -7,7 +7,7 @@
 # system to set default logger, transport, and serializer for all message
 # classes in your application.
 
-require_relative '../lib/smart_message'
+require_relative '../../lib/smart_message'
 
 puts "=== SmartMessage Global Configuration Example ==="
 puts

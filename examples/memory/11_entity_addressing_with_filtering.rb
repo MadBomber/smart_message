@@ -9,7 +9,7 @@
 # - Instance-level addressing overrides
 # - Gateway patterns
 
-require_relative '../lib/smart_message'
+require_relative '../../lib/smart_message'
 
 puts "🎯 SmartMessage Entity Addressing & Filtering Demo"
 puts "=" * 50

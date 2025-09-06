@@ -4,7 +4,7 @@
 # Demonstrates the various features of the SmartMessage default logger
 # and shows how applications can use the logger directly.
 
-require_relative '../lib/smart_message'
+require_relative '../../lib/smart_message'
 
 puts "=" * 80
 puts "SmartMessage Logger Feature Demonstration"

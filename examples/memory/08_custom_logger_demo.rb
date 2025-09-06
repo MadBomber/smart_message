@@ -44,7 +44,7 @@
 #   2. Configure it at the class level: logger SmartMessage::Logger::RailsLogger.new
 #   3. All messages will be logged to your Rails application logs
 
-require_relative '../lib/smart_message'
+require_relative '../../lib/smart_message'
 require 'logger'
 require 'json'
 require 'fileutils'

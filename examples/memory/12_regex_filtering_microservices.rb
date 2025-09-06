@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 # examples/09_regex_filtering_microservices.rb
 
-require_relative '../lib/smart_message'
+require_relative '../../lib/smart_message'
 
 # Example: Advanced Regex Filtering for Microservices Architecture
 # 
