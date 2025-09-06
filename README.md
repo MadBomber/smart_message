@@ -2,7 +2,7 @@
 <tr>
 <td width="30%" valign="top">
 
-<img src="docs/assets/smart_message.jpg" alt="SmartMessage Logo" />
+<img src="docs/assets/images/smart_message.jpg" alt="SmartMessage Logo" />
 <br/>
 See [Documentation Website](https://madbomber.github.io/smart_message/)
 </td>
@@ -133,13 +133,13 @@ class OrderMessage < SmartMessage::Base
   config do
     # Option 1: Simple STDOUT for development
     transport SmartMessage::Transport.create(:stdout, loopback: true)
-    
+
     # Option 2: Redis Queue for production (10x faster than RabbitMQ!)
     # transport SmartMessage::Transport.create(:redis_queue,
     #   url: 'redis://localhost:6379',
     #   queue_prefix: 'myapp'
     # )
-    
+
     serializer SmartMessage::Serializer::JSON.new
   end
 
@@ -613,7 +613,7 @@ transport.where
 # Configure message class
 class OrderMessage < SmartMessage::Base
   transport :redis_queue
-  
+
   property :order_id, required: true
   property :amount, required: true
 end
