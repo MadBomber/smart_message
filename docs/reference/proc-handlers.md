@@ -92,7 +92,7 @@ MyMessage.unsubscribe(block_id)
 
 - Default handler compatibility
 - Block handler functionality
-- Proc parameter handler functionality  
+- Proc parameter handler functionality
 - Lambda handler functionality
 - Multiple handlers for same message type
 - Mixed handler types (method + proc)
@@ -114,7 +114,7 @@ MyMessage.unsubscribe(block_id)
 ### Test Results
 
 - **55 total tests** (10 new proc handler tests + existing tests)
-- **276 assertions** 
+- **276 assertions**
 - **All tests passing**
 - **Full backward compatibility** maintained
 
@@ -157,7 +157,7 @@ MyMessage.unsubscribe(block_id)
 
 Complete demonstration of all handler types:
 - Default handler (self.process)
-- Block handlers (inline logic)  
+- Block handlers (inline logic)
 - Proc handlers (reusable logic)
 - Lambda handlers (functional style)
 - Method handlers (service classes)
@@ -234,6 +234,7 @@ Production-ready Redis transport example showing real-world usage patterns.
 ## Future Enhancements
 
 Potential areas for future development:
+
 - Handler priority/ordering
 - Conditional handler execution
 - Handler metrics and monitoring

@@ -3,12 +3,12 @@
 <table border="0">
 <tr>
 <td width="30%" valign="top">
-  <img src="assets/smart_message.jpg" alt="SmartMessage Logo" width="200" />
+  <img src="assets/images/smart_message.jpg" alt="SmartMessage Logo" width="200" />
 </td>
 <td width="70%" valign="top">
 
-**SmartMessage** is a powerful Ruby framework that transforms ordinary messages into intelligent, self-aware entities capable of routing themselves, validating their contents, and executing business logic. By abstracting away the complexities of transport mechanisms (Redis, RabbitMQ, Kafka) and serialization formats (JSON, MessagePack), SmartMessage lets you focus on what matters: your business logic.
-
+<string>SmartMessage</strong> is a powerful Ruby framework that transforms ordinary messages into intelligent, self-aware entities capable of routing themselves, validating their contents, and executing business logic. By abstracting away the complexities of transport mechanisms (Redis, RabbitMQ, Kafka) and serialization formats (JSON, MessagePack), SmartMessage lets you focus on what matters: your business logic.
+<br/><br/>
 Think of SmartMessage as ActiveRecord for messaging - just as ActiveRecord frees you from database-specific SQL, SmartMessage liberates your messages from transport-specific implementations. Each message knows how to validate itself, where it came from, where it's going, and what to do when it arrives. With built-in support for filtering, versioning, deduplication, and concurrent processing, SmartMessage provides enterprise-grade messaging capabilities with the simplicity Ruby developers love.
 
 </td>
