@@ -1190,53 +1190,53 @@ end
 The `examples/redis_queue/` directory contains comprehensive, production-ready examples demonstrating Redis Queue Transport capabilities:
 
 ### Core Queue Messaging
-- **[01_basic_messaging.rb](../../examples/redis_queue/01_basic_messaging.rb)** - Foundation queue messaging patterns
+- **[01_basic_messaging.rb](https://github.com/MadBomber/smart_message/blob/main/examples/redis_queue/01_basic_messaging.rb)** - Foundation queue messaging patterns
   - Basic message publishing and consumption
   - Consumer group configuration
   - Queue-based message processing
 
-- **[01_comprehensive_examples.rb](../../examples/redis_queue/01_comprehensive_examples.rb)** - Complete feature demonstration
+- **[01_comprehensive_examples.rb](https://github.com/MadBomber/smart_message/blob/main/examples/redis_queue/01_comprehensive_examples.rb)** - Complete feature demonstration
   - All Redis Queue Transport capabilities in one example
   - Pattern routing, load balancing, error handling
   - Production patterns and best practices
 
 ### Advanced Routing & Patterns
-- **[02_pattern_routing.rb](../../examples/redis_queue/02_pattern_routing.rb)** - RabbitMQ-style pattern routing
+- **[02_pattern_routing.rb](https://github.com/MadBomber/smart_message/blob/main/examples/redis_queue/02_pattern_routing.rb)** - RabbitMQ-style pattern routing
   - Topic-based routing with patterns
   - Wildcard subscriptions (`#`, `*`)
   - Complex routing scenarios
 
-- **[03_fluent_api.rb](../../examples/redis_queue/03_fluent_api.rb)** - Fluent API usage examples
+- **[03_fluent_api.rb](https://github.com/MadBomber/smart_message/blob/main/examples/redis_queue/03_fluent_api.rb)** - Fluent API usage examples
   - Chain-based subscription configuration
   - Dynamic routing with builder pattern
   - Readable subscription management
 
 ### Production Features
-- **[04_load_balancing.rb](../../examples/redis_queue/04_load_balancing.rb)** - Load balancing across workers
+- **[04_load_balancing.rb](https://github.com/MadBomber/smart_message/blob/main/examples/redis_queue/04_load_balancing.rb)** - Load balancing across workers
   - Consumer group scaling
   - Work distribution patterns
   - High-availability setups
 
-- **[05_microservices.rb](../../examples/redis_queue/05_microservices.rb)** - Microservices communication
+- **[05_microservices.rb](https://github.com/MadBomber/smart_message/blob/main/examples/redis_queue/05_microservices.rb)** - Microservices communication
   - Service-to-service messaging
   - Distributed system coordination
   - Cross-service event handling
 
-- **[06_emergency_alerts.rb](../../examples/redis_queue/06_emergency_alerts.rb)** - Emergency alert system
+- **[06_emergency_alerts.rb](https://github.com/MadBomber/smart_message/blob/main/examples/redis_queue/06_emergency_alerts.rb)** - Emergency alert system
   - Priority message handling
   - Alert escalation workflows
   - Critical message processing
 
-- **[07_queue_management.rb](../../examples/redis_queue/07_queue_management.rb)** - Queue management utilities
+- **[07_queue_management.rb](https://github.com/MadBomber/smart_message/blob/main/examples/redis_queue/07_queue_management.rb)** - Queue management utilities
   - Queue monitoring and statistics
   - Dead letter queue handling
   - Performance optimization techniques
 
 ### Enhanced Transport Integration
-- **[enhanced_01_basic_patterns.rb](../../examples/redis_queue/enhanced_01_basic_patterns.rb)** - Enhanced transport patterns
-- **[enhanced_02_fluent_api.rb](../../examples/redis_queue/enhanced_02_fluent_api.rb)** - Enhanced fluent API
-- **[enhanced_03_dual_publishing.rb](../../examples/redis_queue/enhanced_03_dual_publishing.rb)** - Dual publishing strategies
-- **[enhanced_04_advanced_routing.rb](../../examples/redis_queue/enhanced_04_advanced_routing.rb)** - Advanced routing scenarios
+- **[enhanced_01_basic_patterns.rb](https://github.com/MadBomber/smart_message/blob/main/examples/redis_queue/enhanced_01_basic_patterns.rb)** - Enhanced transport patterns
+- **[enhanced_02_fluent_api.rb](https://github.com/MadBomber/smart_message/blob/main/examples/redis_queue/enhanced_02_fluent_api.rb)** - Enhanced fluent API
+- **[enhanced_03_dual_publishing.rb](https://github.com/MadBomber/smart_message/blob/main/examples/redis_queue/enhanced_03_dual_publishing.rb)** - Dual publishing strategies
+- **[enhanced_04_advanced_routing.rb](https://github.com/MadBomber/smart_message/blob/main/examples/redis_queue/enhanced_04_advanced_routing.rb)** - Advanced routing scenarios
 
 ### Key Features Demonstrated
 

@@ -326,29 +326,29 @@ Messages and processing logic remain identical - only the transport configuratio
 The `examples/memory/` directory contains comprehensive, runnable examples demonstrating Memory Transport capabilities:
 
 ### Core Messaging Examples
-- **[03_point_to_point_orders.rb](../../examples/memory/03_point_to_point_orders.rb)** - Point-to-point order processing with payment integration
-- **[04_publish_subscribe_events.rb](../../examples/memory/04_publish_subscribe_events.rb)** - Event broadcasting to multiple services (email, SMS, audit)
-- **[05_many_to_many_chat.rb](../../examples/memory/05_many_to_many_chat.rb)** - Interactive chat system with rooms, bots, and human agents
+- **[03_point_to_point_orders.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/03_point_to_point_orders.rb)** - Point-to-point order processing with payment integration
+- **[04_publish_subscribe_events.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/04_publish_subscribe_events.rb)** - Event broadcasting to multiple services (email, SMS, audit)
+- **[05_many_to_many_chat.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/05_many_to_many_chat.rb)** - Interactive chat system with rooms, bots, and human agents
 
 ### Advanced Features
-- **[01_message_deduplication_demo.rb](../../examples/memory/01_message_deduplication_demo.rb)** - Message deduplication patterns and strategies
-- **[02_dead_letter_queue_demo.rb](../../examples/memory/02_dead_letter_queue_demo.rb)** - Complete Dead Letter Queue system with circuit breakers
-- **[07_proc_handlers_demo.rb](../../examples/memory/07_proc_handlers_demo.rb)** - Flexible message handlers (blocks, procs, lambdas, methods)
+- **[01_message_deduplication_demo.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/01_message_deduplication_demo.rb)** - Message deduplication patterns and strategies
+- **[02_dead_letter_queue_demo.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/02_dead_letter_queue_demo.rb)** - Complete Dead Letter Queue system with circuit breakers
+- **[07_proc_handlers_demo.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/07_proc_handlers_demo.rb)** - Flexible message handlers (blocks, procs, lambdas, methods)
 
 ### Configuration & Monitoring
-- **[08_custom_logger_demo.rb](../../examples/memory/08_custom_logger_demo.rb)** - Advanced logging with SmartMessage::Logger::Default
-- **[09_error_handling_demo.rb](../../examples/memory/09_error_handling_demo.rb)** - Comprehensive validation, version mismatch, and error handling
-- **[13_header_block_configuration.rb](../../examples/memory/13_header_block_configuration.rb)** - Header and block configuration examples
-- **[14_global_configuration_demo.rb](../../examples/memory/14_global_configuration_demo.rb)** - Global configuration management
-- **[15_logger_demo.rb](../../examples/memory/15_logger_demo.rb)** - Advanced logging demonstrations
+- **[08_custom_logger_demo.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/08_custom_logger_demo.rb)** - Advanced logging with SmartMessage::Logger::Default
+- **[09_error_handling_demo.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/09_error_handling_demo.rb)** - Comprehensive validation, version mismatch, and error handling
+- **[13_header_block_configuration.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/13_header_block_configuration.rb)** - Header and block configuration examples
+- **[14_global_configuration_demo.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/14_global_configuration_demo.rb)** - Global configuration management
+- **[15_logger_demo.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/15_logger_demo.rb)** - Advanced logging demonstrations
 
 ### Entity Addressing & Filtering
-- **[10_entity_addressing_basic.rb](../../examples/memory/10_entity_addressing_basic.rb)** - Basic FROM/TO/REPLY_TO message addressing
-- **[11_entity_addressing_with_filtering.rb](../../examples/memory/11_entity_addressing_with_filtering.rb)** - Advanced entity-aware message filtering
-- **[12_regex_filtering_microservices.rb](../../examples/memory/12_regex_filtering_microservices.rb)** - Advanced regex filtering for microservices
+- **[10_entity_addressing_basic.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/10_entity_addressing_basic.rb)** - Basic FROM/TO/REPLY_TO message addressing
+- **[11_entity_addressing_with_filtering.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/11_entity_addressing_with_filtering.rb)** - Advanced entity-aware message filtering
+- **[12_regex_filtering_microservices.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/12_regex_filtering_microservices.rb)** - Advanced regex filtering for microservices
 
 ### Visual Demonstrations
-- **[06_pretty_print_demo.rb](../../examples/memory/06_pretty_print_demo.rb)** - Message inspection and pretty-printing capabilities
+- **[06_pretty_print_demo.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/06_pretty_print_demo.rb)** - Message inspection and pretty-printing capabilities
 
 ### Running Examples
 

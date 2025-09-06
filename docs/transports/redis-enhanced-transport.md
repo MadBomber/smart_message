@@ -458,22 +458,22 @@ Applications requiring RabbitMQ-style routing without RabbitMQ complexity.
 The `examples/redis_enhanced/` directory contains comprehensive examples demonstrating Redis Enhanced Transport capabilities:
 
 ### Advanced Routing Patterns
-- **[enhanced_01_basic_patterns.rb](../../examples/redis_enhanced/enhanced_01_basic_patterns.rb)** - Foundation patterns for enhanced routing
+- **[enhanced_01_basic_patterns.rb](https://github.com/MadBomber/smart_message/blob/main/examples/redis_enhanced/enhanced_01_basic_patterns.rb)** - Foundation patterns for enhanced routing
   - Simple subscriber patterns with wildcards
   - Basic pattern matching and subscription filtering
   - Enhanced routing setup and configuration
 
-- **[enhanced_02_fluent_api.rb](../../examples/redis_enhanced/enhanced_02_fluent_api.rb)** - Fluent API usage examples
+- **[enhanced_02_fluent_api.rb](https://github.com/MadBomber/smart_message/blob/main/examples/redis_enhanced/enhanced_02_fluent_api.rb)** - Fluent API usage examples
   - Chain-based subscription configuration
   - Dynamic pattern building and modification
   - Fluent interface for complex routing scenarios
 
-- **[enhanced_03_dual_publishing.rb](../../examples/redis_enhanced/enhanced_03_dual_publishing.rb)** - Dual publishing strategies
+- **[enhanced_03_dual_publishing.rb](https://github.com/MadBomber/smart_message/blob/main/examples/redis_enhanced/enhanced_03_dual_publishing.rb)** - Dual publishing strategies
   - Broadcasting to multiple patterns simultaneously
   - Pattern-specific message customization
   - Load balancing across pattern-matched subscribers
 
-- **[enhanced_04_advanced_routing.rb](../../examples/redis_enhanced/enhanced_04_advanced_routing.rb)** - Complex routing scenarios
+- **[enhanced_04_advanced_routing.rb](https://github.com/MadBomber/smart_message/blob/main/examples/redis_enhanced/enhanced_04_advanced_routing.rb)** - Complex routing scenarios
   - Multi-level pattern hierarchies
   - Conditional routing based on message content
   - Dynamic subscriber management and pattern updates

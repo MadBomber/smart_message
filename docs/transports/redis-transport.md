@@ -454,7 +454,7 @@ end
 The `examples/redis/` directory contains production-ready examples demonstrating Redis Transport capabilities:
 
 ### IoT and Real-Time Messaging
-- **[01_smart_home_iot_demo.rb](../../examples/redis/01_smart_home_iot_demo.rb)** - Complete smart home IoT system with Redis pub/sub
+- **[01_smart_home_iot_demo.rb](https://github.com/MadBomber/smart_message/blob/main/examples/redis/01_smart_home_iot_demo.rb)** - Complete smart home IoT system with Redis pub/sub
   - Real-time sensor data publishing (temperature, motion, battery levels)
   - Device command routing with prefix-based filtering
   - Alert generation and dashboard monitoring
@@ -499,7 +499,7 @@ Each example includes comprehensive logging and demonstrates production-ready pa
 
 For more Redis Transport examples and patterns, also see:
 - **[Memory Transport Examples](../../examples/memory/)** - Can be adapted to Redis Transport by changing configuration
-- **[Complete Documentation](../../examples/redis/smart_home_iot_dataflow.md)** - Detailed data flow analysis with SVG diagrams
+- **[Complete Documentation](https://github.com/MadBomber/smart_message/blob/main/examples/redis/smart_home_iot_dataflow.md)** - Detailed data flow analysis with SVG diagrams
 
 ## Related Documentation
 
