@@ -4,7 +4,7 @@
 
 <img src="docs/assets/images/smart_message.jpg" alt="SmartMessage Logo" />
 <br/>
-See [Documentation Website](https://madbomber.github.io/smart_message/)
+See <a href="https://madbomber.github.io/smart_message/">Documentation Websit</a>
 </td>
 <td width="70%" valign="top">
 
