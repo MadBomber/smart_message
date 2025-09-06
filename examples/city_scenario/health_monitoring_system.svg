@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="900" height="600" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .bg { fill: transparent; }
+      .health { fill: #1a3a2a; stroke: #4aff4a; stroke-width: 2; rx: 8; }
+      .fire { fill: #4a2a1a; stroke: #ffaa4a; stroke-width: 2; rx: 8; }
+      .police { fill: #1a2a3a; stroke: #4aafff; stroke-width: 2; rx: 8; }
+      .bank { fill: #3a2a1a; stroke: #ffcc4a; stroke-width: 2; rx: 8; }
+      .house { fill: #2a1a3a; stroke: #aa4aff; stroke-width: 2; rx: 8; }
+      .check-msg { stroke: #4aff4a; stroke-width: 2; fill: none; marker-end: url(#arrowhead-green); }
+      .status-msg { stroke: #ffaa4a; stroke-width: 2; fill: none; marker-end: url(#arrowhead-orange); stroke-dasharray: 5,3; }
+      .text { fill: #ffffff; font-family: 'Arial', sans-serif; font-size: 11px; }
+      .title { fill: #4a9eff; font-family: 'Arial', sans-serif; font-size: 18px; font-weight: bold; }
+      .subtitle { fill: #ffaa4a; font-family: 'Arial', sans-serif; font-size: 11px; }
+      .note { fill: #aaaaaa; font-family: 'Arial', sans-serif; font-size: 9px; }
+    </style>
+    <marker id="arrowhead-green" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#4aff4a" />
+    </marker>
+    <marker id="arrowhead-orange" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#ffaa4a" />
+    </marker>
+  </defs>
+  
+  <!-- Background -->
+  <rect class="bg" width="900" height="600"/>
+  
+  <!-- Title -->
+  <text x="450" y="25" text-anchor="middle" class="title">Health Monitoring System</text>
+  <text x="450" y="45" text-anchor="middle" class="subtitle">COVID-19 Compliant Service Health Checks (Every 5 seconds)</text>
+  
+  <!-- Participants -->
+  <rect x="50" y="80" width="120" height="80" class="health"/>
+  <text x="110" y="105" text-anchor="middle" class="text">🏥 Health</text>
+  <text x="110" y="120" text-anchor="middle" class="text">Department</text>
+  <text x="110" y="140" text-anchor="middle" class="subtitle">Central Monitor</text>
+  <text x="110" y="155" text-anchor="middle" class="subtitle">COVID-19 Compliance</text>
+  
+  <rect x="240" y="80" width="120" height="80" class="fire"/>
+  <text x="300" y="105" text-anchor="middle" class="text">🚒 Fire</text>
+  <text x="300" y="120" text-anchor="middle" class="text">Department</text>
+  <text x="300" y="140" text-anchor="middle" class="subtitle">Emergency Response</text>
+  
+  <rect x="430" y="80" width="120" height="80" class="police"/>
+  <text x="490" y="105" text-anchor="middle" class="text">👮 Police</text>
+  <text x="490" y="120" text-anchor="middle" class="text">Department</text>
+  <text x="490" y="140" text-anchor="middle" class="subtitle">Law Enforcement</text>
+  
+  <rect x="620" y="80" width="120" height="80" class="bank"/>
+  <text x="680" y="105" text-anchor="middle" class="text">🏦 Local</text>
+  <text x="680" y="120" text-anchor="middle" class="text">Bank</text>
+  <text x="680" y="140" text-anchor="middle" class="subtitle">Financial Security</text>
+  
+  <rect x="810" y="80" width="80" height="80" class="house"/>
+  <text x="850" y="105" text-anchor="middle" class="text">🏠 House</text>
+  <text x="850" y="125" text-anchor="middle" class="subtitle">Residential</text>
+  <text x="850" y="140" text-anchor="middle" class="subtitle">Safety</text>
+  
+  <!-- Vertical lifelines -->
+  <line x1="110" y1="160" x2="110" y2="520" stroke="#666" stroke-width="2" stroke-dasharray="3,3"/>
+  <line x1="300" y1="160" x2="300" y2="520" stroke="#666" stroke-width="2" stroke-dasharray="3,3"/>
+  <line x1="490" y1="160" x2="490" y2="520" stroke="#666" stroke-width="2" stroke-dasharray="3,3"/>
+  <line x1="680" y1="160" x2="680" y2="520" stroke="#666" stroke-width="2" stroke-dasharray="3,3"/>
+  <line x1="850" y1="160" x2="850" y2="520" stroke="#666" stroke-width="2" stroke-dasharray="3,3"/>
+  
+  <!-- Health check broadcast note -->
+  <rect x="50" y="180" width="120" height="30" fill="#1a3a2a" stroke="#4aff4a" rx="4"/>
+  <text x="110" y="200" text-anchor="middle" class="note">Every 5 seconds</text>
+  
+  <!-- Health check messages (broadcast to all) -->
+  <path d="M 110 220 L 300 220" class="check-msg"/>
+  <path d="M 110 240 L 490 240" class="check-msg"/>
+  <path d="M 110 260 L 680 260" class="check-msg"/>
+  <path d="M 110 280 L 850 280" class="check-msg"/>
+  
+  <text x="205" y="215" text-anchor="middle" class="text">HealthCheckMessage</text>
+  <text x="300" y="235" text-anchor="middle" class="text">HealthCheckMessage</text>
+  <text x="395" y="255" text-anchor="middle" class="text">HealthCheckMessage</text>
+  <text x="480" y="275" text-anchor="middle" class="text">HealthCheckMessage</text>
+  
+  <!-- Health status responses -->
+  <path d="M 300 320 L 110 320" class="status-msg"/>
+  <path d="M 490 340 L 110 340" class="status-msg"/>
+  <path d="M 680 360 L 110 360" class="status-msg"/>
+  <path d="M 850 380 L 110 380" class="status-msg"/>
+  
+  <text x="205" y="315" text-anchor="middle" class="text">HealthStatusMessage</text>
+  <text x="300" y="335" text-anchor="middle" class="text">HealthStatusMessage</text>
+  <text x="395" y="355" text-anchor="middle" class="text">HealthStatusMessage</text>
+  <text x="480" y="375" text-anchor="middle" class="text">HealthStatusMessage</text>
+  
+  <!-- Status indicators -->
+  <circle cx="300" cy="310" r="6" fill="#4aff4a"/>
+  <text x="320" y="315" class="note">Green</text>
+  
+  <circle cx="490" cy="330" r="6" fill="#ffff4a"/>
+  <text x="510" y="335" class="note">Yellow</text>
+  
+  <circle cx="680" cy="350" r="6" fill="#4aff4a"/>
+  <text x="700" y="355" class="note">Green</text>
+  
+  <circle cx="850" cy="370" r="6" fill="#ff4a4a"/>
+  <text x="820" y="375" class="note">Red</text>
+  
+  <!-- Countdown timer notes -->
+  <rect x="200" y="420" width="500" height="60" fill="#1a1a1a" stroke="#ffaa4a" rx="6"/>
+  <text x="210" y="440" class="text">10-second Countdown Timer System:</text>
+  <text x="210" y="455" class="note">• Resets on each HealthCheckMessage received</text>
+  <text x="210" y="470" class="note">• Services shut down after 10 seconds without health check (COVID-19 protocol)</text>
+  <text x="210" y="485" class="note">• Status: Green (healthy), Yellow (warning), Red (critical/offline)</text>
+  
+  <!-- Service status legend -->
+  <rect x="50" y="500" width="840" height="80" fill="#2a2a2a" stroke="#4a9eff" rx="6"/>
+  <text x="70" y="520" class="title">Service Health Status Indicators:</text>
+  
+  <circle cx="90" cy="540" r="8" fill="#4aff4a"/>
+  <text x="110" y="545" class="text">Green: Service healthy and responsive</text>
+  
+  <circle cx="320" cy="540" r="8" fill="#ffff4a"/>
+  <text x="340" y="545" class="text">Yellow: Service degraded or slow response</text>
+  
+  <circle cx="580" cy="540" r="8" fill="#ff4a4a"/>
+  <text x="600" y="545" class="text">Red: Service critical or unresponsive</text>
+  
+  <text x="70" y="565" class="text">All services implement countdown timer health monitoring for COVID-19 compliance</text>
+  <text x="70" y="580" class="text">Health Department broadcasts HealthCheckMessage every 5 seconds to maintain service operation</text>
+</svg>

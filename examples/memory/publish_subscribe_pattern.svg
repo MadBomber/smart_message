@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .bg { fill: transparent; }
+      .publisher { fill: #3a2a1a; stroke: #ffaa4a; stroke-width: 2; rx: 10; }
+      .subscriber { fill: #1a2a3a; stroke: #4a9eff; stroke-width: 2; rx: 8; }
+      .dispatcher { fill: #2a3a2a; stroke: #4aff4a; stroke-width: 3; rx: 12; }
+      .event { fill: #4a1a2a; stroke: #ff4aaa; stroke-width: 2; rx: 6; }
+      .arrow { stroke: #ffaa4a; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .fan-arrow { stroke: #4aff4a; stroke-width: 2; fill: none; marker-end: url(#fan-arrowhead); }
+      .text { fill: #ffffff; font-family: 'Arial', sans-serif; font-size: 12px; }
+      .title { fill: #4a9eff; font-family: 'Arial', sans-serif; font-size: 18px; font-weight: bold; }
+      .subtitle { fill: #ffaa4a; font-family: 'Arial', sans-serif; font-size: 11px; }
+      .event-text { fill: #ff4aaa; font-family: 'Arial', sans-serif; font-size: 11px; }
+    </style>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#ffaa4a" />
+    </marker>
+    <marker id="fan-arrowhead" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#4aff4a" />
+    </marker>
+  </defs>
+  
+  <!-- Background -->
+  <rect class="bg" width="800" height="600"/>
+  
+  <!-- Title -->
+  <text x="400" y="25" text-anchor="middle" class="title">Publish-Subscribe Pattern (1-to-Many)</text>
+  <text x="400" y="45" text-anchor="middle" class="subtitle">User Event Notification System (04_publish_subscribe_events.rb)</text>
+  
+  <!-- Publisher -->
+  <rect x="50" y="280" width="180" height="80" class="publisher"/>
+  <text x="140" y="305" text-anchor="middle" class="title">User Manager</text>
+  <text x="140" y="325" text-anchor="middle" class="subtitle">(Publisher)</text>
+  <text x="140" y="345" text-anchor="middle" class="text">• User registration</text>
+  <text x="140" y="360" text-anchor="middle" class="text">• Password changes</text>
+  
+  <!-- Memory Dispatcher -->
+  <rect x="320" y="270" width="160" height="100" class="dispatcher"/>
+  <text x="400" y="295" text-anchor="middle" class="title">Memory</text>
+  <text x="400" y="315" text-anchor="middle" class="title">Dispatcher</text>
+  <text x="400" y="335" text-anchor="middle" class="text">Message Router</text>
+  <text x="400" y="355" text-anchor="middle" class="subtitle">Thread Pool</text>
+  
+  <!-- Event Message -->
+  <rect x="300" y="120" width="200" height="60" class="event"/>
+  <text x="400" y="145" text-anchor="middle" class="event-text">UserEventMessage</text>
+  <text x="400" y="165" text-anchor="middle" class="subtitle">event_type: "user_registered"</text>
+  
+  <!-- Subscribers -->
+  <rect x="570" y="150" width="180" height="80" class="subscriber"/>
+  <text x="660" y="175" text-anchor="middle" class="title">Email Service</text>
+  <text x="660" y="195" text-anchor="middle" class="subtitle">(Subscriber)</text>
+  <text x="660" y="215" text-anchor="middle" class="text">• Welcome emails</text>
+  <text x="660" y="230" text-anchor="middle" class="text">• Security alerts</text>
+  
+  <rect x="570" y="280" width="180" height="80" class="subscriber"/>
+  <text x="660" y="305" text-anchor="middle" class="title">SMS Service</text>
+  <text x="660" y="325" text-anchor="middle" class="subtitle">(Subscriber)</text>
+  <text x="660" y="345" text-anchor="middle" class="text">• Security SMS</text>
+  <text x="660" y="360" text-anchor="middle" class="text">• Login alerts</text>
+  
+  <rect x="570" y="410" width="180" height="80" class="subscriber"/>
+  <text x="660" y="435" text-anchor="middle" class="title">Audit Service</text>
+  <text x="660" y="455" text-anchor="middle" class="subtitle">(Subscriber)</text>
+  <text x="660" y="475" text-anchor="middle" class="text">• Event logging</text>
+  <text x="660" y="490" text-anchor="middle" class="text">• Activity tracking</text>
+  
+  <!-- Message Flow -->
+  <!-- Publisher to Dispatcher -->
+  <path d="M 230 320 L 320 320" class="arrow"/>
+  
+  <!-- Event flow -->
+  <path d="M 230 300 L 350 180" class="arrow"/>
+  
+  <!-- Dispatcher to Subscribers (Fan-out) -->
+  <path d="M 480 300 L 570 190" class="fan-arrow"/>
+  <path d="M 480 320 L 570 320" class="fan-arrow"/>
+  <path d="M 480 340 L 570 450" class="fan-arrow"/>
+  
+  <!-- Event Types Examples -->
+  <rect x="50" y="400" width="480" height="180" class="dispatcher"/>
+  <text x="70" y="425" class="title">Event Processing Examples</text>
+  
+  <!-- User Registration Event -->
+  <rect x="70" y="440" width="140" height="60" class="event"/>
+  <text x="140" y="460" text-anchor="middle" class="event-text">user_registered</text>
+  <text x="140" y="480" text-anchor="middle" class="subtitle">→ Welcome email</text>
+  <text x="140" y="495" text-anchor="middle" class="subtitle">→ Audit log</text>
+  
+  <!-- Password Change Event -->
+  <rect x="230" y="440" width="140" height="60" class="event"/>
+  <text x="300" y="460" text-anchor="middle" class="event-text">password_changed</text>
+  <text x="300" y="480" text-anchor="middle" class="subtitle">→ Security email</text>
+  <text x="300" y="495" text-anchor="middle" class="subtitle">→ Security SMS</text>
+  
+  <!-- Login Event -->
+  <rect x="390" y="440" width="140" height="60" class="event"/>
+  <text x="460" y="460" text-anchor="middle" class="event-text">suspicious_login</text>
+  <text x="460" y="480" text-anchor="middle" class="subtitle">→ Login alert SMS</text>
+  <text x="460" y="495" text-anchor="middle" class="subtitle">→ Audit log</text>
+  
+  <!-- Processing Flow -->
+  <text x="70" y="530" class="title">Message Processing Flow:</text>
+  
+  <circle cx="90" cy="550" r="12" fill="#ffaa4a"/>
+  <text x="90" y="555" text-anchor="middle" class="text">1</text>
+  <text x="110" y="555" class="text">UserManager publishes event to all subscribers</text>
+  
+  <circle cx="350" cy="550" r="12" fill="#4aff4a"/>
+  <text x="350" y="555" text-anchor="middle" class="text">2</text>
+  <text x="370" y="555" class="text">Memory Dispatcher routes to all registered subscribers</text>
+  
+  <circle cx="90" cy="570" r="12" fill="#4a9eff"/>
+  <text x="90" y="575" text-anchor="middle" class="text">3</text>
+  <text x="110" y="575" class="text">Each service processes event according to its business logic</text>
+  
+  <!-- Pattern Benefits -->
+  <text x="570" y="530" class="title">Pattern Benefits:</text>
+  <text x="590" y="550" class="text">✓ Loose Coupling</text>
+  <text x="590" y="570" class="text">✓ Scalable Architecture</text>
+</svg>

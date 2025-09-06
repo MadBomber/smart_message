@@ -6,54 +6,7 @@ This document describes the data flow architecture for the Smart Home IoT exampl
 
 The smart home system consists of three types of IoT devices and a central dashboard, all communicating through Redis pub/sub channels. Each message type uses its own Redis channel for efficient routing and scaling.
 
-```mermaid
-graph TB
-    %% IoT Devices
-    THERM["🌡️ Smart Thermostat<br/>THERM-001<br/>Living Room"]
-    CAM["📹 Security Camera<br/>CAM-001<br/>Front Door"]
-    LOCK["🚪 Smart Door Lock<br/>LOCK-001<br/>Main Entrance"]
-    DASH["📊 IoT Dashboard<br/>System Monitor"]
-
-    %% Redis Channels
-    subgraph REDIS ["Redis Pub/Sub Channels"]
-        SENSOR["SensorDataMessage<br/>Temperature, Motion, Status<br/>Battery Levels"]
-        COMMAND["DeviceCommandMessage<br/>set_temperature, start_recording<br/>lock/unlock, get_status"]
-        ALERT["AlertMessage<br/>Motion Detected, Battery Low<br/>High Temperature"]
-        STATUS["DashboardStatusMessage<br/>System Status, Device Counts<br/>Alert Summaries"]
-    end
-
-    %% Device Publishing
-    THERM -.->|"Temperature Data"| SENSOR
-    CAM -.->|"Motion Data"| SENSOR
-    LOCK -.->|"Lock Status"| SENSOR
-    CAM -.->|"Motion Alerts"| ALERT
-    THERM -.->|"High Temp Alerts"| ALERT
-    LOCK -.->|"Battery Low Alerts"| ALERT
-    DASH -.->|"System Status"| STATUS
-    DASH -.->|"Device Commands"| COMMAND
-
-    %% Device Subscribing
-    COMMAND -->|"set_temperature"| THERM
-    COMMAND -->|"start/stop recording"| CAM
-    COMMAND -->|"lock/unlock"| LOCK
-    SENSOR -->|"All sensor data"| DASH
-    COMMAND -->|"Command logging"| DASH
-    ALERT -->|"All alerts"| DASH
-    STATUS -->|"Status updates"| DASH
-
-    %% Styling
-    classDef deviceStyle fill:#ff6b6b,stroke:#c0392b,stroke-width:2px,color:#fff
-    classDef cameraStyle fill:#4ecdc4,stroke:#16a085,stroke-width:2px,color:#fff
-    classDef lockStyle fill:#ffe66d,stroke:#f39c12,stroke-width:2px,color:#333
-    classDef dashStyle fill:#a8e6cf,stroke:#27ae60,stroke-width:2px,color:#333
-    classDef redisStyle fill:#dc143c,stroke:#a00,stroke-width:2px,color:#fff
-
-    class THERM deviceStyle
-    class CAM cameraStyle
-    class LOCK lockStyle
-    class DASH dashStyle
-    class SENSOR,COMMAND,ALERT,STATUS redisStyle
-```
+![Smart Home System Architecture](smart_home_system_architecture.svg)
 
 ## Message Flow Details
 
@@ -81,24 +34,7 @@ All IoT devices continuously publish sensor readings to the `SensorDataMessage` 
 ### 2. Device Command Flow
 The dashboard and external systems send commands to specific devices via the `DeviceCommandMessage` channel:
 
-```mermaid
-sequenceDiagram
-    participant App as Mobile App
-    participant Redis as Redis Channel
-    participant Therm as Thermostat
-    participant Cam as Camera
-    participant Lock as Door Lock
-
-    App->>Redis: DeviceCommandMessage<br/>device_id THERM-001 set_temperature
-    Redis->>Therm: ✅ Processes THERM prefix match
-    Redis->>Cam: ❌ Ignores not CAM prefix
-    Redis->>Lock: ❌ Ignores not LOCK prefix
-    
-    App->>Redis: DeviceCommandMessage<br/>device_id CAM-001 start_recording
-    Redis->>Therm: ❌ Ignores not THERM prefix
-    Redis->>Cam: ✅ Processes CAM prefix match
-    Redis->>Lock: ❌ Ignores not LOCK prefix
-```
+![Device Command Flow](device_command_flow.svg)
 
 **Device Command Filtering Rules:**
 - **THERM-*** devices: Accept `set_temperature`, `get_status`
@@ -108,60 +44,12 @@ sequenceDiagram
 ### 3. Alert System Flow
 Devices publish critical notifications to the `AlertMessage` channel when conditions are detected:
 
-```mermaid
-flowchart LR
-    subgraph Triggers
-        T1[High Temperature > 28°C]
-        T2[Motion Detected]
-        T3[Battery < 20%]
-        T4[Device Offline > 30s]
-    end
-    
-    subgraph Devices
-        THERM2[🌡️ Thermostat]
-        CAM2[📹 Camera]
-        LOCK2[🚪 Door Lock]
-    end
-    
-    subgraph AlertChannel [AlertMessage Channel]
-        A1[Motion Alert]
-        A2[High Temp Alert]
-        A3[Battery Low Alert]
-        A4[Device Offline Alert]
-    end
-    
-    T1 --> THERM2 --> A2
-    T2 --> CAM2 --> A1
-    T3 --> LOCK2 --> A3
-    T4 --> A4
-    
-    AlertChannel --> DASH2[📊 Dashboard]
-```
+![Alert System Flow](alert_system_flow.svg)
 
 ### 4. Dashboard Status Flow
 The dashboard aggregates all system data and publishes periodic status updates:
 
-```mermaid
-graph LR
-    subgraph DataCollection [Data Collection]
-        D1[Device Last Seen Times]
-        D2[Alert Counts]
-        D3[Battery Levels]
-        D4[System Health]
-    end
-    
-    subgraph Processing [Status Processing]
-        P1[Count Active Devices<br/>last_seen < 30s]
-        P2[Count Recent Alerts<br/>last 5 minutes]
-        P3[Calculate Averages]
-    end
-    
-    subgraph Output [Status Output]
-        O1[DashboardStatusMessage<br/>Every 10 seconds]
-    end
-    
-    DataCollection --> Processing --> Output
-```
+![Dashboard Status Flow](dashboard_status_flow.svg)
 
 ## Channel-Based Architecture Benefits
 
