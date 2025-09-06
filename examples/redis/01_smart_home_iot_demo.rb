@@ -8,7 +8,7 @@
 # through Redis channels. Each message type gets its own Redis channel for
 # efficient routing and scaling.
 
-require_relative '../lib/smart_message'
+require_relative '../../lib/smart_message'
 
 begin
   require 'redis'

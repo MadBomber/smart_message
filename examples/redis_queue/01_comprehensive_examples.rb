@@ -2,7 +2,7 @@
 # examples/redis_queue_transport_examples.rb
 # Usage examples for RedisQueueTransport
 
-require_relative '../lib/smart_message'
+require_relative '../../lib/smart_message'
 
 # Configure Redis Queue transport
 SmartMessage.configure do |config|
