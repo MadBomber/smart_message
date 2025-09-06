@@ -692,6 +692,6 @@ Now that you understand the basics, explore these advanced topics:
 2. **[Production Deployment](redis-queue-production.md)** - Production-ready configurations
 3. **[Complete Transport Reference](../transports/redis-queue.md)** - Full API documentation
 
-Or dive into the [complete examples](../examples/redis_queue/) to see real-world usage patterns.
+Or dive into the [complete examples](https://github.com/madbomber/smart_message/tree/main/examples/redis_queue) to see real-world usage patterns.
 
 The Redis Queue Transport provides the perfect balance of performance, reliability, and intelligent routing for modern Ruby applications. Start with these patterns and gradually incorporate more advanced features as your needs grow.

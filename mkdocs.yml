@@ -166,6 +166,13 @@ nav:
       - Dead Letter Queue: reference/dead-letter-queue.md
       - Message Deduplication: reference/message-deduplication.md
       - Proc Handlers: reference/proc-handlers.md
+  - 🚚 Transports:
+      - Redis Queue: transports/redis-queue.md
+      - Redis Comparison: transports/redis-transport-comparison.md
+  - 📚 Guides:
+      - Redis Queue Getting Started: guides/redis-queue-getting-started.md
+      - Redis Queue Patterns: guides/redis-queue-patterns.md
+      - Redis Queue Production: guides/redis-queue-production.md
   - ⚙️ Development:
       - Troubleshooting: development/troubleshooting.md
       - Ideas & Roadmap: development/ideas.md

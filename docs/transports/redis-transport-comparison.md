@@ -484,12 +484,12 @@ end
 
 ## 📚 Additional Resources
 
-- [Basic Redis Transport Examples](../examples/redis_basic/)
-- [Enhanced Redis Transport Examples](../examples/redis_queue/enhanced_*)
-- [Queue Redis Transport Examples](../examples/redis_queue/)
+- [Basic Redis Transport Examples](https://github.com/madbomber/smart_message/tree/main/examples/redis_basic)
+- [Enhanced Redis Transport Examples](https://github.com/madbomber/smart_message/tree/main/examples/redis_enhanced)
+- [Queue Redis Transport Examples](https://github.com/madbomber/smart_message/tree/main/examples/redis_queue)
 - [Redis Queue Production Guide](../guides/redis-queue-production.md)
 - [Redis Queue Patterns Guide](../guides/redis-queue-patterns.md)
-- [Transport Reference](transports.md)
+- [Transport Reference](../reference/transports.md)
 
 ---
 

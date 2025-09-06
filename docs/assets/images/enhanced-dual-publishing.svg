@@ -1,0 +1,136 @@
+<svg width="900" height="600" xmlns="http://www.w3.org/2000/svg" style="background: transparent;">
+  <defs>
+    <style>
+      .title { font: bold 18px sans-serif; fill: #e1e5e9; text-anchor: middle; }
+      .label { font: 14px sans-serif; fill: #c9d1d9; text-anchor: middle; }
+      .small-label { font: 12px sans-serif; fill: #8b949e; text-anchor: middle; }
+      .code-label { font: 11px monospace; fill: #f0f6fc; }
+      .box { fill: #21262d; stroke: #30363d; stroke-width: 2; rx: 8; }
+      .enhanced-box { fill: #0d1117; stroke: #a5a5ff; stroke-width: 2; rx: 8; }
+      .basic-box { fill: #161b22; stroke: #56d364; stroke-width: 2; rx: 8; }
+      .channel-box { fill: #1a1d2e; stroke: #ffa657; stroke-width: 2; rx: 6; }
+      .subscriber-box { fill: #0d1117; stroke: #f85149; stroke-width: 2; rx: 6; }
+      .arrow { stroke: #58a6ff; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .dual-arrow { stroke: #a5a5ff; stroke-width: 3; fill: none; marker-end: url(#arrowhead-purple); }
+      .basic-arrow { stroke: #56d364; stroke-width: 2; fill: none; marker-end: url(#arrowhead-green); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#58a6ff" />
+    </marker>
+    <marker id="arrowhead-purple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#a5a5ff" />
+    </marker>
+    <marker id="arrowhead-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#56d364" />
+    </marker>
+  </defs>
+  
+  <!-- Title -->
+  <text x="450" y="30" class="title">Redis Enhanced Transport: Dual Publishing</text>
+  
+  <!-- Publisher Section -->
+  <rect x="50" y="60" width="160" height="80" class="enhanced-box"/>
+  <text x="130" y="85" class="label">Enhanced Publisher</text>
+  <text x="130" y="105" class="small-label">OrderMessage</text>
+  <text x="130" y="120" class="code-label">from: 'api-gateway'</text>
+  <text x="130" y="135" class="code-label">to: 'order-service'</text>
+  
+  <!-- Dual Channel Publishing -->
+  <text x="450" y="70" class="label">Dual Channel Publishing</text>
+  
+  <!-- Original Channel -->
+  <rect x="300" y="100" width="300" height="40" class="channel-box"/>
+  <text x="320" y="115" class="small-label">Original Channel (Basic Compatible):</text>
+  <text x="320" y="130" class="code-label">"OrderMessage"</text>
+  
+  <!-- Enhanced Channel -->
+  <rect x="300" y="150" width="300" height="40" class="channel-box"/>
+  <text x="320" y="165" class="small-label">Enhanced Channel (Pattern-based):</text>
+  <text x="320" y="180" class="code-label">"ordermessage.api_gateway.order_service"</text>
+  
+  <!-- Arrows from publisher to channels -->
+  <line x1="210" y1="95" x2="300" y2="120" class="dual-arrow"/>
+  <line x1="210" y1="125" x2="300" y2="170" class="dual-arrow"/>
+  
+  <!-- Subscribers Section -->
+  <text x="750" y="70" class="label">Subscribers</text>
+  
+  <!-- Basic Subscriber -->
+  <rect x="650" y="100" width="160" height="40" class="basic-box"/>
+  <text x="730" y="115" class="small-label">Basic Subscriber</text>
+  <text x="730" y="130" class="code-label">subscribe("OrderMessage")</text>
+  
+  <!-- Enhanced Subscriber -->
+  <rect x="650" y="150" width="160" height="40" class="enhanced-box"/>
+  <text x="730" y="165" class="small-label">Enhanced Subscriber</text>
+  <text x="730" y="180" class="code-label">pattern: "ordermessage.*.*"</text>
+  
+  <!-- Arrows from channels to subscribers -->
+  <line x1="600" y1="120" x2="650" y2="120" class="basic-arrow"/>
+  <line x1="600" y1="170" x2="650" y2="170" class="dual-arrow"/>
+  
+  <!-- Compatibility Matrix -->
+  <rect x="50" y="240" width="800" height="200" class="box"/>
+  <text x="450" y="265" class="label">Transport Compatibility Matrix</text>
+  
+  <!-- Headers -->
+  <rect x="70" y="280" width="150" height="30" class="enhanced-box"/>
+  <text x="145" y="300" class="small-label">Publisher Type</text>
+  
+  <rect x="220" y="280" width="150" height="30" class="basic-box"/>
+  <text x="295" y="300" class="small-label">Basic Subscriber</text>
+  
+  <rect x="370" y="280" width="150" height="30" class="enhanced-box"/>
+  <text x="445" y="300" class="small-label">Enhanced Subscriber</text>
+  
+  <rect x="520" y="280" width="300" height="30" class="channel-box"/>
+  <text x="670" y="300" class="small-label">Channels Used</text>
+  
+  <!-- Basic Publisher Row -->
+  <rect x="70" y="310" width="150" height="40" class="basic-box"/>
+  <text x="145" y="325" class="small-label">Basic Publisher</text>
+  <text x="145" y="340" class="code-label">publish(message)</text>
+  
+  <rect x="220" y="310" width="150" height="40" class="subscriber-box"/>
+  <text x="295" y="325" class="small-label">✅ Receives</text>
+  <text x="295" y="340" class="code-label">Direct match</text>
+  
+  <rect x="370" y="310" width="150" height="40" class="subscriber-box"/>
+  <text x="445" y="325" class="small-label">❌ No Match</text>
+  <text x="445" y="340" class="code-label">Pattern mismatch</text>
+  
+  <rect x="520" y="310" width="300" height="40" class="channel-box"/>
+  <text x="670" y="325" class="code-label">["OrderMessage"]</text>
+  <text x="670" y="340" class="small-label">Original channel only</text>
+  
+  <!-- Enhanced Publisher Row -->
+  <rect x="70" y="350" width="150" height="40" class="enhanced-box"/>
+  <text x="145" y="365" class="small-label">Enhanced Publisher</text>
+  <text x="145" y="380" class="code-label">publish(message)</text>
+  
+  <rect x="220" y="350" width="150" height="40" class="subscriber-box"/>
+  <text x="295" y="365" class="small-label">✅ Receives</text>
+  <text x="295" y="380" class="code-label">Original channel</text>
+  
+  <rect x="370" y="350" width="150" height="40" class="subscriber-box"/>
+  <text x="445" y="365" class="small-label">✅ Receives</text>
+  <text x="445" y="380" class="code-label">Enhanced channel</text>
+  
+  <rect x="520" y="350" width="300" height="40" class="channel-box"/>
+  <text x="670" y="365" class="code-label">["OrderMessage",</text>
+  <text x="670" y="380" class="code-label">"ordermessage.api.order"]</text>
+  
+  <!-- Migration Benefits -->
+  <rect x="50" y="460" width="800" height="120" class="box"/>
+  <text x="450" y="485" class="label">Migration &amp; Compatibility Benefits</text>
+  
+  <text x="200" y="510" class="small-label">🔄 Gradual Migration</text>
+  <text x="70" y="530" class="code-label">• Upgrade publishers to Enhanced without breaking existing subscribers</text>
+  <text x="70" y="545" class="code-label">• Legacy Basic subscribers continue to work unchanged</text>
+  <text x="70" y="560" class="code-label">• New Enhanced subscribers get pattern-matching benefits</text>
+  
+  <text x="650" y="510" class="small-label">⚡ Performance</text>
+  <text x="520" y="530" class="code-label">• No performance penalty for dual publishing</text>
+  <text x="520" y="545" class="code-label">• Redis handles both channels efficiently</text>
+  <text x="520" y="560" class="code-label">• Pattern matching happens at subscriber</text>
+</svg>
