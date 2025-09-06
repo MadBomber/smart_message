@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .bg { fill: transparent; }
+      .trigger-group { fill: #2a1a1a; stroke: #ff4a4a; stroke-width: 2; rx: 8; }
+      .device-group { fill: #1a2a1a; stroke: #4aff4a; stroke-width: 2; rx: 8; }
+      .alert-group { fill: #1a1a2a; stroke: #4a9eff; stroke-width: 2; rx: 8; }
+      .dashboard-final { fill: #2a2a1a; stroke: #aa4aff; stroke-width: 2; rx: 8; }
+      .trigger { fill: #4a2a1a; stroke: #ffaa4a; stroke-width: 1; rx: 4; }
+      .device { fill: #2a3a2a; stroke: #4aff4a; stroke-width: 1; rx: 4; }
+      .alert { fill: #2a2a3a; stroke: #4a9eff; stroke-width: 1; rx: 4; }
+      .flow { stroke: #ffaa4a; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .alert-flow { stroke: #4a9eff; stroke-width: 2; fill: none; marker-end: url(#arrowhead-blue); }
+      .dashboard-flow { stroke: #aa4aff; stroke-width: 3; fill: none; marker-end: url(#arrowhead-purple); }
+      .text { fill: #ffffff; font-family: 'Arial', sans-serif; font-size: 11px; }
+      .title { fill: #4a9eff; font-family: 'Arial', sans-serif; font-size: 18px; font-weight: bold; }
+      .subtitle { fill: #ffaa4a; font-family: 'Arial', sans-serif; font-size: 12px; }
+      .group-title { fill: #ffffff; font-family: 'Arial', sans-serif; font-size: 13px; font-weight: bold; }
+    </style>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#ffaa4a" />
+    </marker>
+    <marker id="arrowhead-blue" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#4a9eff" />
+    </marker>
+    <marker id="arrowhead-purple" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#aa4aff" />
+    </marker>
+  </defs>
+  
+  <!-- Background -->
+  <rect class="bg" width="800" height="600"/>
+  
+  <!-- Title -->
+  <text x="400" y="25" text-anchor="middle" class="title">Alert System Flow</text>
+  <text x="400" y="45" text-anchor="middle" class="subtitle">IoT Device Alert Generation and Processing</text>
+  
+  <!-- Triggers Group -->
+  <rect x="50" y="80" width="200" height="180" class="trigger-group"/>
+  <text x="150" y="105" text-anchor="middle" class="group-title">Alert Triggers</text>
+  
+  <rect x="70" y="120" width="160" height="30" class="trigger"/>
+  <text x="150" y="140" text-anchor="middle" class="text">High Temperature &gt; 28°C</text>
+  
+  <rect x="70" y="160" width="160" height="30" class="trigger"/>
+  <text x="150" y="180" text-anchor="middle" class="text">Motion Detected</text>
+  
+  <rect x="70" y="200" width="160" height="30" class="trigger"/>
+  <text x="150" y="220" text-anchor="middle" class="text">Battery &lt; 20%</text>
+  
+  <rect x="70" y="240" width="160" height="30" class="trigger"/>
+  <text x="150" y="260" text-anchor="middle" class="text">Device Offline &gt; 30s</text>
+  
+  <!-- Devices Group -->
+  <rect x="300" y="80" width="200" height="180" class="device-group"/>
+  <text x="400" y="105" text-anchor="middle" class="group-title">IoT Devices</text>
+  
+  <rect x="320" y="120" width="160" height="30" class="device"/>
+  <text x="400" y="140" text-anchor="middle" class="text">🌡️ Thermostat</text>
+  
+  <rect x="320" y="160" width="160" height="30" class="device"/>
+  <text x="400" y="180" text-anchor="middle" class="text">📹 Camera</text>
+  
+  <rect x="320" y="200" width="160" height="30" class="device"/>
+  <text x="400" y="220" text-anchor="middle" class="text">🚪 Door Lock</text>
+  
+  <!-- Alert Channel Group -->
+  <rect x="550" y="80" width="200" height="180" class="alert-group"/>
+  <text x="650" y="105" text-anchor="middle" class="group-title">AlertMessage Channel</text>
+  
+  <rect x="570" y="120" width="160" height="30" class="alert"/>
+  <text x="650" y="140" text-anchor="middle" class="text">Motion Alert</text>
+  
+  <rect x="570" y="160" width="160" height="30" class="alert"/>
+  <text x="650" y="180" text-anchor="middle" class="text">High Temp Alert</text>
+  
+  <rect x="570" y="200" width="160" height="30" class="alert"/>
+  <text x="650" y="220" text-anchor="middle" class="text">Battery Low Alert</text>
+  
+  <rect x="570" y="240" width="160" height="30" class="alert"/>
+  <text x="650" y="260" text-anchor="middle" class="text">Device Offline Alert</text>
+  
+  <!-- Dashboard -->
+  <rect x="300" y="320" width="200" height="60" class="dashboard-final"/>
+  <text x="400" y="345" text-anchor="middle" class="group-title">📊 Dashboard</text>
+  <text x="400" y="365" text-anchor="middle" class="text">Alert Processing &amp; Display</text>
+  
+  <!-- Flow arrows -->
+  <!-- Triggers to Devices -->
+  <path d="M 230 135 L 320 135" class="flow"/>
+  <path d="M 230 175 L 320 175" class="flow"/>
+  <path d="M 230 215 L 320 215" class="flow"/>
+  <path d="M 230 255 L 320 255" class="flow"/>
+  
+  <!-- Devices to Alert Channel -->
+  <path d="M 480 135 L 570 175" class="alert-flow"/>
+  <path d="M 480 175 L 570 135" class="alert-flow"/>
+  <path d="M 480 215 L 570 215" class="alert-flow"/>
+  <path d="M 480 255 L 570 255" class="alert-flow"/>
+  
+  <!-- Alert Channel to Dashboard -->
+  <path d="M 650 280 L 450 320" class="dashboard-flow"/>
+  
+  <!-- Alert Processing Details -->
+  <rect x="50" y="420" width="700" height="160" fill="#1a1a1a" stroke="#4a9eff" rx="8"/>
+  <text x="70" y="445" class="title">Alert Processing Logic</text>
+  
+  <text x="70" y="470" class="text">🌡️ Temperature Alerts:</text>
+  <text x="90" y="485" class="subtitle">• Thermostat monitors temperature every 3 seconds</text>
+  <text x="90" y="500" class="subtitle">• Alert triggered when temperature > 28°C for HVAC efficiency</text>
+  
+  <text x="400" y="470" class="text">📹 Motion Alerts:</text>
+  <text x="420" y="485" class="subtitle">• Camera detects motion using built-in sensors</text>
+  <text x="420" y="500" class="subtitle">• Immediate alert published to AlertMessage channel</text>
+  
+  <text x="70" y="525" class="text">🔋 Battery Alerts:</text>
+  <text x="90" y="540" class="subtitle">• All devices report battery level with sensor data</text>
+  <text x="90" y="555" class="subtitle">• Critical alert when battery drops below 20%</text>
+  
+  <text x="400" y="525" class="text">⚠️ Offline Alerts:</text>
+  <text x="420" y="540" class="subtitle">• Dashboard tracks last seen timestamp for each device</text>
+  <text x="420" y="555" class="subtitle">• Alert generated if device silent for more than 30 seconds</text>
+</svg>

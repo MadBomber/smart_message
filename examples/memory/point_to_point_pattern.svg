@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="500" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .bg { fill: transparent; }
+      .service { fill: #2a2a2a; stroke: #4a9eff; stroke-width: 2; rx: 10; }
+      .message { fill: #4a2a4a; stroke: #ff4a9e; stroke-width: 2; rx: 6; }
+      .arrow { stroke: #ffaa4a; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+      .arrow-response { stroke: #4aff4a; stroke-width: 3; fill: none; marker-end: url(#arrowhead-green); }
+      .text { fill: #ffffff; font-family: 'Arial', sans-serif; font-size: 14px; }
+      .title { fill: #4a9eff; font-family: 'Arial', sans-serif; font-size: 20px; font-weight: bold; }
+      .subtitle { fill: #ffaa4a; font-family: 'Arial', sans-serif; font-size: 12px; }
+      .step { fill: #ff4a9e; font-family: 'Arial', sans-serif; font-size: 13px; font-weight: bold; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+            refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ffaa4a" />
+    </marker>
+    <marker id="arrowhead-green" markerWidth="10" markerHeight="7" 
+            refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#4aff4a" />
+    </marker>
+  </defs>
+  
+  <!-- Background -->
+  <rect class="bg" width="800" height="500"/>
+  
+  <!-- Title -->
+  <text x="400" y="30" text-anchor="middle" class="title">Point-to-Point Messaging Pattern</text>
+  <text x="400" y="50" text-anchor="middle" class="subtitle">Order Processing System Example (03_point_to_point_orders.rb)</text>
+  
+  <!-- Order Service -->
+  <rect x="50" y="100" width="180" height="100" class="service"/>
+  <text x="140" y="130" text-anchor="middle" class="text">Order Service</text>
+  <text x="140" y="150" text-anchor="middle" class="subtitle">• Creates orders</text>
+  <text x="140" y="170" text-anchor="middle" class="subtitle">• Publishes OrderMessage</text>
+  <text x="140" y="190" text-anchor="middle" class="subtitle">• Receives PaymentResponse</text>
+  
+  <!-- Payment Service -->
+  <rect x="570" y="100" width="180" height="100" class="service"/>
+  <text x="660" y="130" text-anchor="middle" class="text">Payment Service</text>
+  <text x="660" y="150" text-anchor="middle" class="subtitle">• Processes payments</text>
+  <text x="660" y="170" text-anchor="middle" class="subtitle">• Subscribes to OrderMessage</text>
+  <text x="660" y="190" text-anchor="middle" class="subtitle">• Sends PaymentResponse</text>
+  
+  <!-- Message Flow -->
+  <!-- Step 1: Order Message -->
+  <rect x="280" y="120" width="240" height="60" class="message"/>
+  <text x="400" y="145" text-anchor="middle" class="step">1. OrderMessage</text>
+  <text x="400" y="165" text-anchor="middle" class="subtitle">order_id, amount, customer_id</text>
+  
+  <path d="M 230 150 L 280 150" class="arrow"/>
+  <path d="M 520 150 L 570 150" class="arrow"/>
+  
+  <!-- Step 2: Response Message -->
+  <rect x="280" y="260" width="240" height="60" class="message"/>
+  <text x="400" y="285" text-anchor="middle" class="step">2. PaymentResponseMessage</text>
+  <text x="400" y="305" text-anchor="middle" class="subtitle">payment_id, status, message</text>
+  
+  <path d="M 520 290 L 570 290" class="arrow-response"/>
+  <path d="M 280 290 L 230 290" class="arrow-response"/>
+  
+  <!-- Curved arrows for message flow -->
+  <path d="M 660 200 Q 400 240 140 200" stroke="#4aff4a" stroke-width="2" fill="none" 
+        marker-end="url(#arrowhead-green)" stroke-dasharray="5,5"/>
+  
+  <!-- Process Steps -->
+  <rect x="50" y="350" width="700" height="120" class="service"/>
+  <text x="70" y="375" class="title">Message Flow Process</text>
+  
+  <circle cx="90" cy="400" r="15" fill="#ff4a9e"/>
+  <text x="90" y="405" text-anchor="middle" class="text">1</text>
+  <text x="115" y="405" class="text">OrderService creates order and publishes OrderMessage</text>
+  
+  <circle cx="90" cy="425" r="15" fill="#ff4a9e"/>
+  <text x="90" y="430" text-anchor="middle" class="text">2</text>
+  <text x="115" y="430" class="text">Memory transport routes message to PaymentService subscriber</text>
+  
+  <circle cx="90" cy="450" r="15" fill="#ff4a9e"/>
+  <text x="90" y="455" text-anchor="middle" class="text">3</text>
+  <text x="115" y="455" class="text">PaymentService processes payment and publishes PaymentResponseMessage</text>
+  
+  <circle cx="400" cy="400" r="15" fill="#4aff4a"/>
+  <text x="400" y="405" text-anchor="middle" class="text">4</text>
+  <text x="425" y="405" class="text">Response message routed back to OrderService</text>
+  
+  <circle cx="400" cy="425" r="15" fill="#4aff4a"/>
+  <text x="400" y="430" text-anchor="middle" class="text">5</text>
+  <text x="425" y="430" class="text">OrderService receives confirmation of payment status</text>
+  
+  <circle cx="400" cy="450" r="15" fill="#4aff4a"/>
+  <text x="400" y="455" text-anchor="middle" class="text">6</text>
+  <text x="425" y="455" class="text">Complete request-response cycle with reliable delivery</text>
+</svg>

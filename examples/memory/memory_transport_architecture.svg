@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .bg { fill: transparent; }
+      .box { fill: #2a2a2a; stroke: #4a9eff; stroke-width: 2; rx: 8; }
+      .memory-box { fill: #1a3a1a; stroke: #4aff4a; stroke-width: 2; rx: 8; }
+      .arrow { stroke: #ffaa4a; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+      .text { fill: #ffffff; font-family: 'Arial', sans-serif; font-size: 14px; }
+      .title { fill: #4a9eff; font-family: 'Arial', sans-serif; font-size: 18px; font-weight: bold; }
+      .subtitle { fill: #ffaa4a; font-family: 'Arial', sans-serif; font-size: 12px; }
+      .process { fill: #3a2a4a; stroke: #aa4aff; stroke-width: 2; rx: 6; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" 
+            refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ffaa4a" />
+    </marker>
+  </defs>
+  
+  <!-- Background -->
+  <rect class="bg" width="800" height="600"/>
+  
+  <!-- Title -->
+  <text x="400" y="30" text-anchor="middle" class="title">SmartMessage Memory Transport Architecture</text>
+  <text x="400" y="50" text-anchor="middle" class="subtitle">Single Process - In-Memory Message Routing</text>
+  
+  <!-- Ruby Process Container -->
+  <rect x="50" y="80" width="700" height="480" class="box"/>
+  <text x="70" y="105" class="text">Ruby Process (Single JVM/Interpreter)</text>
+  
+  <!-- Publisher Components -->
+  <rect x="80" y="140" width="150" height="80" class="process"/>
+  <text x="155" y="165" text-anchor="middle" class="text">Order Service</text>
+  <text x="155" y="185" text-anchor="middle" class="subtitle">(Publisher)</text>
+  <text x="155" y="205" text-anchor="middle" class="subtitle">Creates Messages</text>
+  
+  <rect x="80" y="250" width="150" height="80" class="process"/>
+  <text x="155" y="275" text-anchor="middle" class="text">User Manager</text>
+  <text x="155" y="295" text-anchor="middle" class="subtitle">(Publisher)</text>
+  <text x="155" y="315" text-anchor="middle" class="subtitle">Publishes Events</text>
+  
+  <!-- Memory Transport Core -->
+  <rect x="300" y="180" width="200" height="120" class="memory-box"/>
+  <text x="400" y="205" text-anchor="middle" class="title">Memory Transport</text>
+  <text x="400" y="225" text-anchor="middle" class="text">In-Process Routing</text>
+  <text x="400" y="245" text-anchor="middle" class="subtitle">• Message Dispatcher</text>
+  <text x="400" y="265" text-anchor="middle" class="subtitle">• Thread Pool</text>
+  <text x="400" y="285" text-anchor="middle" class="subtitle">• Subscription Registry</text>
+  
+  <!-- Subscriber Components -->
+  <rect x="570" y="140" width="150" height="80" class="process"/>
+  <text x="645" y="165" text-anchor="middle" class="text">Payment Service</text>
+  <text x="645" y="185" text-anchor="middle" class="subtitle">(Subscriber)</text>
+  <text x="645" y="205" text-anchor="middle" class="subtitle">Processes Orders</text>
+  
+  <rect x="570" y="250" width="150" height="80" class="process"/>
+  <text x="645" y="275" text-anchor="middle" class="text">Email Service</text>
+  <text x="645" y="295" text-anchor="middle" class="subtitle">(Subscriber)</text>
+  <text x="645" y="315" text-anchor="middle" class="subtitle">Sends Notifications</text>
+  
+  <rect x="570" y="360" width="150" height="80" class="process"/>
+  <text x="645" y="385" text-anchor="middle" class="text">Audit Service</text>
+  <text x="645" y="405" text-anchor="middle" class="subtitle">(Subscriber)</text>
+  <text x="645" y="425" text-anchor="middle" class="subtitle">Logs Events</text>
+  
+  <!-- Message Flow Arrows -->
+  <!-- Publishers to Transport -->
+  <path d="M 230 180 L 300 220" class="arrow"/>
+  <path d="M 230 290 L 300 260" class="arrow"/>
+  
+  <!-- Transport to Subscribers -->
+  <path d="M 500 220 L 570 180" class="arrow"/>
+  <path d="M 500 240 L 570 280" class="arrow"/>
+  <path d="M 500 260 L 570 380" class="arrow"/>
+  
+  <!-- Key Features Box -->
+  <rect x="80" y="380" width="640" height="160" class="box"/>
+  <text x="100" y="405" class="title">Key Characteristics</text>
+  
+  <text x="100" y="430" class="text">✓ Single Process: All components run in same Ruby process</text>
+  <text x="100" y="450" class="text">✓ No External Dependencies: No Redis, databases, or message brokers required</text>
+  <text x="100" y="470" class="text">✓ Immediate Routing: Messages routed instantly through in-memory dispatcher</text>
+  <text x="100" y="490" class="text">✓ Thread-Safe: Concurrent message processing with thread pool</text>
+  <text x="100" y="510" class="text">✓ Development Friendly: Perfect for learning, testing, and rapid prototyping</text>
+  
+  <!-- Usage Note -->
+  <text x="400" y="580" text-anchor="middle" class="subtitle">
+    Ideal for: Development • Testing • Single-Process Applications • Learning SmartMessage Fundamentals
+  </text>
+</svg>

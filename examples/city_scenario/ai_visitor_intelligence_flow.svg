@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="700" height="500" viewBox="0 0 700 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .bg { fill: transparent; }
+      .visitor { fill: #2a1a3a; stroke: #aa4aff; stroke-width: 2; rx: 8; }
+      .ai { fill: #1a3a3a; stroke: #4affaa; stroke-width: 2; rx: 8; }
+      .emergency { fill: #3a1a1a; stroke: #ff4a4a; stroke-width: 2; rx: 8; }
+      .message { stroke: #aa4aff; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .analysis { stroke: #4affaa; stroke-width: 2; fill: none; marker-end: url(#arrowhead-green); stroke-dasharray: 5,3; }
+      .publish { stroke: #ff4a4a; stroke-width: 3; fill: none; marker-end: url(#arrowhead-red); }
+      .text { fill: #ffffff; font-family: 'Arial', sans-serif; font-size: 12px; }
+      .title { fill: #4a9eff; font-family: 'Arial', sans-serif; font-size: 18px; font-weight: bold; }
+      .subtitle { fill: #ffaa4a; font-family: 'Arial', sans-serif; font-size: 11px; }
+      .note { fill: #aaaaaa; font-family: 'Arial', sans-serif; font-size: 10px; }
+      .self-message { fill: #2a1a3a; stroke: #aa4aff; stroke-width: 1; rx: 4; }
+    </style>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#aa4aff" />
+    </marker>
+    <marker id="arrowhead-green" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#4affaa" />
+    </marker>
+    <marker id="arrowhead-red" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#ff4a4a" />
+    </marker>
+  </defs>
+  
+  <!-- Background -->
+  <rect class="bg" width="700" height="500"/>
+  
+  <!-- Title -->
+  <text x="350" y="25" text-anchor="middle" class="title">AI Visitor Intelligence Flow</text>
+  <text x="350" y="45" text-anchor="middle" class="subtitle">AI-Powered Emergency Incident Reporting System</text>
+  
+  <!-- Participants -->
+  <rect x="50" y="80" width="140" height="80" class="visitor"/>
+  <text x="120" y="105" text-anchor="middle" class="text">🧑‍💼 Visitor (AI)</text>
+  <text x="120" y="125" text-anchor="middle" class="subtitle">Incident Observer</text>
+  <text x="120" y="145" text-anchor="middle" class="subtitle">Smart Reporter</text>
+  
+  <rect x="280" y="80" width="140" height="80" class="ai"/>
+  <text x="350" y="105" text-anchor="middle" class="text">🤖 RubyLLM</text>
+  <text x="350" y="125" text-anchor="middle" class="subtitle">AI Analysis Engine</text>
+  <text x="350" y="145" text-anchor="middle" class="subtitle">Message Intelligence</text>
+  
+  <rect x="510" y="80" width="140" height="80" class="emergency"/>
+  <text x="580" y="105" text-anchor="middle" class="text">🚨 Emergency</text>
+  <text x="580" y="125" text-anchor="middle" class="text">Services</text>
+  <text x="580" y="145" text-anchor="middle" class="subtitle">Response Network</text>
+  
+  <!-- Vertical lifelines -->
+  <line x1="120" y1="160" x2="120" y2="450" stroke="#666" stroke-width="2" stroke-dasharray="3,3"/>
+  <line x1="350" y1="160" x2="350" y2="450" stroke="#666" stroke-width="2" stroke-dasharray="3,3"/>
+  <line x1="580" y1="160" x2="580" y2="450" stroke="#666" stroke-width="2" stroke-dasharray="3,3"/>
+  
+  <!-- Message Flow -->
+  <!-- 1. Witness incident (self message) -->
+  <rect x="80" y="180" width="80" height="25" class="self-message"/>
+  <text x="120" y="197" text-anchor="middle" class="note">Witness incident</text>
+  
+  <!-- 2. Analyze message types -->
+  <path d="M 120 220 L 350 220" class="message"/>
+  <text x="235" y="215" text-anchor="middle" class="text">Analyze available message types</text>
+  <rect x="160" y="230" width="160" height="40" fill="#1a1a1a" stroke="#aa4aff" rx="4"/>
+  <text x="240" y="245" text-anchor="middle" class="note">Dynamic message discovery</text>
+  <text x="240" y="260" text-anchor="middle" class="note">Property analysis</text>
+  
+  <!-- 3. AI selection response -->
+  <path d="M 350 290 L 120 290" class="analysis"/>
+  <text x="235" y="285" text-anchor="middle" class="text">Select appropriate message type</text>
+  <rect x="180" y="300" width="140" height="40" fill="#2a3a2a" stroke="#4affaa" rx="4"/>
+  <text x="250" y="315" text-anchor="middle" class="note">SilentAlarmMessage for robbery</text>
+  <text x="250" y="330" text-anchor="middle" class="note">FireEmergencyMessage for fire</text>
+  
+  <!-- 4. Generate properties -->
+  <path d="M 120 360 L 350 360" class="message"/>
+  <text x="235" y="355" text-anchor="middle" class="text">Generate realistic properties</text>
+  <rect x="160" y="370" width="160" height="40" fill="#1a1a1a" stroke="#aa4aff" rx="4"/>
+  <text x="240" y="385" text-anchor="middle" class="note">Bank names, locations</text>
+  <text x="240" y="400" text-anchor="middle" class="note">Fire types, severities</text>
+  
+  <!-- 5. Publish emergency message -->
+  <path d="M 120 430 L 580 430" class="publish"/>
+  <text x="350" y="425" text-anchor="middle" class="text">Publish selected message</text>
+  <text x="350" y="445" text-anchor="middle" class="note">Emergency services respond based on message type</text>
+  
+  <!-- AI Intelligence Box -->
+  <rect x="50" y="350" width="200" height="80" fill="#1a2a1a" stroke="#4affaa" rx="6"/>
+  <text x="60" y="370" class="text">AI Intelligence Features:</text>
+  <text x="60" y="385" class="note">• Dynamic message type discovery</text>
+  <text x="60" y="400" class="note">• Context-aware message selection</text>
+  <text x="60" y="415" class="note">• Realistic property generation</text>
+  <text x="60" y="430" class="note">• Comprehensive interaction logging</text>
+  
+  <!-- Response Examples Box -->
+  <rect x="420" y="220" width="230" height="120" fill="#1a1a1a" stroke="#ff4a4a" rx="6"/>
+  <text x="430" y="240" class="text">Emergency Response Examples:</text>
+  <text x="430" y="260" class="note">🏦 Bank Robbery → SilentAlarmMessage</text>
+  <text x="430" y="275" class="note">   • Location: "First National Bank"</text>
+  <text x="430" y="290" class="note">   • Threat level: "high"</text>
+  <text x="430" y="310" class="note">🔥 Building Fire → FireEmergencyMessage</text>
+  <text x="430" y="325" class="note">   • Fire type: "electrical"</text>
+  <text x="430" y="340" class="note">   • Severity: "critical"</text>
+</svg>

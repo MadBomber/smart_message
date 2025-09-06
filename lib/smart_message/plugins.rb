@@ -105,8 +105,11 @@ module SmartMessage
         end
       end
 
-      def logger_configured?;     !logger.nil?;   end
-      def logger_missing?;         logger.nil?;   end
+      def logger_configured?;     !logger_missing?;   end
+      def logger_missing?
+        # Check if class-level logger is explicitly configured (without fallback to defaults)
+        (class_variable_get(:@@logger) rescue nil).nil?
+      end
       def reset_logger;          class_variable_set(:@@logger, nil);  end
 
       #########################################################

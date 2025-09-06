@@ -61,9 +61,9 @@ class LoggerNullTest < Minitest::Test
       end
       
       should "handle block form silently" do
-        block_called = false
+        _block_called = false
         result = @logger.debug { 
-          block_called = true
+          _block_called = true
           "Debug message"
         }
         assert_nil result

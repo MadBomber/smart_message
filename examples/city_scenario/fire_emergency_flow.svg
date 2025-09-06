@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="700" height="500" viewBox="0 0 700 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .bg { fill: transparent; }
+      .house { fill: #1a3a1a; stroke: #4aff4a; stroke-width: 2; rx: 8; }
+      .fire-dept { fill: #4a2a1a; stroke: #ffaa4a; stroke-width: 2; rx: 8; }
+      .all-services { fill: #2a2a3a; stroke: #4a9eff; stroke-width: 2; rx: 8; }
+      .message { stroke: #ff4a4a; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+      .broadcast { stroke: #4aff4a; stroke-width: 2; fill: none; marker-end: url(#arrowhead-green); }
+      .text { fill: #ffffff; font-family: 'Arial', sans-serif; font-size: 12px; }
+      .title { fill: #4a9eff; font-family: 'Arial', sans-serif; font-size: 18px; font-weight: bold; }
+      .subtitle { fill: #ffaa4a; font-family: 'Arial', sans-serif; font-size: 11px; }
+      .note { fill: #aaaaaa; font-family: 'Arial', sans-serif; font-size: 10px; }
+      .process { fill: #3a2a1a; stroke: #ffaa4a; stroke-width: 1; rx: 4; }
+    </style>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#ff4a4a" />
+    </marker>
+    <marker id="arrowhead-green" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#4aff4a" />
+    </marker>
+  </defs>
+  
+  <!-- Background -->
+  <rect class="bg" width="700" height="500"/>
+  
+  <!-- Title -->
+  <text x="350" y="25" text-anchor="middle" class="title">Fire Emergency Flow</text>
+  <text x="350" y="45" text-anchor="middle" class="subtitle">House Fire Detection and Emergency Response</text>
+  
+  <!-- Participants -->
+  <rect x="50" y="80" width="120" height="80" class="house"/>
+  <text x="110" y="105" text-anchor="middle" class="text">🏠 House</text>
+  <text x="110" y="125" text-anchor="middle" class="subtitle">Smoke Detection</text>
+  <text x="110" y="145" text-anchor="middle" class="subtitle">Safety System</text>
+  
+  <rect x="290" y="80" width="120" height="80" class="fire-dept"/>
+  <text x="350" y="105" text-anchor="middle" class="text">🚒 Fire</text>
+  <text x="350" y="125" text-anchor="middle" class="text">Department</text>
+  <text x="350" y="145" text-anchor="middle" class="subtitle">Emergency Response</text>
+  
+  <rect x="530" y="80" width="120" height="80" class="all-services"/>
+  <text x="590" y="105" text-anchor="middle" class="text">📢 All Services</text>
+  <text x="590" y="125" text-anchor="middle" class="subtitle">City Emergency</text>
+  <text x="590" y="145" text-anchor="middle" class="subtitle">Network</text>
+  
+  <!-- Vertical lifelines -->
+  <line x1="110" y1="160" x2="110" y2="450" stroke="#666" stroke-width="2" stroke-dasharray="3,3"/>
+  <line x1="350" y1="160" x2="350" y2="450" stroke="#666" stroke-width="2" stroke-dasharray="3,3"/>
+  <line x1="590" y1="160" x2="590" y2="450" stroke="#666" stroke-width="2" stroke-dasharray="3,3"/>
+  
+  <!-- Message Flow -->
+  <!-- 1. Fire emergency detected -->
+  <path d="M 110 200 L 350 200" class="message"/>
+  <text x="230" y="195" text-anchor="middle" class="text">FireEmergencyMessage</text>
+  <rect x="160" y="210" width="140" height="50" fill="#1a1a1a" stroke="#ff4a4a" rx="4"/>
+  <text x="230" y="225" text-anchor="middle" class="note">Smoke detected</text>
+  <text x="230" y="240" text-anchor="middle" class="note">Fire type: electrical/grease</text>
+  <text x="230" y="255" text-anchor="middle" class="note">Severity: critical/high/medium</text>
+  
+  <!-- 2. Fire department assessment -->
+  <rect x="290" y="280" width="120" height="30" class="process"/>
+  <text x="350" y="300" text-anchor="middle" class="note">Assess fire severity</text>
+  
+  <rect x="290" y="320" width="120" height="40" class="process"/>
+  <text x="350" y="340" text-anchor="middle" class="note">Dispatch equipment:</text>
+  <text x="350" y="355" text-anchor="middle" class="note">Engine-1, Ladder-1, Rescue-1</text>
+  
+  <!-- 3. Dispatch broadcast -->
+  <path d="M 350 380 L 590 380" class="broadcast"/>
+  <text x="470" y="375" text-anchor="middle" class="text">FireDispatchMessage</text>
+  <rect x="420" y="390" width="120" height="40" fill="#2a3a2a" stroke="#4aff4a" rx="4"/>
+  <text x="480" y="405" text-anchor="middle" class="note">Equipment dispatched</text>
+  <text x="480" y="420" text-anchor="middle" class="note">ETA: 3-8 minutes</text>
+  
+  <!-- 4. Resolution broadcast -->
+  <path d="M 350 440 L 590 440" class="broadcast"/>
+  <text x="470" y="435" text-anchor="middle" class="text">EmergencyResolvedMessage</text>
+  <text x="470" y="455" text-anchor="middle" class="note">Fire suppressed • Scene secure</text>
+  
+  <!-- Process flow indicators -->
+  <circle cx="350" cy="320" r="3" fill="#ffaa4a"/>
+  <circle cx="350" cy="350" r="3" fill="#ffaa4a"/>
+  
+  <!-- Equipment details -->
+  <rect x="50" y="380" width="200" height="80" fill="#1a1a1a" stroke="#ffaa4a" rx="6"/>
+  <text x="60" y="400" class="text">Fire Department Equipment:</text>
+  <text x="60" y="415" class="note">• Engine-1: Primary response unit</text>
+  <text x="60" y="430" class="note">• Ladder-1: Aerial rescue operations</text>
+  <text x="60" y="445" class="note">• Rescue-1: Emergency medical support</text>
+  <text x="60" y="460" class="note">• Hazmat-1: Hazardous materials unit</text>
+</svg>

@@ -28,7 +28,7 @@ require_relative './simple_stats'
 module SmartMessage
   class << self
     # Global configuration for SmartMessage
-    # 
+    #
     # Usage:
     #   SmartMessage.configure do |config|
     #     config.logger = MyApp::Logger.new
@@ -38,65 +38,18 @@ module SmartMessage
     def configure
       yield(configuration)
     end
-    
+
     # Get the global configuration instance
     def configuration
       @configuration ||= Configuration.new
     end
-    
+
     # Reset global configuration to defaults
     def reset_configuration!
       @configuration = Configuration.new
+      # Also reset the cached logger
+      SmartMessage::Logger.reset!
     end
   end
   # Module definitions for Zeitwerk to populate
-  module Serializer
-    class << self
-      def default
-        # Check global configuration first, then fall back to framework default
-        SmartMessage.configuration.default_serializer
-      end
-    end
-  end
-
-  module Logger
-    class << self
-      def default
-        # Check global configuration first, then fall back to framework default
-        SmartMessage.configuration.default_logger
-      end
-    end
-  end
-  
-  module Transport
-    class << self
-      def default
-        # Check global configuration first, then fall back to framework default
-        SmartMessage.configuration.default_transport
-      end
-      
-      def registry
-        @registry ||= Registry.new
-      end
-
-      def register(name, transport_class)
-        registry.register(name, transport_class)
-      end
-
-      def get(name)
-        registry.get(name)
-      end
-
-      def create(name, **options)
-        transport_class = get(name)
-        transport_class&.new(**options)
-      end
-
-      def available
-        registry.list
-      end
-    end
-  end
 end # module SmartMessage
-
-# Don't eager load initially - let Zeitwerk handle lazy loading

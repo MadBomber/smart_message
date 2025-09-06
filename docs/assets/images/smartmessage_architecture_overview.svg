@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="900" height="700" viewBox="0 0 900 700" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .bg { fill: transparent; }
+      .core-group { fill: #1a2a3a; stroke: #4a9eff; stroke-width: 2; rx: 10; }
+      .plugin-group { fill: #2a1a3a; stroke: #aa4aff; stroke-width: 2; rx: 10; }
+      .processing-group { fill: #1a3a2a; stroke: #4aff4a; stroke-width: 2; rx: 10; }
+      .reliability-group { fill: #3a1a1a; stroke: #ff4a4a; stroke-width: 2; rx: 10; }
+      .monitoring-group { fill: #3a3a1a; stroke: #ffaa4a; stroke-width: 2; rx: 10; }
+      .component { fill: #2a2a2a; stroke: #ffffff; stroke-width: 1; rx: 5; }
+      .flow { stroke: #4a9eff; stroke-width: 2; fill: none; marker-end: url(#arrowhead-blue); }
+      .plugin-flow { stroke: #aa4aff; stroke-width: 2; fill: none; marker-end: url(#arrowhead-purple); }
+      .process-flow { stroke: #4aff4a; stroke-width: 2; fill: none; marker-end: url(#arrowhead-green); }
+      .reliability-flow { stroke: #ff4a4a; stroke-width: 2; fill: none; marker-end: url(#arrowhead-red); }
+      .monitor-flow { stroke: #ffaa4a; stroke-width: 2; fill: none; stroke-dasharray: 4,4; }
+      .text { fill: #ffffff; font-family: 'Arial', sans-serif; font-size: 11px; }
+      .title { fill: #4a9eff; font-family: 'Arial', sans-serif; font-size: 18px; font-weight: bold; }
+      .group-title { fill: #ffffff; font-family: 'Arial', sans-serif; font-size: 13px; font-weight: bold; }
+      .component-title { fill: #ffffff; font-family: 'Arial', sans-serif; font-size: 12px; font-weight: bold; }
+    </style>
+    <marker id="arrowhead-blue" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#4a9eff" />
+    </marker>
+    <marker id="arrowhead-purple" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#aa4aff" />
+    </marker>
+    <marker id="arrowhead-green" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#4aff4a" />
+    </marker>
+    <marker id="arrowhead-red" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#ff4a4a" />
+    </marker>
+  </defs>
+  
+  <!-- Background -->
+  <rect class="bg" width="900" height="700"/>
+  
+  <!-- Title -->
+  <text x="450" y="25" text-anchor="middle" class="title">SmartMessage Architecture Overview</text>
+  
+  <!-- SmartMessage Core Group -->
+  <rect x="50" y="60" width="250" height="180" class="core-group"/>
+  <text x="175" y="80" text-anchor="middle" class="group-title">SmartMessage Core</text>
+  
+  <rect x="70" y="95" width="210" height="35" class="component"/>
+  <text x="175" y="115" text-anchor="middle" class="component-title">SmartMessage::Base</text>
+  
+  <rect x="70" y="140" width="100" height="45" class="component"/>
+  <text x="120" y="157" text-anchor="middle" class="component-title">Message Header</text>
+  <text x="120" y="172" text-anchor="middle" class="text">• UUID</text>
+  <text x="120" y="182" text-anchor="middle" class="text">• Timestamps • Addressing</text>
+  
+  <rect x="180" y="140" width="100" height="45" class="component"/>
+  <text x="230" y="157" text-anchor="middle" class="component-title">Message Properties</text>
+  <text x="230" y="172" text-anchor="middle" class="text">• Business Data</text>
+  <text x="230" y="182" text-anchor="middle" class="text">• Validation • Versioning</text>
+  
+  <!-- Plugin System Group -->
+  <rect x="350" y="60" width="200" height="180" class="plugin-group"/>
+  <text x="450" y="80" text-anchor="middle" class="group-title">Plugin System</text>
+  
+  <rect x="370" y="95" width="160" height="40" class="component"/>
+  <text x="450" y="110" text-anchor="middle" class="component-title">Transport Plugin</text>
+  <text x="450" y="122" text-anchor="middle" class="text">• publish • subscribe</text>
+  <text x="450" y="132" text-anchor="middle" class="text">• Memory/Redis/STDOUT</text>
+  
+  <rect x="370" y="145" width="160" height="40" class="component"/>
+  <text x="450" y="160" text-anchor="middle" class="component-title">Serializer Plugin</text>
+  <text x="450" y="172" text-anchor="middle" class="text">• encode • decode</text>
+  <text x="450" y="182" text-anchor="middle" class="text">• JSON/Custom</text>
+  
+  <rect x="370" y="195" width="160" height="40" class="component"/>
+  <text x="450" y="210" text-anchor="middle" class="component-title">Logger Plugin</text>
+  <text x="450" y="222" text-anchor="middle" class="text">• Structured logging</text>
+  <text x="450" y="232" text-anchor="middle" class="text">• Multiple outputs • Colorization</text>
+  
+  <!-- Message Processing Group -->
+  <rect x="50" y="260" width="500" height="180" class="processing-group"/>
+  <text x="300" y="280" text-anchor="middle" class="group-title">Message Processing</text>
+  
+  <rect x="70" y="295" width="140" height="50" class="component"/>
+  <text x="140" y="315" text-anchor="middle" class="component-title">Dispatcher</text>
+  <text x="140" y="327" text-anchor="middle" class="text">• Route messages • Thread pool</text>
+  <text x="140" y="337" text-anchor="middle" class="text">• Subscriptions • DDQ management</text>
+  
+  <rect x="230" y="295" width="140" height="50" class="component"/>
+  <text x="300" y="315" text-anchor="middle" class="component-title">Deduplication Queue</text>
+  <text x="300" y="327" text-anchor="middle" class="text">• Handler-scoped • Memory/Redis</text>
+  <text x="300" y="337" text-anchor="middle" class="text">• O(1) performance • Circular buffer</text>
+  
+  <rect x="390" y="295" width="140" height="50" class="component"/>
+  <text x="460" y="315" text-anchor="middle" class="component-title">Message Handlers</text>
+  <text x="460" y="327" text-anchor="middle" class="text">• Default handler • Block handlers</text>
+  <text x="460" y="337" text-anchor="middle" class="text">• Proc handlers • Method handlers</text>
+  
+  <rect x="70" y="365" width="140" height="50" class="component"/>
+  <text x="140" y="385" text-anchor="middle" class="component-title">Statistics</text>
+  <text x="140" y="397" text-anchor="middle" class="text">• Message counts • Processing metrics</text>
+  <text x="140" y="407" text-anchor="middle" class="text">• Thread pool status</text>
+  
+  <rect x="230" y="365" width="140" height="50" class="component"/>
+  <text x="300" y="385" text-anchor="middle" class="component-title">Message Filtering</text>
+  <text x="300" y="397" text-anchor="middle" class="text">• Entity-aware routing</text>
+  <text x="300" y="407" text-anchor="middle" class="text">• Regex patterns • Broadcast handling</text>
+  
+  <!-- Reliability Layer Group -->
+  <rect x="600" y="60" width="250" height="180" class="reliability-group"/>
+  <text x="725" y="80" text-anchor="middle" class="group-title">Reliability Layer</text>
+  
+  <rect x="620" y="95" width="210" height="50" class="component"/>
+  <text x="725" y="115" text-anchor="middle" class="component-title">Circuit Breaker</text>
+  <text x="725" y="127" text-anchor="middle" class="text">• Failure thresholds • Automatic fallback</text>
+  <text x="725" y="137" text-anchor="middle" class="text">• Recovery detection</text>
+  
+  <rect x="620" y="165" width="210" height="50" class="component"/>
+  <text x="725" y="185" text-anchor="middle" class="component-title">Dead Letter Queue</text>
+  <text x="725" y="197" text-anchor="middle" class="text">• Failed messages • Replay mechanism</text>
+  <text x="725" y="207" text-anchor="middle" class="text">• JSON Lines format</text>
+  
+  <!-- Core connections -->
+  <path d="M 175 130 L 175 140" class="flow"/>
+  <path d="M 175 130 L 230 140" class="flow"/>
+  <path d="M 175 130 L 120 140" class="flow"/>
+  
+  <!-- Plugin connections -->
+  <path d="M 300 112 L 370 115" class="plugin-flow"/>
+  <path d="M 300 112 L 370 165" class="plugin-flow"/>
+  <path d="M 300 112 L 370 215" class="plugin-flow"/>
+  
+  <!-- Transport to Processing -->
+  <path d="M 450 135 L 450 250 L 140 295" class="process-flow"/>
+  
+  <!-- Processing internal flows -->
+  <path d="M 210 320 L 230 320" class="process-flow"/>
+  <path d="M 370 320 L 390 320" class="process-flow"/>
+  <path d="M 140 345 L 140 365" class="process-flow"/>
+  <path d="M 300 345 L 300 365" class="process-flow"/>
+  
+  <!-- Reliability connections -->
+  <path d="M 550 115 L 620 120" class="reliability-flow"/>
+  <path d="M 725 145 L 725 165" class="reliability-flow"/>
+  
+  <!-- Monitoring connections (dashed)-->
+  <path d="M 300 345 L 140 365" class="monitor-flow"/>
+  <path d="M 460 345 L 140 365" class="monitor-flow"/>
+  
+  <!-- Legend -->
+  <rect x="600" y="480" width="280" height="200" fill="#1a1a1a" stroke="#4a9eff" rx="8"/>
+  <text x="740" y="505" text-anchor="middle" class="group-title">Component Legend</text>
+  
+  <rect x="620" y="520" width="15" height="10" class="core-group"/>
+  <text x="645" y="530" class="text">SmartMessage Core Components</text>
+  
+  <rect x="620" y="540" width="15" height="10" class="plugin-group"/>
+  <text x="645" y="550" class="text">Plugin System Architecture</text>
+  
+  <rect x="620" y="560" width="15" height="10" class="processing-group"/>
+  <text x="645" y="570" class="text">Message Processing Engine</text>
+  
+  <rect x="620" y="580" width="15" height="10" class="reliability-group"/>
+  <text x="645" y="590" class="text">Reliability &amp; Fault Tolerance</text>
+  
+  <line x1="620" y1="610" x2="635" y2="610" class="monitor-flow"/>
+  <text x="645" y="615" class="text">Monitoring &amp; Statistics</text>
+  
+  <text x="740" y="645" text-anchor="middle" class="text">Dark Theme Architecture Diagram</text>
+  <text x="740" y="660" text-anchor="middle" class="text">SmartMessage Framework v1.0</text>
+</svg>

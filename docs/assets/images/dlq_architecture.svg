@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="700" height="400" viewBox="0 0 700 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .bg { fill: transparent; }
+      .publish-group { fill: #1a3a2a; stroke: #4aff4a; stroke-width: 2; rx: 8; }
+      .circuit-group { fill: #3a2a1a; stroke: #ffaa4a; stroke-width: 2; rx: 8; }
+      .transport-group { fill: #1a2a3a; stroke: #4a9eff; stroke-width: 2; rx: 8; }
+      .dlq-group { fill: #3a1a1a; stroke: #ff4a4a; stroke-width: 2; rx: 8; }
+      .replay-group { fill: #2a1a3a; stroke: #aa4aff; stroke-width: 2; rx: 8; }
+      .success-flow { stroke: #4aff4a; stroke-width: 3; fill: none; marker-end: url(#arrowhead-green); }
+      .failure-flow { stroke: #ff4a4a; stroke-width: 3; fill: none; marker-end: url(#arrowhead-red); }
+      .retry-flow { stroke: #aa4aff; stroke-width: 3; fill: none; marker-end: url(#arrowhead-purple); stroke-dasharray: 6,6; }
+      .monitor-flow { stroke: #ffaa4a; stroke-width: 2; fill: none; marker-end: url(#arrowhead-orange); }
+      .text { fill: #ffffff; font-family: 'Arial', sans-serif; font-size: 11px; }
+      .title { fill: #4a9eff; font-family: 'Arial', sans-serif; font-size: 18px; font-weight: bold; }
+      .component-title { fill: #ffffff; font-family: 'Arial', sans-serif; font-size: 13px; font-weight: bold; }
+      .note { fill: #aaaaaa; font-family: 'Arial', sans-serif; font-size: 10px; }
+    </style>
+    <marker id="arrowhead-green" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#4aff4a" />
+    </marker>
+    <marker id="arrowhead-red" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#ff4a4a" />
+    </marker>
+    <marker id="arrowhead-purple" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#aa4aff" />
+    </marker>
+    <marker id="arrowhead-orange" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#ffaa4a" />
+    </marker>
+  </defs>
+  
+  <!-- Background -->
+  <rect class="bg" width="700" height="400"/>
+  
+  <!-- Title -->
+  <text x="350" y="25" text-anchor="middle" class="title">Dead Letter Queue Architecture</text>
+  
+  <!-- Message Publishing -->
+  <rect x="50" y="70" width="120" height="50" class="publish-group"/>
+  <text x="110" y="90" text-anchor="middle" class="component-title">Message</text>
+  <text x="110" y="105" text-anchor="middle" class="component-title">Publishing</text>
+  
+  <!-- Circuit Breaker Monitoring -->
+  <rect x="220" y="70" width="120" height="50" class="circuit-group"/>
+  <text x="280" y="85" text-anchor="middle" class="component-title">Circuit Breaker</text>
+  <text x="280" y="100" text-anchor="middle" class="component-title">Monitoring</text>
+  <text x="280" y="115" text-anchor="middle" class="text">Failure Detection</text>
+  
+  <!-- Transport Success -->
+  <rect x="390" y="50" width="120" height="50" class="transport-group"/>
+  <text x="450" y="70" text-anchor="middle" class="component-title">Transport</text>
+  <text x="450" y="85" text-anchor="middle" class="component-title">Success</text>
+  <text x="450" y="100" text-anchor="middle" class="text">Message Delivered</text>
+  
+  <!-- Dead Letter Queue -->
+  <rect x="390" y="140" width="120" height="60" class="dlq-group"/>
+  <text x="450" y="160" text-anchor="middle" class="component-title">Dead Letter Queue</text>
+  <text x="450" y="175" text-anchor="middle" class="component-title">Failure Storage</text>
+  <text x="450" y="190" text-anchor="middle" class="text">JSON Lines Format</text>
+  
+  <!-- Replay Mechanism -->
+  <rect x="220" y="180" width="120" height="60" class="replay-group"/>
+  <text x="280" y="200" text-anchor="middle" class="component-title">Replay Mechanism</text>
+  <text x="280" y="215" text-anchor="middle" class="text">Manual/Automated</text>
+  <text x="280" y="230" text-anchor="middle" class="text">Transport Override</text>
+  
+  <!-- Flow arrows -->
+  <!-- Publishing to Circuit Breaker -->
+  <path d="M 170 95 L 220 95" class="monitor-flow"/>
+  
+  <!-- Circuit Breaker Success -->
+  <path d="M 340 85 L 390 75" class="success-flow"/>
+  <text x="345" y="75" class="text">Success</text>
+  
+  <!-- Circuit Breaker Failure -->
+  <path d="M 340 105 L 390 170" class="failure-flow"/>
+  <text x="345" y="140" class="text">Failure</text>
+  
+  <!-- DLQ to Replay -->
+  <path d="M 390 190 L 340 210" class="retry-flow"/>
+  
+  <!-- Replay to Publishing (Retry) -->
+  <path d="M 220 210 L 110 210 L 110 120" class="retry-flow"/>
+  <text x="120" y="205" class="text">Retry</text>
+  
+  <!-- DLQ Features -->
+  <rect x="50" y="280" width="600" height="100" fill="#1a1a1a" stroke="#4a9eff" rx="8"/>
+  <text x="70" y="305" class="component-title">DLQ Features:</text>
+  
+  <text x="70" y="325" class="text">• JSON Lines Format: Efficient append operations with one message per line</text>
+  <text x="70" y="340" class="text">• FIFO Queue Operations: First-in, first-out processing with thread safety</text>
+  <text x="70" y="355" class="text">• Replay Capabilities: Manual and automated retry with transport override support</text>
+  <text x="70" y="370" class="text">• Administrative Tools: Message filtering, analysis, and selective replay functionality</text>
+  
+  <!-- Circuit Breaker States -->
+  <rect x="550" y="70" width="120" height="140" fill="#2a2a2a" stroke="#ffaa4a" rx="8"/>
+  <text x="610" y="90" text-anchor="middle" class="component-title">Circuit States</text>
+  
+  <rect x="560" y="100" width="100" height="25" fill="#1a3a1a" stroke="#4aff4a" rx="3"/>
+  <text x="610" y="117" text-anchor="middle" class="text">CLOSED: Normal</text>
+  
+  <rect x="560" y="130" width="100" height="25" fill="#3a1a1a" stroke="#ff4a4a" rx="3"/>
+  <text x="610" y="147" text-anchor="middle" class="text">OPEN: Failing</text>
+  
+  <rect x="560" y="160" width="100" height="25" fill="#3a2a1a" stroke="#ffaa4a" rx="3"/>
+  <text x="610" y="177" text-anchor="middle" class="text">HALF-OPEN: Test</text>
+  
+  <text x="610" y="200" text-anchor="middle" class="note">Automatic state transitions</text>
+</svg>

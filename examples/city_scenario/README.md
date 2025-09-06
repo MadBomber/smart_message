@@ -56,150 +56,28 @@ The Visitor service uses RubyLLM for intelligent incident reporting:
 ## 📊 Message Flow Diagrams
 
 ### 1. 911 Emergency Call Flow
-```mermaid
-sequenceDiagram
-    participant C as 👤 Citizen
-    participant EDC as 📞 Emergency Dispatch (911)
-    participant FD as 🚒 Fire Department
-    participant PD as 👮 Police Department
-    
-    C->>EDC: Emergency911Message
-    Note over C,EDC: Citizen reports emergency<br/>Type: fire, medical, crime, etc.<br/>Severity: critical/high/medium/low
-    
-    EDC->>EDC: Analyze call & determine dispatch
-    
-    alt Fire/Medical/Rescue/Hazmat Emergency
-        EDC->>FD: FireEmergencyMessage (if fire)
-        EDC->>FD: Emergency911Message (if medical/rescue)
-        FD->>EDC: FireDispatchMessage
-    end
-    
-    alt Crime/Security/Accident Emergency  
-        EDC->>PD: Emergency911Message
-        PD->>EDC: PoliceDispatchMessage
-    end
-    
-    Note over EDC: Call tracking & statistics
-```
+
+![911 Emergency Call Flow](911_emergency_call_flow.svg)
 
 ### 2. Fire Emergency Flow
-```mermaid
-sequenceDiagram
-    participant H as 🏠 House
-    participant FD as 🚒 Fire Department
-    participant All as 📢 All Services
-    
-    H->>FD: FireEmergencyMessage
-    Note over H,FD: Smoke detected<br/>Fire type: electrical/grease/general<br/>Severity: critical/high/medium
-    
-    FD->>FD: Assess fire severity
-    FD->>FD: Dispatch equipment
-    Note over FD: Engine-1, Ladder-1<br/>Rescue-1, Hazmat-1
-    
-    FD->>All: FireDispatchMessage
-    Note over All: Equipment dispatched<br/>ETA: 3-8 minutes
-    
-    FD->>All: EmergencyResolvedMessage
-    Note over All: Fire suppressed<br/>Scene secure
-```
+
+![Fire Emergency Flow](fire_emergency_flow.svg)
 
 ### 3. Security Emergency Flow
-```mermaid
-sequenceDiagram
-    participant B as 🏦 Bank
-    participant PD as 👮 Police Department
-    participant All as 📢 All Services
-    
-    B->>PD: SilentAlarmMessage
-    Note over B,PD: Robbery detected<br/>Alarm type: break_in/robbery<br/>Threat level: high/critical
-    
-    PD->>PD: Assess threat level
-    PD->>PD: Assign units
-    Note over PD: Unit-101, Unit-102<br/>Detective-1, SWAT-Alpha
-    
-    PD->>All: PoliceDispatchMessage
-    Note over All: Units dispatched<br/>Priority: emergency/critical
-    
-    PD->>All: EmergencyResolvedMessage
-    Note over All: Suspects apprehended<br/>Scene secure
-```
+
+![Security Emergency Flow](security_emergency_flow.svg)
 
 ### 4. AI Visitor Intelligence Flow
-```mermaid
-sequenceDiagram
-    participant V as 🧑‍💼 Visitor (AI)
-    participant AI as 🤖 RubyLLM
-    participant ES as 🚨 Emergency Services
-    
-    V->>V: Witness incident
-    V->>AI: Analyze available message types
-    Note over V,AI: Dynamic message discovery<br/>Property analysis
-    
-    AI->>V: Select appropriate message type
-    Note over AI: SilentAlarmMessage for robbery<br/>FireEmergencyMessage for fire
-    
-    V->>AI: Generate realistic properties
-    Note over V,AI: Bank names, locations<br/>Fire types, severities
-    
-    V->>ES: Publish selected message
-    Note over ES: Emergency services respond<br/>based on message type
-```
+
+![AI Visitor Intelligence Flow](ai_visitor_intelligence_flow.svg)
 
 ### Health Monitoring System
-```mermaid
-sequenceDiagram
-    participant HD as 🏥 Health Department
-    participant FD as 🚒 Fire Department
-    participant PD as 👮 Police Department
-    participant LB as 🏦 Local Bank
-    participant H as 🏠 House
-    
-    Note over HD: Every 5 seconds
-    HD->>+FD: HealthCheckMessage
-    HD->>+PD: HealthCheckMessage
-    HD->>+LB: HealthCheckMessage
-    HD->>+H: HealthCheckMessage
-    
-    FD-->>HD: HealthStatusMessage (Green/Yellow/Red)
-    PD-->>HD: HealthStatusMessage (Green/Yellow/Red)
-    LB-->>HD: HealthStatusMessage (Green/Yellow/Red)
-    H-->>HD: HealthStatusMessage (Green/Yellow/Red)
-    
-    Note over FD,H: 10-second countdown timer
-    Note over FD,H: Resets on each HealthCheck
-    Note over FD,H: COVID-19 shutdown if timeout
-```
+
+![Health Monitoring System](health_monitoring_system.svg)
 
 ### 5. Service Internal Architecture
-```mermaid
-graph TB
-    subgraph "📞 Emergency Dispatch Center (911)"
-        EDC1[911 Call Listener] --> EDC2[Call Analysis Engine]
-        EDC2 --> EDC3[Department Router]
-        EDC3 --> EDC4[Fire Dispatcher]
-        EDC3 --> EDC5[Police Dispatcher]
-        EDC2 --> EDC6[Call Tracking]
-        EDC6 --> EDC7[Statistics Engine]
-    end
-    
-    subgraph "👤 Citizen"
-        C1[Emergency Scenarios] --> C2[Random Selection]
-        C2 --> C3[911 Call Generator]
-        C3 --> C4[Message Publisher]
-        C5[Interactive Mode] --> C2
-        C6[Automatic Mode] --> C2
-    end
-    
-    subgraph "🧑‍💼 Smart Visitor (AI-Powered)"
-        V1[Incident Observer] --> V2[AI Message Analyzer]
-        V2 --> V3[RubyLLM Integration]
-        V3 --> V4[Message Generator]
-        V4 --> V5[Emergency Publisher]
-        
-        V21[Message Discovery] --> V22[Property Analysis]
-        V22 --> V23[AI Content Generation]
-    end
-```
+
+![Service Internal Architecture](service_internal_architecture.svg)
 
 ## 🚀 Getting Started
 

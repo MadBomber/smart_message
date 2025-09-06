@@ -16,54 +16,7 @@ SmartMessage is designed around the principle that **messages should be independ
 
 ## Architecture Overview
 
-```mermaid
-graph TB
-    subgraph "SmartMessage Core"
-        Base[SmartMessage::Base]
-        Header[Message Header<br/>• UUID<br/>• Timestamps<br/>• Addressing]
-        Props[Message Properties<br/>• Business Data<br/>• Validation<br/>• Versioning]
-    end
-    
-    subgraph "Plugin System"
-        Transport[Transport Plugin<br/>• publish<br/>• subscribe<br/>• Memory/Redis/STDOUT]
-        Serializer[Serializer Plugin<br/>• encode<br/>• decode<br/>• JSON/Custom]
-        Logger[Logger Plugin<br/>• Structured logging<br/>• Multiple outputs<br/>• Colorization]
-    end
-    
-    subgraph "Message Processing"
-        Dispatcher[Dispatcher<br/>• Route messages<br/>• Thread pool<br/>• Subscriptions<br/>• DDQ management]
-        DDQ[Deduplication Queue<br/>• Handler-scoped<br/>• Memory/Redis storage<br/>• O1 performance<br/>• Circular buffer]
-        Handlers[Message Handlers<br/>• Default handler<br/>• Block handlers<br/>• Proc handlers<br/>• Method handlers]
-    end
-    
-    subgraph "Reliability Layer"
-        CircuitBreaker[Circuit Breaker<br/>• Failure thresholds<br/>• Automatic fallback<br/>• Recovery detection]
-        DLQ[Dead Letter Queue<br/>• Failed messages<br/>• Replay mechanism<br/>• JSON Lines format]
-    end
-    
-    subgraph "Monitoring"
-        Stats[Statistics<br/>• Message counts<br/>• Processing metrics<br/>• Thread pool status]
-        Filters[Message Filtering<br/>• Entity-aware routing<br/>• Regex patterns<br/>• Broadcast handling]
-    end
-    
-    Base --> Header
-    Base --> Props
-    Base --> Transport
-    Base --> Serializer
-    Base --> Logger
-    
-    Transport --> Dispatcher
-    Dispatcher --> DDQ
-    Dispatcher --> Handlers
-    Dispatcher --> Stats
-    Dispatcher --> Filters
-    
-    Transport --> CircuitBreaker
-    CircuitBreaker --> DLQ
-    
-    DDQ -.-> Stats
-    Handlers -.-> Stats
-```
+![SmartMessage Architecture Overview](../assets/images/smartmessage_architecture_overview.svg)
 
 ## Core Components
 
@@ -176,30 +129,8 @@ Handler-scoped message deduplication system preventing duplicate processing.
 - O(1) performance with hybrid Array + Set data structure
 
 **Architecture:**
-```mermaid
-graph LR
-    subgraph "Handler A DDQ"
-        A1[Circular Array]
-        A2[Lookup Set]
-        A3[Mutex Lock]
-    end
-    
-    subgraph "Handler B DDQ"
-        B1[Circular Array]
-        B2[Lookup Set] 
-        B3[Mutex Lock]
-    end
-    
-    Message[Incoming Message<br/>UUID abc-123] --> Dispatcher
-    Dispatcher --> |Check Handler A| A2
-    Dispatcher --> |Check Handler B| B2
-    
-    A2 --> |Not Found| ProcessA[Process with Handler A]
-    B2 --> |Found| SkipB[Skip Handler B - Duplicate]
-    
-    ProcessA --> |Add UUID| A1
-    ProcessA --> |Add UUID| A2
-```
+
+![DDQ Architecture](../assets/images/ddq_architecture.svg)
 
 **Location:** `lib/smart_message/deduplication.rb`, `lib/smart_message/ddq/`
 
@@ -475,20 +406,7 @@ dlq.enqueue(decoded_message, error: "Validation failed", transport: "manual")
 
 **DLQ Architecture:**
 
-```mermaid
-graph TB
-    Publish[Message Publishing]
-    CB[Circuit Breaker<br/>Monitoring]
-    Transport[Transport<br/>Success]
-    DLQ[Dead Letter Queue<br/>Failure Storage]
-    Replay[Replay Mechanism<br/>Manual/Automated]
-    
-    Publish --> CB
-    CB --> |Success| Transport
-    CB --> |Failure| DLQ
-    DLQ --> Replay
-    Replay --> |Retry| Publish
-```
+![Dead Letter Queue Architecture](../assets/images/dlq_architecture.svg)
 
 **DLQ Features:**
 - JSON Lines format for efficient append operations

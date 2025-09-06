@@ -11,3 +11,5 @@
 /.aigcm_msg/
 site
 .aigcm_msg
+/log/
+/logs/

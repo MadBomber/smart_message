@@ -3,12 +3,12 @@
 <table border="0">
 <tr>
 <td width="30%" valign="top">
-  <img src="assets/smart_message.jpg" alt="SmartMessage Logo" width="200" />
+  <img src="assets/images/smart_message.jpg" alt="SmartMessage Logo" width="200" />
 </td>
 <td width="70%" valign="top">
 
-**SmartMessage** is a powerful Ruby framework that transforms ordinary messages into intelligent, self-aware entities capable of routing themselves, validating their contents, and executing business logic. By abstracting away the complexities of transport mechanisms (Redis, RabbitMQ, Kafka) and serialization formats (JSON, MessagePack), SmartMessage lets you focus on what matters: your business logic.
-
+<string>SmartMessage</strong> is a powerful Ruby framework that transforms ordinary messages into intelligent, self-aware entities capable of routing themselves, validating their contents, and executing business logic. By abstracting away the complexities of transport mechanisms (Redis, RabbitMQ, Kafka) and serialization formats (JSON, MessagePack), SmartMessage lets you focus on what matters: your business logic.
+<br/><br/>
 Think of SmartMessage as ActiveRecord for messaging - just as ActiveRecord frees you from database-specific SQL, SmartMessage liberates your messages from transport-specific implementations. Each message knows how to validate itself, where it came from, where it's going, and what to do when it arrives. With built-in support for filtering, versioning, deduplication, and concurrent processing, SmartMessage provides enterprise-grade messaging capabilities with the simplicity Ruby developers love.
 
 </td>
@@ -29,8 +29,17 @@ Think of SmartMessage as ActiveRecord for messaging - just as ActiveRecord frees
 - [Message Processing](core-concepts/message-processing.md)
 - [Dispatcher & Routing](core-concepts/dispatcher.md)
 
-### Reference
+### Transports
 - [Transport Layer](reference/transports.md)
+- [Redis Queue Transport](transports/redis-queue-transport.md) ⭐ **Featured**
+- [Redis Transport Comparison](transports/redis-transport-comparison.md)
+
+### Guides
+- [Redis Queue Getting Started](guides/redis-queue-getting-started.md)
+- [Advanced Routing Patterns](guides/redis-queue-patterns.md)
+- [Production Deployment](guides/redis-queue-production.md)
+
+### Reference
 - [Serializers](reference/serializers.md)
 - [Logging System](reference/logging.md)
 - [Dead Letter Queue](reference/dead-letter-queue.md)

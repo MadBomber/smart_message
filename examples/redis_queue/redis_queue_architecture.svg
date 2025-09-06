@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="900" height="800" viewBox="0 0 900 800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .bg { fill: transparent; }
+      .producer { fill: #2a3a2a; stroke: #4aff4a; stroke-width: 2; rx: 8; }
+      .consumer { fill: #3a2a3a; stroke: #4a9eff; stroke-width: 2; rx: 8; }
+      .redis { fill: #3a1a1a; stroke: #ff4a4a; stroke-width: 3; rx: 12; }
+      .stream { fill: #1a2a3a; stroke: #ffaa4a; stroke-width: 2; rx: 6; }
+      .group { fill: #2a1a3a; stroke: #aa4aff; stroke-width: 2; rx: 6; }
+      .arrow { stroke: #ffaa4a; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .ack-arrow { stroke: #4aff4a; stroke-width: 2; fill: none; marker-end: url(#ack-arrowhead); stroke-dasharray: 5,3; }
+      .text { fill: #ffffff; font-family: 'Arial', sans-serif; font-size: 12px; }
+      .title { fill: #4a9eff; font-family: 'Arial', sans-serif; font-size: 18px; font-weight: bold; }
+      .subtitle { fill: #ffaa4a; font-family: 'Arial', sans-serif; font-size: 11px; }
+      .redis-text { fill: #ff4a4a; font-family: 'Arial', sans-serif; font-size: 14px; font-weight: bold; }
+      .stream-text { fill: #ffaa4a; font-family: 'Arial', sans-serif; font-size: 10px; }
+      .group-text { fill: #aa4aff; font-family: 'Arial', sans-serif; font-size: 10px; }
+    </style>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#ffaa4a" />
+    </marker>
+    <marker id="ack-arrowhead" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#4aff4a" />
+    </marker>
+  </defs>
+  
+  <!-- Background -->
+  <rect class="bg" width="900" height="800"/>
+  
+  <!-- Title -->
+  <text x="450" y="25" text-anchor="middle" class="title">SmartMessage Redis Queue Transport Architecture</text>
+  <text x="450" y="45" text-anchor="middle" class="subtitle">Reliable Message Queuing with Consumer Groups and Acknowledgments</text>
+  
+  <!-- Redis Server (Central Hub) -->
+  <rect x="300" y="320" width="300" height="180" class="redis"/>
+  <text x="450" y="345" text-anchor="middle" class="redis-text">Redis Server (v5.0+)</text>
+  <text x="450" y="365" text-anchor="middle" class="text">Streams + Consumer Groups</text>
+  
+  <!-- Redis Streams -->
+  <rect x="320" y="380" width="260" height="40" class="stream"/>
+  <text x="450" y="395" text-anchor="middle" class="stream-text">Stream: OrderMessage</text>
+  <text x="450" y="410" text-anchor="middle" class="stream-text">Messages: [msg1, msg2, msg3, msg4, ...]</text>
+  
+  <!-- Consumer Groups -->
+  <rect x="320" y="430" width="120" height="60" class="group"/>
+  <text x="380" y="450" text-anchor="middle" class="group-text">Consumer Group:</text>
+  <text x="380" y="465" text-anchor="middle" class="group-text">order_processors</text>
+  <text x="380" y="480" text-anchor="middle" class="group-text">worker-1, worker-2</text>
+  
+  <rect x="460" y="430" width="120" height="60" class="group"/>
+  <text x="520" y="450" text-anchor="middle" class="group-text">Consumer Group:</text>
+  <text x="520" y="465" text-anchor="middle" class="group-text">notification_workers</text>
+  <text x="520" y="480" text-anchor="middle" class="group-text">worker-3, worker-4</text>
+  
+  <!-- Producers -->
+  <rect x="50" y="150" width="150" height="80" class="producer"/>
+  <text x="125" y="175" text-anchor="middle" class="title">Producer 1</text>
+  <text x="125" y="195" text-anchor="middle" class="text">Order API</text>
+  <text x="125" y="215" text-anchor="middle" class="subtitle">Publishes OrderMessage</text>
+  
+  <rect x="50" y="250" width="150" height="80" class="producer"/>
+  <text x="125" y="275" text-anchor="middle" class="title">Producer 2</text>
+  <text x="125" y="295" text-anchor="middle" class="text">User Service</text>
+  <text x="125" y="315" text-anchor="middle" class="subtitle">Publishes UserMessage</text>
+  
+  <rect x="50" y="550" width="150" height="80" class="producer"/>
+  <text x="125" y="575" text-anchor="middle" class="title">Producer 3</text>
+  <text x="125" y="595" text-anchor="middle" class="text">Alert System</text>
+  <text x="125" y="615" text-anchor="middle" class="subtitle">Publishes AlertMessage</text>
+  
+  <!-- Consumers -->
+  <rect x="700" y="150" width="150" height="80" class="consumer"/>
+  <text x="775" y="175" text-anchor="middle" class="title">Worker 1</text>
+  <text x="775" y="195" text-anchor="middle" class="text">Order Processor</text>
+  <text x="775" y="215" text-anchor="middle" class="subtitle">Group: order_processors</text>
+  
+  <rect x="700" y="250" width="150" height="80" class="consumer"/>
+  <text x="775" y="275" text-anchor="middle" class="title">Worker 2</text>
+  <text x="775" y="295" text-anchor="middle" class="text">Order Processor</text>
+  <text x="775" y="315" text-anchor="middle" class="subtitle">Group: order_processors</text>
+  
+  <rect x="700" y="400" width="150" height="80" class="consumer"/>
+  <text x="775" y="425" text-anchor="middle" class="title">Worker 3</text>
+  <text x="775" y="445" text-anchor="middle" class="text">Email Service</text>
+  <text x="775" y="465" text-anchor="middle" class="subtitle">Group: notification_workers</text>
+  
+  <rect x="700" y="550" width="150" height="80" class="consumer"/>
+  <text x="775" y="575" text-anchor="middle" class="title">Worker 4</text>
+  <text x="775" y="595" text-anchor="middle" class="text">SMS Service</text>
+  <text x="775" y="615" text-anchor="middle" class="subtitle">Group: notification_workers</text>
+  
+  <!-- Message Flow Arrows -->
+  <!-- Producers to Redis -->
+  <path d="M 200 190 L 300 380" class="arrow"/>
+  <path d="M 200 290 L 300 400" class="arrow"/>
+  <path d="M 200 590 L 300 420" class="arrow"/>
+  
+  <!-- Redis to Consumers -->
+  <path d="M 600 390 L 700 190" class="arrow"/>
+  <path d="M 600 400 L 700 290" class="arrow"/>
+  <path d="M 600 450 L 700 440" class="arrow"/>
+  <path d="M 600 460 L 700 590" class="arrow"/>
+  
+  <!-- Acknowledgment arrows (dashed green) -->
+  <path d="M 700 210 L 600 410" class="ack-arrow"/>
+  <path d="M 700 310 L 600 410" class="ack-arrow"/>
+  <path d="M 700 460 L 600 470" class="ack-arrow"/>
+  <path d="M 700 610 L 600 470" class="ack-arrow"/>
+  
+  <!-- Message Flow Process -->
+  <rect x="50" y="680" width="800" height="110" class="redis"/>
+  <text x="70" y="705" class="title">Message Flow Process</text>
+  
+  <circle cx="90" cy="730" r="12" fill="#4aff4a"/>
+  <text x="90" y="735" text-anchor="middle" class="text">1</text>
+  <text x="110" y="735" class="text">Producer publishes message to Redis Stream</text>
+  
+  <circle cx="450" cy="730" r="12" fill="#ffaa4a"/>
+  <text x="450" y="735" text-anchor="middle" class="text">2</text>
+  <text x="470" y="735" class="text">Message added to stream with unique ID</text>
+  
+  <circle cx="90" cy="755" r="12" fill="#4a9eff"/>
+  <text x="90" y="760" text-anchor="middle" class="text">3</text>
+  <text x="110" y="760" class="text">Consumer group distributes message to available worker</text>
+  
+  <circle cx="450" cy="755" r="12" fill="#aa4aff"/>
+  <text x="450" y="760" text-anchor="middle" class="text">4</text>
+  <text x="470" y="760" class="text">Worker processes message and sends acknowledgment</text>
+  
+  <circle cx="90" cy="780" r="12" fill="#ff4a4a"/>
+  <text x="90" y="785" text-anchor="middle" class="text">5</text>
+  <text x="110" y="785" class="text">If no ACK received, message redistributed to another worker</text>
+  
+  <!-- Key Features -->
+  <text x="50" y="80" class="title">Key Features:</text>
+  <text x="70" y="100" class="text">✓ Guaranteed Delivery: Messages persist until acknowledged</text>
+  <text x="70" y="115" class="text">✓ Load Balancing: Consumer groups distribute work automatically</text>
+  
+  <text x="450" y="100" class="text">✓ Fault Tolerance: Failed workers don't lose messages</text>
+  <text x="450" y="115" class="text">✓ At-Least-Once: Messages redelivered on failure</text>
+  
+  <text x="650" y="80" class="title">Use Cases:</text>
+  <text x="670" y="100" class="text">• Background job processing</text>
+  <text x="670" y="115" class="text">• Order processing pipelines</text>
+</svg>

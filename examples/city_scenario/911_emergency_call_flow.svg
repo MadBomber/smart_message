@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .bg { fill: transparent; }
+      .participant { fill: #2a2a2a; stroke: #4a9eff; stroke-width: 2; rx: 8; }
+      .citizen { fill: #1a3a1a; stroke: #4aff4a; stroke-width: 2; rx: 8; }
+      .dispatch { fill: #3a1a1a; stroke: #ff4a4a; stroke-width: 2; rx: 8; }
+      .fire { fill: #4a2a1a; stroke: #ffaa4a; stroke-width: 2; rx: 8; }
+      .police { fill: #1a2a3a; stroke: #4aafff; stroke-width: 2; rx: 8; }
+      .message { stroke: #ffaa4a; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .response { stroke: #4aff4a; stroke-width: 2; fill: none; marker-end: url(#arrowhead-green); stroke-dasharray: 5,3; }
+      .text { fill: #ffffff; font-family: 'Arial', sans-serif; font-size: 12px; }
+      .title { fill: #4a9eff; font-family: 'Arial', sans-serif; font-size: 18px; font-weight: bold; }
+      .subtitle { fill: #ffaa4a; font-family: 'Arial', sans-serif; font-size: 11px; }
+      .note { fill: #aaaaaa; font-family: 'Arial', sans-serif; font-size: 10px; }
+    </style>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#ffaa4a" />
+    </marker>
+    <marker id="arrowhead-green" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#4aff4a" />
+    </marker>
+  </defs>
+  
+  <!-- Background -->
+  <rect class="bg" width="800" height="600"/>
+  
+  <!-- Title -->
+  <text x="400" y="25" text-anchor="middle" class="title">911 Emergency Call Flow</text>
+  <text x="400" y="45" text-anchor="middle" class="subtitle">Citizen Emergency Reporting and Department Dispatch</text>
+  
+  <!-- Participants -->
+  <rect x="50" y="80" width="120" height="60" class="citizen"/>
+  <text x="110" y="105" text-anchor="middle" class="text">👤 Citizen</text>
+  <text x="110" y="125" text-anchor="middle" class="subtitle">Emergency Reporter</text>
+  
+  <rect x="250" y="80" width="120" height="60" class="dispatch"/>
+  <text x="310" y="105" text-anchor="middle" class="text">📞 Emergency</text>
+  <text x="310" y="120" text-anchor="middle" class="text">Dispatch (911)</text>
+  
+  <rect x="450" y="80" width="120" height="60" class="fire"/>
+  <text x="510" y="105" text-anchor="middle" class="text">🚒 Fire</text>
+  <text x="510" y="120" text-anchor="middle" class="text">Department</text>
+  
+  <rect x="620" y="80" width="120" height="60" class="police"/>
+  <text x="680" y="105" text-anchor="middle" class="text">👮 Police</text>
+  <text x="680" y="120" text-anchor="middle" class="text">Department</text>
+  
+  <!-- Vertical lifelines -->
+  <line x1="110" y1="140" x2="110" y2="550" stroke="#666" stroke-width="2" stroke-dasharray="3,3"/>
+  <line x1="310" y1="140" x2="310" y2="550" stroke="#666" stroke-width="2" stroke-dasharray="3,3"/>
+  <line x1="510" y1="140" x2="510" y2="550" stroke="#666" stroke-width="2" stroke-dasharray="3,3"/>
+  <line x1="680" y1="140" x2="680" y2="550" stroke="#666" stroke-width="2" stroke-dasharray="3,3"/>
+  
+  <!-- Message Flow -->
+  <!-- 1. Emergency call -->
+  <path d="M 110 180 L 310 180" class="message"/>
+  <text x="210" y="175" text-anchor="middle" class="text">Emergency911Message</text>
+  <rect x="150" y="185" width="120" height="40" fill="#1a1a1a" stroke="#ffaa4a" rx="4"/>
+  <text x="210" y="200" text-anchor="middle" class="note">Reports emergency</text>
+  <text x="210" y="215" text-anchor="middle" class="note">Type: fire/medical/crime</text>
+  
+  <!-- 2. Internal analysis -->
+  <rect x="280" y="240" width="60" height="30" fill="#3a1a1a" stroke="#ff4a4a" rx="4"/>
+  <text x="310" y="260" text-anchor="middle" class="note">Analyze call &amp;</text>
+  <text x="310" y="275" text-anchor="middle" class="note">determine dispatch</text>
+  
+  <!-- 3a. Fire/Medical dispatch -->
+  <path d="M 310 320 L 510 320" class="message"/>
+  <text x="410" y="315" text-anchor="middle" class="text">FireEmergencyMessage</text>
+  <text x="410" y="335" text-anchor="middle" class="note">(if fire)</text>
+  
+  <!-- 3b. Fire response -->
+  <path d="M 510 360 L 310 360" class="response"/>
+  <text x="410" y="355" text-anchor="middle" class="text">FireDispatchMessage</text>
+  
+  <!-- 4a. Crime/Security dispatch -->
+  <path d="M 310 400 L 680 400" class="message"/>
+  <text x="495" y="395" text-anchor="middle" class="text">Emergency911Message</text>
+  <text x="495" y="415" text-anchor="middle" class="note">(crime/security)</text>
+  
+  <!-- 4b. Police response -->
+  <path d="M 680 440 L 310 440" class="response"/>
+  <text x="495" y="435" text-anchor="middle" class="text">PoliceDispatchMessage</text>
+  
+  <!-- Call tracking note -->
+  <rect x="240" y="480" width="140" height="40" fill="#2a2a2a" stroke="#4a9eff" rx="4"/>
+  <text x="310" y="495" text-anchor="middle" class="note">Call tracking &amp;</text>
+  <text x="310" y="510" text-anchor="middle" class="note">statistics maintained</text>
+  
+  <!-- Legend -->
+  <rect x="50" y="520" width="690" height="60" fill="#1a1a1a" stroke="#666" rx="6"/>
+  <text x="70" y="540" class="text">Key Message Types:</text>
+  <text x="70" y="560" class="text">Emergency911Message: Citizen reports • FireEmergencyMessage: Fire incidents</text>
+  <text x="70" y="575" class="text">FireDispatchMessage: Equipment deployment • PoliceDispatchMessage: Unit coordination</text>
+</svg>

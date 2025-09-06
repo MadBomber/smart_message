@@ -505,4 +505,4 @@ logger.info("Test message")
 assert_includes log_output.string, "Test message"
 ```
 
-For more information, see the comprehensive logging example at `examples/show_logger.rb`.
+For more information, see the comprehensive logging examples at `examples/memory/15_logger_demo.rb` and `examples/memory/08_custom_logger_demo.rb`.

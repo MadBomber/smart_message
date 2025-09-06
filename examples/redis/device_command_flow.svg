@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="500" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .bg { fill: transparent; }
+      .app { fill: #2a1a3a; stroke: #aa4aff; stroke-width: 2; rx: 8; }
+      .redis { fill: #3a1a1a; stroke: #ff4a4a; stroke-width: 2; rx: 8; }
+      .thermostat { fill: #4a2a1a; stroke: #ff6b6b; stroke-width: 2; rx: 8; }
+      .camera { fill: #1a3a3a; stroke: #4ecdc4; stroke-width: 2; rx: 8; }
+      .lock { fill: #3a3a1a; stroke: #ffe66d; stroke-width: 2; rx: 8; }
+      .command { stroke: #aa4aff; stroke-width: 3; fill: none; marker-end: url(#arrowhead); }
+      .process { stroke: #4aff4a; stroke-width: 2; fill: none; marker-end: url(#arrowhead-green); }
+      .ignore { stroke: #ff4a4a; stroke-width: 2; fill: none; stroke-dasharray: 5,5; }
+      .text { fill: #ffffff; font-family: 'Arial', sans-serif; font-size: 12px; }
+      .title { fill: #4a9eff; font-family: 'Arial', sans-serif; font-size: 18px; font-weight: bold; }
+      .subtitle { fill: #ffaa4a; font-family: 'Arial', sans-serif; font-size: 11px; }
+      .note { fill: #aaaaaa; font-family: 'Arial', sans-serif; font-size: 10px; }
+    </style>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#aa4aff" />
+    </marker>
+    <marker id="arrowhead-green" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#4aff4a" />
+    </marker>
+  </defs>
+  
+  <!-- Background -->
+  <rect class="bg" width="800" height="500"/>
+  
+  <!-- Title -->
+  <text x="400" y="25" text-anchor="middle" class="title">Device Command Flow</text>
+  <text x="400" y="45" text-anchor="middle" class="subtitle">Device-Specific Command Routing via Redis Channel</text>
+  
+  <!-- Participants -->
+  <rect x="50" y="80" width="120" height="60" class="app"/>
+  <text x="110" y="105" text-anchor="middle" class="text">📱 Mobile App</text>
+  <text x="110" y="125" text-anchor="middle" class="subtitle">User Interface</text>
+  
+  <rect x="320" y="80" width="120" height="60" class="redis"/>
+  <text x="380" y="105" text-anchor="middle" class="text">Redis Channel</text>
+  <text x="380" y="125" text-anchor="middle" class="subtitle">DeviceCommandMessage</text>
+  
+  <rect x="580" y="50" width="120" height="60" class="thermostat"/>
+  <text x="640" y="75" text-anchor="middle" class="text">🌡️ Thermostat</text>
+  <text x="640" y="95" text-anchor="middle" class="subtitle">THERM-001</text>
+  
+  <rect x="580" y="130" width="120" height="60" class="camera"/>
+  <text x="640" y="155" text-anchor="middle" class="text">📹 Camera</text>
+  <text x="640" y="175" text-anchor="middle" class="subtitle">CAM-001</text>
+  
+  <rect x="580" y="210" width="120" height="60" class="lock"/>
+  <text x="640" y="235" text-anchor="middle" class="text">🚪 Door Lock</text>
+  <text x="640" y="255" text-anchor="middle" class="subtitle">LOCK-001</text>
+  
+  <!-- Vertical lifelines -->
+  <line x1="110" y1="140" x2="110" y2="400" stroke="#666" stroke-width="2" stroke-dasharray="3,3"/>
+  <line x1="380" y1="140" x2="380" y2="400" stroke="#666" stroke-width="2" stroke-dasharray="3,3"/>
+  <line x1="640" y1="110" x2="640" y2="400" stroke="#666" stroke-width="2" stroke-dasharray="3,3"/>
+  <line x1="640" y1="190" x2="640" y2="400" stroke="#666" stroke-width="2" stroke-dasharray="3,3"/>
+  <line x1="640" y1="270" x2="640" y2="400" stroke="#666" stroke-width="2" stroke-dasharray="3,3"/>
+  
+  <!-- Command 1: Thermostat Command -->
+  <path d="M 110 170 L 380 170" class="command"/>
+  <text x="245" y="165" text-anchor="middle" class="text">DeviceCommandMessage</text>
+  <text x="245" y="185" text-anchor="middle" class="note">device_id: THERM-001, command: set_temperature</text>
+  
+  <!-- Routing to devices -->
+  <path d="M 380 190 L 580 80" class="process"/>
+  <text x="480" y="135" text-anchor="middle" class="text">✅ Processes THERM prefix match</text>
+  
+  <path d="M 380 190 L 580 160" class="ignore"/>
+  <text x="480" y="175" text-anchor="middle" class="text">❌ Ignores not CAM prefix</text>
+  
+  <path d="M 380 190 L 580 240" class="ignore"/>
+  <text x="480" y="215" text-anchor="middle" class="text">❌ Ignores not LOCK prefix</text>
+  
+  <!-- Command 2: Camera Command -->
+  <path d="M 110 280 L 380 280" class="command"/>
+  <text x="245" y="275" text-anchor="middle" class="text">DeviceCommandMessage</text>
+  <text x="245" y="295" text-anchor="middle" class="note">device_id: CAM-001, command: start_recording</text>
+  
+  <!-- Routing to devices for command 2 -->
+  <path d="M 380 300 L 580 80" class="ignore"/>
+  <text x="480" y="285" text-anchor="middle" class="text">❌ Ignores not THERM prefix</text>
+  
+  <path d="M 380 300 L 580 160" class="process"/>
+  <text x="480" y="305" text-anchor="middle" class="text">✅ Processes CAM prefix match</text>
+  
+  <path d="M 380 300 L 580 240" class="ignore"/>
+  <text x="480" y="325" text-anchor="middle" class="text">❌ Ignores not LOCK prefix</text>
+  
+  <!-- Device Command Filtering Rules -->
+  <rect x="50" y="320" width="700" height="160" fill="#1a1a1a" stroke="#4a9eff" rx="8"/>
+  <text x="70" y="345" class="title">Device Command Filtering Rules</text>
+  
+  <text x="70" y="370" class="text">🌡️ THERM-* devices:</text>
+  <text x="90" y="385" class="subtitle">• Accept: set_temperature, get_status</text>
+  <text x="90" y="400" class="subtitle">• Filter: Only process commands with device_id starting with "THERM-"</text>
+  
+  <text x="400" y="370" class="text">📹 CAM-* devices:</text>
+  <text x="420" y="385" class="subtitle">• Accept: start_recording, stop_recording, get_status</text>
+  <text x="420" y="400" class="subtitle">• Filter: Only process commands with device_id starting with "CAM-"</text>
+  
+  <text x="70" y="425" class="text">🚪 LOCK-* devices:</text>
+  <text x="90" y="440" class="subtitle">• Accept: lock, unlock, get_status</text>
+  <text x="90" y="455" class="subtitle">• Filter: Only process commands with device_id starting with "LOCK-"</text>
+  
+  <text x="400" y="425" class="text">📊 Architecture Benefits:</text>
+  <text x="420" y="440" class="subtitle">• Efficient: Devices ignore irrelevant commands automatically</text>
+  <text x="420" y="455" class="subtitle">• Scalable: Easy to add new device types with new prefixes</text>
+</svg>

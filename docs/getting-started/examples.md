@@ -811,22 +811,46 @@ These examples demonstrate the flexibility and power of SmartMessage for buildin
 
 The `examples/` directory contains complete, runnable programs that demonstrate various SmartMessage features:
 
-### Core Messaging Patterns
-- **`01_point_to_point_orders.rb`** - Point-to-point order processing with payment integration
-- **`02_publish_subscribe_events.rb`** - Event broadcasting to multiple services (email, SMS, audit)
-- **`03_many_to_many_chat.rb`** - Interactive chat system with rooms, bots, and human agents
+### Memory Transport Examples
+- **`memory/03_point_to_point_orders.rb`** - Point-to-point order processing with payment integration
+- **`memory/04_publish_subscribe_events.rb`** - Event broadcasting to multiple services (email, SMS, audit)
+- **`memory/05_many_to_many_chat.rb`** - Interactive chat system with rooms, bots, and human agents
+- **`memory/07_proc_handlers_demo.rb`** - Flexible message handlers (blocks, procs, lambdas, methods)
+- **`memory/08_custom_logger_demo.rb`** - Advanced logging with SmartMessage::Logger::Default
+- **`memory/09_error_handling_demo.rb`** - Comprehensive validation, version mismatch, and error handling
+- **`memory/10_entity_addressing_basic.rb`** - Basic FROM/TO/REPLY_TO message addressing
+- **`memory/11_entity_addressing_with_filtering.rb`** - Advanced entity-aware message filtering
+- **`memory/02_dead_letter_queue_demo.rb`** - Complete Dead Letter Queue system demonstration
+- **`memory/01_message_deduplication_demo.rb`** - Message deduplication patterns
+- **`memory/12_regex_filtering_microservices.rb`** - Advanced regex filtering for microservices
+- **`memory/13_header_block_configuration.rb`** - Header and block configuration examples
+- **`memory/14_global_configuration_demo.rb`** - Global configuration management
+- **`memory/15_logger_demo.rb`** - Advanced logging demonstrations
 
-### Advanced Features
-- **`04_redis_smart_home_iot.rb`** - Redis-based IoT sensor monitoring with real-time data flow
-- **`05_proc_handlers.rb`** - Flexible message handlers (blocks, procs, lambdas, methods)
-- **`06_custom_logger_example.rb`** - Advanced logging with SmartMessage::Logger::Default
-- **`07_error_handling_scenarios.rb`** - Comprehensive validation, version mismatch, and error handling
-- **`08_entity_addressing_basic.rb`** - Basic FROM/TO/REPLY_TO message addressing
-- **`08_entity_addressing_with_filtering.rb`** - Advanced entity-aware message filtering
-- **`09_dead_letter_queue_demo.rb`** - Complete Dead Letter Queue system demonstration
+### Redis Transport Examples
+- **`redis/01_smart_home_iot_demo.rb`** - Redis-based IoT sensor monitoring with real-time data flow
 
-### Interactive Demos
-- **`tmux_chat/`** - Multi-pane terminal visualization of many-to-many messaging with file-based transport
+### Redis Enhanced Transport Examples
+- **`redis_enhanced/enhanced_01_basic_patterns.rb`** - Basic enhanced transport patterns
+- **`redis_enhanced/enhanced_02_fluent_api.rb`** - Fluent API usage examples
+- **`redis_enhanced/enhanced_03_dual_publishing.rb`** - Dual publishing strategies
+- **`redis_enhanced/enhanced_04_advanced_routing.rb`** - Advanced message routing
+
+### Redis Queue Transport Examples
+- **`redis_queue/01_basic_messaging.rb`** - Basic queue messaging patterns
+- **`redis_queue/02_pattern_routing.rb`** - Pattern-based message routing
+- **`redis_queue/03_fluent_api.rb`** - Fluent API for queue operations
+- **`redis_queue/04_load_balancing.rb`** - Load balancing across workers
+- **`redis_queue/05_microservices.rb`** - Microservices communication
+- **`redis_queue/06_emergency_alerts.rb`** - Emergency alert system
+- **`redis_queue/07_queue_management.rb`** - Queue management utilities
+- **`redis_queue/01_comprehensive_examples.rb`** - Comprehensive feature demonstration
+
+### City Scenario (Comprehensive Demo)
+- **`city_scenario/`** - Complete emergency services simulation with multiple services and AI integration
+
+### Performance Testing
+- **`performance_metrics/`** - Benchmarking tools and performance comparisons
 
 ### Running Examples
 
@@ -834,12 +858,14 @@ The `examples/` directory contains complete, runnable programs that demonstrate 
 # Navigate to the SmartMessage directory
 cd smart_message
 
-# Run any example directly
-ruby examples/01_point_to_point_orders.rb
-ruby examples/09_dead_letter_queue_demo.rb
+# Run examples from their respective transport directories
+ruby examples/memory/03_point_to_point_orders.rb
+ruby examples/memory/02_dead_letter_queue_demo.rb
+ruby examples/redis/01_smart_home_iot_demo.rb
+ruby examples/redis_queue/01_basic_messaging.rb
 
-# For tmux chat demo
-cd examples/tmux_chat && ./run_demo.sh
+# For city scenario comprehensive demo
+cd examples/city_scenario && ./start_demo.sh
 ```
 
 Each example is self-contained and includes:
@@ -851,16 +877,18 @@ Each example is self-contained and includes:
 
 ### Example Features Demonstrated
 
-| Example | Transports | Features | Use Case |
-|---------|------------|----------|----------|
-| 01 | STDOUT | Point-to-point, validation | Order processing |
-| 02 | STDOUT | Pub-sub, multiple handlers | Event broadcasting |
-| 03 | Memory | Many-to-many, bots | Chat systems |
-| 04 | Redis | IoT, real-time, addressing | Smart home monitoring |
-| 05 | Memory | Proc handlers, flexibility | Dynamic message handling |
-| 06 | STDOUT | Custom logging, lifecycle | Production logging |
-| 07 | STDOUT | Error handling, validation | Robust message systems |
-| 08 | STDOUT | Entity addressing, filtering | Microservice communication |
-| 09 | Memory | DLQ, circuit breakers, replay | Production reliability |
+| Example | Transport | Features | Use Case |
+|---------|-----------|----------|----------|
+| memory/03 | Memory/STDOUT | Point-to-point, validation | Order processing |
+| memory/04 | Memory/STDOUT | Pub-sub, multiple handlers | Event broadcasting |
+| memory/05 | Memory | Many-to-many, bots | Chat systems |
+| redis/01 | Redis | IoT, real-time, addressing | Smart home monitoring |
+| memory/07 | Memory | Proc handlers, flexibility | Dynamic message handling |
+| memory/08 | Memory/STDOUT | Custom logging, lifecycle | Production logging |
+| memory/09 | Memory/STDOUT | Error handling, validation | Robust message systems |
+| memory/10-11 | Memory/STDOUT | Entity addressing, filtering | Microservice communication |
+| memory/02 | Memory | DLQ, circuit breakers, replay | Production reliability |
+| redis_queue/* | Redis Queue | Load balancing, persistence | Production messaging |
+| city_scenario/* | Redis | AI integration, health monitoring | Emergency services |
 
 These examples provide practical, working code that you can use as a starting point for your own SmartMessage implementations.

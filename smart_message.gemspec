@@ -44,6 +44,8 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'zeitwerk'
   spec.add_dependency 'lumberjack'
   spec.add_dependency 'colorize'
+  spec.add_dependency 'async'
+  spec.add_dependency 'async-redis'
 
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'rake'

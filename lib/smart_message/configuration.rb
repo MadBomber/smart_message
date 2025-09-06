@@ -191,7 +191,7 @@ module SmartMessage
     # Framework's built-in default serializer (JSON)
     def framework_default_serializer
       SmartMessage::Serializer::Json.new
-    rescue => e
+    rescue
       # Fallback if JSON serializer is not available
       nil
     end

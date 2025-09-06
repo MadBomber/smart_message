@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="900" height="700" viewBox="0 0 900 700" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .bg { fill: transparent; }
+      .dispatch-group { fill: #2a1a1a; stroke: #ff4a4a; stroke-width: 2; rx: 12; }
+      .citizen-group { fill: #1a2a1a; stroke: #4aff4a; stroke-width: 2; rx: 12; }
+      .visitor-group { fill: #1a1a2a; stroke: #4a4aff; stroke-width: 2; rx: 12; }
+      .component { fill: #3a3a3a; stroke: #ffaa4a; stroke-width: 1; rx: 6; }
+      .flow { stroke: #ffaa4a; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .text { fill: #ffffff; font-family: 'Arial', sans-serif; font-size: 11px; }
+      .group-title { fill: #4a9eff; font-family: 'Arial', sans-serif; font-size: 14px; font-weight: bold; }
+      .title { fill: #4a9eff; font-family: 'Arial', sans-serif; font-size: 18px; font-weight: bold; }
+      .subtitle { fill: #ffaa4a; font-family: 'Arial', sans-serif; font-size: 12px; }
+    </style>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#ffaa4a" />
+    </marker>
+  </defs>
+  
+  <!-- Background -->
+  <rect class="bg" width="900" height="700"/>
+  
+  <!-- Title -->
+  <text x="450" y="25" text-anchor="middle" class="title">Service Internal Architecture</text>
+  <text x="450" y="45" text-anchor="middle" class="subtitle">Emergency Services Communication System Components</text>
+  
+  <!-- Emergency Dispatch Center Group -->
+  <rect x="50" y="80" width="350" height="200" class="dispatch-group"/>
+  <text x="60" y="100" class="group-title">📞 Emergency Dispatch Center (911)</text>
+  
+  <!-- Dispatch components -->
+  <rect x="70" y="120" width="130" height="40" class="component"/>
+  <text x="135" y="145" text-anchor="middle" class="text">911 Call Listener</text>
+  
+  <rect x="230" y="120" width="130" height="40" class="component"/>
+  <text x="295" y="145" text-anchor="middle" class="text">Call Analysis Engine</text>
+  
+  <rect x="150" y="180" width="130" height="40" class="component"/>
+  <text x="215" y="205" text-anchor="middle" class="text">Department Router</text>
+  
+  <rect x="70" y="240" width="90" height="30" class="component"/>
+  <text x="115" y="260" text-anchor="middle" class="text">Fire Dispatcher</text>
+  
+  <rect x="190" y="240" width="90" height="30" class="component"/>
+  <text x="235" y="260" text-anchor="middle" class="text">Police Dispatcher</text>
+  
+  <rect x="300" y="180" width="90" height="30" class="component"/>
+  <text x="345" y="200" text-anchor="middle" class="text">Call Tracking</text>
+  
+  <rect x="300" y="220" width="90" height="30" class="component"/>
+  <text x="345" y="240" text-anchor="middle" class="text">Statistics Engine</text>
+  
+  <!-- Dispatch flows -->
+  <path d="M 200 140 L 230 140" class="flow"/>
+  <path d="M 295 160 L 215 180" class="flow"/>
+  <path d="M 180 205 L 115 240" class="flow"/>
+  <path d="M 250 205 L 235 240" class="flow"/>
+  <path d="M 280 195 L 300 195" class="flow"/>
+  <path d="M 345 210 L 345 220" class="flow"/>
+  
+  <!-- Citizen Group -->
+  <rect x="50" y="320" width="350" height="160" class="citizen-group"/>
+  <text x="60" y="340" class="group-title">👤 Citizen</text>
+  
+  <!-- Citizen components -->
+  <rect x="70" y="360" width="120" height="30" class="component"/>
+  <text x="130" y="380" text-anchor="middle" class="text">Emergency Scenarios</text>
+  
+  <rect x="210" y="360" width="100" height="30" class="component"/>
+  <text x="260" y="380" text-anchor="middle" class="text">Random Selection</text>
+  
+  <rect x="140" y="410" width="120" height="30" class="component"/>
+  <text x="200" y="430" text-anchor="middle" class="text">911 Call Generator</text>
+  
+  <rect x="280" y="410" width="100" height="30" class="component"/>
+  <text x="330" y="430" text-anchor="middle" class="text">Message Publisher</text>
+  
+  <rect x="70" y="450" width="90" height="20" class="component"/>
+  <text x="115" y="463" text-anchor="middle" class="text">Interactive Mode</text>
+  
+  <rect x="190" y="450" width="90" height="20" class="component"/>
+  <text x="235" y="463" text-anchor="middle" class="text">Automatic Mode</text>
+  
+  <!-- Citizen flows -->
+  <path d="M 190 375 L 210 375" class="flow"/>
+  <path d="M 260 390 L 200 410" class="flow"/>
+  <path d="M 260 425 L 280 425" class="flow"/>
+  <path d="M 115 450 L 235 390" class="flow"/>
+  <path d="M 235 450 L 260 390" class="flow"/>
+  
+  <!-- Smart Visitor Group -->
+  <rect x="450" y="80" width="400" height="400" class="visitor-group"/>
+  <text x="460" y="100" class="group-title">🧑‍💼 Smart Visitor (AI-Powered)</text>
+  
+  <!-- Main AI flow -->
+  <rect x="470" y="120" width="110" height="30" class="component"/>
+  <text x="525" y="140" text-anchor="middle" class="text">Incident Observer</text>
+  
+  <rect x="470" y="170" width="120" height="30" class="component"/>
+  <text x="530" y="190" text-anchor="middle" class="text">AI Message Analyzer</text>
+  
+  <rect x="470" y="220" width="120" height="30" class="component"/>
+  <text x="530" y="240" text-anchor="middle" class="text">RubyLLM Integration</text>
+  
+  <rect x="470" y="270" width="110" height="30" class="component"/>
+  <text x="525" y="290" text-anchor="middle" class="text">Message Generator</text>
+  
+  <rect x="470" y="320" width="110" height="30" class="component"/>
+  <text x="525" y="340" text-anchor="middle" class="text">Emergency Publisher</text>
+  
+  <!-- Secondary AI analysis flow -->
+  <rect x="650" y="170" width="120" height="30" class="component"/>
+  <text x="710" y="190" text-anchor="middle" class="text">Message Discovery</text>
+  
+  <rect x="650" y="220" width="120" height="30" class="component"/>
+  <text x="710" y="240" text-anchor="middle" class="text">Property Analysis</text>
+  
+  <rect x="650" y="270" width="130" height="30" class="component"/>
+  <text x="715" y="290" text-anchor="middle" class="text">AI Content Generation</text>
+  
+  <!-- Visitor flows -->
+  <path d="M 525 150 L 525 170" class="flow"/>
+  <path d="M 530 200 L 530 220" class="flow"/>
+  <path d="M 530 250 L 525 270" class="flow"/>
+  <path d="M 525 300 L 525 320" class="flow"/>
+  
+  <path d="M 710 200 L 710 220" class="flow"/>
+  <path d="M 710 250 L 715 270" class="flow"/>
+  
+  <!-- Cross-connections -->
+  <path d="M 590 185 L 650 185" class="flow"/>
+  <path d="M 650 235 L 590 235" class="flow"/>
+  <path d="M 650 285 L 580 285" class="flow"/>
+  
+  <!-- System Integration Notes -->
+  <rect x="50" y="520" width="800" height="160" fill="#1a1a1a" stroke="#4a9eff" rx="8"/>
+  <text x="70" y="545" class="group-title">System Integration Features</text>
+  
+  <text x="70" y="570" class="text">🔄 Message Flow Coordination:</text>
+  <text x="90" y="585" class="text">• Emergency Dispatch routes calls based on emergency type analysis</text>
+  <text x="90" y="600" class="text">• Citizens can operate in interactive or automatic mode for testing scenarios</text>
+  <text x="90" y="615" class="text">• AI Visitor uses RubyLLM for intelligent message type selection and content generation</text>
+  
+  <text x="450" y="570" class="text">🤖 AI Intelligence Components:</text>
+  <text x="470" y="585" class="text">• Dynamic message discovery analyzes available SmartMessage classes</text>
+  <text x="470" y="600" class="text">• Property analysis determines required fields for each message type</text>
+  <text x="470" y="615" class="text">• Content generation creates realistic data for emergency scenarios</text>
+  
+  <text x="70" y="640" class="text">📊 System Monitoring:</text>
+  <text x="90" y="655" class="text">• Call tracking maintains statistics on emergency response coordination</text>
+  <text x="90" y="670" class="text">• Statistics engine provides performance analytics and response time metrics</text>
+</svg>
