@@ -449,6 +449,58 @@ end
 # New messages gain pattern-matching capabilities
 ```
 
+## Examples
+
+The `examples/redis/` directory contains production-ready examples demonstrating Redis Transport capabilities:
+
+### IoT and Real-Time Messaging
+- **[01_smart_home_iot_demo.rb](../../examples/redis/01_smart_home_iot_demo.rb)** - Complete smart home IoT system with Redis pub/sub
+  - Real-time sensor data publishing (temperature, motion, battery levels)
+  - Device command routing with prefix-based filtering
+  - Alert generation and dashboard monitoring
+  - Multi-process distributed architecture
+
+### Key Features Demonstrated
+
+The IoT example showcases all Redis Transport capabilities:
+- **Direct Redis Pub/Sub** - High-performance message broadcasting
+- **Channel-Based Routing** - Each message type uses dedicated channels
+- **Device-Specific Filtering** - Commands routed by device ID prefixes
+- **Real-Time Data Flow** - Continuous sensor data streaming
+- **Multi-Process Communication** - Distributed system simulation
+
+### Running Examples
+
+```bash
+# Prerequisites: Start Redis server
+redis-server
+
+# Navigate to the SmartMessage directory
+cd smart_message
+
+# Run the Redis Transport IoT demo
+ruby examples/redis/01_smart_home_iot_demo.rb
+
+# Monitor Redis channels during the demo
+redis-cli MONITOR
+```
+
+### Example Architecture
+
+The IoT demo creates a complete distributed system:
+- **5 IoT processes** - Sensors publishing data every 3-5 seconds
+- **Dashboard process** - Aggregating and displaying system status
+- **Redis channels** - `SensorDataMessage`, `DeviceCommandMessage`, `AlertMessage`
+- **Device filtering** - THERM-, CAM-, LOCK- prefix routing
+
+Each example includes comprehensive logging and demonstrates production-ready patterns for Redis-based messaging systems.
+
+### Additional Resources
+
+For more Redis Transport examples and patterns, also see:
+- **[Memory Transport Examples](../../examples/memory/)** - Can be adapted to Redis Transport by changing configuration
+- **[Complete Documentation](../../examples/redis/smart_home_iot_dataflow.md)** - Detailed data flow analysis with SVG diagrams
+
 ## Related Documentation
 
 - [Redis Enhanced Transport](redis-enhanced-transport.md) - Advanced routing with patterns

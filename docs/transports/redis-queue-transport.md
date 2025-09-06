@@ -1185,4 +1185,120 @@ end
 | `pool_timeout` | Integer | `1` | Connection pool timeout |
 | `debug` | Boolean | `false` | Enable debug logging |
 
+## Examples
+
+The `examples/redis_queue/` directory contains comprehensive, production-ready examples demonstrating Redis Queue Transport capabilities:
+
+### Core Queue Messaging
+- **[01_basic_messaging.rb](../../examples/redis_queue/01_basic_messaging.rb)** - Foundation queue messaging patterns
+  - Basic message publishing and consumption
+  - Consumer group configuration
+  - Queue-based message processing
+
+- **[01_comprehensive_examples.rb](../../examples/redis_queue/01_comprehensive_examples.rb)** - Complete feature demonstration
+  - All Redis Queue Transport capabilities in one example
+  - Pattern routing, load balancing, error handling
+  - Production patterns and best practices
+
+### Advanced Routing & Patterns
+- **[02_pattern_routing.rb](../../examples/redis_queue/02_pattern_routing.rb)** - RabbitMQ-style pattern routing
+  - Topic-based routing with patterns
+  - Wildcard subscriptions (`#`, `*`)
+  - Complex routing scenarios
+
+- **[03_fluent_api.rb](../../examples/redis_queue/03_fluent_api.rb)** - Fluent API usage examples
+  - Chain-based subscription configuration
+  - Dynamic routing with builder pattern
+  - Readable subscription management
+
+### Production Features
+- **[04_load_balancing.rb](../../examples/redis_queue/04_load_balancing.rb)** - Load balancing across workers
+  - Consumer group scaling
+  - Work distribution patterns
+  - High-availability setups
+
+- **[05_microservices.rb](../../examples/redis_queue/05_microservices.rb)** - Microservices communication
+  - Service-to-service messaging
+  - Distributed system coordination
+  - Cross-service event handling
+
+- **[06_emergency_alerts.rb](../../examples/redis_queue/06_emergency_alerts.rb)** - Emergency alert system
+  - Priority message handling
+  - Alert escalation workflows
+  - Critical message processing
+
+- **[07_queue_management.rb](../../examples/redis_queue/07_queue_management.rb)** - Queue management utilities
+  - Queue monitoring and statistics
+  - Dead letter queue handling
+  - Performance optimization techniques
+
+### Enhanced Transport Integration
+- **[enhanced_01_basic_patterns.rb](../../examples/redis_queue/enhanced_01_basic_patterns.rb)** - Enhanced transport patterns
+- **[enhanced_02_fluent_api.rb](../../examples/redis_queue/enhanced_02_fluent_api.rb)** - Enhanced fluent API
+- **[enhanced_03_dual_publishing.rb](../../examples/redis_queue/enhanced_03_dual_publishing.rb)** - Dual publishing strategies
+- **[enhanced_04_advanced_routing.rb](../../examples/redis_queue/enhanced_04_advanced_routing.rb)** - Advanced routing scenarios
+
+### Key Features Demonstrated
+
+The Redis Queue examples showcase enterprise-grade messaging capabilities:
+- **Persistent Queues** - Guaranteed message delivery with Redis Streams
+- **Load Balancing** - Work distribution across consumer groups
+- **Pattern Routing** - RabbitMQ-style topic routing (`user.orders.#`)
+- **Dead Letter Queues** - Failed message handling and replay
+- **Circuit Breakers** - Resilient error handling and recovery
+- **Performance Monitoring** - Queue statistics and health monitoring
+- **Fluent API** - Builder pattern for complex subscriptions
+
+### Running Examples
+
+```bash
+# Prerequisites: Start Redis server (version 5.0+)
+redis-server
+
+# Navigate to the SmartMessage directory
+cd smart_message
+
+# Run queue transport examples
+ruby examples/redis_queue/01_basic_messaging.rb
+ruby examples/redis_queue/02_pattern_routing.rb
+ruby examples/redis_queue/04_load_balancing.rb
+
+# Monitor queue activity
+redis-cli XINFO GROUPS smart_message.queue.TestMessage
+redis-cli XLEN smart_message.queue.TestMessage
+```
+
+### Example Patterns
+
+The queue examples demonstrate these routing patterns:
+- **Service patterns**: `user.orders.#`, `payment.*.processed`
+- **Priority routing**: `urgent.*`, `normal.*`, `bulk.*`
+- **Geographic routing**: `*.us-east.#`, `*.eu-west.#`
+- **System patterns**: `system.alerts.#`, `monitoring.*.stats`
+
+### Production Features
+
+The Redis Queue examples demonstrate enterprise requirements:
+- **High Availability** - Consumer group failover and recovery
+- **Scalability** - Horizontal scaling with multiple workers
+- **Durability** - Message persistence with Redis Streams
+- **Observability** - Comprehensive monitoring and metrics
+- **Error Handling** - Dead letter queues and retry mechanisms
+
+Each example includes detailed logging, error handling, and demonstrates production-ready patterns for mission-critical messaging systems.
+
+### Additional Resources
+
+For comprehensive Redis Queue documentation:
+- **[Redis Queue Getting Started Guide](../guides/redis-queue-getting-started.md)** - Step-by-step setup
+- **[Redis Queue Production Guide](../guides/redis-queue-production.md)** - Production deployment
+- **[Redis Queue Patterns Guide](../guides/redis-queue-patterns.md)** - Advanced messaging patterns
+
+## Related Documentation
+
+- [Redis Transport](redis-transport.md) - Basic Redis pub/sub transport
+- [Redis Enhanced Transport](redis-enhanced-transport.md) - Enhanced routing capabilities  
+- [Transport Comparison](redis-transport-comparison.md) - Compare all Redis transports
+- [Transport Overview](../reference/transports.md) - All available transports
+
 The Redis Queue Transport represents the pinnacle of SmartMessage's transport evolution, combining the simplicity of Redis with the sophistication of enterprise message brokers. Its unique architecture delivers both the performance characteristics developers need and the routing intelligence that complex applications demand.

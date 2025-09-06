@@ -153,7 +153,7 @@ MyMessage.unsubscribe(block_id)
 
 ## Examples
 
-### 1. New Working Example (`examples/05_proc_handlers.rb`)
+### 1. New Working Example (`examples/memory/07_proc_handlers_demo.rb`)
 
 Complete demonstration of all handler types:
 - Default handler (self.process)
@@ -163,7 +163,7 @@ Complete demonstration of all handler types:
 - Method handlers (service classes)
 - Handler management and unsubscription
 
-### 2. Enhanced IoT Example (`examples/04_redis_smart_home_iot.rb`)
+### 2. Enhanced IoT Example (`examples/redis/01_smart_home_iot_demo.rb`)
 
 Production-ready Redis transport example showing real-world usage patterns.
 

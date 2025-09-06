@@ -453,11 +453,72 @@ Applications requiring RabbitMQ-style routing without RabbitMQ complexity.
 - [Redis Queue Transport](redis-queue-transport.md) - Persistent queues with load balancing
 - [Transport Overview](../reference/transports.md) - All available transports
 
-## Examples Repository
+## Examples
 
-The [Enhanced Transport Examples](https://github.com/madbomber/smart_message/tree/main/examples/redis_enhanced) repository contains comprehensive working examples demonstrating all features:
+The `examples/redis_enhanced/` directory contains comprehensive examples demonstrating Redis Enhanced Transport capabilities:
 
-- **Pattern Subscriptions** - Basic wildcard pattern usage
-- **Fluent API** - Complex subscription building  
-- **Dual Publishing** - Backwards compatibility demonstration
-- **Microservices Routing** - Advanced service communication patterns
+### Advanced Routing Patterns
+- **[enhanced_01_basic_patterns.rb](../../examples/redis_enhanced/enhanced_01_basic_patterns.rb)** - Foundation patterns for enhanced routing
+  - Simple subscriber patterns with wildcards
+  - Basic pattern matching and subscription filtering
+  - Enhanced routing setup and configuration
+
+- **[enhanced_02_fluent_api.rb](../../examples/redis_enhanced/enhanced_02_fluent_api.rb)** - Fluent API usage examples
+  - Chain-based subscription configuration
+  - Dynamic pattern building and modification
+  - Fluent interface for complex routing scenarios
+
+- **[enhanced_03_dual_publishing.rb](../../examples/redis_enhanced/enhanced_03_dual_publishing.rb)** - Dual publishing strategies
+  - Broadcasting to multiple patterns simultaneously
+  - Pattern-specific message customization
+  - Load balancing across pattern-matched subscribers
+
+- **[enhanced_04_advanced_routing.rb](../../examples/redis_enhanced/enhanced_04_advanced_routing.rb)** - Complex routing scenarios
+  - Multi-level pattern hierarchies
+  - Conditional routing based on message content
+  - Dynamic subscriber management and pattern updates
+
+### Key Features Demonstrated
+
+The enhanced examples showcase unique Redis Enhanced Transport capabilities:
+- **Pattern-Based Subscriptions** - Wildcard and regex pattern matching
+- **Advanced Channel Routing** - Beyond simple class-name channels
+- **Fluent Configuration API** - Chainable subscription setup
+- **Dynamic Routing** - Runtime pattern modification
+- **Complex Message Filtering** - Content-based routing decisions
+
+### Running Examples
+
+```bash
+# Prerequisites: Start Redis server
+redis-server
+
+# Navigate to the SmartMessage directory
+cd smart_message
+
+# Run enhanced transport examples
+ruby examples/redis_enhanced/enhanced_01_basic_patterns.rb
+ruby examples/redis_enhanced/enhanced_02_fluent_api.rb
+ruby examples/redis_enhanced/enhanced_04_advanced_routing.rb
+
+# Monitor pattern-based routing
+redis-cli PSUBSCRIBE "*"
+```
+
+### Example Patterns
+
+The enhanced examples demonstrate these routing patterns:
+- **Service patterns**: `user.*`, `order.*`, `payment.*`
+- **Environment patterns**: `*.dev`, `*.staging`, `*.prod`
+- **Priority patterns**: `urgent.*`, `normal.*`, `low.*`
+- **Geographic patterns**: `*.us-east`, `*.eu-west`, `*.asia`
+
+### Advanced Features
+
+The enhanced transport examples also show:
+- **Backward compatibility** with standard Redis Transport
+- **Performance optimizations** for pattern-heavy workloads
+- **Error handling** for pattern mismatch scenarios
+- **Testing strategies** for pattern-based routing
+
+Each example builds on the previous ones, showing progressively more sophisticated routing capabilities that make Redis Enhanced Transport ideal for complex, distributed messaging architectures.
