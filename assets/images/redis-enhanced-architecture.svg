@@ -1,0 +1,88 @@
+<svg width="900" height="400" xmlns="http://www.w3.org/2000/svg" style="background: transparent;">
+  <defs>
+    <style>
+      .title { font: bold 18px sans-serif; fill: #e1e5e9; text-anchor: middle; }
+      .label { font: 14px sans-serif; fill: #c9d1d9; text-anchor: middle; }
+      .small-label { font: 12px sans-serif; fill: #8b949e; text-anchor: middle; }
+      .box { fill: #21262d; stroke: #30363d; stroke-width: 2; rx: 8; }
+      .highlight-box { fill: #0d1117; stroke: #f85149; stroke-width: 2; rx: 8; }
+      .enhanced-box { fill: #0d1117; stroke: #a5a5ff; stroke-width: 2; rx: 8; }
+      .pattern-box { fill: #161b22; stroke: #ffa657; stroke-width: 2; rx: 6; }
+      .arrow { stroke: #58a6ff; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .data-flow { stroke: #56d364; stroke-width: 2; fill: none; marker-end: url(#arrowhead-green); }
+      .dual-flow { stroke: #ffa657; stroke-width: 2; fill: none; marker-end: url(#arrowhead-orange); }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#58a6ff" />
+    </marker>
+    <marker id="arrowhead-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#56d364" />
+    </marker>
+    <marker id="arrowhead-orange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ffa657" />
+    </marker>
+  </defs>
+  
+  <!-- Title -->
+  <text x="450" y="30" class="title">Redis Enhanced Transport Architecture</text>
+  
+  <!-- Publisher -->
+  <rect x="50" y="80" width="120" height="80" class="box"/>
+  <text x="110" y="105" class="label">Publisher</text>
+  <text x="110" y="125" class="small-label">OrderMessage</text>
+  <text x="110" y="140" class="small-label">from: 'api'</text>
+  <text x="110" y="155" class="small-label">to: 'order-svc'</text>
+  
+  <!-- Enhanced Router -->
+  <rect x="250" y="80" width="140" height="80" class="enhanced-box"/>
+  <text x="320" y="105" class="label">Enhanced Router</text>
+  <text x="320" y="125" class="small-label">3-part naming:</text>
+  <text x="320" y="140" class="small-label">message_type</text>
+  <text x="320" y="155" class="small-label">.from.to</text>
+  
+  <!-- Dual Channels -->
+  <rect x="470" y="50" width="150" height="50" class="highlight-box"/>
+  <text x="545" y="70" class="small-label">Original Channel:</text>
+  <text x="545" y="85" class="small-label">"OrderMessage"</text>
+  
+  <rect x="470" y="120" width="150" height="50" class="enhanced-box"/>
+  <text x="545" y="140" class="small-label">Enhanced Channel:</text>
+  <text x="545" y="155" class="small-label">"ordermessage.api.order_svc"</text>
+  
+  <!-- Pattern Matcher -->
+  <rect x="700" y="80" width="150" height="80" class="pattern-box"/>
+  <text x="775" y="105" class="label">Pattern Matcher</text>
+  <text x="775" y="125" class="small-label">Wildcards:</text>
+  <text x="775" y="140" class="small-label">• ordermessage.*.*</text>
+  <text x="775" y="155" class="small-label">• *.api.*</text>
+  
+  <!-- Arrows -->
+  <line x1="170" y1="120" x2="250" y2="120" class="arrow"/>
+  
+  <!-- Dual publishing arrows -->
+  <line x1="390" y1="100" x2="470" y2="75" class="dual-flow"/>
+  <line x1="390" y1="140" x2="470" y2="145" class="dual-flow"/>
+  
+  <!-- To pattern matcher -->
+  <line x1="620" y1="145" x2="700" y2="130" class="data-flow"/>
+  
+  <!-- Fluent API Example -->
+  <rect x="50" y="200" width="800" height="120" class="pattern-box"/>
+  <text x="450" y="225" class="label">Enhanced Features</text>
+  
+  <text x="150" y="250" class="small-label">Pattern Subscriptions:</text>
+  <text x="150" y="265" class="small-label">transport.subscribe_pattern("*.api.*")</text>
+  <text x="150" y="280" class="small-label">transport.subscribe_to_alerts()</text>
+  
+  <text x="450" y="250" class="small-label">Fluent API:</text>
+  <text x="450" y="265" class="small-label">transport.where.from('api')</text>
+  <text x="450" y="280" class="small-label">  .to('order-svc').subscribe</text>
+  
+  <text x="700" y="250" class="small-label">Backwards Compatible:</text>
+  <text x="700" y="265" class="small-label">• Publishes to both channels</text>
+  <text x="700" y="280" class="small-label">• Basic Redis can still subscribe</text>
+  
+  <!-- Key Benefits -->
+  <text x="450" y="350" class="label">Key Benefits: RabbitMQ-style routing + Redis performance + Backwards compatibility</text>
+  <text x="450" y="370" class="small-label">Perfect for microservices requiring intelligent routing without message persistence</text>
+</svg>

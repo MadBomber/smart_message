@@ -2,70 +2,102 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://madbomber.github.io/smart_message/</loc>
-         <lastmod>2025-08-22</lastmod>
+         <lastmod>2025-09-06</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/smart_message/core-concepts/addressing/</loc>
-         <lastmod>2025-08-22</lastmod>
+         <lastmod>2025-09-06</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/smart_message/core-concepts/architecture/</loc>
-         <lastmod>2025-08-22</lastmod>
+         <lastmod>2025-09-06</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/smart_message/core-concepts/dispatcher/</loc>
-         <lastmod>2025-08-22</lastmod>
+         <lastmod>2025-09-06</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/smart_message/core-concepts/message-filtering/</loc>
-         <lastmod>2025-08-22</lastmod>
+         <lastmod>2025-09-06</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/smart_message/core-concepts/message-processing/</loc>
-         <lastmod>2025-08-22</lastmod>
+         <lastmod>2025-09-06</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/smart_message/core-concepts/properties/</loc>
-         <lastmod>2025-08-22</lastmod>
+         <lastmod>2025-09-06</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/smart_message/development/ideas/</loc>
-         <lastmod>2025-08-22</lastmod>
+         <lastmod>2025-09-06</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/smart_message/development/troubleshooting/</loc>
-         <lastmod>2025-08-22</lastmod>
+         <lastmod>2025-09-06</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/smart_message/getting-started/examples/</loc>
-         <lastmod>2025-08-22</lastmod>
+         <lastmod>2025-09-06</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/smart_message/getting-started/quick-start/</loc>
-         <lastmod>2025-08-22</lastmod>
+         <lastmod>2025-09-06</lastmod>
+    </url>
+    <url>
+         <loc>https://madbomber.github.io/smart_message/guides/redis-queue-getting-started/</loc>
+         <lastmod>2025-09-06</lastmod>
+    </url>
+    <url>
+         <loc>https://madbomber.github.io/smart_message/guides/redis-queue-patterns/</loc>
+         <lastmod>2025-09-06</lastmod>
+    </url>
+    <url>
+         <loc>https://madbomber.github.io/smart_message/guides/redis-queue-production/</loc>
+         <lastmod>2025-09-06</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/smart_message/reference/dead-letter-queue/</loc>
-         <lastmod>2025-08-22</lastmod>
+         <lastmod>2025-09-06</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/smart_message/reference/logging/</loc>
-         <lastmod>2025-08-22</lastmod>
+         <lastmod>2025-09-06</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/smart_message/reference/message-deduplication/</loc>
-         <lastmod>2025-08-22</lastmod>
+         <lastmod>2025-09-06</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/smart_message/reference/proc-handlers/</loc>
-         <lastmod>2025-08-22</lastmod>
+         <lastmod>2025-09-06</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/smart_message/reference/serializers/</loc>
-         <lastmod>2025-08-22</lastmod>
+         <lastmod>2025-09-06</lastmod>
     </url>
     <url>
          <loc>https://madbomber.github.io/smart_message/reference/transports/</loc>
-         <lastmod>2025-08-22</lastmod>
+         <lastmod>2025-09-06</lastmod>
+    </url>
+    <url>
+         <loc>https://madbomber.github.io/smart_message/transports/memory-transport/</loc>
+         <lastmod>2025-09-06</lastmod>
+    </url>
+    <url>
+         <loc>https://madbomber.github.io/smart_message/transports/redis-enhanced-transport/</loc>
+         <lastmod>2025-09-06</lastmod>
+    </url>
+    <url>
+         <loc>https://madbomber.github.io/smart_message/transports/redis-queue-transport/</loc>
+         <lastmod>2025-09-06</lastmod>
+    </url>
+    <url>
+         <loc>https://madbomber.github.io/smart_message/transports/redis-transport-comparison/</loc>
+         <lastmod>2025-09-06</lastmod>
+    </url>
+    <url>
+         <loc>https://madbomber.github.io/smart_message/transports/redis-transport/</loc>
+         <lastmod>2025-09-06</lastmod>
     </url>
 </urlset>

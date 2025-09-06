@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="500" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .bg { fill: transparent; }
+      .handler-a-group { fill: #1a2a3a; stroke: #4a9eff; stroke-width: 2; rx: 10; }
+      .handler-b-group { fill: #2a1a3a; stroke: #aa4aff; stroke-width: 2; rx: 10; }
+      .dispatcher-group { fill: #3a1a1a; stroke: #ff4a4a; stroke-width: 2; rx: 10; }
+      .component { fill: #2a2a2a; stroke: #ffffff; stroke-width: 1; rx: 5; }
+      .message { fill: #1a3a2a; stroke: #4aff4a; stroke-width: 2; rx: 8; }
+      .process-flow { stroke: #4aff4a; stroke-width: 3; fill: none; marker-end: url(#arrowhead-green); }
+      .check-flow { stroke: #ffaa4a; stroke-width: 2; fill: none; marker-end: url(#arrowhead-orange); }
+      .success-flow { stroke: #4aff4a; stroke-width: 2; fill: none; marker-end: url(#arrowhead-green); }
+      .skip-flow { stroke: #ff4a4a; stroke-width: 2; fill: none; marker-end: url(#arrowhead-red); stroke-dasharray: 5,5; }
+      .add-flow { stroke: #4a9eff; stroke-width: 2; fill: none; marker-end: url(#arrowhead-blue); }
+      .text { fill: #ffffff; font-family: 'Arial', sans-serif; font-size: 11px; }
+      .title { fill: #4a9eff; font-family: 'Arial', sans-serif; font-size: 18px; font-weight: bold; }
+      .group-title { fill: #ffffff; font-family: 'Arial', sans-serif; font-size: 13px; font-weight: bold; }
+      .component-title { fill: #ffffff; font-family: 'Arial', sans-serif; font-size: 12px; font-weight: bold; }
+      .note { fill: #aaaaaa; font-family: 'Arial', sans-serif; font-size: 10px; }
+    </style>
+    <marker id="arrowhead-green" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#4aff4a" />
+    </marker>
+    <marker id="arrowhead-orange" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#ffaa4a" />
+    </marker>
+    <marker id="arrowhead-red" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#ff4a4a" />
+    </marker>
+    <marker id="arrowhead-blue" markerWidth="8" markerHeight="6" 
+            refX="8" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#4a9eff" />
+    </marker>
+  </defs>
+  
+  <!-- Background -->
+  <rect class="bg" width="800" height="500"/>
+  
+  <!-- Title -->
+  <text x="400" y="25" text-anchor="middle" class="title">DDQ Architecture - Handler-Scoped Deduplication</text>
+  
+  <!-- Handler A DDQ Group -->
+  <rect x="50" y="80" width="200" height="180" class="handler-a-group"/>
+  <text x="150" y="100" text-anchor="middle" class="group-title">Handler A DDQ</text>
+  
+  <rect x="70" y="120" width="160" height="40" class="component"/>
+  <text x="150" y="135" text-anchor="middle" class="component-title">Circular Array</text>
+  <text x="150" y="150" text-anchor="middle" class="text">FIFO UUID Storage</text>
+  
+  <rect x="70" y="170" width="160" height="40" class="component"/>
+  <text x="150" y="185" text-anchor="middle" class="component-title">Lookup Set</text>
+  <text x="150" y="200" text-anchor="middle" class="text">O(1) Duplicate Check</text>
+  
+  <rect x="70" y="220" width="160" height="30" class="component"/>
+  <text x="150" y="240" text-anchor="middle" class="component-title">Mutex Lock</text>
+  
+  <!-- Handler B DDQ Group -->
+  <rect x="300" y="80" width="200" height="180" class="handler-b-group"/>
+  <text x="400" y="100" text-anchor="middle" class="group-title">Handler B DDQ</text>
+  
+  <rect x="320" y="120" width="160" height="40" class="component"/>
+  <text x="400" y="135" text-anchor="middle" class="component-title">Circular Array</text>
+  <text x="400" y="150" text-anchor="middle" class="text">FIFO UUID Storage</text>
+  
+  <rect x="320" y="170" width="160" height="40" class="component"/>
+  <text x="400" y="185" text-anchor="middle" class="component-title">Lookup Set</text>
+  <text x="400" y="200" text-anchor="middle" class="text">O(1) Duplicate Check</text>
+  
+  <rect x="320" y="220" width="160" height="30" class="component"/>
+  <text x="400" y="240" text-anchor="middle" class="component-title">Mutex Lock</text>
+  
+  <!-- Message and Dispatcher -->
+  <rect x="50" y="300" width="180" height="60" class="message"/>
+  <text x="140" y="320" text-anchor="middle" class="component-title">Incoming Message</text>
+  <text x="140" y="335" text-anchor="middle" class="text">UUID: abc-123</text>
+  <text x="140" y="350" text-anchor="middle" class="text">Data: { order_id: "123" }</text>
+  
+  <rect x="300" y="300" width="120" height="60" class="dispatcher-group"/>
+  <text x="360" y="325" text-anchor="middle" class="component-title">Dispatcher</text>
+  <text x="360" y="340" text-anchor="middle" class="text">Route to handlers</text>
+  <text x="360" y="355" text-anchor="middle" class="text">Check DDQ per handler</text>
+  
+  <!-- Process Results -->
+  <rect x="520" y="120" width="140" height="40" class="component"/>
+  <text x="590" y="135" text-anchor="middle" class="component-title">Process with Handler A</text>
+  <text x="590" y="150" text-anchor="middle" class="text">✅ UUID Not Found - Process</text>
+  
+  <rect x="520" y="180" width="140" height="40" class="component"/>
+  <text x="590" y="195" text-anchor="middle" class="component-title">Skip Handler B</text>
+  <text x="590" y="210" text-anchor="middle" class="text">❌ UUID Found - Duplicate</text>
+  
+  <!-- Flow arrows -->
+  <!-- Message to Dispatcher -->
+  <path d="M 230 330 L 300 330" class="process-flow"/>
+  
+  <!-- Dispatcher to DDQ checks -->
+  <path d="M 360 300 L 150 210" class="check-flow"/>
+  <path d="M 360 300 L 400 210" class="check-flow"/>
+  
+  <!-- DDQ A to Process (Not Found) -->
+  <path d="M 250 190 L 520 140" class="success-flow"/>
+  
+  <!-- DDQ B to Skip (Found) -->
+  <path d="M 500 190 L 520 200" class="skip-flow"/>
+  
+  <!-- Process A to add UUID back to DDQ A -->
+  <path d="M 590 160 L 590 280 L 150 280 L 150 160" class="add-flow"/>
+  <text x="480" y="275" class="note">Add UUID to Array &amp; Set</text>
+  
+  <!-- Labels -->
+  <text x="280" y="125" class="note">Check Handler A</text>
+  <text x="280" y="195" class="note">Check Handler B</text>
+  <text x="370" y="125" class="note">Not Found</text>
+  <text x="420" y="195" class="note">Found</text>
+  
+  <!-- Architecture Details -->
+  <rect x="50" y="400" width="700" height="80" fill="#1a1a1a" stroke="#4a9eff" rx="8"/>
+  <text x="70" y="425" class="component-title">Key Features:</text>
+  <text x="90" y="440" class="text">• Handler Isolation: Each subscription gets its own DDQ instance</text>
+  <text x="90" y="455" class="text">• O(1) Performance: Hybrid Array + Set data structure for optimal speed</text>
+  <text x="90" y="470" class="text">• Thread Safety: Mutex locks prevent race conditions in concurrent processing</text>
+  
+  <text x="420" y="440" class="text">• Memory Efficient: Circular buffer prevents unbounded growth</text>
+  <text x="420" y="455" class="text">• Storage Backends: Memory (default) or Redis for persistence</text>
+  <text x="420" y="470" class="text">• Automatic Cleanup: UUIDs are automatically evicted via circular buffer</text>
+</svg>

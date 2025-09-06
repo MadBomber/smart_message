@@ -1,0 +1,171 @@
+<svg width="1000" height="600" xmlns="http://www.w3.org/2000/svg" style="background: transparent;">
+  <defs>
+    <style>
+      .title { font: bold 20px sans-serif; fill: #e1e5e9; text-anchor: middle; }
+      .header { font: bold 16px sans-serif; fill: #c9d1d9; text-anchor: middle; }
+      .label { font: 14px sans-serif; fill: #c9d1d9; }
+      .small-label { font: 12px sans-serif; fill: #8b949e; }
+      .feature-label { font: 14px sans-serif; fill: #f0f6fc; }
+      .yes { fill: #56d364; font: bold 14px sans-serif; text-anchor: middle; }
+      .no { fill: #f85149; font: bold 14px sans-serif; text-anchor: middle; }
+      .partial { fill: #ffa657; font: bold 14px sans-serif; text-anchor: middle; }
+      .value { fill: #a5a5ff; font: 14px sans-serif; text-anchor: middle; }
+      .table-border { fill: none; stroke: #30363d; stroke-width: 1; }
+      .header-bg { fill: #161b22; stroke: #30363d; stroke-width: 1; }
+      .row-bg-1 { fill: #0d1117; stroke: #21262d; stroke-width: 1; }
+      .row-bg-2 { fill: #161b22; stroke: #21262d; stroke-width: 1; }
+      .basic-col { fill: #21262d; stroke: #30363d; stroke-width: 1; }
+      .enhanced-col { fill: #1a1d2e; stroke: #a5a5ff; stroke-width: 1; }
+      .queue-col { fill: #1a2e1a; stroke: #56d364; stroke-width: 1; }
+    </style>
+  </defs>
+  
+  <!-- Title -->
+  <text x="500" y="30" class="title">Redis Transport Feature Comparison</text>
+  
+  <!-- Table Headers -->
+  <rect x="50" y="60" width="250" height="40" class="header-bg"/>
+  <rect x="300" y="60" width="200" height="40" class="basic-col"/>
+  <rect x="500" y="60" width="200" height="40" class="enhanced-col"/>
+  <rect x="700" y="60" width="200" height="40" class="queue-col"/>
+  
+  <text x="175" y="85" class="header">Feature</text>
+  <text x="400" y="85" class="header">Basic Redis</text>
+  <text x="600" y="85" class="header">Enhanced Redis</text>
+  <text x="800" y="85" class="header">Redis Queue</text>
+  
+  <!-- Feature Rows -->
+  <g id="row1">
+    <rect x="50" y="100" width="250" height="30" class="row-bg-1"/>
+    <rect x="300" y="100" width="200" height="30" class="row-bg-1"/>
+    <rect x="500" y="100" width="200" height="30" class="row-bg-1"/>
+    <rect x="700" y="100" width="200" height="30" class="row-bg-1"/>
+    <text x="60" y="120" class="feature-label">Message Persistence</text>
+    <text x="400" y="120" class="no">✗ No</text>
+    <text x="600" y="120" class="no">✗ No</text>
+    <text x="800" y="120" class="yes">✓ Yes</text>
+  </g>
+  
+  <g id="row2">
+    <rect x="50" y="130" width="250" height="30" class="row-bg-2"/>
+    <rect x="300" y="130" width="200" height="30" class="row-bg-2"/>
+    <rect x="500" y="130" width="200" height="30" class="row-bg-2"/>
+    <rect x="700" y="130" width="200" height="30" class="row-bg-2"/>
+    <text x="60" y="150" class="feature-label">Pattern Matching</text>
+    <text x="400" y="150" class="no">✗ None</text>
+    <text x="600" y="150" class="yes">✓ Wildcards</text>
+    <text x="800" y="150" class="yes">✓ RabbitMQ-style</text>
+  </g>
+  
+  <g id="row3">
+    <rect x="50" y="160" width="250" height="30" class="row-bg-1"/>
+    <rect x="300" y="160" width="200" height="30" class="row-bg-1"/>
+    <rect x="500" y="160" width="200" height="30" class="row-bg-1"/>
+    <rect x="700" y="160" width="200" height="30" class="row-bg-1"/>
+    <text x="60" y="180" class="feature-label">Load Balancing</text>
+    <text x="400" y="180" class="no">✗ No</text>
+    <text x="600" y="180" class="no">✗ No</text>
+    <text x="800" y="180" class="yes">✓ Consumer Groups</text>
+  </g>
+  
+  <g id="row4">
+    <rect x="50" y="190" width="250" height="30" class="row-bg-2"/>
+    <rect x="300" y="190" width="200" height="30" class="row-bg-2"/>
+    <rect x="500" y="190" width="200" height="30" class="row-bg-2"/>
+    <rect x="700" y="190" width="200" height="30" class="row-bg-2"/>
+    <text x="60" y="210" class="feature-label">Backwards Compatible</text>
+    <text x="400" y="210" class="value">N/A</text>
+    <text x="600" y="210" class="yes">✓ Dual Publishing</text>
+    <text x="800" y="210" class="no">✗ No</text>
+  </g>
+  
+  <g id="row5">
+    <rect x="50" y="220" width="250" height="30" class="row-bg-1"/>
+    <rect x="300" y="220" width="200" height="30" class="row-bg-1"/>
+    <rect x="500" y="220" width="200" height="30" class="row-bg-1"/>
+    <rect x="700" y="220" width="200" height="30" class="row-bg-1"/>
+    <text x="60" y="240" class="feature-label">Fluent API</text>
+    <text x="400" y="240" class="no">✗ No</text>
+    <text x="600" y="240" class="yes">✓ Yes</text>
+    <text x="800" y="240" class="yes">✓ Yes</text>
+  </g>
+  
+  <g id="row6">
+    <rect x="50" y="250" width="250" height="30" class="row-bg-2"/>
+    <rect x="300" y="250" width="200" height="30" class="row-bg-2"/>
+    <rect x="500" y="250" width="200" height="30" class="row-bg-2"/>
+    <rect x="700" y="250" width="200" height="30" class="row-bg-2"/>
+    <text x="60" y="270" class="feature-label">Latency</text>
+    <text x="400" y="270" class="value">~1ms</text>
+    <text x="600" y="270" class="value">~1.2ms</text>
+    <text x="800" y="270" class="value">~0.5ms</text>
+  </g>
+  
+  <g id="row7">
+    <rect x="50" y="280" width="250" height="30" class="row-bg-1"/>
+    <rect x="300" y="280" width="200" height="30" class="row-bg-1"/>
+    <rect x="500" y="280" width="200" height="30" class="row-bg-1"/>
+    <rect x="700" y="280" width="200" height="30" class="row-bg-1"/>
+    <text x="60" y="300" class="feature-label">Concurrent Consumers</text>
+    <text x="400" y="300" class="value">~100s</text>
+    <text x="600" y="300" class="value">~100s</text>
+    <text x="800" y="300" class="value">~1000s</text>
+  </g>
+  
+  <g id="row8">
+    <rect x="50" y="310" width="250" height="30" class="row-bg-2"/>
+    <rect x="300" y="310" width="200" height="30" class="row-bg-2"/>
+    <rect x="500" y="310" width="200" height="30" class="row-bg-2"/>
+    <rect x="700" y="310" width="200" height="30" class="row-bg-2"/>
+    <text x="60" y="330" class="feature-label">Setup Complexity</text>
+    <text x="400" y="330" class="yes">Low</text>
+    <text x="600" y="330" class="partial">Medium</text>
+    <text x="800" y="330" class="no">High</text>
+  </g>
+  
+  <g id="row9">
+    <rect x="50" y="340" width="250" height="30" class="row-bg-1"/>
+    <rect x="300" y="340" width="200" height="30" class="row-bg-1"/>
+    <rect x="500" y="340" width="200" height="30" class="row-bg-1"/>
+    <rect x="700" y="340" width="200" height="30" class="row-bg-1"/>
+    <text x="60" y="360" class="feature-label">Memory Overhead</text>
+    <text x="400" y="360" class="yes">Low</text>
+    <text x="600" y="360" class="partial">Medium</text>
+    <text x="800" y="360" class="partial">Medium-High</text>
+  </g>
+  
+  <g id="row10">
+    <rect x="50" y="370" width="250" height="30" class="row-bg-2"/>
+    <rect x="300" y="370" width="200" height="30" class="row-bg-2"/>
+    <rect x="500" y="370" width="200" height="30" class="row-bg-2"/>
+    <rect x="700" y="370" width="200" height="30" class="row-bg-2"/>
+    <text x="60" y="390" class="feature-label">Message Ordering</text>
+    <text x="400" y="390" class="no">No guarantees</text>
+    <text x="600" y="390" class="no">No guarantees</text>
+    <text x="800" y="390" class="yes">✓ FIFO</text>
+  </g>
+  
+  <!-- Use Case Recommendations -->
+  <text x="500" y="440" class="header">Recommended Use Cases</text>
+  
+  <rect x="50" y="460" width="280" height="100" class="basic-col"/>
+  <text x="190" y="480" class="header">Basic Redis</text>
+  <text x="60" y="500" class="small-label">• Simple pub/sub scenarios</text>
+  <text x="60" y="515" class="small-label">• Development/testing</text>
+  <text x="60" y="530" class="small-label">• Legacy compatibility</text>
+  <text x="60" y="545" class="small-label">• Maximum performance</text>
+  
+  <rect x="360" y="460" width="280" height="100" class="enhanced-col"/>
+  <text x="500" y="480" class="header">Enhanced Redis</text>
+  <text x="370" y="500" class="small-label">• Microservices architecture</text>
+  <text x="370" y="515" class="small-label">• Pattern-based routing</text>
+  <text x="370" y="530" class="small-label">• Migration scenarios</text>
+  <text x="370" y="545" class="small-label">• Intelligent filtering</text>
+  
+  <rect x="670" y="460" width="280" height="100" class="queue-col"/>
+  <text x="810" y="480" class="header">Redis Queue</text>
+  <text x="680" y="500" class="small-label">• Production systems</text>
+  <text x="680" y="515" class="small-label">• Message persistence</text>
+  <text x="680" y="530" class="small-label">• Load balancing</text>
+  <text x="680" y="545" class="small-label">• Enterprise features</text>
+</svg>

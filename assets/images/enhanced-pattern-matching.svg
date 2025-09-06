@@ -1,0 +1,107 @@
+<svg width="900" height="500" xmlns="http://www.w3.org/2000/svg" style="background: transparent;">
+  <defs>
+    <style>
+      .title { font: bold 18px sans-serif; fill: #e1e5e9; text-anchor: middle; }
+      .label { font: 14px sans-serif; fill: #c9d1d9; text-anchor: middle; }
+      .small-label { font: 12px sans-serif; fill: #8b949e; text-anchor: middle; }
+      .code-label { font: 12px monospace; fill: #f0f6fc; }
+      .box { fill: #21262d; stroke: #30363d; stroke-width: 2; rx: 8; }
+      .pattern-box { fill: #0d1117; stroke: #a5a5ff; stroke-width: 2; rx: 6; }
+      .message-box { fill: #161b22; stroke: #56d364; stroke-width: 2; rx: 6; }
+      .match-box { fill: #0d1117; stroke: #ffa657; stroke-width: 2; rx: 6; }
+      .arrow { stroke: #58a6ff; stroke-width: 2; fill: none; marker-end: url(#arrowhead); }
+      .match-flow { stroke: #56d364; stroke-width: 3; fill: none; marker-end: url(#arrowhead-green); }
+      .no-match-flow { stroke: #f85149; stroke-width: 2; fill: none; marker-end: url(#arrowhead-red); stroke-dasharray: 5,5; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#58a6ff" />
+    </marker>
+    <marker id="arrowhead-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#56d364" />
+    </marker>
+    <marker id="arrowhead-red" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#f85149" />
+    </marker>
+  </defs>
+  
+  <!-- Title -->
+  <text x="450" y="30" class="title">Redis Enhanced Transport: Pattern Matching</text>
+  
+  <!-- Pattern Subscriptions Section -->
+  <text x="150" y="65" class="label">Pattern Subscriptions</text>
+  
+  <!-- Pattern Examples -->
+  <rect x="50" y="80" width="200" height="30" class="pattern-box"/>
+  <text x="60" y="100" class="code-label">ordermessage.*.*</text>
+  
+  <rect x="50" y="120" width="200" height="30" class="pattern-box"/>
+  <text x="60" y="140" class="code-label">*.payment_gateway.*</text>
+  
+  <rect x="50" y="160" width="200" height="30" class="pattern-box"/>
+  <text x="60" y="180" class="code-label">alertmessage.*.*</text>
+  
+  <!-- Messages Section -->
+  <text x="500" y="65" class="label">Incoming Messages</text>
+  
+  <!-- Message Examples -->
+  <rect x="350" y="80" width="300" height="30" class="message-box"/>
+  <text x="360" y="100" class="code-label">ordermessage.api_gateway.order_service</text>
+  
+  <rect x="350" y="120" width="300" height="30" class="message-box"/>
+  <text x="360" y="140" class="code-label">paymessage.payment_gateway.bank_api</text>
+  
+  <rect x="350" y="160" width="300" height="30" class="message-box"/>
+  <text x="360" y="180" class="code-label">alertmessage.monitoring.admin_panel</text>
+  
+  <rect x="350" y="200" width="300" height="30" class="message-box"/>
+  <text x="360" y="220" class="code-label">logmessage.web_server.log_aggregator</text>
+  
+  <!-- Matching Results -->
+  <text x="750" y="65" class="label">Match Results</text>
+  
+  <rect x="680" y="80" width="60" height="30" class="match-box"/>
+  <text x="710" y="100" class="small-label">✓ MATCH</text>
+  
+  <rect x="680" y="120" width="60" height="30" class="match-box"/>
+  <text x="710" y="140" class="small-label">✓ MATCH</text>
+  
+  <rect x="680" y="160" width="60" height="30" class="match-box"/>
+  <text x="710" y="180" class="small-label">✓ MATCH</text>
+  
+  <rect x="680" y="200" width="60" height="30" class="box"/>
+  <text x="710" y="220" class="small-label">✗ NO MATCH</text>
+  
+  <!-- Arrows showing matching -->
+  <line x1="250" y1="95" x2="350" y2="95" class="arrow"/>
+  <line x1="650" y1="95" x2="680" y2="95" class="match-flow"/>
+  
+  <line x1="250" y1="135" x2="350" y2="135" class="arrow"/>
+  <line x1="650" y1="135" x2="680" y2="135" class="match-flow"/>
+  
+  <line x1="250" y1="175" x2="350" y2="175" class="arrow"/>
+  <line x1="650" y1="175" x2="680" y2="175" class="match-flow"/>
+  
+  <line x1="650" y1="215" x2="680" y2="215" class="no-match-flow"/>
+  
+  <!-- Wildcard Legend -->
+  <rect x="50" y="260" width="800" height="180" class="box"/>
+  <text x="450" y="285" class="label">Pattern Wildcard Guide</text>
+  
+  <!-- Single Wildcard Examples -->
+  <text x="200" y="310" class="label">Single Wildcard (*)</text>
+  <text x="80" y="335" class="code-label">Pattern: *.payment_gateway.*</text>
+  <text x="80" y="355" class="small-label">✓ Matches: ordermessage.payment_gateway.bank_api</text>
+  <text x="80" y="375" class="small-label">✓ Matches: alertmessage.payment_gateway.admin_panel</text>
+  <text x="80" y="395" class="small-label">✗ No Match: payment_gateway.bank_api (missing first segment)</text>
+  
+  <!-- Multiple Wildcard Examples -->
+  <text x="650" y="310" class="label">Multiple Wildcards</text>
+  <text x="500" y="335" class="code-label">Pattern: ordermessage.*.*</text>
+  <text x="500" y="355" class="small-label">✓ Matches: ordermessage.api.service</text>
+  <text x="500" y="375" class="small-label">✓ Matches: ordermessage.web.database</text>
+  <text x="500" y="395" class="small-label">✗ No Match: ordermessage.api (too few segments)</text>
+  
+  <!-- Key Benefits -->
+  <text x="450" y="450" class="label">Key Benefits: Flexible routing + RabbitMQ-style patterns + Redis performance</text>
+  <text x="450" y="470" class="small-label">Perfect for microservices requiring intelligent message routing without complex infrastructure</text>
+</svg>
