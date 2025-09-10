@@ -19,9 +19,8 @@ class ProcHandlerIntegrationTest < Minitest::Test
   class TestService
     @@method_calls = []
 
-    def self.handle_message(wrapper)
-      data = JSON.parse(wrapper._sm_payload)
-      @@method_calls << "METHOD:#{data['message_id']}"
+    def self.handle_message(message)
+      @@method_calls << "METHOD:#{message.message_id}"
     end
 
     def self.method_calls
@@ -45,10 +44,9 @@ class ProcHandlerIntegrationTest < Minitest::Test
       reset_transport
     end
 
-    def self.process(wrapper)
-      data = JSON.parse(wrapper._sm_payload)
+    def self.process(message)
       @default_processed ||= []
-      @default_processed << data['message_id']
+      @default_processed << message.message_id
     end
 
     def self.default_processed
@@ -66,12 +64,11 @@ class ProcHandlerIntegrationTest < Minitest::Test
     received_messages = []
 
     # Subscribe with a proc
-    message_processor = proc do |wrapper|
-      data = JSON.parse(wrapper._sm_payload)
+    message_processor = proc do |message|
       received_messages << {
-        id: data['message_id'],
-        content: data['content'],
-        header_class: wrapper._sm_header.message_class
+        id: message.message_id,
+        content: message.content,
+        header_class: message._sm_header.message_class
       }
     end
 
@@ -106,21 +103,21 @@ class ProcHandlerIntegrationTest < Minitest::Test
   end
 
   def test_multiple_proc_handlers_with_stdout_transport
-    transport = SmartMessage::Transport::StdoutTransport.new(loopback: true)
+    transport = SmartMessage::Transport::MemoryTransport.new
     IntegrationTestMessage.transport transport
 
     handler1_messages = []
     handler2_messages = []
 
     # Subscribe with two different procs
-    handler1 = proc do |wrapper|
-      data = JSON.parse(wrapper._sm_payload)
-      handler1_messages << "H1:#{data['message_id']}"
+    handler1 = proc do |message|
+      
+      handler1_messages << "H1:#{message.message_id}"
     end
 
-    handler2 = proc do |wrapper|
-      data = JSON.parse(wrapper._sm_payload)
-      handler2_messages << "H2:#{data['message_id']}"
+    handler2 = proc do |message|
+      
+      handler2_messages << "H2:#{message.message_id}"
     end
 
     id1 = IntegrationTestMessage.subscribe(handler1)
@@ -153,13 +150,13 @@ class ProcHandlerIntegrationTest < Minitest::Test
     success_handler_called = false
 
     # Subscribe with a proc that raises an error
-    error_handler = proc do |wrapper|
+    error_handler = proc do |message|
       error_handler_called = true
       raise "Test error in proc handler"
     end
 
     # Subscribe with a proc that succeeds
-    success_handler = proc do |wrapper|
+    success_handler = proc do |message|
       success_handler_called = true
     end
 
@@ -194,7 +191,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
     call_count = 0
 
     # Subscribe with a proc
-    test_proc = proc do |wrapper|
+    test_proc = proc do |message|
       call_count += 1
     end
 
@@ -241,15 +238,15 @@ class ProcHandlerIntegrationTest < Minitest::Test
     IntegrationTestMessage.subscribe
 
     # 2. Block handler
-    _block_id = IntegrationTestMessage.subscribe do |wrapper|
-      data = JSON.parse(wrapper._sm_payload)
-      results << "BLOCK:#{data['message_id']}"
+    _block_id = IntegrationTestMessage.subscribe do |message|
+      
+      results << "BLOCK:#{message.message_id}"
     end
 
     # 3. Proc handler
-    test_proc = proc do |wrapper|
-      data = JSON.parse(wrapper._sm_payload)
-      results << "PROC:#{data['message_id']}"
+    test_proc = proc do |message|
+      
+      results << "PROC:#{message.message_id}"
     end
     _proc_id = IntegrationTestMessage.subscribe(test_proc)
 
@@ -287,12 +284,12 @@ class ProcHandlerIntegrationTest < Minitest::Test
     lambda_calls = []
 
     # Subscribe with a proc (flexible argument checking)
-    test_proc = proc do |wrapper|
+    test_proc = proc do |message|
       proc_calls << "PROC_CALLED"
     end
 
     # Subscribe with a lambda (strict argument checking)
-    test_lambda = lambda do |wrapper|
+    test_lambda = lambda do |message|
       lambda_calls << "LAMBDA_CALLED"
     end
 
@@ -325,13 +322,13 @@ class ProcHandlerIntegrationTest < Minitest::Test
     processing_order = []
 
     # Subscribe with multiple procs that have different processing times
-    fast_proc = proc do |wrapper|
+    fast_proc = proc do |message|
       mutex.synchronize { processing_order << "FAST_START" }
       sleep(0.01)  # Very quick
       mutex.synchronize { processing_order << "FAST_END" }
     end
 
-    slow_proc = proc do |wrapper|
+    slow_proc = proc do |message|
       mutex.synchronize { processing_order << "SLOW_START" }
       sleep(0.05)  # Slower
       mutex.synchronize { processing_order << "SLOW_END" }

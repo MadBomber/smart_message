@@ -9,11 +9,10 @@ module MessageFilteringTest
     property :content
     
     class << self
-      def process(wrapper)
-        message_header, _message_payload = wrapper.split
+      def process(message)
         # Track processed messages for testing
         SS.add(whoami, 'process')
-        SS.add(whoami, 'processed_messages', message_header.uuid)
+        SS.add(whoami, 'processed_messages', message._sm_header.uuid)
       end
     end
   end
@@ -22,9 +21,9 @@ module MessageFilteringTest
     def setup
       SS.reset
       
-      # Configure transport with loopback for testing
+      # Configure transport for testing - use Memory transport for local processing
       FilterTestMessage.config do
-        transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
+        transport SmartMessage::Transport::MemoryTransport.new
       end
       
       # Clear any existing subscriptions

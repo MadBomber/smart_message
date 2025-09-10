@@ -49,11 +49,11 @@ class UserRegistrationMessage < SmartMessage::Base
     description: "Timestamp when user account was created"
 
   config do
-    transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
+    transport SmartMessage::Transport::MemoryTransport.new
   end
 
-  def self.process(wrapper)
-    message_header, message_payload = wrapper.split
+  def process(message)
+    message_header, message_payload = message
     user_data = JSON.parse(message_payload)
     puts "✅ User registration processed: #{user_data['username']} (#{user_data['email']})"
   end
@@ -97,11 +97,11 @@ class UserRegistrationMessageV2 < SmartMessage::Base
     description: "Timestamp when user account was created"
 
   config do
-    transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
+    transport SmartMessage::Transport::MemoryTransport.new
   end
 
-  def self.process(wrapper)
-    message_header, message_payload = wrapper.split
+  def process(message)
+    message_header, message_payload = message
     user_data = JSON.parse(message_payload)
     puts "✅ User registration V2 processed: #{user_data['username']} (#{user_data['email']}, #{user_data['phone_number']})"
   end
@@ -118,7 +118,7 @@ class MultiRequiredMessage < SmartMessage::Base
   property :optional_field, description: "Optional field for comparison"
 
   config do
-    transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
+    transport SmartMessage::Transport::MemoryTransport.new
   end
 end
 

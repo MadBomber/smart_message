@@ -81,8 +81,8 @@ class SensorDataMessage < SmartMessage::Base
     transport SHARED_TRANSPORT
   end
 
-  def self.process(wrapper)
-    message_header, message_payload = wrapper.split
+  def process(message)
+    message_header, message_payload = message
     sensor_data = JSON.parse(message_payload)
     icon = case sensor_data['device_type']
            when 'thermostat' then '🌡️'
@@ -115,8 +115,8 @@ class DeviceCommandMessage < SmartMessage::Base
     transport SHARED_TRANSPORT
   end
 
-  def self.process(wrapper)
-    message_header, message_payload = wrapper.split
+  def process(message)
+    message_header, message_payload = message
     command_data = JSON.parse(message_payload)
     puts "🎛️  Command sent: #{command_data['command']} to #{command_data['device_id']} (requested by #{command_data['requested_by']})"
   end
@@ -147,8 +147,8 @@ class AlertMessage < SmartMessage::Base
     transport SHARED_TRANSPORT
   end
 
-  def self.process(wrapper)
-    message_header, message_payload = wrapper.split
+  def process(message)
+    message_header, message_payload = message
     alert_data = JSON.parse(message_payload)
     severity_icon = case alert_data['severity']
                    when 'low' then '💙'
@@ -175,8 +175,8 @@ class DashboardStatusMessage < SmartMessage::Base
     transport SHARED_TRANSPORT
   end
 
-  def self.process(wrapper)
-    message_header, message_payload = wrapper.split
+  def process(message)
+    message_header, message_payload = message
     status_data = JSON.parse(message_payload)
     status_icon = case status_data['system_status']
                  when 'normal' then '✅'
@@ -205,8 +205,8 @@ class SmartThermostat
     DeviceCommandMessage.subscribe("SmartThermostat.handle_command")
   end
 
-  def self.handle_command(wrapper)
-    message_header, message_payload = wrapper.split
+  def handle_command(message)
+    message_header, message_payload = message
     command_data = JSON.parse(message_payload)
     
     # Only process commands intended for thermostats with our device ID
@@ -289,8 +289,8 @@ class SecurityCamera
     DeviceCommandMessage.subscribe("SecurityCamera.handle_command")
   end
 
-  def self.handle_command(wrapper)
-    message_header, message_payload = wrapper.split
+  def handle_command(message)
+    message_header, message_payload = message
     command_data = JSON.parse(message_payload)
     
     # Only process commands intended for cameras with our device ID
@@ -400,8 +400,8 @@ class SmartDoorLock
     DeviceCommandMessage.subscribe("SmartDoorLock.handle_command")
   end
 
-  def self.handle_command(wrapper)
-    message_header, message_payload = wrapper.split
+  def handle_command(message)
+    message_header, message_payload = message
     command_data = JSON.parse(message_payload)
     
     # Only process commands intended for door locks with our device ID
@@ -482,20 +482,20 @@ class IoTDashboard
     DeviceCommandMessage.subscribe("IoTDashboard.log_command")
   end
 
-  def self.handle_sensor_data(wrapper)
-    message_header, message_payload = wrapper.split
+  def handle_sensor_data(message)
+    message_header, message_payload = message
     @@instance ||= new
     @@instance.process_sensor_data(message_header, message_payload)
   end
 
-  def self.handle_alert(wrapper)
-    message_header, message_payload = wrapper.split
+  def handle_alert(message)
+    message_header, message_payload = message
     @@instance ||= new
     @@instance.process_alert(message_header, message_payload)
   end
 
-  def self.log_command(wrapper)
-    message_header, message_payload = wrapper.split
+  def log_command(message)
+    message_header, message_payload = message
     @@instance ||= new
     @@instance.log_device_command(message_header, message_payload)
   end

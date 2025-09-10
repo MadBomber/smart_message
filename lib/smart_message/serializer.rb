@@ -6,8 +6,9 @@ module SmartMessage
   module Serializer
     class << self
       def default
-        # Check global configuration first, then fall back to framework default
-        SmartMessage.configuration.default_serializer
+        # Return the framework's default serializer class
+        # Note: Serialization is handled by transports, not messages
+        SmartMessage::Serializer::Json
       end
     end
   end

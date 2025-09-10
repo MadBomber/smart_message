@@ -14,25 +14,29 @@ Transports handle:
 
 ### STDOUT Transport
 
-Perfect for development, debugging, and logging scenarios.
+**Publish-only transport** perfect for debugging, logging, and integration with external systems.
 
 **Features:**
-- Outputs messages to console or file
-- Optional loopback for testing subscriptions
-- Human-readable message formatting
+- **Publish-only**: No message processing or loopback capability
+- Outputs messages to console or file in pretty-print or JSON formats
+- Subscription attempts are ignored with warning logs
+- Perfect for piping to external tools and log aggregators
 - No external dependencies
 
 **Usage:**
 
 ```ruby
-# Basic STDOUT output
-transport = SmartMessage::Transport.create(:stdout)
+# Basic STDOUT output (publish-only)
+transport = SmartMessage::Transport::StdoutTransport.new
 
-# With loopback enabled (messages get processed locally)
-transport = SmartMessage::Transport.create(:stdout, loopback: true)
+# Pretty-printed format for human reading (default)
+transport = SmartMessage::Transport::StdoutTransport.new(format: :pretty)
+
+# JSON format for machine processing
+transport = SmartMessage::Transport::StdoutTransport.new(format: :json)
 
 # Output to file instead of console
-transport = SmartMessage::Transport.create(:stdout, output: "messages.log")
+transport = SmartMessage::Transport::StdoutTransport.new(output: "messages.log")
 
 # Configure in message class
 class LogMessage < SmartMessage::Base
@@ -40,17 +44,19 @@ class LogMessage < SmartMessage::Base
   property :message
   
   config do
-    transport SmartMessage::Transport.create(:stdout, 
-      output: "app.log",
-      loopback: false
+    transport SmartMessage::Transport::StdoutTransport.new(
+      format: :json,
+      output: "app.log"
     )
   end
 end
 ```
 
 **Options:**
-- `loopback` (Boolean): Whether to process published messages locally (default: false)
-- `output` (String|IO): Output destination - filename string or IO object (default: $stdout)
+- `format` (Symbol): Output format - `:pretty` for debugging, `:json` for integration (default: `:pretty`)
+- `output` (String|IO): Output destination - filename string or IO object (default: `$stdout`)
+
+**Important:** For local message processing during development, use **MemoryTransport** instead.
 
 **Example Output:**
 ```
@@ -421,11 +427,11 @@ end
 order = OrderMessage.new(order_id: "123", amount: 99.99)
 
 order.config do
-  # This instance will use STDOUT instead of memory
-  transport SmartMessage::Transport.create(:stdout, loopback: true)
+  # This instance will use STDOUT instead of memory (publish-only)
+  transport SmartMessage::Transport::StdoutTransport.new(format: :json)
 end
 
-order.publish  # Uses STDOUT transport
+order.publish  # Uses STDOUT transport (publish-only)
 ```
 
 ### Runtime Transport Switching
@@ -490,9 +496,9 @@ transport = SmartMessage::Transport.create(:custom,
 Each transport may have specific options:
 
 ```ruby
-# STDOUT specific
-SmartMessage::Transport.create(:stdout,
-  loopback: true,
+# STDOUT specific (publish-only)
+SmartMessage::Transport::StdoutTransport.new(
+  format: :json,
   output: "/var/log/messages.log"
 )
 

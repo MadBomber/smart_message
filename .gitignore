@@ -13,3 +13,4 @@ site
 .aigcm_msg
 /log/
 /logs/
+*.jsonl

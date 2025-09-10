@@ -94,27 +94,25 @@ module DispatcherTest
 
     # The business logic for process a received subscribed-to message
     # is implemented as a class method.
-    def self.processer_one(wrapper)
-      message_header, encoded_message = wrapper.split
-      debug_me(' = ONE ='){[ :message_header, :encoded_message]}
-      unless 'DispatcherTest::MyMessage' == message_header.message_class
+    def self.processer_one(message)
+      debug_me(' = ONE ='){[ :message ]}
+      unless 'DispatcherTest::MyMessage' == message._sm_header.message_class
         puts "ERROR:  Expected DispatcherTest::MyMessage"
-        puts "        not #{message_header.message_class}"
+        puts "        not #{message._sm_header.message_class}"
       end
-      puts "INFO: " + encoded_message
+      puts "INFO: " + message.to_json
       puts
       return 'it worked'
     end
 
 
-    def self.processer_two(wrapper)
-      message_header, encoded_message = wrapper.split
-      debug_me(' == TWO =='){[ :message_header, :encoded_message]}
-      unless 'DispatcherTest::MyMessage' == message_header.message_class
+    def self.processer_two(message)
+      debug_me(' == TWO =='){[ :message ]}
+      unless 'DispatcherTest::MyMessage' == message._sm_header.message_class
         puts "ERROR:  Expected DispatcherTest::MyMessage"
-        puts "        not #{message_header.message_class}"
+        puts "        not #{message._sm_header.message_class}"
       end
-      puts "INFO: " + encoded_message
+      puts "INFO: " + message.to_json
       puts
       return 'it worked'
     end

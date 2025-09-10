@@ -15,7 +15,7 @@ puts "🎯 SmartMessage Entity Addressing & Filtering Demo"
 puts "=" * 50
 
 # Configure transport for demo
-transport = SmartMessage::Transport.create(:stdout, loopback: true)
+transport = SmartMessage::Transport::MemoryTransport.new
 serializer = SmartMessage::Serializer::Json.new
 
 # =============================================================================
@@ -36,13 +36,13 @@ class ServiceMessage < SmartMessage::Base
   property :timestamp, default: -> { Time.now.to_s }
   
   config do
-    transport SmartMessage::Transport.create(:stdout, loopback: true)
+    transport SmartMessage::Transport::MemoryTransport.new
   end
   
   # Different handlers for different subscription filters
-  def self.process_broadcast(wrapper)
-    header = wrapper._sm_header
-    payload = wrapper._sm_payload
+  def process_broadcast(message)
+    header = message._sm_header
+    payload = message
     data = JSON.parse(payload)
     puts "   📻 BROADCAST HANDLER received:"
     puts "      Type: #{data['message_type']}"
@@ -50,9 +50,9 @@ class ServiceMessage < SmartMessage::Base
     puts "      Data: #{data['data']}"
   end
   
-  def self.process_directed(wrapper)
-    header = wrapper._sm_header
-    payload = wrapper._sm_payload
+  def process_directed(message)
+    header = message._sm_header
+    payload = message
     data = JSON.parse(payload)
     puts "   🎯 DIRECTED HANDLER received:"
     puts "      Type: #{data['message_type']}"
@@ -60,9 +60,9 @@ class ServiceMessage < SmartMessage::Base
     puts "      Data: #{data['data']}"
   end
   
-  def self.process_from_admin(wrapper)
-    header = wrapper._sm_header
-    payload = wrapper._sm_payload
+  def process_from_admin(message)
+    header = message._sm_header
+    payload = message
     data = JSON.parse(payload)
     puts "   👮 ADMIN HANDLER received:"
     puts "      Type: #{data['message_type']}"
@@ -152,12 +152,12 @@ class AlertMessage < SmartMessage::Base
   property :source_system
   
   config do
-    transport SmartMessage::Transport.create(:stdout, loopback: true)
+    transport SmartMessage::Transport::MemoryTransport.new
   end
   
-  def self.process_critical_or_broadcast(wrapper)
-    header = wrapper._sm_header
-    payload = wrapper._sm_payload
+  def process_broadcast(message)
+    header = message._sm_header
+    payload = message
     data = JSON.parse(payload)
     icon = data['severity'] == 'critical' ? '🚨' : '📢'
     puts "   #{icon} ALERT MONITOR received:"
@@ -166,9 +166,9 @@ class AlertMessage < SmartMessage::Base
     puts "      Alert: #{data['alert_text']}"
   end
   
-  def self.process_from_monitoring(wrapper)
-    header = wrapper._sm_header
-    payload = wrapper._sm_payload
+  def process_from_monitoring(message)
+    header = message._sm_header
+    payload = message
     data = JSON.parse(payload)
     puts "   📊 MONITORING TEAM received:"
     puts "      From: #{header.from} (monitoring system)"
@@ -259,12 +259,12 @@ class OrderMessage < SmartMessage::Base
   property :total_amount, required: true
   
   config do
-    transport SmartMessage::Transport.create(:stdout, loopback: true)
+    transport SmartMessage::Transport::MemoryTransport.new
   end
   
-  def self.process_high_priority(wrapper)
-    header = wrapper._sm_header
-    payload = wrapper._sm_payload
+  def process_high_priority(message)
+    header = message._sm_header
+    payload = message
     data = JSON.parse(payload)
     puts "   🚀 HIGH PRIORITY ORDER HANDLER:"
     puts "      Order ID: #{data['order_id']} (PRIORITY: #{data['priority'].upcase})"
@@ -272,9 +272,9 @@ class OrderMessage < SmartMessage::Base
     puts "      Total: $#{data['total_amount']}"
   end
   
-  def self.process_normal(wrapper)
-    header = wrapper._sm_header
-    payload = wrapper._sm_payload
+  def process_normal(message)
+    header = message._sm_header
+    payload = message
     data = JSON.parse(payload)
     puts "   📦 NORMAL ORDER HANDLER:"
     puts "      Order ID: #{data['order_id']}"
@@ -353,12 +353,12 @@ class ServiceRequest < SmartMessage::Base
   property :data
   
   config do
-    transport SmartMessage::Transport.create(:stdout, loopback: true)
+    transport SmartMessage::Transport::MemoryTransport.new
   end
   
-  def self.process_api_requests(wrapper)
-    header = wrapper._sm_header
-    payload = wrapper._sm_payload
+  def process_api_requests(message)
+    header = message._sm_header
+    payload = message
     data = JSON.parse(payload)
     puts "   🌐 API SERVICE received request:"
     puts "      Request ID: #{data['request_id']}"
@@ -367,9 +367,9 @@ class ServiceRequest < SmartMessage::Base
     puts "      Reply To: #{header.reply_to}"
   end
   
-  def self.process_data_requests(wrapper)
-    header = wrapper._sm_header
-    payload = wrapper._sm_payload
+  def process_data_requests(message)
+    header = message._sm_header
+    payload = message
     data = JSON.parse(payload)
     puts "   💾 DATA SERVICE received request:"
     puts "      Request ID: #{data['request_id']}"

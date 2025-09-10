@@ -36,11 +36,11 @@ class ChatMessage < SmartMessage::Base
     description: "Additional message data (reactions, edit history, etc.)"
 
   config do
-    transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
+    transport SmartMessage::Transport::MemoryTransport.new
   end
 
-  def self.process(wrapper)
-    message_header, message_payload = wrapper.split
+  def process(message)
+    message_header, message_payload = message
     chat_data = JSON.parse(message_payload)
     puts "💬 Chat message in #{chat_data['room_id']}: #{chat_data['content']}"
   end
@@ -64,11 +64,11 @@ class BotCommandMessage < SmartMessage::Base
     description: "ISO8601 timestamp when command was issued"
 
   config do
-    transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
+    transport SmartMessage::Transport::MemoryTransport.new
   end
 
-  def self.process(wrapper)
-    message_header, message_payload = wrapper.split
+  def process(message)
+    message_header, message_payload = message
     command_data = JSON.parse(message_payload)
     puts "🤖 Bot command: #{command_data['command']} in #{command_data['room_id']}"
   end
@@ -92,11 +92,11 @@ class SystemNotificationMessage < SmartMessage::Base
     description: "Additional system event data and context"
 
   config do
-    transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
+    transport SmartMessage::Transport::MemoryTransport.new
   end
 
-  def self.process(wrapper)
-    message_header, message_payload = wrapper.split
+  def process(message)
+    message_header, message_payload = message
     notif_data = JSON.parse(message_payload)
     puts "🔔 System: #{notif_data['content']} in #{notif_data['room_id']}"
   end
@@ -192,8 +192,8 @@ class HumanChatAgent
     @@agents[agent.user_id] = agent
   end
 
-  def handle_chat_message(wrapper)
-    message_header, message_payload = wrapper.split
+  def handle_message(message)
+    message_header, message_payload = message
     chat_data = JSON.parse(message_payload)
     
     # Only process messages from rooms we're in and not our own messages
@@ -208,8 +208,8 @@ class HumanChatAgent
     end
   end
 
-  def handle_system_notification(wrapper)
-    message_header, message_payload = wrapper.split
+  def handle_system_notification(message)
+    message_header, message_payload = message
     notif_data = JSON.parse(message_payload)
     
     # Only process notifications from rooms we're in
@@ -304,8 +304,8 @@ class BotAgent
     )
   end
 
-  def self.handle_bot_command(wrapper)
-    message_header, message_payload = wrapper.split
+  def handle_command(message)
+    message_header, message_payload = message
     command_data = JSON.parse(message_payload)
     @@bots ||= []
     
@@ -318,8 +318,8 @@ class BotAgent
     capable_bot&.process_command(command_data)
   end
 
-  def self.handle_chat_message(wrapper)
-    message_header, message_payload = wrapper.split
+  def handle_message(message)
+    message_header, message_payload = message
     chat_data = JSON.parse(message_payload)
     @@bots ||= []
     
@@ -495,8 +495,8 @@ class RoomManager
     notification.publish
   end
 
-  def self.handle_system_notification(wrapper)
-    message_header, message_payload = wrapper.split
+  def handle_system_notification(message)
+    message_header, message_payload = message
     @@instance ||= new
     @@instance.process_system_notification(message_header, message_payload)
   end

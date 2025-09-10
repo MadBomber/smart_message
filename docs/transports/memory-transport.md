@@ -348,7 +348,8 @@ The `examples/memory/` directory contains comprehensive, runnable examples demon
 - **[12_regex_filtering_microservices.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/12_regex_filtering_microservices.rb)** - Advanced regex filtering for microservices
 
 ### Visual Demonstrations
-- **[06_pretty_print_demo.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/06_pretty_print_demo.rb)** - Message inspection and pretty-printing capabilities
+- **[06_stdout_publish_only.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/06_stdout_publish_only.rb)** - STDOUT transport publish-only demonstration with logging and metrics examples
+- **[16_pretty_print_demo.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/16_pretty_print_demo.rb)** - Message inspection and pretty-printing capabilities
 
 ### Running Examples
 
