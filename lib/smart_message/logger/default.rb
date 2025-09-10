@@ -10,7 +10,7 @@ module SmartMessage
   module Logger
     # Default logger implementation for SmartMessage
     #
-    # This logger provides a simple Ruby Logger wrapper with enhanced formatting.
+    # This logger provides a simple Ruby Logger message with enhanced formatting.
     # Applications can easily configure Rails.logger or other loggers through
     # the global configuration system instead.
     #

@@ -6,7 +6,7 @@ require_relative 'test_helper'
 class ProcHandlerTest < Minitest::Test
 
   def setup
-    @transport = SmartMessage::Transport::StdoutTransport.new(loopback: true)
+    @transport = SmartMessage::Transport::MemoryTransport.new
     
     # Keep track of received messages for testing
     @received_messages = []
@@ -28,10 +28,9 @@ class ProcHandlerTest < Minitest::Test
       reset_transport
     end
 
-    def self.process(wrapper)
+    def self.process(message)
       # Default handler - should still work
-      data = JSON.parse(wrapper._sm_payload)
-      puts "Default handler: #{data['content']}"
+      puts "Default handler: #{message.content}"
     end
   end
 
@@ -51,9 +50,11 @@ class ProcHandlerTest < Minitest::Test
     @received_data = nil
 
     # Subscribe with a block
-    handler_id = TestMessage.subscribe do |wrapper|
-      data = JSON.parse(wrapper._sm_payload)
-      @received_data = data
+    handler_id = TestMessage.subscribe do |message|
+      @received_data = {
+        "content" => message.content,
+        "sender" => message.sender
+      }
     end
 
     # Should generate a unique proc handler ID
@@ -78,9 +79,11 @@ class ProcHandlerTest < Minitest::Test
     @received_data = nil
 
     # Create a proc
-    my_handler = proc do |wrapper|
-      data = JSON.parse(wrapper._sm_payload)
-      @received_data = data
+    my_handler = proc do |message|
+      @received_data = {
+        "content" => message.content,
+        "sender" => message.sender
+      }
     end
 
     # Subscribe with the proc as parameter
@@ -108,9 +111,11 @@ class ProcHandlerTest < Minitest::Test
     @received_data = nil
 
     # Create a lambda
-    my_handler = lambda do |wrapper|
-      data = JSON.parse(wrapper._sm_payload)
-      @received_data = data
+    my_handler = lambda do |message|
+      @received_data = {
+        "content" => message.content,
+        "sender" => message.sender
+      }
     end
 
     # Subscribe with the lambda as parameter
@@ -138,14 +143,12 @@ class ProcHandlerTest < Minitest::Test
     received_messages = []
 
     # Subscribe with multiple blocks
-    handler1 = TestMessage.subscribe do |wrapper|
-      data = JSON.parse(wrapper._sm_payload)
-      received_messages << "Handler1: #{data['content']}"
+    handler1 = TestMessage.subscribe do |message|
+      received_messages << "Handler1: #{message.content}"
     end
 
-    handler2 = TestMessage.subscribe do |wrapper|
-      data = JSON.parse(wrapper._sm_payload)
-      received_messages << "Handler2: #{data['content']}"
+    handler2 = TestMessage.subscribe do |message|
+      received_messages << "Handler2: #{message.content}"
     end
 
     # Both should be different IDs
@@ -171,9 +174,11 @@ class ProcHandlerTest < Minitest::Test
     _received_data = nil
 
     # Subscribe with both proc and method handlers
-    proc_handler = TestMessage.subscribe do |wrapper|
-      data = JSON.parse(wrapper._sm_payload)
-      _received_data = data
+    proc_handler = TestMessage.subscribe do |message|
+      _received_data = {
+        "content" => message.content,
+        "sender" => message.sender
+      }
     end
 
     method_handler = TestMessage.subscribe("ProcHandlerTest::TestMessage.process")
@@ -192,7 +197,7 @@ class ProcHandlerTest < Minitest::Test
     TestMessage.transport @transport
 
     # Subscribe with a block
-    handler_id = TestMessage.subscribe do |wrapper|
+    handler_id = TestMessage.subscribe do |message|
       # This handler should be removed
     end
 
@@ -215,9 +220,9 @@ class ProcHandlerTest < Minitest::Test
     received_uuid = nil
 
     # Subscribe with a block that checks the header
-    TestMessage.subscribe do |wrapper|
-      received_header = wrapper._sm_header
-      received_uuid = wrapper._sm_header.uuid
+    TestMessage.subscribe do |message|
+      received_header = message._sm_header
+      received_uuid = message._sm_header.uuid
     end
 
     # Publish a message
@@ -238,7 +243,7 @@ class ProcHandlerTest < Minitest::Test
     TestMessage.transport @transport
 
     # Subscribe with a block that raises an error
-    TestMessage.subscribe do |wrapper|
+    TestMessage.subscribe do |message|
       raise "Test error in proc handler"
     end
 
@@ -259,14 +264,16 @@ class ProcHandlerTest < Minitest::Test
     processed_data = {}
 
     # Subscribe with a complex proc that does data transformation
-    complex_processor = proc do |wrapper|
-      data = JSON.parse(wrapper._sm_payload)
-      processed_data[:original] = data
+    complex_processor = proc do |message|
+      processed_data[:original] = {
+        "content" => message.content,
+        "sender" => message.sender
+      }
       processed_data[:transformed] = {
-        upper_content: data['content'].upcase,
-        sender_length: data['sender'].length,
+        upper_content: message.content.upcase,
+        sender_length: message.sender.length,
         processed_at: Time.now,
-        header_uuid: wrapper._sm_header.uuid
+        header_uuid: message._sm_header.uuid
       }
     end
 
@@ -291,8 +298,8 @@ class ProcHandlerTest < Minitest::Test
     TestMessage.transport @transport
 
     # Subscribe with several proc handlers
-    proc1 = proc { |wrapper| }
-    proc2 = proc { |wrapper| }
+    proc1 = proc { |message| }
+    proc2 = proc { |message| }
     
     id1 = TestMessage.subscribe(proc1)
     id2 = TestMessage.subscribe(proc2)
@@ -320,10 +327,10 @@ class ProcHandlerTest < Minitest::Test
     method_id = TestMessage.subscribe("SomeClass.some_method")
     assert_equal "SomeClass.some_method", method_id
 
-    block_id = TestMessage.subscribe { |wrapper| }
+    block_id = TestMessage.subscribe { |message| }
     assert block_id.start_with?("ProcHandlerTest::TestMessage.proc_")
 
-    proc_id = TestMessage.subscribe(proc { |wrapper| })
+    proc_id = TestMessage.subscribe(proc { |message| })
     assert proc_id.start_with?("ProcHandlerTest::TestMessage.proc_")
     
     # All IDs should be different

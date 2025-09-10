@@ -89,21 +89,13 @@ def demonstrate_deduplication
   # Test 1: OrderMessage with deduplication
   puts "--- Test 1: OrderMessage (with deduplication) ---"
   
-  # Create header with specific UUID
-  header = SmartMessage::Header.new(
-    uuid: uuid,
-    message_class: "OrderMessage",
-    published_at: Time.now,
-    publisher_pid: Process.pid,
-    version: 1,
-    from: "order-service"
-  )
-  
-  # First message
+  # First message (create normally, then set UUID for testing)
   order1 = OrderMessage.new(
-    _sm_header: header,
-    _sm_payload: { order_id: "ORD-001", amount: 99.99 }
+    order_id: "ORD-001", 
+    amount: 99.99
   )
+  # Override UUID for deduplication testing
+  order1._sm_header.uuid = uuid
   
   puts "Publishing first order message..."
   order1.publish
@@ -111,9 +103,11 @@ def demonstrate_deduplication
   
   # Second message with SAME UUID (should be deduplicated)
   order2 = OrderMessage.new(
-    _sm_header: header,
-    _sm_payload: { order_id: "ORD-002", amount: 149.99 }
+    order_id: "ORD-002", 
+    amount: 149.99
   )
+  # Use same UUID to test deduplication
+  order2._sm_header.uuid = uuid
   
   puts "Publishing duplicate order message (same UUID)..."
   order2.publish
@@ -127,21 +121,13 @@ def demonstrate_deduplication
   # Test 2: NotificationMessage without deduplication
   puts "--- Test 2: NotificationMessage (no deduplication) ---"
   
-  # Create header with same UUID
-  notification_header = SmartMessage::Header.new(
-    uuid: uuid,  # Same UUID as orders!
-    message_class: "NotificationMessage",
-    published_at: Time.now,
-    publisher_pid: Process.pid,
-    version: 1,
-    from: "notification-service"
-  )
-  
-  # First notification
+  # First notification (create normally, then set UUID)
   notif1 = NotificationMessage.new(
-    _sm_header: notification_header,
-    _sm_payload: { message: "Order confirmed", recipient: "customer@example.com" }
+    message: "Order confirmed", 
+    recipient: "customer@example.com"
   )
+  # Use same UUID as orders to show deduplication is per-message-class
+  notif1._sm_header.uuid = uuid
   
   puts "Publishing first notification..."
   notif1.publish
@@ -149,9 +135,11 @@ def demonstrate_deduplication
   
   # Second notification with same UUID (should NOT be deduplicated)
   notif2 = NotificationMessage.new(
-    _sm_header: notification_header,
-    _sm_payload: { message: "Order shipped", recipient: "customer@example.com" }
+    message: "Order shipped", 
+    recipient: "customer@example.com"
   )
+  # Use same UUID - NotificationMessage doesn't have deduplication enabled
+  notif2._sm_header.uuid = uuid
   
   puts "Publishing duplicate notification (same UUID)..."
   notif2.publish

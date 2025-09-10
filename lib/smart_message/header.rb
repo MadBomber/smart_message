@@ -58,7 +58,7 @@ module SmartMessage
       required: false,
       description: "Optional unique identifier of the entity that should receive replies to this message. Defaults to 'from' entity if not specified"
     
-    # Serialization tracking for wrapper architecture
+    # Serialization tracking for message architecture
     property :serializer,
       required: false,
       description: "Class name of the serializer used to encode the payload (e.g., 'SmartMessage::Serializer::Json'). Used by DLQ and cross-serializer gateway patterns"

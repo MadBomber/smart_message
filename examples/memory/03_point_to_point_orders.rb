@@ -35,7 +35,7 @@ class OrderMessage < SmartMessage::Base
 
   # Configure to use memory transport for this example
   config do
-    transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
+    transport SmartMessage::Transport::MemoryTransport.new
   end
 
   # Default processing - just logs the order
@@ -60,7 +60,7 @@ class PaymentResponseMessage < SmartMessage::Base
     description: "ISO8601 timestamp when the payment was processed"
 
   config do
-    transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
+    transport SmartMessage::Transport::MemoryTransport.new
   end
 
   def self.process(message)
@@ -206,7 +206,7 @@ class OrderProcessingDemo
     puts "• Point-to-point messaging between OrderService and PaymentService"
     puts "• Bidirectional communication with request/response pattern"
     puts "• JSON serialization of complex message data"
-    puts "• STDOUT transport with loopback for local demonstration"
+    puts "• Memory transport for local demonstration"
   end
 end
 

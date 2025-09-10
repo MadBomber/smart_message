@@ -95,7 +95,7 @@ class CircuitBreakerTest < Minitest::Test
       
       # Original test implementation (preserved for reference):
       # Set up a failing processor
-      failing_processor = proc do |wrapper|
+      failing_processor = proc do |message|
         raise StandardError, "Processing failed"
       end
 
@@ -128,7 +128,7 @@ class CircuitBreakerTest < Minitest::Test
 
     should "reset circuit breakers when requested" do
       # Trigger circuit breaker by causing failures
-      failing_processor = proc { |wrapper| raise "Test failure" }
+      failing_processor = proc { |message| raise "Test failure" }
       handler_id = SmartMessage::Base.register_proc_handler('test_reset_processor', failing_processor)
       @dispatcher.add('TestMessage', handler_id)
 
@@ -193,10 +193,9 @@ class CircuitBreakerTest < Minitest::Test
           'TestCircuitMessage'
         end
 
-        def self.process(wrapper)
+        def self.process(message)
           # This processor will be protected by the dispatcher circuit breaker
-          data = JSON.parse(wrapper._sm_payload)
-          new(data)
+          message
         end
       end
 

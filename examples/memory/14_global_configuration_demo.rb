@@ -24,14 +24,14 @@ puts
 puts "2. Configuring Logging with String Path:"
 SmartMessage.configure do |config|
   config.logger = "log/my_application.log"  # String = Lumberjack logger with this path
-  config.transport = SmartMessage::Transport::StdoutTransport.new(loopback: true)
-  config.serializer = SmartMessage::Serializer::Json.new
+  config.transport = SmartMessage::Transport::MemoryTransport.new
+  # Note: Serializers are configured per transport, not globally
 end
 
 puts "   Configured Logger: #{SmartMessage::Logger.default.class}"
 puts "   Log File: #{SmartMessage::Logger.default.log_file rescue 'N/A'}"
 puts "   Configured Transport: #{SmartMessage::Transport.default.class}"
-puts "   Configured Serializer: #{SmartMessage::Serializer.default.class}"
+puts "   Framework Default Serializer: #{SmartMessage::Serializer.default.class}"
 puts
 
 # Reset for next example
@@ -41,14 +41,14 @@ SmartMessage.reset_configuration!
 puts "3. Configuring with :default Symbol:"
 SmartMessage.configure do |config|
   config.logger = :default  # Use Lumberjack with default settings
-  config.transport = SmartMessage::Transport::StdoutTransport.new(loopback: true)
-  config.serializer = SmartMessage::Serializer::Json.new
+  config.transport = SmartMessage::Transport::MemoryTransport.new
+  # Note: Serializers are configured per transport, not globally
 end
 
 puts "   Configured Logger: #{SmartMessage::Logger.default.class}"
 puts "   Log File: #{SmartMessage::Logger.default.log_file rescue 'N/A'}"
 puts "   Configured Transport: #{SmartMessage::Transport.default.class}"
-puts "   Configured Serializer: #{SmartMessage::Serializer.default.class}"
+puts "   Framework Default Serializer: #{SmartMessage::Serializer.default.class}"
 puts
 
 # Example 4: Message classes automatically use global configuration
@@ -65,8 +65,8 @@ class NotificationMessage < SmartMessage::Base
     logger SmartMessage::Logger.default
   end
   
-  def self.process(wrapper)
-    message_header, message_payload = wrapper.split
+  def process(message)
+    message_header, message_payload = message
     data = JSON.parse(message_payload)
     
     priority_emoji = case data['priority']
@@ -90,8 +90,8 @@ class OrderStatusMessage < SmartMessage::Base
     logger SmartMessage::Logger.default
   end
   
-  def self.process(wrapper)
-    message_header, message_payload = wrapper.split
+  def process(message)
+    message_header, message_payload = message
     data = JSON.parse(message_payload)
     
     status_emoji = case data['status']
@@ -152,8 +152,8 @@ class SpecialMessage < SmartMessage::Base
     # transport and serializer still use global configuration
   end
   
-  def self.process(wrapper)
-    message_header, message_payload = wrapper.split
+  def process(message)
+    message_header, message_payload = message
     data = JSON.parse(message_payload)
     puts "⭐ Special processing: #{data['content']}"
   end

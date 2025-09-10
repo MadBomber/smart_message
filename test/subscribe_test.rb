@@ -17,11 +17,10 @@ module SubscribeTest
 
     # This class method is being executed inside of an
     # independant thread.
-    def self.process(wrapper)
-      message_header, _message_payload = wrapper.split
-      debug_me{[ :message_header, :message_payload ]}
+    def self.process(message)
+      debug_me{[ :message ]}
 
-      SS.add(message_header.message_class, 'process')
+      SS.add(message._sm_header.message_class, 'process')
       return 'it worked'
     end
   end # class MyMessage < SmartMessage::Base
@@ -30,7 +29,7 @@ module SubscribeTest
   class Test < Minitest::Test
     def setup
       SubscribeTest::MyMessage.config do
-        transport   SmartMessage::Transport::StdoutTransport.new(loopback: true, output: 'subscribe.log')
+        transport   SmartMessage::Transport::MemoryTransport.new
       end
 
       @my_message = SubscribeTest::MyMessage.new(
@@ -113,10 +112,8 @@ module SubscribeTest
 
     end
 
-    def self.business_logic(wrapper)
-      message_header, _message_payload = wrapper.split
-
-      SS.add(message_header.message_class, 'business_logic')
+    def self.business_logic(message)
+      SS.add(message._sm_header.message_class, 'business_logic')
       return 'it worked'
     end
   end # class Test < Minitest::Test

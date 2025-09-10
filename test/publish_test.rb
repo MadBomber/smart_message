@@ -23,10 +23,9 @@ module PublishTest
       return id
     end
 
-    def self.process(wrapper)
-      message_header, message_payload = wrapper.split
-      puts "\n#{message_header.uuid}"
-      puts "\t#{message_payload}"
+    def self.process(message)
+      puts "\n#{message._sm_header.uuid}"
+      puts "\t#{message.to_hash.except(:_sm_header)}"
     end
   end # class MyMessage < SmartMessage::Base
 
@@ -36,10 +35,9 @@ module PublishTest
     property :baz
     property :id
 
-    def self.process(wrapper)
-      message_header, message_payload = wrapper.split
-      puts "\n#{message_header.uuid}"
-      puts "\t#{message_payload}"
+    def self.process(message)
+      puts "\n#{message._sm_header.uuid}"
+      puts "\t#{message.to_hash.except(:_sm_header)}"
     end
   end # class MyMessage < SmartMessage::Base
 

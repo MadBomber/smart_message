@@ -58,7 +58,7 @@ module SmartMessage::Serializer
 
     # Template methods for actual serialization (implement in subclasses)
     def do_encode(message_instance)
-      # Default implementation: serialize only the payload portion for wrapper architecture
+      # Default implementation: serialize only the payload portion for message architecture
       # Subclasses can override this for specific serialization formats
       message_hash = message_instance.to_h
       payload_portion = message_hash[:_sm_payload]

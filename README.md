@@ -36,7 +36,7 @@ Think of SmartMessage as ActiveRecord for messaging - just as ActiveRecord frees
 - **Advanced Logging System**: Comprehensive logging with colorized console output, JSON structured logging, and file rolling
 - **Built-in Statistics**: Message processing metrics and monitoring
 - **Message Deduplication**: Handler-scoped deduplication queues (DDQ) with memory or Redis storage for preventing duplicate message processing
-- **Development Tools**: STDOUT and in-memory transports for testing
+- **Development Tools**: STDOUT transport for publish-only scenarios and in-memory transport for testing with local processing
 - **Production Ready**: Redis transport with automatic reconnection and error handling
 - **Dead Letter Queue**: File-based DLQ with JSON Lines format for failed message capture and replay
 - **Circuit Breaker Integration**: Production-grade reliability with BreakerMachines for automatic fallback and recovery
@@ -131,8 +131,8 @@ class OrderMessage < SmartMessage::Base
 
   # Configure transport and serializer at class level
   config do
-    # Option 1: Simple STDOUT for development
-    transport SmartMessage::Transport.create(:stdout, loopback: true)
+    # Option 1: Memory transport for local development with message processing
+    transport SmartMessage::Transport::MemoryTransport.new
 
     # Option 2: Redis Queue for production (10x faster than RabbitMQ!)
     # transport SmartMessage::Transport.create(:redis_queue,
@@ -196,24 +196,19 @@ OrderMessage.subscribe
 OrderMessage.subscribe("PaymentService.process_order")
 
 # 3. Block handler (NEW!)
-OrderMessage.subscribe do |wrapper|
-  header, payload = wrapper.split
-  order_data = JSON.parse(payload)
-  puts "Quick processing: Order #{order_data['order_id']}"
+OrderMessage.subscribe do |message|
+  puts "Quick processing: Order #{message.order_id}"
 end
 
 # 4. Proc handler (NEW!)
-order_processor = proc do |wrapper|
-  header, payload = wrapper.split
-  order_data = JSON.parse(payload)
-  EmailService.send_confirmation(order_data['customer_id'])
+order_processor = proc do |message|
+  EmailService.send_confirmation(message.customer_id)
 end
 OrderMessage.subscribe(order_processor)
 
 # 5. Lambda handler (NEW!)
-audit_handler = lambda do |wrapper|
-  header, payload = wrapper.split
-  AuditLog.record("Order processed at #{header.published_at}")
+audit_handler = lambda do |message|
+  AuditLog.record("Order processed at #{message._sm_header.published_at}")
 end
 OrderMessage.subscribe(audit_handler)
 ```
@@ -542,8 +537,8 @@ The foundation class that all messages inherit from. Built on `Hashie::Dash` wit
 #### Transport Layer
 Pluggable message delivery system with built-in implementations:
 
-- **StdoutTransport**: Development and testing transport
-- **MemoryTransport**: In-memory queuing for testing
+- **StdoutTransport**: Publish-only transport for debugging and external integration
+- **MemoryTransport**: In-memory queuing for testing with local message processing
 - **RedisTransport**: Redis pub/sub transport for production messaging
 - **Custom Transports**: Implement `SmartMessage::Transport::Base`
 
@@ -637,17 +632,35 @@ OrderMessage.new(
 
 📚 **Full Documentation:** [Redis Queue Transport Guide](docs/transports/redis-queue.md) | [Getting Started](docs/guides/redis-queue-getting-started.md) | [Examples](examples/redis_queue/)
 
-### STDOUT Transport (Development)
+### STDOUT Transport (Publish-Only)
+
+The STDOUT transport is designed for publish-only scenarios - perfect for debugging, logging, or integration with external systems.
 
 ```ruby
-# Basic STDOUT output
-transport = SmartMessage::Transport.create(:stdout)
+# Basic STDOUT output (publish-only)
+transport = SmartMessage::Transport::StdoutTransport.new
 
-# With loopback for testing subscriptions
-transport = SmartMessage::Transport.create(:stdout, loopback: true)
+# Pretty-printed format for human reading (default)
+transport = SmartMessage::Transport::StdoutTransport.new(format: :pretty)
 
-# Output to file
-transport = SmartMessage::Transport.create(:stdout, output: "messages.log")
+# JSON format for machine processing
+transport = SmartMessage::Transport::StdoutTransport.new(format: :json)
+
+# Output to file instead of STDOUT
+transport = SmartMessage::Transport::StdoutTransport.new(output: "messages.log")
+```
+
+**Key Features:**
+- **Publish-only**: No message processing or loopback
+- **Subscription attempts are ignored** with warning logs
+- **Two formats**: `:pretty` for debugging, `:json` for integration
+- **Perfect for**: debugging, logging, piping to external tools
+- **Use cases**: `./app | jq`, `./app | fluentd`, development monitoring
+
+**For local message processing, use MemoryTransport instead:**
+```ruby
+# Use Memory transport if you need local message processing
+transport = SmartMessage::Transport::MemoryTransport.new
 ```
 
 ### Memory Transport (Testing)
@@ -952,8 +965,8 @@ You can also set descriptions within configuration blocks:
 class ConfiguredMessage < SmartMessage::Base
   config do
     description "Set within config block"
-    transport SmartMessage::Transport.create(:stdout)
-    serializer SmartMessage::Serializer::JSON.new
+    transport SmartMessage::Transport::MemoryTransport.new
+    serializer SmartMessage::Serializer::Json.new
   end
 end
 ```

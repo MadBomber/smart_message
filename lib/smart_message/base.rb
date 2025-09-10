@@ -37,11 +37,9 @@ module SmartMessage
     include Hashie::Extensions::MethodAccess
 
     # Common attrubutes for all messages
-    # TODO: Need to change the SmartMessage::Header into a
-    #       smartMessage::Wrapper concept where the message
-    #       content is serialized into an element in the wrapper
-    #       where the wrapper contains header/routing information
-    #       in addition to the serialized message data.
+    # TODO: This comment is now obsolete - the flat message structure 
+    #       has been implemented where header and message properties
+    #       exist at the same level in a flat structure.
     property :_sm_header
 
     # Constructor for a messsage definition that allows the
@@ -137,8 +135,8 @@ module SmartMessage
       JSON.generate(payload_props)
     end
 
-    # Backward compatibility method for handlers that expect wrapper.split
-    # Returns [header, payload_json] in the old wrapper format
+    # Backward compatibility method for handlers that expect message.split
+    # Returns [header, payload_json] in the old two-tier format
     def split
       [_sm_header, _sm_payload]
     end

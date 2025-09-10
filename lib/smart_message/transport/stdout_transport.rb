@@ -5,11 +5,10 @@
 module SmartMessage
   module Transport
     # STDOUT transport for testing and development
-    # This transport outputs messages to STDOUT and optionally loops them back
+    # This is a publish-only transport that outputs messages to STDOUT
     class StdoutTransport < Base
       def default_options
         {
-          loopback: false,
           output: $stdout,
           format: :pretty  # :pretty or :json
         }
@@ -24,14 +23,6 @@ module SmartMessage
         @output = @options[:output].is_a?(String) ? File.open(@options[:output], 'w') : @options[:output]
       end
 
-      # Enable/disable loopback mode
-      def loopback=(enabled)
-        @options[:loopback] = enabled
-      end
-
-      def loopback?
-        @options[:loopback]
-      end
 
       # Publish message to STDOUT
       def do_publish(message_class, serialized_message)
@@ -40,12 +31,6 @@ module SmartMessage
         
         @output.puts format_message(message_class, serialized_message)
         @output.flush
-
-        # If loopback is enabled, route the message back through the dispatcher
-        if loopback?
-          logger.debug { "[SmartMessage::StdoutTransport] Loopback enabled, calling receive" }
-          receive(message_class, serialized_message)
-        end
       rescue => e
         logger.error { "[SmartMessage] Error in stdout transport do_publish: #{e.class.name} - #{e.message}" }
         raise
@@ -57,6 +42,19 @@ module SmartMessage
 
       def disconnect
         @output.close if @output.respond_to?(:close) && @output != $stdout && @output != $stderr
+      end
+
+      # Override subscribe methods to log warnings since this is a publish-only transport
+      def subscribe(message_class, process_method, filter_options = {})
+        logger.warn { "[SmartMessage::StdoutTransport] Subscription attempt ignored - STDOUT transport is publish-only (message_class: #{message_class}, process_method: #{process_method})" }
+      end
+
+      def unsubscribe(message_class, process_method)
+        logger.warn { "[SmartMessage::StdoutTransport] Unsubscribe attempt ignored - STDOUT transport is publish-only (message_class: #{message_class}, process_method: #{process_method})" }
+      end
+
+      def unsubscribe!(message_class)
+        logger.warn { "[SmartMessage::StdoutTransport] Unsubscribe all attempt ignored - STDOUT transport is publish-only (message_class: #{message_class})" }
       end
 
       private

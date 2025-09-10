@@ -31,12 +31,12 @@ class UserEventMessage < SmartMessage::Base
     description: "Additional event-specific data (source, location, IP, etc.)"
 
   config do
-    transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
+    transport SmartMessage::Transport::MemoryTransport.new
   end
 
   # Default processor - just logs the event
-  def self.process(wrapper)
-    message_header, message_payload = wrapper.split
+  def process(message)
+    message_header, message_payload = message
     event_data = JSON.parse(message_payload)
     puts "📡 Event broadcasted: #{event_data['event_type']} for user #{event_data['user_id']}"
   end
@@ -50,13 +50,13 @@ class EmailService
     UserEventMessage.subscribe('EmailService.handle_user_event')
   end
 
-  def self.handle_user_event(wrapper)
+  def handle_event(message)
     service = new
-    service.process_event(wrapper)
+    service.process_event(message)
   end
 
-  def process_event(wrapper)
-    message_header, message_payload = wrapper.split
+  def process_event(message)
+    message_header, message_payload = message
     event_data = JSON.parse(message_payload)
     
     case event_data['event_type']
@@ -106,13 +106,13 @@ class SMSService
     UserEventMessage.subscribe('SMSService.handle_user_event')
   end
 
-  def self.handle_user_event(wrapper)
+  def handle_event(message)
     service = new
-    service.process_event(wrapper)
+    service.process_event(message)
   end
 
-  def process_event(wrapper)
-    message_header, message_payload = wrapper.split
+  def process_event(message)
+    message_header, message_payload = message
     event_data = JSON.parse(message_payload)
     
     case event_data['event_type']
@@ -172,18 +172,18 @@ class AuditService
     UserEventMessage.subscribe('AuditService.handle_user_event')
   end
 
-  def self.handle_user_event(wrapper)
+  def handle_event(message)
     # Use a singleton pattern for persistent audit log
     @@instance ||= new
-    @@instance.process_event(wrapper)
+    @@instance.process_event(message)
   end
 
   def self.get_summary
     @@instance&.get_audit_summary || {}
   end
 
-  def process_event(wrapper)
-    message_header, message_payload = wrapper.split
+  def process_event(message)
+    message_header, message_payload = message
     event_data = JSON.parse(message_payload)
     
     audit_entry = {

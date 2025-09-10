@@ -69,7 +69,7 @@ class DeadLetterQueueTest < Minitest::Test
   
   def test_peek_message
     # Enqueue a message first
-    # Using @message instead of wrapper
+    # Using @message with flat structure
     @dlq.enqueue(@message, error: 'Test error')
     
     # Peek and verify message is still there
@@ -98,7 +98,7 @@ class DeadLetterQueueTest < Minitest::Test
   
   def test_statistics
     # Enqueue messages of different types
-    # Using @message instead of wrapper
+    # Using @message with flat structure
     @dlq.enqueue(@message, error: 'Redis error')
     
     order_message = create_order_message('order-123')
@@ -117,7 +117,7 @@ class DeadLetterQueueTest < Minitest::Test
   
   def test_filter_by_class
     # Enqueue messages of different classes
-    # Using @message instead of wrapper
+    # Using @message with flat structure
     @dlq.enqueue(@message, error: 'Test error')
     
     order_message = create_order_message('order-456')
@@ -134,7 +134,7 @@ class DeadLetterQueueTest < Minitest::Test
   end
   
   def test_filter_by_error_pattern
-    # Using @message instead of wrapper
+    # Using @message with flat structure
     @dlq.enqueue(@message, error: 'Redis connection timeout')
     
     order_message2 = create_order_message('order-789')
@@ -150,7 +150,7 @@ class DeadLetterQueueTest < Minitest::Test
   end
   
   def test_clear_queue
-    # Using @message instead of wrapper
+    # Using @message with flat structure
     @dlq.enqueue(@message, error: 'Test error')
     @dlq.enqueue(@message, error: 'Another error')
     
@@ -184,7 +184,7 @@ class DeadLetterQueueTest < Minitest::Test
     # Set up time ranges before enqueuing
     start_time = Time.now - 1  # Start from 1 second ago
     
-    # Using @message instead of wrapper
+    # Using @message with flat structure
     @dlq.enqueue(@message, error: 'Error 1')
     
     # Wait and set middle time

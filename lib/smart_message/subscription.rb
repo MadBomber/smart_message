@@ -32,12 +32,11 @@ module SmartMessage
 
       # Call a registered proc handler
       # @param handler_id [String] The handler identifier
-      # @param wrapper [SmartMessage::Wrapper::Base] The message wrapper
-      def call_proc_handler(handler_id, wrapper)
+      def call_proc_handler(handler_id, message)
         handler_proc = class_variable_get(:@@proc_handlers)[handler_id]
         return unless handler_proc
 
-        handler_proc.call(wrapper)
+        handler_proc.call(message)
       end
 
       # Remove a proc handler from the registry
@@ -61,8 +60,8 @@ module SmartMessage
       # an exception.
       #
       # @param process_method [String, Proc, nil] The processing method:
-      #   - String: Method name like "MyService.handle_message" 
-      #   - Proc: A proc/lambda that accepts (message_header, message_payload)
+      #   - String: Method name like "MyService.handle_message"
+      #   - Proc: A proc/lambda that accepts (message)
       #   - nil: Uses default "MessageClass.process" method
       # @param broadcast [Boolean, nil] Filter for broadcast messages (to: nil)
       # @param to [String, Array, nil] Filter for messages directed to specific entities
@@ -70,26 +69,25 @@ module SmartMessage
       # @param block [Proc] Alternative way to pass a processing block
       # @return [String] The identifier used for this subscription
       #
-      # @example Using default handler 
+      # @example Using default handler
       #   MyMessage.subscribe
       #
       # @example Using custom method name with filtering
       #   MyMessage.subscribe("MyService.handle_message", from: ['order-service'])
       #
       # @example Using a block with broadcast filtering
-      #   MyMessage.subscribe(broadcast: true) do |header, payload|
-      #     data = JSON.parse(payload)
-      #     puts "Received broadcast: #{data}"
+      #   MyMessage.subscribe(broadcast: true) do |message|
+      #     puts "Received broadcast: #{message.content}"
       #   end
       #
       # @example Entity-specific filtering (receives only messages from payment service)
       #   MyMessage.subscribe("OrderService.process", from: ['payment'])
       #
-      # @example Explicit to filter 
+      # @example Explicit to filter
       #   MyMessage.subscribe("AdminService.handle", to: 'admin', broadcast: false)
       def subscribe(process_method = nil, broadcast: nil, to: nil, from: nil, &block)
         message_class = whoami
-        
+
         # Handle different parameter types
         if block_given?
           # Block was passed - use it as the handler
@@ -107,11 +105,11 @@ module SmartMessage
 
         # Subscriber identity is derived from the process method (handler)
         # This ensures each handler gets its own DDQ scope per message class
-        
+
         # Normalize string filters to arrays
         to_filter = normalize_filter_value(to)
         from_filter = normalize_filter_value(from)
-        
+
         # Create filter options (no explicit subscriber identity needed)
         filter_options = {
           broadcast: broadcast,
@@ -121,16 +119,16 @@ module SmartMessage
 
         # Add proper logging
         logger = SmartMessage::Logger.default
-        
+
         begin
           raise Errors::TransportNotConfigured if transport_missing?
           transport.subscribe(message_class, process_method, filter_options)
-          
+
           # Log successful subscription
           handler_desc = block_given? || process_method.respond_to?(:call) ? " with block/proc handler" : ""
           logger.info { "[SmartMessage] Subscribed: #{self.name}#{handler_desc}" }
           logger.debug { "[SmartMessage::Subscription] Subscribed #{message_class} with filters: #{filter_options}" }
-          
+
           process_method
         rescue => e
           logger.error { "[SmartMessage] Error in message subscription: #{e.class.name} - #{e.message}" }
@@ -148,16 +146,16 @@ module SmartMessage
         process_method  = message_class + '.process' if process_method.nil?
         # Add proper logging
         logger = SmartMessage::Logger.default
-        
+
         begin
           if transport_configured?
             transport.unsubscribe(message_class, process_method)
-            
+
             # If this was a proc handler, clean it up from the registry
             if proc_handler?(process_method)
               unregister_proc_handler(process_method)
             end
-            
+
             # Log successful unsubscription
             logger.info { "[SmartMessage] Unsubscribed: #{self.name}" }
             logger.debug { "[SmartMessage::Subscription] Unsubscribed #{message_class} from #{process_method}" }

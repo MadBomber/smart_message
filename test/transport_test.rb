@@ -16,11 +16,10 @@ module TransportTest
     # The business logic of a smart message is located in
     # its class-level process method.
     class << self
-      def process(wrapper)
-        _message_header, _message_payload = wrapper.split
+      def process(message)
         SS.add(whoami, 'process')
         return 'it worked'
-      end # def process(message_instance)
+      end # def process(message)
     end # class << self
   end # class MyMessage < SmartMessage::Base
 
@@ -64,10 +63,8 @@ module TransportTest
 
       # Add in a transport...
       TransportTest::MyMessage.config do
-        transport SmartMessage::Transport::StdoutTransport.new(loopback: false)
+        transport SmartMessage::Transport::StdoutTransport.new
       end
-
-      assert_equal false, TransportTest::MyMessage.transport.loopback?
 
       assert TransportTest::MyMessage.transport_configured?
       assert TransportTest::MyMessage.logger_missing?
@@ -132,12 +129,9 @@ module TransportTest
       # Set class-level plugins to known configuration
       TransportTest::MyMessage.config do
         transport   SmartMessage::Transport::StdoutTransport.new(
-                      loopback: false,
                       output:   'transport_test.log'
                     )
       end
-
-      assert_equal false, TransportTest::MyMessage.transport.loopback?
 
       my_other_message = TransportTest::MyOtherMessage.new(
         foo: 'one for the money',
@@ -167,60 +161,61 @@ module TransportTest
         TransportTest::MyMessage.subscribe
       end
 
-      # Set class-level plugins to known configuration
+      # Set class-level plugins to known configuration  
       TransportTest::MyMessage.config do
-        transport   SmartMessage::Transport::StdoutTransport.new(loopback: true)
+        transport   SmartMessage::Transport::StdoutTransport.new
       end
-
-      assert_equal true, TransportTest::MyMessage.transport.loopback?
 
       # clear out the subscription db because its been
       # polluted by other tests.
       TransportTest::MyMessage.transport.dispatcher.drop_all!
 
-      # Use the defaul class-level process method
+      # Use the default class-level process method
+      # STDOUT transport is publish-only, so subscription should be ignored
       TransportTest::MyMessage.subscribe
 
       message_class = 'TransportTest::MyMessage'
 
-      assert_equal [message_class], TransportTest::MyMessage.transport.subscribers.keys
+      # STDOUT transport is publish-only - no subscribers should be added
+      assert_equal [], TransportTest::MyMessage.transport.subscribers.keys
 
       default_process_method = message_class + '.process'
 
-      assert_equal 1, TransportTest::MyMessage.transport.subscribers[message_class].length
-      assert_equal default_process_method, TransportTest::MyMessage.transport.subscribers[message_class].first[:process_method]
+      # STDOUT transport ignores subscription attempts
+      assert_equal 0, TransportTest::MyMessage.transport.subscribers[message_class].length
 
       specialized_process_method = 'TransportTest::Test.specialized_process'
 
-      # Use the class-level specialized process method
+      # Use the class-level specialized process method - should also be ignored
       TransportTest::MyMessage.subscribe(specialized_process_method)
 
-      assert_equal 2, TransportTest::MyMessage.transport.subscribers[message_class].length
-      process_methods = TransportTest::MyMessage.transport.subscribers[message_class].map { |sub| sub[:process_method] }
-      assert_equal [default_process_method, specialized_process_method], process_methods
+      # Still no subscribers because STDOUT transport is publish-only
+      assert_equal 0, TransportTest::MyMessage.transport.subscribers[message_class].length
 
-      # unscribe the default process_method leaving only the specialized
-      # process method
+      # Unsubscribe attempts should also be ignored (but won't error)
       TransportTest::MyMessage.unsubscribe
 
-      assert_equal 1, TransportTest::MyMessage.transport.subscribers[message_class].length
-      assert_equal specialized_process_method, TransportTest::MyMessage.transport.subscribers[message_class].first[:process_method]
+      # Still no subscribers
+      assert_equal 0, TransportTest::MyMessage.transport.subscribers[message_class].length
 
-      # all the processes have been unscribed but the message key
-      # still remains in the hash.
-      refute TransportTest::MyMessage.transport.subscribers.empty?
+      # STDOUT transport subscribers hash may have empty message class entries
+      # but no actual subscribers for this message class
+      assert_equal 0, TransportTest::MyMessage.transport.subscribers[message_class].length
 
       assert_equal 6, TransportTest::MyOtherMessage.fields.size
 
       assert_equal  [:foo, :bar, :baz, :foo_two, :bar_two, :baz_two],
                     TransportTest::MyOtherMessage.fields.to_a
 
+      # STDOUT transport subscription attempts are ignored
       TransportTest::MyMessage.subscribe
       TransportTest::MyOtherMessage.subscribe
 
-      assert_equal  ['TransportTest::MyMessage', 'TransportTest::MyOtherMessage'],
+      # Since STDOUT transport is publish-only, expect only one entry (from earlier test)
+      assert_equal  ['TransportTest::MyMessage'],
                     TransportTest::MyMessage.transport.subscribers.keys
 
+      # Both message classes should share the same transport instance
       assert_equal  TransportTest::MyMessage.transport.subscribers,
                     TransportTest::MyOtherMessage.transport.subscribers
 

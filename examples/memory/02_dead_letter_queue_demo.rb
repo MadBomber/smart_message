@@ -47,9 +47,9 @@ class PaymentMessage < SmartMessage::Base
     transport SmartMessage::Transport.create(:memory)
   end
   
-  def self.process(wrapper)
-    header = wrapper._sm_header
-    payload = wrapper._sm_payload
+  def process(message)
+    header = message._sm_header
+    payload = message
     data = JSON.parse(payload, symbolize_names: true)
     puts "  💳 Processing payment #{data[:payment_id]} for $#{data[:amount]}"
   end
@@ -69,9 +69,9 @@ class OrderMessage < SmartMessage::Base
     transport SmartMessage::Transport.create(:memory)
   end
   
-  def self.process(wrapper)
-    header = wrapper._sm_header
-    payload = wrapper._sm_payload
+  def process(message)
+    header = message._sm_header
+    payload = message
     data = JSON.parse(payload, symbolize_names: true)
     puts "  📦 Processing order #{data[:order_id]} with #{data[:items].size} items"
   end
@@ -90,9 +90,9 @@ class NotificationMessage < SmartMessage::Base
     transport SmartMessage::Transport.create(:memory)
   end
   
-  def self.process(wrapper)
-    header = wrapper._sm_header
-    payload = wrapper._sm_payload
+  def process(message)
+    header = message._sm_header
+    payload = message
     data = JSON.parse(payload, symbolize_names: true)
     puts "  📧 Sending #{data[:channel]} to user #{data[:user_id]}: #{data[:message]}"
   end
