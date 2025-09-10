@@ -30,9 +30,14 @@ module SmartMessage
     def transport(klass_or_instance = nil)
       if klass_or_instance.nil?
         # Return instance transport, class transport, or global configuration
-        @transport || self.class.class_variable_get(:@@transport) || SmartMessage::Transport.default
+        # For backward compatibility, return first transport if array, otherwise single transport
+        transport_value = @transport || self.class.class_variable_get(:@@transport) || SmartMessage::Transport.default
+        transport_value.is_a?(Array) ? transport_value.first : transport_value
       else
-        @transport = klass_or_instance
+        # Normalize to array for internal consistent handling
+        @transport = Array(klass_or_instance)
+        # Return the original value for backward compatibility with method chaining
+        klass_or_instance
       end
     end
 
@@ -43,6 +48,22 @@ module SmartMessage
         (self.class.class_variable_get(:@@transport) rescue nil).nil?
     end
     def reset_transport;        @transport = nil;  end
+
+    # Utility methods for working with transport collections
+    def transports
+      # Get the raw transport value (which is internally stored as array)
+      raw_transport = @transport || self.class.class_variable_get(:@@transport) || SmartMessage::Transport.default
+      # Always return as array for consistent handling
+      raw_transport.is_a?(Array) ? raw_transport : Array(raw_transport)
+    end
+
+    def single_transport?
+      transports.length == 1
+    end
+
+    def multiple_transports?
+      transports.length > 1
+    end
 
     module ClassMethods
       #########################################################
@@ -58,9 +79,14 @@ module SmartMessage
       def transport(klass_or_instance = nil)
         if klass_or_instance.nil?
           # Return class-level transport or fall back to global configuration
-          class_variable_get(:@@transport) || SmartMessage::Transport.default
+          # For backward compatibility, return first transport if array, otherwise single transport
+          transport_value = class_variable_get(:@@transport) || SmartMessage::Transport.default
+          transport_value.is_a?(Array) ? transport_value.first : transport_value
         else
-          class_variable_set(:@@transport, klass_or_instance)
+          # Normalize to array for internal consistent handling
+          class_variable_set(:@@transport, Array(klass_or_instance))
+          # Return the original value for backward compatibility with method chaining
+          klass_or_instance
         end
       end
 
@@ -70,6 +96,22 @@ module SmartMessage
         (class_variable_get(:@@transport) rescue nil).nil?
       end
       def reset_transport;       class_variable_set(:@@transport, nil);  end
+
+      # Utility methods for working with transport collections  
+      def transports
+        # Get the raw transport value (which is internally stored as array)
+        raw_transport = class_variable_get(:@@transport) || SmartMessage::Transport.default
+        # Always return as array for consistent handling
+        raw_transport.is_a?(Array) ? raw_transport : Array(raw_transport)
+      end
+
+      def single_transport?
+        transports.length == 1
+      end
+
+      def multiple_transports?
+        transports.length > 1
+      end
 
       #########################################################
       ## class-level logger configuration

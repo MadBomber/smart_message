@@ -28,5 +28,8 @@ module SmartMessage
     # A property validation failed
     class ValidationError < RuntimeError; end
 
+    # Publishing failed on all configured transports
+    class PublishError < RuntimeError; end
+
   end
 end

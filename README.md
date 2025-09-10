@@ -23,6 +23,7 @@ Think of SmartMessage as ActiveRecord for messaging - just as ActiveRecord frees
 ## Features
 
 - **Transport Abstraction**: Plugin architecture supporting multiple message transports (Redis, RabbitMQ, Kafka, etc.)
+- **Multi-Transport Publishing**: Send messages to multiple transports simultaneously for redundancy, integration, and migration scenarios
 - **🌟 Redis Queue Transport**: Advanced transport with RabbitMQ-style routing patterns, persistent FIFO queues, load balancing, and 10x faster performance than traditional message brokers. Built on Ruby's Async framework for fiber-based concurrency supporting thousands of concurrent subscriptions - [see full documentation](docs/transports/redis-queue.md)
 - **Serialization Flexibility**: Pluggable serialization formats (JSON, MessagePack, etc.)
 - **Entity-to-Entity Addressing**: Built-in FROM/TO/REPLY_TO addressing for point-to-point and broadcast messaging patterns
@@ -580,6 +581,38 @@ end
 This enables gateway patterns where messages can be received from one transport/serializer and republished to another.
 
 ## Transport Implementations
+
+### Multi-Transport Messages
+
+SmartMessage supports publishing to multiple transports simultaneously for redundancy, integration, and migration scenarios:
+
+```ruby
+class CriticalOrderMessage < SmartMessage::Base
+  property :order_id, required: true
+  property :amount, required: true
+  
+  # Configure multiple transports - message goes to ALL of them
+  transport [
+    SmartMessage::Transport.create(:redis_queue, url: 'redis://primary:6379'),
+    SmartMessage::Transport.create(:redis, url: 'redis://backup:6379'),
+    SmartMessage::Transport::StdoutTransport.new(format: :json)
+  ]
+end
+
+# Publishes to Redis Queue, Redis Pub/Sub, and STDOUT simultaneously
+message = CriticalOrderMessage.new(order_id: "ORD-123", amount: 99.99)
+message.publish  # ✅ Succeeds if ANY transport works
+
+# Check transport configuration
+puts message.multiple_transports?  # => true
+puts message.transports.length     # => 3
+```
+
+**Key Benefits:**
+- **Redundancy**: Messages reach multiple destinations for reliability
+- **Integration**: Simultaneously log to STDOUT, send to Redis, and webhook external systems  
+- **Migration**: Gradually transition between transport systems
+- **Resilient**: Publishing succeeds as long as ANY transport works
 
 ### Redis Queue Transport (Featured) 🌟
 

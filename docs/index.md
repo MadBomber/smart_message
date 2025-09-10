@@ -31,8 +31,10 @@ Think of SmartMessage as ActiveRecord for messaging - just as ActiveRecord frees
 
 ### Transports
 - [Transport Layer](reference/transports.md)
+- [Multi-Transport Publishing](transports/multi-transport.md)
 - [Redis Transport](transports/redis-transport.md)
 - [Redis Transport Comparison](transports/redis-transport-comparison.md)
+- [Memory Transport](transports/memory-transport.md)
 
 ### Guides
 - [Examples & Use Cases](getting-started/examples.md)
