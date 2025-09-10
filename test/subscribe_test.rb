@@ -2,7 +2,6 @@
 
 require_relative "test_helper"
 
-require 'smart_message/serializer/json'
 require 'smart_message/transport'
 
 module SubscribeTest
@@ -31,7 +30,6 @@ module SubscribeTest
   class Test < Minitest::Test
     def setup
       SubscribeTest::MyMessage.config do
-        serializer  SmartMessage::Serializer::Json.new
         transport   SmartMessage::Transport::StdoutTransport.new(loopback: true, output: 'subscribe.log')
       end
 

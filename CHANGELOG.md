@@ -7,10 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.13] 2025-09-10
+
+### Changed
+- **BREAKING: Transport-Level Serialization Architecture**: Major architectural rework moving serializer responsibility from message classes to transport layer
+  - **Core Change**: Serializers now associated with transports instead of message classes, enabling different transports to use different serialization formats
+  - **Message Structure**: Eliminated wrapper objects in favor of flat message structure with `_sm_header` routing metadata
+  - **Serialization Format**: Messages now serialized as single JSON objects containing both header and payload data (e.g., `{"_sm_header": {...}, "content": "value", "property": "data"}`)
+  - **Transport Flexibility**: Each transport can now use its own serializer (JSON, MessagePack, etc.) independently
+  - **Backward Compatibility**: Added `_sm_payload` and `split` methods to maintain compatibility with existing proc handlers
+  - **Performance**: Simplified message processing pipeline with direct message instance passing instead of complex wrapper handling
+
+### Fixed
+- **Message Reconstruction**: Fixed critical bug in `SmartMessage::Base#initialize` where payload properties were not properly extracted from flat serialized structure
+  - **Root Cause**: Initialization logic looked for `props[:_sm_payload]` but flat structure stores properties directly in `props`
+  - **Solution**: Changed to `payload_props = props.except(:_sm_header)` to extract all non-header properties
+  - **Impact**: Proc handlers now receive correct message content, resolving nil property values in `_sm_payload`
+- **Circuit Breaker Test Compatibility**: Updated circuit breaker tests to use new transport method signatures
+  - **Issue**: Tests were calling `transport.publish(header, payload)` with two arguments
+  - **Fix**: Updated to `transport.publish(message_instance)` with single message parameter
+  - **Result**: All circuit breaker tests now pass with new architecture
+- **Deduplication Test Format**: Updated deduplication tests from old wrapper format to new flat structure
+  - **Changed**: `_sm_payload: { content: "value" }` → `content: "value"`
+  - **Maintained**: Full deduplication functionality with handler-scoped DDQ system
+
+### Enhanced
+- **Transport Serialization Control**: Each transport implementation can now specify its preferred serializer
+  - **Memory Transport**: Returns message objects directly without serialization for performance
+  - **STDOUT Transport**: Uses JSON serializer with pretty printing for human readability
+  - **Redis Transport**: Uses MessagePack with JSON fallback for efficient network transmission
+- **Message Processing Pipeline**: Streamlined architecture with direct message instance routing
+  - **Eliminated**: Complex wrapper object creation and management overhead
+  - **Simplified**: Transport `receive` method now directly reconstructs message instances from flat data
+  - **Improved**: Cleaner separation between transport concerns and message processing logic
+
 ### Added
 - **Emergency Services Multi-Program Demo**: Complete emergency dispatch simulation system
   - Added comprehensive emergency services message definitions with validation
-  - Emergency Dispatch Center (911) routing calls to appropriate departments 
+  - Emergency Dispatch Center (911) routing calls to appropriate departments
   - Fire Department, Police Department, and Health Department service implementations
   - AI-powered visitor generating realistic emergency scenarios with retry logic
   - Health monitoring system across all city services with status reporting

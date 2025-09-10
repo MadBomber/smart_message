@@ -50,7 +50,6 @@ module SmartMessage
       # instance-level override of class plugins  
       # Don't use fallback defaults here - let the methods handle fallbacks when actually used
       @transport   = (self.class.class_variable_get(:@@transport) rescue nil)
-      @serializer  = (self.class.class_variable_get(:@@serializer) rescue nil)
 
       # Check if we're reconstructing from serialized data (complete header provided)
       if props[:_sm_header]
@@ -71,8 +70,8 @@ module SmartMessage
         @to = header.to
         @reply_to = header.reply_to
         
-        # Extract payload properties
-        payload_props = props[:_sm_payload] || {}
+        # Extract payload properties directly from props (flat structure)
+        payload_props = props.except(:_sm_header)
         
         attributes = {
           _sm_header: header
@@ -132,7 +131,7 @@ module SmartMessage
       # Extract payload properties (non-header properties)
       payload_props = self.class.properties.each_with_object({}) do |prop, hash|
         next if prop == :_sm_header
-        hash[prop.to_s] = self[prop]  # Use string keys to match old format
+        hash[prop.to_s] = self[prop]  # Access property value
       end
       
       JSON.generate(payload_props)
@@ -154,29 +153,39 @@ module SmartMessage
 
 
 
+    # Convert message to hash for serialization
+    def to_hash
+      # Get all properties and their values
+      hash = {}
+      self.class.properties.each do |prop|
+        hash[prop] = self[prop]
+      end
+      hash
+    end
+
     ###########################################################
     ## class methods
 
     class << self
       # Decode a complete serialized message back to a message instance
+      # Note: This method is no longer used with transport-based serialization
+      # Transports handle decoding and create message instances directly
       # @param serialized_message [String] The serialized message content
       # @return [SmartMessage::Base] The decoded message instance
       def decode(serialized_message)
         begin
           (self.logger || SmartMessage::Logger.default).info { "[SmartMessage] Received: #{self.name} (#{serialized_message.bytesize} bytes)" }
 
-          # Use the class's configured serializer to decode the message
-          serializer = self.serializer || SmartMessage::Serializer.default
-          
-          # Deserialize the complete message
-          deserialized_data = serializer.decode(serialized_message)
+          # This method is deprecated - transports now handle serialization
+          # For backward compatibility, try to decode as JSON
+          require 'json'
+          deserialized_data = JSON.parse(serialized_message)
 
           # Create new message instance with the complete deserialized data
           if deserialized_data.is_a?(Hash)
             # Convert string keys to symbols for compatibility with keyword arguments
             symbol_props = deserialized_data.transform_keys(&:to_sym)
             
-            # With single-tier serialization, use the complete deserialized message structure
             message = self.new(**symbol_props)
 
             (self.logger || SmartMessage::Logger.default).debug { "[SmartMessage] Deserialized message: #{self.name}" }

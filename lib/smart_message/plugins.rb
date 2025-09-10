@@ -4,7 +4,7 @@
 
 module SmartMessage
   # Plugin configuration module for SmartMessage::Base
-  # Handles transport, serializer, and logger configuration at both
+  # Handles transport and logger configuration at both
   # class and instance levels
   module Plugins
     def self.included(base)
@@ -12,7 +12,6 @@ module SmartMessage
       base.class_eval do
         # Class-level plugin storage
         class_variable_set(:@@transport, nil) unless class_variable_defined?(:@@transport)
-        class_variable_set(:@@serializer, nil) unless class_variable_defined?(:@@serializer)
         class_variable_set(:@@logger, nil) unless class_variable_defined?(:@@logger)
       end
     end
@@ -44,27 +43,6 @@ module SmartMessage
         (self.class.class_variable_get(:@@transport) rescue nil).nil?
     end
     def reset_transport;        @transport = nil;  end
-
-
-    #########################################################
-    ## instance-level serializer configuration
-
-    def serializer(klass_or_instance = nil)
-      if klass_or_instance.nil?
-        # Return instance serializer, class serializer, or global configuration
-        @serializer || self.class.class_variable_get(:@@serializer) || SmartMessage::Serializer.default
-      else
-        @serializer = klass_or_instance
-      end
-    end
-
-    def serializer_configured?; !serializer_missing?;   end
-    def serializer_missing?
-      # Check if serializer is explicitly configured (without fallback to defaults)
-      @serializer.nil? && 
-        (self.class.class_variable_get(:@@serializer) rescue nil).nil?
-    end
-    def reset_serializer;       @serializer = nil;  end
 
     module ClassMethods
       #########################################################
@@ -111,25 +89,6 @@ module SmartMessage
         (class_variable_get(:@@logger) rescue nil).nil?
       end
       def reset_logger;          class_variable_set(:@@logger, nil);  end
-
-      #########################################################
-      ## class-level serializer configuration
-
-      def serializer(klass_or_instance = nil)
-        if klass_or_instance.nil?
-          # Return class-level serializer or fall back to global configuration
-          class_variable_get(:@@serializer) || SmartMessage::Serializer.default
-        else
-          class_variable_set(:@@serializer, klass_or_instance)
-        end
-      end
-
-      def serializer_configured?; !serializer_missing?;   end
-      def serializer_missing?
-        # Check if class-level serializer is explicitly configured (without fallback to defaults)
-        (class_variable_get(:@@serializer) rescue nil).nil?
-      end
-      def reset_serializer;      class_variable_set(:@@serializer, nil);  end
     end
   end
 end

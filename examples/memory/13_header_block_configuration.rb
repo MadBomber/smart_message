@@ -32,7 +32,6 @@ class DirectMethodMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport.create(:stdout)
-    serializer SmartMessage::Serializer::Json.new
   end
 end
 
@@ -63,7 +62,6 @@ class HeaderBlockMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport.create(:stdout)
-    serializer SmartMessage::Serializer::Json.new
   end
 end
 
@@ -96,7 +94,6 @@ class MixedConfigMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport.create(:stdout)
-    serializer SmartMessage::Serializer::Json.new
   end
 end
 
@@ -127,7 +124,6 @@ class FlexibleMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport.create(:stdout)
-    serializer SmartMessage::Serializer::Json.new
   end
 end
 
@@ -234,7 +230,6 @@ class CheckableMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport.create(:stdout)
-    serializer SmartMessage::Serializer::Json.new
   end
 end
 

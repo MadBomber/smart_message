@@ -13,7 +13,6 @@ module Messages
     description 'Emergency fire suppression dispatch coordination message sent by the Fire Department in response to fire emergencies, containing fire engine assignments, specialized equipment deployment, and tactical response information for various fire types, rescue operations, and hazardous material incidents'
 
     transport  SmartMessage::Transport::RedisTransport.new
-    serializer SmartMessage::Serializer::Json.new
 
     property :dispatch_id, required: true,
                            description: 'Unique hexadecimal identifier for this fire department dispatch operation'

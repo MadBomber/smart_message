@@ -16,28 +16,47 @@ module SmartMessage
         }
       end
 
+      # Memory transport doesn't need serialization
+      def default_serializer
+        nil
+      end
+
       def configure
         @messages = []
         @message_mutex = Mutex.new
       end
 
-      # Publish message to memory queue
+      # Implement do_publish for memory transport (no serialization needed)
       def do_publish(message_class, serialized_message)
+        # For memory transport, serialized_message is actually the message object
+        message = serialized_message
+        
         @message_mutex.synchronize do
           # Prevent memory overflow
           @messages.shift if @messages.size >= @options[:max_messages]
           
+          # Store the actual message object, no serialization needed
           @messages << {
             message_class: message_class,
-            serialized_message: serialized_message,
+            message: message.dup,  # Store a copy to prevent mutation
             published_at: Time.now
           }
         end
 
         # Auto-process if enabled
         if @options[:auto_process]
-          receive(message_class, serialized_message)
+          # Route directly without serialization
+          @dispatcher.route(message)
         end
+      end
+
+      # Override encode_message to return the message object directly
+      def encode_message(message)
+        # Update header with serializer info (even though we don't serialize)
+        message._sm_header.serializer = 'none'
+        
+        # Return the message object itself (no encoding needed)
+        message
       end
 
       # Get all stored messages
@@ -59,7 +78,7 @@ module SmartMessage
       def process_all
         messages_to_process = @message_mutex.synchronize { @messages.dup }
         messages_to_process.each do |msg|
-          receive(msg[:message_class], msg[:serialized_message])
+          @dispatcher.route(msg[:message])
         end
       end
 

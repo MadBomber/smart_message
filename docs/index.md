@@ -31,13 +31,13 @@ Think of SmartMessage as ActiveRecord for messaging - just as ActiveRecord frees
 
 ### Transports
 - [Transport Layer](reference/transports.md)
-- [Redis Queue Transport](transports/redis-queue-transport.md) ⭐ **Featured**
+- [Redis Transport](transports/redis-transport.md)
 - [Redis Transport Comparison](transports/redis-transport-comparison.md)
 
 ### Guides
-- [Redis Queue Getting Started](guides/redis-queue-getting-started.md)
-- [Advanced Routing Patterns](guides/redis-queue-patterns.md)
-- [Production Deployment](guides/redis-queue-production.md)
+- [Examples & Use Cases](getting-started/examples.md)
+- [Architecture Overview](core-concepts/architecture.md)
+- [Transport Configuration](reference/transports.md)
 
 ### Reference
 - [Serializers](reference/serializers.md)

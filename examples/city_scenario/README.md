@@ -372,7 +372,7 @@ All messages include comprehensive headers:
     "publisher_pid": 12345,
     "version": 1,
     "from": "house-sensor-01",
-    "serializer": "SmartMessage::Serializer::Json"
+    "transport": "SmartMessage::Transport::RedisTransport"
   },
   "_sm_payload": {
     "location": "123 Oak Street",

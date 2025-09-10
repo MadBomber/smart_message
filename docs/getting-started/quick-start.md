@@ -92,7 +92,6 @@ class WelcomeMessage < SmartMessage::Base
   # Configure the transport (where messages go)
   config do
     transport SmartMessage::Transport.create(:stdout, loopback: true)
-    serializer SmartMessage::Serializer::Json.new
   end
 
   # Define how to process received messages
@@ -213,12 +212,10 @@ transport SmartMessage::Transport.create(:memory, auto_process: true)
 ```
 
 ### Serializers
-Serializers handle message encoding/decoding:
-
-```ruby
-# JSON serialization (built-in)
-serializer SmartMessage::Serializer::Json.new
-```
+Transports handle their own serialization automatically:
+- **MemoryTransport**: No serialization (objects passed directly)
+- **StdoutTransport**: JSON serialization for readability
+- **RedisTransport**: MessagePack (with JSON fallback) for efficiency
 
 ### Message Handlers
 
@@ -321,7 +318,6 @@ class NotificationMessage < SmartMessage::Base
 
   config do
     transport SmartMessage::Transport.create(:memory, auto_process: true)
-    serializer SmartMessage::Serializer::Json.new
   end
 
   def self.process(decoded_message)
@@ -364,7 +360,6 @@ class EventMessage < SmartMessage::Base
 
   config do
     transport SmartMessage::Transport.create(:stdout, output: 'events.log')
-    serializer SmartMessage::Serializer::Json.new
   end
 end
 

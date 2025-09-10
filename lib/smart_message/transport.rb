@@ -7,7 +7,6 @@ require_relative 'transport/registry'
 require_relative 'transport/stdout_transport'
 require_relative 'transport/memory_transport'
 require_relative 'transport/redis_transport'
-require_relative 'transport/redis_queue_transport'
 
 module SmartMessage
   module Transport

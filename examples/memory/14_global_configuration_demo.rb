@@ -62,7 +62,6 @@ class NotificationMessage < SmartMessage::Base
   # Explicitly use global configuration for demonstration
   config do
     transport SmartMessage::Transport.default
-    serializer SmartMessage::Serializer.default
     logger SmartMessage::Logger.default
   end
   
@@ -88,7 +87,6 @@ class OrderStatusMessage < SmartMessage::Base
   # Explicitly use global configuration for demonstration
   config do
     transport SmartMessage::Transport.default
-    serializer SmartMessage::Serializer.default
     logger SmartMessage::Logger.default
   end
   

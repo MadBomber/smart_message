@@ -35,7 +35,7 @@ These transports keep all message routing in-memory within the current Ruby proc
 **Transport:** StdoutTransport with loopback
 - Order processing system between OrderService and PaymentService
 - Request/response message pattern
-- JSON serialization of complex order data
+- Automatic serialization of complex order data by transport
 - Bidirectional communication flow
 
 ### 📢 04_publish_subscribe_events.rb
@@ -121,8 +121,8 @@ These transports keep all message routing in-memory within the current Ruby proc
 ### 🌍 14_global_configuration_demo.rb  
 **Demonstrates:** Global SmartMessage configuration
 **Transport:** StdoutTransport with loopback
-- Global transport and serializer settings
-- Configuration inheritance
+- Global transport settings
+- Configuration inheritance (serialization handled by transport)
 - Default settings management
 - Application-wide configuration patterns
 

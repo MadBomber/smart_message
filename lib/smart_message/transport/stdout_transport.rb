@@ -10,8 +10,14 @@ module SmartMessage
       def default_options
         {
           loopback: false,
-          output: $stdout
+          output: $stdout,
+          format: :pretty  # :pretty or :json
         }
+      end
+
+      # Default to JSON for readability in STDOUT
+      def default_serializer
+        SmartMessage::Serializer::Json.new
       end
 
       def configure
@@ -27,7 +33,7 @@ module SmartMessage
         @options[:loopback]
       end
 
-      # Publish message to STDOUT (single-tier serialization)
+      # Publish message to STDOUT
       def do_publish(message_class, serialized_message)
         logger.debug { "[SmartMessage::StdoutTransport] do_publish called" }
         logger.debug { "[SmartMessage::StdoutTransport] message_class: #{message_class}" }
@@ -56,16 +62,28 @@ module SmartMessage
       private
 
       def format_message(message_class, serialized_message)
-        <<~MESSAGE
+        if @options[:format] == :json
+          # Output as JSON for machine parsing
+          {
+            transport: 'stdout',
+            message_class: message_class,
+            serialized_message: serialized_message,
+            timestamp: Time.now.iso8601
+          }.to_json
+        else
+          # Pretty format for human reading
+          <<~MESSAGE
 
-          ===================================================
-          == SmartMessage Published via STDOUT Transport
-          == Single-Tier Serialization:
-          == Message Class: #{message_class}
-          == Serialized Message: #{serialized_message}
-          ===================================================
+            ===================================================
+            == SmartMessage Published via STDOUT Transport
+            == Message Class: #{message_class}
+            == Serializer: #{@serializer.class.name}
+            == Serialized Message:
+            #{serialized_message}
+            ===================================================
 
-        MESSAGE
+          MESSAGE
+        end
       end
     end
   end

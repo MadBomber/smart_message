@@ -24,6 +24,17 @@ module SmartMessage
         }
       end
 
+      # Default to MessagePack for Redis (efficient binary format)
+      def default_serializer
+        # Try MessagePack first, fall back to JSON
+        begin
+          require 'smart_message/serializer/message_pack'
+          SmartMessage::Serializer::MessagePack.new
+        rescue LoadError
+          SmartMessage::Serializer::Json.new
+        end
+      end
+
       def configure
         @redis_pub = Redis.new(url: @options[:url], db: @options[:db])
         @redis_sub = Redis.new(url: @options[:url], db: @options[:db])

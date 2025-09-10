@@ -11,15 +11,17 @@ module SmartMessage
     class Base
       include BreakerMachines::DSL
 
-      attr_reader :options, :dispatcher
+      attr_reader :options, :dispatcher, :serializer
 
       def initialize(**options)
         @options = default_options.merge(options)
         @dispatcher = options[:dispatcher] || SmartMessage::Dispatcher.new
+        @serializer = options[:serializer] || default_serializer
         configure
         configure_transport_circuit_breakers
         
         logger.debug { "[SmartMessage::Transport::#{self.class.name.split('::').last}] Initialized with options: #{@options}" }
+        logger.debug { "[SmartMessage::Transport::#{self.class.name.split('::').last}] Using serializer: #{@serializer.class.name}" }
       rescue => e
         logger&.error { "[SmartMessage] Error in transport initialization: #{e.class.name} - #{e.message}" }
         raise
@@ -43,10 +45,20 @@ module SmartMessage
         {}
       end
 
+      # Default serializer for this transport (override in subclasses)
+      def default_serializer
+        SmartMessage::Serializer::Json.new
+      end
+
       # Publish a message with circuit breaker protection
-      # @param message_class [String] The message class name (used for channel routing)
-      # @param serialized_message [String] Complete serialized message content
-      def publish(message_class, serialized_message)
+      # @param message [SmartMessage::Base] The message instance to publish
+      def publish(message)
+        # Extract routing info from message header
+        message_class = message._sm_header.message_class
+        
+        # Serialize the entire message (flat structure with _sm_header)
+        serialized_message = encode_message(message)
+        
         circuit(:transport_publish).wrap do
           do_publish(message_class, serialized_message)
         end
@@ -58,7 +70,7 @@ module SmartMessage
         raise unless e.is_a?(Hash) && e[:circuit_breaker]
 
         # Handle circuit breaker fallback
-        handle_publish_fallback(e, message_class, serialized_message)
+        handle_publish_fallback(e, message._sm_header.message_class, serialized_message)
       end
 
       # Template method for actual publishing (implement in subclasses)
@@ -150,13 +162,32 @@ module SmartMessage
         end
       end
 
+      # Encode a message using the transport's serializer
+      # @param message [SmartMessage::Base] The message to encode
+      # @return [String] The serialized message
+      def encode_message(message)
+        # Update header with serializer info
+        message._sm_header.serializer = @serializer.class.to_s
+        
+        # Serialize the entire message as a flat structure
+        @serializer.encode(message.to_hash)
+      end
+
+      # Decode a message using the transport's serializer
+      # @param serialized_message [String] The serialized message
+      # @return [Hash] The decoded message data
+      def decode_message(serialized_message)
+        @serializer.decode(serialized_message)
+      end
+
       # Receive and route a message (called by transport implementations)
       # @param message_class [String] The message class name
       # @param serialized_message [String] The serialized message content
       protected
 
       def receive(message_class, serialized_message)
-        # Decode the message using the class's configured serializer
+        # Decode the message using transport's serializer
+        decoded_data = decode_message(serialized_message)
         
         # Add defensive check for message_class type
         unless message_class.respond_to?(:constantize)
@@ -165,10 +196,13 @@ module SmartMessage
           raise ArgumentError, "message_class must be a String, got #{message_class.class.name}"
         end
         
+        # Reconstruct the message instance from flat structure
         message_class_obj = message_class.constantize
-        decoded_message = message_class_obj.decode(serialized_message)
+        # Convert string keys to symbols for keyword arguments
+        symbol_data = decoded_data.transform_keys(&:to_sym)
+        message = message_class_obj.new(**symbol_data)
         
-        @dispatcher.route(decoded_message)
+        @dispatcher.route(message)
       rescue => e
         logger.error { "[SmartMessage] Error in transport receive: #{e.class.name} - #{e.message}" }
         logger.error { "[SmartMessage] message_class: #{message_class.inspect} (#{message_class.class.name})" }

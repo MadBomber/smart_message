@@ -17,11 +17,9 @@ class CircuitBreakerTest < Minitest::Test
     begin
       @dispatcher = SmartMessage::Dispatcher.new
       @transport = SmartMessage::Transport::MemoryTransport.new
-      @serializer = SmartMessage::Serializer::Json.new
-      
       # Configure TestMessage
       TestMessage.config do
-        serializer SmartMessage::Serializer::Json.new
+        # Using default transport serialization
       end
       
       @test_message = TestMessage.new(
@@ -55,9 +53,7 @@ class CircuitBreakerTest < Minitest::Test
       assert_respond_to @transport, :reset_transport_circuits!
     end
 
-    should "configure circuit breakers for serializer" do
-      assert_respond_to @serializer, :circuit
-    end
+    # Serializer circuit breaker tests removed - now handled by transport
   end
 
   context "Message Processor Circuit Breaker" do
@@ -160,8 +156,9 @@ class CircuitBreakerTest < Minitest::Test
         raise Redis::ConnectionError, "Connection failed"
       end
 
-      # This should trigger the circuit breaker
-      result = @transport.publish(@header, '{"test": true}')
+      # Create a test message instance to trigger the circuit breaker
+      test_message = TestMessage.new(test_data: 'test_value', status: 'active', from: 'test_sender')
+      result = @transport.publish(test_message)
       
       # Should receive a circuit breaker fallback response
       if result.is_a?(Hash) && result[:circuit_breaker]
@@ -184,39 +181,7 @@ class CircuitBreakerTest < Minitest::Test
     end
   end
 
-  context "Serializer Circuit Breaker" do
-    should "protect encoding operations" do
-      # Mock a failing serializer
-      def @serializer.do_encode(message_instance)
-        raise JSON::GeneratorError, "Encoding failed"
-      end
-
-      # This should trigger the circuit breaker eventually
-      result = @serializer.encode({"test" => "data"})
-      
-      # Check if we got a circuit breaker response or the original error
-      if result.is_a?(Hash) && result[:circuit_breaker]
-        assert_equal 'open', result[:circuit_breaker][:state]
-        assert_equal :serializer, result[:circuit_breaker][:circuit]
-      end
-    end
-
-    should "protect decoding operations" do
-      # Mock a failing serializer
-      def @serializer.do_decode(payload)
-        raise JSON::ParserError, "Decoding failed"
-      end
-
-      # This should trigger the circuit breaker eventually
-      result = @serializer.decode('invalid json')
-      
-      # Check if we got a circuit breaker response or the original error
-      if result.is_a?(Hash) && result[:circuit_breaker]
-        assert_equal 'open', result[:circuit_breaker][:state]
-        assert_equal :serializer, result[:circuit_breaker][:circuit]
-      end
-    end
-  end
+  # Serializer circuit breaker tests removed - serialization now handled by transport
 
   context "Circuit Breaker Integration" do
     should "handle multiple circuit breaker layers" do
@@ -238,7 +203,7 @@ class CircuitBreakerTest < Minitest::Test
       # Register the processor
       @dispatcher.add('TestCircuitMessage', 'TestCircuitMessage.process')
 
-      # Test with transport and serializer circuit breakers
+      # Test with transport circuit breakers
       header = SmartMessage::Header.new(
         message_class: 'TestCircuitMessage',
         from: 'test_sender',
@@ -247,8 +212,14 @@ class CircuitBreakerTest < Minitest::Test
         publisher_pid: Process.pid
       )
 
+      # Create a test message instance
+      test_message = Class.new(SmartMessage::Base) do
+        property :content
+        def self.name; 'TestCircuitMessage'; end
+      end.new(_sm_header: header, content: "test message")
+      
       # This should work through all circuit breaker layers
-      @transport.publish(header, '{"content": "test message"}')
+      @transport.publish(test_message)
       
       # Allow time for async processing
       sleep 0.2
@@ -277,7 +248,7 @@ class CircuitBreakerTest < Minitest::Test
       assert configs.key?(:message_processor)
       assert configs.key?(:transport_publish)
       assert configs.key?(:transport_subscribe)
-      assert configs.key?(:serializer)
+      # Serializer configs now part of transport
     end
 
     should "configure circuit breakers for classes" do

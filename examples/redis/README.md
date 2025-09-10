@@ -135,7 +135,6 @@ SmartMessage.configure do |config|
     url: 'redis://localhost:6379',
     db: 1  # Optional: use specific Redis database
   )
-  config.serializer = SmartMessage::Serializer::Json.new
 end
 ```
 
@@ -147,7 +146,6 @@ class MyMessage < SmartMessage::Base
       url: 'redis://localhost:6379',
       db: 2
     )
-    serializer SmartMessage::Serializer::Json.new
   end
 end
 ```

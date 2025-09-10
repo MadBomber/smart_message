@@ -64,11 +64,9 @@ def demonstrate_deduplication
   transport = SmartMessage::Transport::MemoryTransport.new
   
   OrderMessage.transport(transport)
-  OrderMessage.serializer(SmartMessage::Serializer::Json.new)
   OrderMessage.subscribe('OrderMessage.process')
   
   NotificationMessage.transport(transport)
-  NotificationMessage.serializer(SmartMessage::Serializer::Json.new)
   NotificationMessage.subscribe('NotificationMessage.process')
   
   # Clear any previous state

@@ -430,24 +430,6 @@ All subscribers receive all messages:
 # No load balancing between subscribers
 ```
 
-## Migration to Enhanced Transport
-
-When you need advanced routing, consider upgrading to Enhanced Transport:
-
-```ruby
-# From Redis Transport
-SmartMessage.configure do |config|
-  config.default_transport = SmartMessage::Transport::RedisTransport.new
-end
-
-# To Enhanced Transport (with backward compatibility)
-SmartMessage.configure do |config|
-  config.default_transport = SmartMessage::Transport::RedisEnhancedTransport.new
-end
-
-# All existing messages continue to work
-# New messages gain pattern-matching capabilities
-```
 
 ## Examples
 
@@ -503,7 +485,6 @@ For more Redis Transport examples and patterns, also see:
 
 ## Related Documentation
 
-- [Redis Enhanced Transport](redis-enhanced-transport.md) - Advanced routing with patterns
-- [Redis Queue Transport](redis-queue-transport.md) - Persistent queues with load balancing  
-- [Transport Comparison](redis-transport-comparison.md) - Compare all Redis transports
 - [Transport Overview](../reference/transports.md) - All available transports
+- [Examples & Use Cases](../getting-started/examples.md) - Practical usage patterns
+- [Architecture Overview](../core-concepts/architecture.md) - How SmartMessage works

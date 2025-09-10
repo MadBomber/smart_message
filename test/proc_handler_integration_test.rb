@@ -43,7 +43,6 @@ class ProcHandlerIntegrationTest < Minitest::Test
 
     config do
       reset_transport
-      reset_serializer
     end
 
     def self.process(wrapper)
@@ -63,7 +62,6 @@ class ProcHandlerIntegrationTest < Minitest::Test
 
   def test_proc_handlers_with_memory_transport
     IntegrationTestMessage.transport SmartMessage::Transport::MemoryTransport.new(auto_process: true)
-    IntegrationTestMessage.serializer SmartMessage::Serializer::Json.new
 
     received_messages = []
 
@@ -110,7 +108,6 @@ class ProcHandlerIntegrationTest < Minitest::Test
   def test_multiple_proc_handlers_with_stdout_transport
     transport = SmartMessage::Transport::StdoutTransport.new(loopback: true)
     IntegrationTestMessage.transport transport
-    IntegrationTestMessage.serializer SmartMessage::Serializer::Json.new
 
     handler1_messages = []
     handler2_messages = []
@@ -151,7 +148,6 @@ class ProcHandlerIntegrationTest < Minitest::Test
 
   def test_proc_handler_error_handling_integration
     IntegrationTestMessage.transport SmartMessage::Transport::MemoryTransport.new(auto_process: true)
-    IntegrationTestMessage.serializer SmartMessage::Serializer::Json.new
 
     error_handler_called = false
     success_handler_called = false
@@ -194,7 +190,6 @@ class ProcHandlerIntegrationTest < Minitest::Test
 
   def test_proc_handler_unsubscribe_integration
     IntegrationTestMessage.transport SmartMessage::Transport::MemoryTransport.new(auto_process: true)
-    IntegrationTestMessage.serializer SmartMessage::Serializer::Json.new
 
     call_count = 0
 
@@ -236,7 +231,6 @@ class ProcHandlerIntegrationTest < Minitest::Test
 
   def test_mixed_handler_types_integration
     IntegrationTestMessage.transport SmartMessage::Transport::MemoryTransport.new(auto_process: true)
-    IntegrationTestMessage.serializer SmartMessage::Serializer::Json.new
 
     # Clear previous state
     IntegrationTestMessage.clear_default_processed
@@ -288,7 +282,6 @@ class ProcHandlerIntegrationTest < Minitest::Test
 
   def test_lambda_vs_proc_integration
     IntegrationTestMessage.transport SmartMessage::Transport::MemoryTransport.new(auto_process: true)
-    IntegrationTestMessage.serializer SmartMessage::Serializer::Json.new
 
     proc_calls = []
     lambda_calls = []
@@ -326,7 +319,6 @@ class ProcHandlerIntegrationTest < Minitest::Test
 
   def test_concurrent_proc_handler_execution
     IntegrationTestMessage.transport SmartMessage::Transport::MemoryTransport.new(auto_process: true)
-    IntegrationTestMessage.serializer SmartMessage::Serializer::Json.new
 
     # Use a mutex to ensure thread safety in testing
     mutex = Mutex.new

@@ -53,7 +53,6 @@ module SmartMessage
   #   SmartMessage.configure do |config|
   #     config.logger = MyApp::Logger.new             # Custom logger object
   #     config.transport = MyApp::Transport.new
-  #     config.serializer = MyApp::Serializer.new
   #   end
   #
   #   # Explicitly disable logging:
@@ -71,17 +70,16 @@ module SmartMessage
   #   class SpecialMessage < SmartMessage::Base
   #     config do
   #       logger MyApp::SpecialLogger.new  # Override just the logger
-  #       # transport and serializer still use global defaults
+  #       # transport still uses global defaults
   #     end
   #   end
   class Configuration
-    attr_accessor :transport, :serializer, :log_level, :log_format, :log_include_source, :log_structured_data, :log_colorize, :log_options
+    attr_accessor :transport, :log_level, :log_format, :log_include_source, :log_structured_data, :log_colorize, :log_options
     attr_reader :logger
     
     def initialize
       @logger = nil
       @transport = nil
-      @serializer = nil
       @logger_explicitly_set_to_nil = false
       @log_level = nil
       @log_format = nil
@@ -101,7 +99,6 @@ module SmartMessage
     def reset!
       @logger = nil
       @transport = nil
-      @serializer = nil
       @logger_explicitly_set_to_nil = false
       @log_level = nil
       @log_format = nil
@@ -119,11 +116,6 @@ module SmartMessage
     # Check if transport is configured
     def transport_configured?
       !@transport.nil?
-    end
-    
-    # Check if serializer is configured
-    def serializer_configured?
-      !@serializer.nil?
     end
     
     # Get the configured logger or no logging
@@ -156,11 +148,6 @@ module SmartMessage
       @transport || framework_default_transport
     end
     
-    # Get the configured serializer or framework default
-    def default_serializer
-      @serializer || framework_default_serializer
-    end
-    
     private
     
     # Framework's built-in default logger (Lumberjack)
@@ -186,14 +173,6 @@ module SmartMessage
     # Framework's built-in default transport (Redis)
     def framework_default_transport
       SmartMessage::Transport::RedisTransport.new
-    end
-    
-    # Framework's built-in default serializer (JSON)
-    def framework_default_serializer
-      SmartMessage::Serializer::Json.new
-    rescue
-      # Fallback if JSON serializer is not available
-      nil
     end
   end
 end

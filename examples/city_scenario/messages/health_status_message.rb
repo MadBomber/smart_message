@@ -16,7 +16,6 @@ module Messages
     VALID_STATUS = %w[healthy warning critical failed]
 
     transport  SmartMessage::Transport::RedisTransport.new
-    serializer SmartMessage::Serializer::Json.new
 
     property :service_name, required: true,
       description: "Name of the city service reporting its status (e.g., 'police-department', 'fire-department')"

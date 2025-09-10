@@ -16,7 +16,6 @@ module Messages
     DESC
 
     transport  SmartMessage::Transport::RedisTransport.new
-    serializer SmartMessage::Serializer::Json.new
 
     VALID_PRIORITY = %w[low medium high emergency]
 
