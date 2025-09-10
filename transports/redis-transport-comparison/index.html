@@ -15,14 +15,14 @@
         <link rel="canonical" href="https://madbomber.github.io/smart_message/transports/redis-transport-comparison/">
       
       
-        <link rel="prev" href="../redis-queue-transport/">
+        <link rel="prev" href="../redis-transport/">
       
       
-        <link rel="next" href="../../guides/redis-queue-getting-started/">
+        <link rel="next" href="../../development/troubleshooting/">
       
       
       <link rel="icon" href="../../assets/smart_message.jpg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.18">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.19">
     
     
       
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#redis-transport-comparison" class="md-skip">
+        <a href="#transport-comparison" class="md-skip">
           Skip to content
         </a>
       
@@ -342,7 +342,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../guides/redis-queue-getting-started/" class="md-tabs__link">
+        <a href="../../guides/redis-queue-getting-started.md" class="md-tabs__link">
           
   
   
@@ -1069,7 +1069,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../redis-enhanced-transport/" class="md-nav__link">
+      <a href="../redis-enhanced-transport.md" class="md-nav__link">
         
   
   
@@ -1092,7 +1092,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../redis-queue-transport/" class="md-nav__link">
+      <a href="../redis-queue-transport.md" class="md-nav__link">
         
   
   
@@ -1176,13 +1176,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#redis-transport-basic" class="md-nav__link">
+  <a href="#memory-transport" class="md-nav__link">
     <span class="md-ellipsis">
-      🔧 Redis Transport (Basic)
+      🧠 Memory Transport
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="🔧 Redis Transport (Basic)">
+    <nav class="md-nav" aria-label="🧠 Memory Transport">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1254,13 +1254,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#redis-enhanced-transport" class="md-nav__link">
+  <a href="#stdout-transport" class="md-nav__link">
     <span class="md-ellipsis">
-      🎯 Redis Enhanced Transport
+      📄 STDOUT Transport
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="🎯 Redis Enhanced Transport">
+    <nav class="md-nav" aria-label="📄 STDOUT Transport">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1287,48 +1287,6 @@
       Configuration
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#enhanced-features" class="md-nav__link">
-    <span class="md-ellipsis">
-      Enhanced Features
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Enhanced Features">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#pattern-subscriptions" class="md-nav__link">
-    <span class="md-ellipsis">
-      Pattern Subscriptions
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#convenience-methods" class="md-nav__link">
-    <span class="md-ellipsis">
-      Convenience Methods
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#fluent-api" class="md-nav__link">
-    <span class="md-ellipsis">
-      Fluent API
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -1374,13 +1332,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#redis-queue-transport" class="md-nav__link">
+  <a href="#redis-transport" class="md-nav__link">
     <span class="md-ellipsis">
-      🚀 Redis Queue Transport
+      🔴 Redis Transport
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="🚀 Redis Queue Transport">
+    <nav class="md-nav" aria-label="🔴 Redis Transport">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1405,57 +1363,6 @@
   <a href="#configuration_2" class="md-nav__link">
     <span class="md-ellipsis">
       Configuration
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#advanced-features" class="md-nav__link">
-    <span class="md-ellipsis">
-      Advanced Features
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Advanced Features">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#load-balancing" class="md-nav__link">
-    <span class="md-ellipsis">
-      Load Balancing
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#pattern-based-routing" class="md-nav__link">
-    <span class="md-ellipsis">
-      Pattern-based Routing
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#queue-management" class="md-nav__link">
-    <span class="md-ellipsis">
-      Queue Management
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#performance-characteristics" class="md-nav__link">
-    <span class="md-ellipsis">
-      Performance Characteristics
     </span>
   </a>
   
@@ -1522,27 +1429,27 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#use-basic-redis-when" class="md-nav__link">
+  <a href="#use-memory-transport-when" class="md-nav__link">
     <span class="md-ellipsis">
-      Use Basic Redis When:
+      Use Memory Transport When:
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#use-enhanced-redis-when" class="md-nav__link">
+  <a href="#use-stdout-transport-when" class="md-nav__link">
     <span class="md-ellipsis">
-      Use Enhanced Redis When:
+      Use STDOUT Transport When:
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#use-redis-queue-when" class="md-nav__link">
+  <a href="#use-redis-transport-when" class="md-nav__link">
     <span class="md-ellipsis">
-      Use Redis Queue When:
+      Use Redis Transport When:
     </span>
   </a>
   
@@ -1554,37 +1461,28 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#migration-paths" class="md-nav__link">
+  <a href="#migration-patterns" class="md-nav__link">
     <span class="md-ellipsis">
-      🔄 Migration Paths
+      🔄 Migration Patterns
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="🔄 Migration Paths">
+    <nav class="md-nav" aria-label="🔄 Migration Patterns">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#from-basic-enhanced" class="md-nav__link">
+  <a href="#development-production" class="md-nav__link">
     <span class="md-ellipsis">
-      From Basic → Enhanced
+      Development → Production
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#from-enhanced-queue" class="md-nav__link">
+  <a href="#environment-based-configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      From Enhanced → Queue
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#from-basic-queue" class="md-nav__link">
-    <span class="md-ellipsis">
-      From Basic → Queue
+      Environment-Based Configuration
     </span>
   </a>
   
@@ -1596,28 +1494,37 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#performance-testing" class="md-nav__link">
+  <a href="#performance-characteristics" class="md-nav__link">
     <span class="md-ellipsis">
-      📈 Performance Testing
+      📈 Performance Characteristics
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="📈 Performance Testing">
+    <nav class="md-nav" aria-label="📈 Performance Characteristics">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#benchmark-setup" class="md-nav__link">
+  <a href="#latency-comparison" class="md-nav__link">
     <span class="md-ellipsis">
-      Benchmark Setup
+      Latency Comparison
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#expected-results" class="md-nav__link">
+  <a href="#throughput-comparison" class="md-nav__link">
     <span class="md-ellipsis">
-      Expected Results
+      Throughput Comparison
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#memory-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Memory Usage
     </span>
   </a>
   
@@ -1639,6 +1546,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#test-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Environment
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#development-environment" class="md-nav__link">
     <span class="md-ellipsis">
       Development Environment
@@ -1656,26 +1572,8 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#hybrid-approach" class="md-nav__link">
-    <span class="md-ellipsis">
-      Hybrid Approach
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#additional-resources" class="md-nav__link">
-    <span class="md-ellipsis">
-      📚 Additional Resources
-    </span>
-  </a>
   
 </li>
       
@@ -1753,7 +1651,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/redis-queue-getting-started/" class="md-nav__link">
+      <a href="../../guides/redis-queue-getting-started.md" class="md-nav__link">
         
   
   
@@ -1776,7 +1674,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/redis-queue-patterns/" class="md-nav__link">
+      <a href="../../guides/redis-queue-patterns.md" class="md-nav__link">
         
   
   
@@ -1799,7 +1697,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/redis-queue-production/" class="md-nav__link">
+      <a href="../../guides/redis-queue-production.md" class="md-nav__link">
         
   
   
@@ -1962,13 +1860,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#redis-transport-basic" class="md-nav__link">
+  <a href="#memory-transport" class="md-nav__link">
     <span class="md-ellipsis">
-      🔧 Redis Transport (Basic)
+      🧠 Memory Transport
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="🔧 Redis Transport (Basic)">
+    <nav class="md-nav" aria-label="🧠 Memory Transport">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2040,13 +1938,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#redis-enhanced-transport" class="md-nav__link">
+  <a href="#stdout-transport" class="md-nav__link">
     <span class="md-ellipsis">
-      🎯 Redis Enhanced Transport
+      📄 STDOUT Transport
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="🎯 Redis Enhanced Transport">
+    <nav class="md-nav" aria-label="📄 STDOUT Transport">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2073,48 +1971,6 @@
       Configuration
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#enhanced-features" class="md-nav__link">
-    <span class="md-ellipsis">
-      Enhanced Features
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Enhanced Features">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#pattern-subscriptions" class="md-nav__link">
-    <span class="md-ellipsis">
-      Pattern Subscriptions
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#convenience-methods" class="md-nav__link">
-    <span class="md-ellipsis">
-      Convenience Methods
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#fluent-api" class="md-nav__link">
-    <span class="md-ellipsis">
-      Fluent API
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
         
@@ -2160,13 +2016,13 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#redis-queue-transport" class="md-nav__link">
+  <a href="#redis-transport" class="md-nav__link">
     <span class="md-ellipsis">
-      🚀 Redis Queue Transport
+      🔴 Redis Transport
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="🚀 Redis Queue Transport">
+    <nav class="md-nav" aria-label="🔴 Redis Transport">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -2191,57 +2047,6 @@
   <a href="#configuration_2" class="md-nav__link">
     <span class="md-ellipsis">
       Configuration
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#advanced-features" class="md-nav__link">
-    <span class="md-ellipsis">
-      Advanced Features
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Advanced Features">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#load-balancing" class="md-nav__link">
-    <span class="md-ellipsis">
-      Load Balancing
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#pattern-based-routing" class="md-nav__link">
-    <span class="md-ellipsis">
-      Pattern-based Routing
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#queue-management" class="md-nav__link">
-    <span class="md-ellipsis">
-      Queue Management
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#performance-characteristics" class="md-nav__link">
-    <span class="md-ellipsis">
-      Performance Characteristics
     </span>
   </a>
   
@@ -2308,27 +2113,27 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#use-basic-redis-when" class="md-nav__link">
+  <a href="#use-memory-transport-when" class="md-nav__link">
     <span class="md-ellipsis">
-      Use Basic Redis When:
+      Use Memory Transport When:
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#use-enhanced-redis-when" class="md-nav__link">
+  <a href="#use-stdout-transport-when" class="md-nav__link">
     <span class="md-ellipsis">
-      Use Enhanced Redis When:
+      Use STDOUT Transport When:
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#use-redis-queue-when" class="md-nav__link">
+  <a href="#use-redis-transport-when" class="md-nav__link">
     <span class="md-ellipsis">
-      Use Redis Queue When:
+      Use Redis Transport When:
     </span>
   </a>
   
@@ -2340,37 +2145,28 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#migration-paths" class="md-nav__link">
+  <a href="#migration-patterns" class="md-nav__link">
     <span class="md-ellipsis">
-      🔄 Migration Paths
+      🔄 Migration Patterns
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="🔄 Migration Paths">
+    <nav class="md-nav" aria-label="🔄 Migration Patterns">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#from-basic-enhanced" class="md-nav__link">
+  <a href="#development-production" class="md-nav__link">
     <span class="md-ellipsis">
-      From Basic → Enhanced
+      Development → Production
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#from-enhanced-queue" class="md-nav__link">
+  <a href="#environment-based-configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      From Enhanced → Queue
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#from-basic-queue" class="md-nav__link">
-    <span class="md-ellipsis">
-      From Basic → Queue
+      Environment-Based Configuration
     </span>
   </a>
   
@@ -2382,28 +2178,37 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#performance-testing" class="md-nav__link">
+  <a href="#performance-characteristics" class="md-nav__link">
     <span class="md-ellipsis">
-      📈 Performance Testing
+      📈 Performance Characteristics
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="📈 Performance Testing">
+    <nav class="md-nav" aria-label="📈 Performance Characteristics">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#benchmark-setup" class="md-nav__link">
+  <a href="#latency-comparison" class="md-nav__link">
     <span class="md-ellipsis">
-      Benchmark Setup
+      Latency Comparison
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#expected-results" class="md-nav__link">
+  <a href="#throughput-comparison" class="md-nav__link">
     <span class="md-ellipsis">
-      Expected Results
+      Throughput Comparison
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#memory-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Memory Usage
     </span>
   </a>
   
@@ -2425,6 +2230,15 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#test-environment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Test Environment
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#development-environment" class="md-nav__link">
     <span class="md-ellipsis">
       Development Environment
@@ -2442,26 +2256,8 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#hybrid-approach" class="md-nav__link">
-    <span class="md-ellipsis">
-      Hybrid Approach
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#additional-resources" class="md-nav__link">
-    <span class="md-ellipsis">
-      📚 Additional Resources
-    </span>
-  </a>
   
 </li>
       
@@ -2497,8 +2293,8 @@
   
 
 
-<h1 id="redis-transport-comparison">Redis Transport Comparison<a class="headerlink" href="#redis-transport-comparison" title="Permanent link">&para;</a></h1>
-<p>SmartMessage provides three distinct Redis-based transports, each designed for different use cases and requirements. This document provides a comprehensive comparison to help you choose the right transport for your application.</p>
+<h1 id="transport-comparison">Transport Comparison<a class="headerlink" href="#transport-comparison" title="Permanent link">&para;</a></h1>
+<p>SmartMessage provides multiple transport layers, each designed for different use cases and requirements. This document provides a comprehensive comparison to help you choose the right transport for your application.</p>
 <h2 id="transport-overview">Transport Overview<a class="headerlink" href="#transport-overview" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -2511,311 +2307,216 @@
 </thead>
 <tbody>
 <tr>
+<td><strong>Memory</strong></td>
+<td>In-Memory Queue</td>
+<td>Testing, development</td>
+<td>No external dependencies, fast</td>
+</tr>
+<tr>
+<td><strong>STDOUT</strong></td>
+<td>Logging/Debug</td>
+<td>Development, debugging</td>
+<td>Human-readable output</td>
+</tr>
+<tr>
 <td><strong>Redis</strong></td>
-<td>Basic Pub/Sub</td>
-<td>Simple scenarios, legacy compatibility</td>
-<td>Lightweight, direct Redis pub/sub</td>
-</tr>
-<tr>
-<td><strong>Redis Enhanced</strong></td>
-<td>Smart Routing</td>
-<td>Microservices, pattern-based routing</td>
-<td>RabbitMQ-style patterns with backwards compatibility</td>
-</tr>
-<tr>
-<td><strong>Redis Queue</strong></td>
-<td>Persistent Queues</td>
-<td>Production systems, load balancing</td>
-<td>FIFO queues with consumer groups</td>
+<td>Pub/Sub</td>
+<td>Production messaging</td>
+<td>Distributed, persistent connections</td>
 </tr>
 </tbody>
 </table>
-<p><img alt="Transport Comparison Matrix" src="../../assets/images/transport-comparison-matrix.svg" /></p>
 <hr />
-<h2 id="redis-transport-basic">🔧 Redis Transport (Basic)<a class="headerlink" href="#redis-transport-basic" title="Permanent link">&para;</a></h2>
-<p>The foundational Redis transport using native pub/sub channels.</p>
+<h2 id="memory-transport">🧠 Memory Transport<a class="headerlink" href="#memory-transport" title="Permanent link">&para;</a></h2>
+<p>Perfect for development, testing, and in-memory message queuing.</p>
 <h3 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Publisher → Redis Channel → Subscriber
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>         (direct pub/sub)   (thread-based)
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Publisher → Memory Queue → Subscriber
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>         (thread-safe)   (auto-processing)
 </span></code></pre></div>
-<p><img alt="Redis Basic Architecture" src="../../assets/images/redis-basic-architecture.svg" /></p>
 <h3 id="key-characteristics">Key Characteristics<a class="headerlink" href="#key-characteristics" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Channel Naming</strong>: Uses message class name directly (<code>OrderMessage</code>)</li>
-<li><strong>Pattern Support</strong>: None - exact channel name matching only</li>
-<li><strong>Message Persistence</strong>: No - fire-and-forget pub/sub</li>
+<li><strong>Message Persistence</strong>: In-memory only - lost on restart</li>
+<li><strong>Pattern Support</strong>: None - direct message class routing</li>
 <li><strong>Load Balancing</strong>: No - all subscribers receive all messages</li>
-<li><strong>Threading</strong>: Traditional thread-per-subscriber model</li>
-<li><strong>Backwards Compatibility</strong>: Original SmartMessage Redis implementation</li>
+<li><strong>Threading</strong>: Thread-safe with mutex protection</li>
+<li><strong>External Dependencies</strong>: None</li>
 </ul>
 <h3 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h3>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:redis</span><span class="p">,</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;redis://localhost:6379&#39;</span><span class="p">,</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="ss">db</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="ss">auto_subscribe</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">,</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="ss">reconnect_attempts</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="ss">reconnect_delay</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="p">)</span>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:memory</span><span class="p">,</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="ss">auto_process</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">,</span><span class="w">     </span><span class="c1"># Automatically route messages to dispatcher</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="ss">max_messages</span><span class="p">:</span><span class="w"> </span><span class="mi">1000</span><span class="w">      </span><span class="c1"># Maximum messages to store in memory</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="p">)</span>
 </span></code></pre></div>
 <h3 id="use-cases">Use Cases<a class="headerlink" href="#use-cases" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Simple applications</strong> with basic pub/sub needs</li>
-<li><strong>Development/testing</strong> environments</li>
-<li><strong>Legacy systems</strong> already using basic Redis transport</li>
-<li><strong>Scenarios</strong> where message loss is acceptable</li>
-<li><strong>High-performance</strong> applications needing minimal overhead</li>
+<li><strong>Unit testing</strong> - Predictable, isolated environment</li>
+<li><strong>Development</strong> - Quick setup without external services</li>
+<li><strong>In-memory queuing</strong> - Fast processing without persistence</li>
+<li><strong>Message inspection</strong> - Easy access to all stored messages</li>
 </ul>
 <h3 id="pros">Pros<a class="headerlink" href="#pros" title="Permanent link">&para;</a></h3>
 <ul>
-<li>✅ Simplest implementation and configuration</li>
-<li>✅ Lowest resource overhead</li>
-<li>✅ Direct Redis pub/sub - maximum performance</li>
-<li>✅ No external dependencies beyond Redis</li>
-<li>✅ Battle-tested and stable</li>
+<li>✅ No external dependencies</li>
+<li>✅ Fastest performance (no serialization)</li>
+<li>✅ Thread-safe operations</li>
+<li>✅ Message inspection capabilities</li>
+<li>✅ Memory overflow protection</li>
 </ul>
 <h3 id="cons">Cons<a class="headerlink" href="#cons" title="Permanent link">&para;</a></h3>
 <ul>
-<li>❌ No pattern-based routing</li>
-<li>❌ No message persistence</li>
-<li>❌ No load balancing capabilities</li>
-<li>❌ Limited routing intelligence</li>
-<li>❌ All-or-nothing message delivery</li>
+<li>❌ Messages lost on restart</li>
+<li>❌ Single-process only</li>
+<li>❌ Memory usage grows with message volume</li>
+<li>❌ No network distribution</li>
 </ul>
 <h3 id="example">Example<a class="headerlink" href="#example" title="Permanent link">&para;</a></h3>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">OrderMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:redis</span><span class="p">,</span><span class="w"> </span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;redis://localhost:6379&#39;</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="p">)</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:order_id</span>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:amount</span>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="k">end</span>
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="c1"># Publishes to Redis channel &quot;OrderMessage&quot;</span>
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="no">OrderMessage</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">order_id</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;123&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">amount</span><span class="p">:</span><span class="w"> </span><span class="mi">99</span><span class="o">.</span><span class="mi">99</span><span class="p">)</span><span class="o">.</span><span class="n">publish</span>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">TestMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:data</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="n">config</span><span class="w"> </span><span class="k">do</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:memory</span><span class="p">,</span><span class="w"> </span><span class="ss">auto_process</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">)</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="k">end</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nc">self</span><span class="o">.</span><span class="nf">process</span><span class="p">(</span><span class="n">decoded_message</span><span class="p">)</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Processing: </span><span class="si">#{</span><span class="n">decoded_message</span><span class="o">.</span><span class="n">data</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">  </span><span class="k">end</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="k">end</span>
 </span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>
-</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="c1"># Subscribes to Redis channel &quot;OrderMessage&quot; </span>
-</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="no">OrderMessage</span><span class="o">.</span><span class="n">subscribe</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="no">TestMessage</span><span class="o">.</span><span class="n">subscribe</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="no">TestMessage</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">data</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Hello World&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">publish</span>
 </span></code></pre></div>
 <hr />
-<h2 id="redis-enhanced-transport">🎯 Redis Enhanced Transport<a class="headerlink" href="#redis-enhanced-transport" title="Permanent link">&para;</a></h2>
-<p>Advanced Redis transport with intelligent routing and pattern matching.</p>
+<h2 id="stdout-transport">📄 STDOUT Transport<a class="headerlink" href="#stdout-transport" title="Permanent link">&para;</a></h2>
+<p>Ideal for development, debugging, and logging scenarios.</p>
 <h3 id="architecture_1">Architecture<a class="headerlink" href="#architecture_1" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Publisher → Enhanced Router → Dual Channels → Pattern Matcher → Subscriber
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>         (3-part naming)   (orig + enhanced) (wildcard support) (thread-based)
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Publisher → Console/File Output → Optional Loopback → Subscriber
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>         (JSON formatting)    (if enabled)      (local processing)
 </span></code></pre></div>
-<p><img alt="Redis Enhanced Architecture" src="../../assets/images/redis-enhanced-architecture.svg" /></p>
 <h3 id="key-characteristics_1">Key Characteristics<a class="headerlink" href="#key-characteristics_1" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Channel Naming</strong>: Dual format - both <code>MessageClass</code> and <code>messagetype.from.to</code></li>
-<li><strong>Pattern Support</strong>: Full wildcard support (<code>*</code> single segment, multiple patterns)</li>
-<li><strong>Message Persistence</strong>: No - still based on pub/sub</li>
-<li><strong>Load Balancing</strong>: No - all matching subscribers receive messages</li>
-<li><strong>Threading</strong>: Traditional thread-per-subscriber model</li>
-<li><strong>Backwards Compatibility</strong>: Yes - publishes to both channel formats</li>
+<li><strong>Message Persistence</strong>: File-based if output specified</li>
+<li><strong>Pattern Support</strong>: None - logging/debugging focused</li>
+<li><strong>Load Balancing</strong>: No - single output destination</li>
+<li><strong>Threading</strong>: Thread-safe file operations</li>
+<li><strong>External Dependencies</strong>: None</li>
 </ul>
 <h3 id="configuration_1">Configuration<a class="headerlink" href="#configuration_1" title="Permanent link">&para;</a></h3>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisEnhancedTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;redis://localhost:6379&#39;</span><span class="p">,</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="ss">db</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="ss">auto_subscribe</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="p">)</span>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:stdout</span><span class="p">,</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="ss">loopback</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">,</span><span class="w">                    </span><span class="c1"># Process messages locally</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="ss">output</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;messages.log&quot;</span><span class="w">             </span><span class="c1"># Output to file instead of console</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="p">)</span>
 </span></code></pre></div>
-<h3 id="enhanced-features">Enhanced Features<a class="headerlink" href="#enhanced-features" title="Permanent link">&para;</a></h3>
-<h4 id="pattern-subscriptions">Pattern Subscriptions<a class="headerlink" href="#pattern-subscriptions" title="Permanent link">&para;</a></h4>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">transport</span><span class="o">.</span><span class="n">subscribe_pattern</span><span class="p">(</span><span class="s2">&quot;ordermessage.*.*&quot;</span><span class="p">)</span><span class="w">      </span><span class="c1"># All order messages</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">transport</span><span class="o">.</span><span class="n">subscribe_pattern</span><span class="p">(</span><span class="s2">&quot;*.payment_service.*&quot;</span><span class="p">)</span><span class="w">   </span><span class="c1"># All to payment service</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">transport</span><span class="o">.</span><span class="n">subscribe_pattern</span><span class="p">(</span><span class="s2">&quot;alertmessage.*.*&quot;</span><span class="p">)</span><span class="w">      </span><span class="c1"># All alerts</span>
-</span></code></pre></div>
-<h4 id="convenience-methods">Convenience Methods<a class="headerlink" href="#convenience-methods" title="Permanent link">&para;</a></h4>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">transport</span><span class="o">.</span><span class="n">subscribe_to_recipient</span><span class="p">(</span><span class="s1">&#39;payment-service&#39;</span><span class="p">)</span><span class="w">  </span><span class="c1"># *.*.payment-service</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">transport</span><span class="o">.</span><span class="n">subscribe_from_sender</span><span class="p">(</span><span class="s1">&#39;api-gateway&#39;</span><span class="p">)</span><span class="w">       </span><span class="c1"># *.api-gateway.*</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="n">transport</span><span class="o">.</span><span class="n">subscribe_to_type</span><span class="p">(</span><span class="s1">&#39;OrderMessage&#39;</span><span class="p">)</span><span class="w">          </span><span class="c1"># ordermessage.*.*</span>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="n">transport</span><span class="o">.</span><span class="n">subscribe_to_alerts</span><span class="w">                        </span><span class="c1"># emergency.*.*, *alert*.*.*</span>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="n">transport</span><span class="o">.</span><span class="n">subscribe_to_broadcasts</span><span class="w">                    </span><span class="c1"># *.*.broadcast</span>
-</span></code></pre></div>
-<h4 id="fluent-api">Fluent API<a class="headerlink" href="#fluent-api" title="Permanent link">&para;</a></h4>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">transport</span><span class="o">.</span><span class="n">where</span><span class="o">.</span><span class="n">from</span><span class="p">(</span><span class="s1">&#39;web-app&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;user-service&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">subscribe</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="n">transport</span><span class="o">.</span><span class="n">where</span><span class="o">.</span><span class="n">type</span><span class="p">(</span><span class="s1">&#39;OrderMessage&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">from</span><span class="p">(</span><span class="s1">&#39;api&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">subscribe</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="n">transport</span><span class="o">.</span><span class="n">where</span><span class="o">.</span><span class="n">from</span><span class="p">(</span><span class="s1">&#39;monitoring&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;admin&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">type</span><span class="p">(</span><span class="s1">&#39;AlertMessage&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">subscribe</span>
-</span></code></pre></div>
-<p><img alt="Fluent API Demo" src="../../assets/images/fluent-api-demo.svg" /></p>
 <h3 id="use-cases_1">Use Cases<a class="headerlink" href="#use-cases_1" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Microservices architectures</strong> requiring sophisticated routing</li>
-<li><strong>Migration scenarios</strong> from basic Redis transport</li>
-<li><strong>Development environments</strong> needing flexible routing</li>
-<li><strong>Pattern-based filtering</strong> without message persistence requirements</li>
-<li><strong>Service-to-service communication</strong> with routing intelligence</li>
+<li><strong>Development debugging</strong> - See messages in real-time</li>
+<li><strong>Application logging</strong> - Structured message logging</li>
+<li><strong>Message tracing</strong> - Track message flow through system</li>
+<li><strong>Integration testing</strong> - Verify message content</li>
 </ul>
 <h3 id="pros_1">Pros<a class="headerlink" href="#pros_1" title="Permanent link">&para;</a></h3>
 <ul>
-<li>✅ Advanced pattern-based routing</li>
-<li>✅ Fluent, readable subscription API</li>
-<li>✅ Backwards compatible with basic Redis transport</li>
-<li>✅ Sophisticated filtering capabilities</li>
-<li>✅ Service-oriented routing patterns</li>
-<li>✅ RabbitMQ-style routing without RabbitMQ</li>
+<li>✅ Human-readable JSON output</li>
+<li>✅ File-based persistence option</li>
+<li>✅ Optional loopback for testing</li>
+<li>✅ No external dependencies</li>
+<li>✅ Structured message formatting</li>
 </ul>
 <h3 id="cons_1">Cons<a class="headerlink" href="#cons_1" title="Permanent link">&para;</a></h3>
 <ul>
-<li>❌ No message persistence</li>
-<li>❌ No load balancing</li>
-<li>❌ Pattern matching overhead (client-side)</li>
-<li>❌ Dual publishing increases Redis traffic</li>
-<li>❌ More complex configuration</li>
+<li>❌ Not suitable for production messaging</li>
+<li>❌ Single output destination</li>
+<li>❌ No network distribution</li>
+<li>❌ Limited throughput for high-volume scenarios</li>
 </ul>
 <h3 id="example_1">Example<a class="headerlink" href="#example_1" title="Permanent link">&para;</a></h3>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">OrderMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="n">from</span><span class="w"> </span><span class="s1">&#39;e-commerce-api&#39;</span>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="n">to</span><span class="w"> </span><span class="s1">&#39;order-processor&#39;</span>
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisEnhancedTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
-</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">    </span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;redis://localhost:6379&#39;</span>
-</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">  </span><span class="p">)</span>
-</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>
-</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:order_id</span>
-</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:amount</span>
-</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="k">end</span>
-</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>
-</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="c1"># Publishes to BOTH:</span>
-</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="c1"># - &quot;OrderMessage&quot; (backwards compatibility)  </span>
-</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="c1"># - &quot;ordermessage.e_commerce_api.order_processor&quot; (enhanced)</span>
-</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="no">OrderMessage</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">order_id</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;123&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">amount</span><span class="p">:</span><span class="w"> </span><span class="mi">99</span><span class="o">.</span><span class="mi">99</span><span class="p">)</span><span class="o">.</span><span class="n">publish</span>
-</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>
-</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="c1"># Pattern-based subscriptions</span>
-</span><span id="__span-8-19"><a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a><span class="n">transport</span><span class="o">.</span><span class="n">where</span><span class="o">.</span><span class="n">from</span><span class="p">(</span><span class="s1">&#39;e-commerce-api&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">subscribe</span>
-</span><span id="__span-8-20"><a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a><span class="n">transport</span><span class="o">.</span><span class="n">subscribe_to_type</span><span class="p">(</span><span class="s1">&#39;OrderMessage&#39;</span><span class="p">)</span>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">LogMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:level</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:message</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:timestamp</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="no">Time</span><span class="o">.</span><span class="n">now</span><span class="o">.</span><span class="n">iso8601</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">  </span><span class="n">config</span><span class="w"> </span><span class="k">do</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:stdout</span><span class="p">,</span><span class="w"> </span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">      </span><span class="ss">output</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;app.log&quot;</span><span class="p">,</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">      </span><span class="ss">loopback</span><span class="p">:</span><span class="w"> </span><span class="kp">false</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="w">    </span><span class="p">)</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="w">  </span><span class="k">end</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="k">end</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="no">LogMessage</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">level</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;INFO&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">message</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Application started&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">publish</span>
 </span></code></pre></div>
 <hr />
-<h2 id="redis-queue-transport">🚀 Redis Queue Transport<a class="headerlink" href="#redis-queue-transport" title="Permanent link">&para;</a></h2>
-<p>Production-grade transport with persistent queues and load balancing.</p>
+<h2 id="redis-transport">🔴 Redis Transport<a class="headerlink" href="#redis-transport" title="Permanent link">&para;</a></h2>
+<p>Production-ready Redis pub/sub transport for distributed messaging.</p>
 <h3 id="architecture_2">Architecture<a class="headerlink" href="#architecture_2" title="Permanent link">&para;</a></h3>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>Publisher → Routing Engine → Redis List → Consumer Group → Async Worker
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>         (in-memory)     (LPUSH/BRPOP)  (load balancing) (fiber-based)
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Publisher → Redis Channel → Subscriber
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>         (pub/sub)       (thread-based)
 </span></code></pre></div>
-<p><img alt="Redis Queue Architecture" src="../../assets/images/redis-queue-architecture.svg" /></p>
 <h3 id="key-characteristics_2">Key Characteristics<a class="headerlink" href="#key-characteristics_2" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Channel Naming</strong>: Enhanced routing keys with queue-based delivery</li>
-<li><strong>Pattern Support</strong>: RabbitMQ-compatible wildcard patterns</li>
-<li><strong>Message Persistence</strong>: Yes - Redis Lists provide FIFO persistence</li>
-<li><strong>Load Balancing</strong>: Yes - consumer groups distribute messages</li>
-<li><strong>Threading</strong>: Async/fiber-based for massive concurrency</li>
-<li><strong>Backwards Compatibility</strong>: No - completely different architecture</li>
+<li><strong>Message Persistence</strong>: No - fire-and-forget pub/sub</li>
+<li><strong>Pattern Support</strong>: None - exact channel name matching</li>
+<li><strong>Load Balancing</strong>: No - all subscribers receive all messages</li>
+<li><strong>Threading</strong>: Traditional thread-per-subscriber model</li>
+<li><strong>External Dependencies</strong>: Redis server</li>
 </ul>
 <h3 id="configuration_2">Configuration<a class="headerlink" href="#configuration_2" title="Permanent link">&para;</a></h3>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">transport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:redis_queue</span>
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">transport_options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">    </span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;redis://localhost:6379&#39;</span><span class="p">,</span>
-</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">    </span><span class="ss">db</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">    </span><span class="ss">queue_prefix</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;smart_message.queue&#39;</span><span class="p">,</span>
-</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">    </span><span class="ss">exchange_name</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;smart_message&#39;</span><span class="p">,</span>
-</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">    </span><span class="ss">consumer_group</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;workers&#39;</span><span class="p">,</span>
-</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">    </span><span class="ss">consumer_id</span><span class="p">:</span><span class="w"> </span><span class="no">SecureRandom</span><span class="o">.</span><span class="n">hex</span><span class="p">(</span><span class="mi">4</span><span class="p">),</span>
-</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">    </span><span class="ss">consumer_timeout</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
-</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="w">    </span><span class="ss">auto_subscribe</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
-</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="w">  </span><span class="p">}</span>
-</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="k">end</span>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:redis</span><span class="p">,</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;redis://localhost:6379&#39;</span><span class="p">,</span><span class="w">    </span><span class="c1"># Redis connection URL</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="ss">db</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w">                            </span><span class="c1"># Redis database number</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="ss">auto_subscribe</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">,</span><span class="w">             </span><span class="c1"># Automatically start subscriber</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span><span class="ss">reconnect_attempts</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w">            </span><span class="c1"># Connection retry attempts</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="ss">reconnect_delay</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w">                </span><span class="c1"># Delay between retries (seconds)</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="p">)</span>
 </span></code></pre></div>
-<h3 id="advanced-features">Advanced Features<a class="headerlink" href="#advanced-features" title="Permanent link">&para;</a></h3>
-<h4 id="load-balancing">Load Balancing<a class="headerlink" href="#load-balancing" title="Permanent link">&para;</a></h4>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Multiple consumers share work</span>
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="n">consumer_1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">RedisQueueTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">consumer_group</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;workers&#39;</span><span class="p">,</span><span class="w"> </span><span class="ss">consumer_id</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;worker_1&#39;</span><span class="p">)</span>
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="n">consumer_2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">RedisQueueTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">consumer_group</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;workers&#39;</span><span class="p">,</span><span class="w"> </span><span class="ss">consumer_id</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;worker_2&#39;</span><span class="p">)</span>
-</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1"># Messages distributed between worker_1 and worker_2</span>
-</span></code></pre></div>
-<h4 id="pattern-based-routing">Pattern-based Routing<a class="headerlink" href="#pattern-based-routing" title="Permanent link">&para;</a></h4>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">transport</span><span class="o">.</span><span class="n">subscribe_pattern</span><span class="p">(</span><span class="s2">&quot;#.*.payment_service&quot;</span><span class="p">)</span><span class="w">     </span><span class="c1"># RabbitMQ syntax</span>
-</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="n">transport</span><span class="o">.</span><span class="n">subscribe_pattern</span><span class="p">(</span><span class="s2">&quot;order.#.*.*&quot;</span><span class="p">)</span><span class="w">             </span><span class="c1"># Multi-segment wildcards</span>
-</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="n">transport</span><span class="o">.</span><span class="n">where</span><span class="p">()</span><span class="o">.</span><span class="n">from</span><span class="p">(</span><span class="s1">&#39;api&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s1">&#39;db&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">subscribe</span><span class="w">       </span><span class="c1"># Fluent API</span>
-</span></code></pre></div>
-<h4 id="queue-management">Queue Management<a class="headerlink" href="#queue-management" title="Permanent link">&para;</a></h4>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="n">transport</span><span class="o">.</span><span class="n">queue_stats</span><span class="w">                    </span><span class="c1"># Queue lengths and info</span>
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="n">transport</span><span class="o">.</span><span class="n">routing_table</span><span class="w">                  </span><span class="c1"># Active pattern mappings</span>
-</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="n">transport</span><span class="o">.</span><span class="n">where</span><span class="o">.</span><span class="n">from</span><span class="p">(</span><span class="s1">&#39;api&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">build</span><span class="w">        </span><span class="c1"># Preview pattern without subscribing</span>
-</span></code></pre></div>
-<h3 id="performance-characteristics">Performance Characteristics<a class="headerlink" href="#performance-characteristics" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th>Metric</th>
-<th>Value</th>
-<th>Comparison</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Latency</strong></td>
-<td>~0.5ms</td>
-<td>10x faster than RabbitMQ</td>
-</tr>
-<tr>
-<td><strong>Throughput</strong></td>
-<td>100K+ msg/sec</td>
-<td>3-5x faster than RabbitMQ</td>
-</tr>
-<tr>
-<td><strong>Concurrent Consumers</strong></td>
-<td>1000+</td>
-<td>10x more than traditional threading</td>
-</tr>
-<tr>
-<td><strong>Memory per Consumer</strong></td>
-<td>~2KB</td>
-<td>1000x less than RabbitMQ connections</td>
-</tr>
-</tbody>
-</table>
 <h3 id="use-cases_2">Use Cases<a class="headerlink" href="#use-cases_2" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Production systems</strong> requiring message persistence</li>
-<li><strong>Load-balanced processing</strong> with multiple consumers</li>
-<li><strong>High-throughput applications</strong> needing maximum performance</li>
-<li><strong>Fault-tolerant systems</strong> where message loss is unacceptable</li>
-<li><strong>Enterprise applications</strong> requiring queue monitoring</li>
+<li><strong>Production messaging</strong> - Reliable distributed messaging</li>
+<li><strong>Microservices communication</strong> - Service-to-service messaging</li>
+<li><strong>Real-time applications</strong> - Low-latency message delivery</li>
+<li><strong>Scalable architectures</strong> - Multiple publishers and subscribers</li>
 </ul>
 <h3 id="pros_2">Pros<a class="headerlink" href="#pros_2" title="Permanent link">&para;</a></h3>
 <ul>
-<li>✅ Message persistence and reliability</li>
-<li>✅ Load balancing and horizontal scaling</li>
-<li>✅ Exceptional performance (10x faster than RabbitMQ)</li>
-<li>✅ RabbitMQ-compatible routing patterns</li>
-<li>✅ Async/fiber concurrency for massive scale</li>
-<li>✅ Comprehensive queue management and monitoring</li>
-<li>✅ Consumer groups and fault tolerance</li>
+<li>✅ Production-ready reliability</li>
+<li>✅ Distributed messaging support</li>
+<li>✅ Automatic reconnection handling</li>
+<li>✅ Low latency (~1ms)</li>
+<li>✅ High throughput (80K+ messages/second)</li>
+<li>✅ Automatic serialization (MessagePack/JSON)</li>
 </ul>
 <h3 id="cons_2">Cons<a class="headerlink" href="#cons_2" title="Permanent link">&para;</a></h3>
 <ul>
-<li>❌ More complex setup and configuration</li>
-<li>❌ No backwards compatibility with pub/sub transports</li>
-<li>❌ Requires understanding of async/fiber concepts</li>
-<li>❌ Additional memory overhead for queue management</li>
-<li>❌ Client-side pattern matching overhead</li>
+<li>❌ Requires Redis server</li>
+<li>❌ No message persistence</li>
+<li>❌ No pattern-based routing</li>
+<li>❌ No load balancing</li>
+<li>❌ All subscribers receive all messages</li>
 </ul>
 <h3 id="example_2">Example<a class="headerlink" href="#example_2" title="Permanent link">&para;</a></h3>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">OrderMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">  </span><span class="n">from</span><span class="w"> </span><span class="s1">&#39;e-commerce-api&#39;</span>
-</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span><span class="n">to</span><span class="w"> </span><span class="s1">&#39;order-processor&#39;</span>
-</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a>
-</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">  </span><span class="n">transport</span><span class="w"> </span><span class="ss">:redis_queue</span><span class="w">  </span><span class="c1"># Uses global configuration</span>
-</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>
-</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:order_id</span>
-</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:amount</span>
-</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a>
-</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nc">self</span><span class="o">.</span><span class="nf">process</span><span class="p">(</span><span class="n">wrapper</span><span class="p">)</span>
-</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="w">    </span><span class="n">header</span><span class="p">,</span><span class="w"> </span><span class="n">payload</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">wrapper</span><span class="o">.</span><span class="n">split</span>
-</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="w">    </span><span class="n">order_data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">JSON</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
-</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="w">    </span><span class="c1"># Process order with guaranteed delivery</span>
-</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a><span class="k">end</span>
-</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>
-</span><span id="__span-14-17"><a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a><span class="c1"># Messages persist in Redis Lists until consumed</span>
-</span><span id="__span-14-18"><a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a><span class="no">OrderMessage</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">order_id</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;123&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">amount</span><span class="p">:</span><span class="w"> </span><span class="mi">99</span><span class="o">.</span><span class="mi">99</span><span class="p">)</span><span class="o">.</span><span class="n">publish</span>
-</span><span id="__span-14-19"><a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a>
-</span><span id="__span-14-20"><a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a><span class="c1"># Load-balanced consumption across consumer group</span>
-</span><span id="__span-14-21"><a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a><span class="no">OrderMessage</span><span class="o">.</span><span class="n">subscribe</span>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">OrderMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:order_id</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:customer_id</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:amount</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span><span class="n">config</span><span class="w"> </span><span class="k">do</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="w">    </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:redis</span><span class="p">,</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">      </span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;REDIS_URL&#39;</span><span class="o">]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">&#39;redis://localhost:6379&#39;</span><span class="p">,</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">      </span><span class="ss">db</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">    </span><span class="p">)</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">  </span><span class="k">end</span>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nc">self</span><span class="o">.</span><span class="nf">process</span><span class="p">(</span><span class="n">decoded_message</span><span class="p">)</span>
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">    </span><span class="n">order</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">decoded_message</span>
+</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Processing order </span><span class="si">#{</span><span class="n">order</span><span class="o">.</span><span class="n">order_id</span><span class="si">}</span><span class="s2"> for $</span><span class="si">#{</span><span class="n">order</span><span class="o">.</span><span class="n">amount</span><span class="si">}</span><span class="s2">&quot;</span>
+</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="w">  </span><span class="k">end</span>
+</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="k">end</span>
+</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>
+</span><span id="__span-8-19"><a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a><span class="no">OrderMessage</span><span class="o">.</span><span class="n">subscribe</span>
+</span><span id="__span-8-20"><a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a><span class="no">OrderMessage</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+</span><span id="__span-8-21"><a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a><span class="w">  </span><span class="ss">order_id</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ORD-123&quot;</span><span class="p">,</span>
+</span><span id="__span-8-22"><a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a><span class="w">  </span><span class="ss">customer_id</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;CUST-456&quot;</span><span class="p">,</span>
+</span><span id="__span-8-23"><a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a><span class="w">  </span><span class="ss">amount</span><span class="p">:</span><span class="w"> </span><span class="mi">99</span><span class="o">.</span><span class="mi">99</span>
+</span><span id="__span-8-24"><a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a><span class="p">)</span><span class="o">.</span><span class="n">publish</span>
 </span></code></pre></div>
 <hr />
 <h2 id="feature-comparison-matrix">📊 Feature Comparison Matrix<a class="headerlink" href="#feature-comparison-matrix" title="Permanent link">&para;</a></h2>
@@ -2823,257 +2524,201 @@
 <thead>
 <tr>
 <th>Feature</th>
-<th>Basic Redis</th>
-<th>Enhanced Redis</th>
-<th>Redis Queue</th>
+<th>Memory</th>
+<th>STDOUT</th>
+<th>Redis</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><strong>Message Persistence</strong></td>
+<td>❌ Memory Only</td>
+<td>✅ File Optional</td>
+<td>❌ No</td>
+</tr>
+<tr>
+<td><strong>Network Distribution</strong></td>
 <td>❌ No</td>
 <td>❌ No</td>
 <td>✅ Yes</td>
 </tr>
 <tr>
+<td><strong>External Dependencies</strong></td>
+<td>❌ None</td>
+<td>❌ None</td>
+<td>✅ Redis</td>
+</tr>
+<tr>
 <td><strong>Pattern Matching</strong></td>
 <td>❌ No</td>
-<td>✅ Wildcards</td>
-<td>✅ RabbitMQ-style</td>
+<td>❌ No</td>
+<td>❌ No</td>
 </tr>
 <tr>
 <td><strong>Load Balancing</strong></td>
 <td>❌ No</td>
 <td>❌ No</td>
-<td>✅ Consumer Groups</td>
-</tr>
-<tr>
-<td><strong>Backwards Compatibility</strong></td>
-<td>N/A</td>
-<td>✅ Dual Publishing</td>
 <td>❌ No</td>
-</tr>
-<tr>
-<td><strong>Fluent API</strong></td>
-<td>❌ No</td>
-<td>✅ Yes</td>
-<td>✅ Yes</td>
-</tr>
-<tr>
-<td><strong>Performance (Latency)</strong></td>
-<td>~1ms</td>
-<td>~1.2ms</td>
-<td>~0.5ms</td>
-</tr>
-<tr>
-<td><strong>Performance (Throughput)</strong></td>
-<td>High</td>
-<td>High</td>
-<td>Highest</td>
-</tr>
-<tr>
-<td><strong>Concurrent Consumers</strong></td>
-<td>~100s</td>
-<td>~100s</td>
-<td>~1000s</td>
-</tr>
-<tr>
-<td><strong>Memory Overhead</strong></td>
-<td>Low</td>
-<td>Medium</td>
-<td>Medium-High</td>
 </tr>
 <tr>
 <td><strong>Setup Complexity</strong></td>
-<td>Low</td>
+<td>Easy</td>
+<td>Easy</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td><strong>Performance (Latency)</strong></td>
+<td>~0.1ms</td>
+<td>~1ms</td>
+<td>~1ms</td>
+</tr>
+<tr>
+<td><strong>Performance (Throughput)</strong></td>
+<td>Highest</td>
 <td>Medium</td>
 <td>High</td>
 </tr>
 <tr>
-<td><strong>Learning Curve</strong></td>
-<td>Easy</td>
-<td>Medium</td>
-<td>Challenging</td>
+<td><strong>Serialization</strong></td>
+<td>None</td>
+<td>JSON</td>
+<td>MessagePack/JSON</td>
+</tr>
+<tr>
+<td><strong>Thread Safety</strong></td>
+<td>✅ Yes</td>
+<td>✅ Yes</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td><strong>Message Inspection</strong></td>
+<td>✅ Yes</td>
+<td>✅ Yes</td>
+<td>❌ No</td>
 </tr>
 <tr>
 <td><strong>Production Ready</strong></td>
-<td>✅ Yes</td>
-<td>✅ Yes</td>
-<td>✅ Yes</td>
-</tr>
-<tr>
-<td><strong>Message Ordering</strong></td>
-<td>No guarantees</td>
-<td>No guarantees</td>
-<td>✅ FIFO</td>
-</tr>
-<tr>
-<td><strong>Dead Letter Queues</strong></td>
-<td>❌ No</td>
-<td>❌ No</td>
+<td>❌ Testing Only</td>
+<td>❌ Logging Only</td>
 <td>✅ Yes</td>
 </tr>
 <tr>
-<td><strong>Message TTL</strong></td>
+<td><strong>Horizontal Scaling</strong></td>
 <td>❌ No</td>
 <td>❌ No</td>
 <td>✅ Yes</td>
-</tr>
-<tr>
-<td><strong>Consumer Acknowledgments</strong></td>
-<td>❌ No</td>
-<td>❌ No</td>
-<td>✅ Yes</td>
-</tr>
-<tr>
-<td><strong>Monitoring/Metrics</strong></td>
-<td>Basic</td>
-<td>Basic</td>
-<td>✅ Comprehensive</td>
 </tr>
 </tbody>
 </table>
 <hr />
 <h2 id="choosing-the-right-transport">🎯 Choosing the Right Transport<a class="headerlink" href="#choosing-the-right-transport" title="Permanent link">&para;</a></h2>
-<h3 id="use-basic-redis-when">Use Basic Redis When:<a class="headerlink" href="#use-basic-redis-when" title="Permanent link">&para;</a></h3>
+<h3 id="use-memory-transport-when">Use Memory Transport When:<a class="headerlink" href="#use-memory-transport-when" title="Permanent link">&para;</a></h3>
 <ul>
-<li>✅ You have simple pub/sub requirements</li>
-<li>✅ Message loss is acceptable</li>
-<li>✅ You need minimal setup and configuration</li>
-<li>✅ You're migrating from existing basic Redis pub/sub</li>
-<li>✅ Performance and simplicity are top priorities</li>
-<li>✅ You don't need sophisticated routing</li>
+<li>✅ You're writing unit tests</li>
+<li>✅ You're developing locally</li>
+<li>✅ You need fast, in-memory message processing</li>
+<li>✅ You want to inspect messages for testing</li>
+<li>✅ You don't need persistence or distribution</li>
 </ul>
-<h3 id="use-enhanced-redis-when">Use Enhanced Redis When:<a class="headerlink" href="#use-enhanced-redis-when" title="Permanent link">&para;</a></h3>
+<h3 id="use-stdout-transport-when">Use STDOUT Transport When:<a class="headerlink" href="#use-stdout-transport-when" title="Permanent link">&para;</a></h3>
 <ul>
-<li>✅ You need RabbitMQ-style routing without RabbitMQ</li>
-<li>✅ You have microservices requiring intelligent routing</li>
-<li>✅ You want backwards compatibility with basic Redis</li>
-<li>✅ You need pattern-based message filtering</li>
-<li>✅ Message persistence is not critical</li>
-<li>✅ You want a fluent, readable subscription API</li>
+<li>✅ You're debugging message flow</li>
+<li>✅ You need human-readable message logging</li>
+<li>✅ You're building development tools</li>
+<li>✅ You want to trace messages in integration tests</li>
+<li>✅ You need simple file-based message storage</li>
 </ul>
-<h3 id="use-redis-queue-when">Use Redis Queue When:<a class="headerlink" href="#use-redis-queue-when" title="Permanent link">&para;</a></h3>
+<h3 id="use-redis-transport-when">Use Redis Transport When:<a class="headerlink" href="#use-redis-transport-when" title="Permanent link">&para;</a></h3>
 <ul>
-<li>✅ You need message persistence and reliability</li>
-<li>✅ You require load balancing across multiple consumers</li>
-<li>✅ You're building production systems with high throughput</li>
-<li>✅ You need enterprise features (DLQ, monitoring, etc.)</li>
-<li>✅ You can leverage async/fiber concurrency</li>
-<li>✅ You want RabbitMQ features with Redis performance</li>
+<li>✅ You're building production applications</li>
+<li>✅ You need distributed messaging</li>
+<li>✅ You have microservices that need to communicate</li>
+<li>✅ You need reliable, scalable messaging</li>
+<li>✅ You can manage a Redis server dependency</li>
 </ul>
 <hr />
-<h2 id="migration-paths">🔄 Migration Paths<a class="headerlink" href="#migration-paths" title="Permanent link">&para;</a></h2>
-<h3 id="from-basic-enhanced">From Basic → Enhanced<a class="headerlink" href="#from-basic-enhanced" title="Permanent link">&para;</a></h3>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># Before (Basic)</span>
-</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="n">transport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:redis</span><span class="p">,</span><span class="w"> </span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;redis://localhost:6379&#39;</span><span class="p">)</span>
-</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>
-</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="c1"># After (Enhanced) - maintains backwards compatibility</span>
-</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="n">transport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisEnhancedTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
-</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">  </span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;redis://localhost:6379&#39;</span>
-</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="p">)</span>
-</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>
-</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="c1"># Add pattern-based subscriptions gradually</span>
-</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="n">transport</span><span class="o">.</span><span class="n">where</span><span class="o">.</span><span class="n">from</span><span class="p">(</span><span class="s1">&#39;api&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">subscribe</span>
+<h2 id="migration-patterns">🔄 Migration Patterns<a class="headerlink" href="#migration-patterns" title="Permanent link">&para;</a></h2>
+<h3 id="development-production">Development → Production<a class="headerlink" href="#development-production" title="Permanent link">&para;</a></h3>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Development (Memory)</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="n">config</span><span class="w"> </span><span class="k">do</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:memory</span><span class="p">,</span><span class="w"> </span><span class="ss">auto_process</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">)</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">  </span><span class="k">end</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="k">end</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="c1"># Production (Redis)</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">  </span><span class="n">config</span><span class="w"> </span><span class="k">do</span>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">    </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:redis</span><span class="p">,</span>
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">      </span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;REDIS_URL&#39;</span><span class="o">]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">&#39;redis://localhost:6379&#39;</span>
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="w">    </span><span class="p">)</span>
+</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="w">  </span><span class="k">end</span>
+</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="k">end</span>
 </span></code></pre></div>
-<h3 id="from-enhanced-queue">From Enhanced → Queue<a class="headerlink" href="#from-enhanced-queue" title="Permanent link">&para;</a></h3>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># Before (Enhanced)</span>
-</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">OrderMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="w">  </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisEnhancedTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;redis://localhost:6379&#39;</span><span class="p">)</span>
-</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="k">end</span>
-</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>
-</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="c1"># After (Queue) - requires architecture changes</span>
-</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">transport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:redis_queue</span>
-</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">transport_options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;redis://localhost:6379&#39;</span><span class="w"> </span><span class="p">}</span>
-</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a><span class="k">end</span>
-</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a>
-</span><span id="__span-16-12"><a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a><span class="k">class</span><span class="w"> </span><span class="nc">OrderMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-16-13"><a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a><span class="w">  </span><span class="n">transport</span><span class="w"> </span><span class="ss">:redis_queue</span>
-</span><span id="__span-16-14"><a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a>
-</span><span id="__span-16-15"><a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a><span class="w">  </span><span class="c1"># Add proper async processing</span>
-</span><span id="__span-16-16"><a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nc">self</span><span class="o">.</span><span class="nf">process</span><span class="p">(</span><span class="n">wrapper</span><span class="p">)</span>
-</span><span id="__span-16-17"><a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a><span class="w">    </span><span class="n">header</span><span class="p">,</span><span class="w"> </span><span class="n">payload</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">wrapper</span><span class="o">.</span><span class="n">split</span>
-</span><span id="__span-16-18"><a id="__codelineno-16-18" name="__codelineno-16-18" href="#__codelineno-16-18"></a><span class="w">    </span><span class="c1"># Handle message processing</span>
-</span><span id="__span-16-19"><a id="__codelineno-16-19" name="__codelineno-16-19" href="#__codelineno-16-19"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-16-20"><a id="__codelineno-16-20" name="__codelineno-16-20" href="#__codelineno-16-20"></a><span class="k">end</span>
-</span></code></pre></div>
-<h3 id="from-basic-queue">From Basic → Queue<a class="headerlink" href="#from-basic-queue" title="Permanent link">&para;</a></h3>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># Significant architectural changes required</span>
-</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="c1"># Consider Enhanced as intermediate step for easier migration</span>
+<h3 id="environment-based-configuration">Environment-Based Configuration<a class="headerlink" href="#environment-based-configuration" title="Permanent link">&para;</a></h3>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="n">config</span><span class="w"> </span><span class="k">do</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">    </span><span class="n">transport</span><span class="w"> </span><span class="k">case</span><span class="w"> </span><span class="no">Rails</span><span class="o">.</span><span class="n">env</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">              </span><span class="k">when</span><span class="w"> </span><span class="s1">&#39;test&#39;</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">                </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:memory</span><span class="p">,</span><span class="w"> </span><span class="ss">auto_process</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">)</span>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">              </span><span class="k">when</span><span class="w"> </span><span class="s1">&#39;development&#39;</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">                </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:stdout</span><span class="p">,</span><span class="w"> </span><span class="ss">loopback</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">)</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">              </span><span class="k">when</span><span class="w"> </span><span class="s1">&#39;production&#39;</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">                </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:redis</span><span class="p">,</span><span class="w"> </span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;REDIS_URL&#39;</span><span class="o">]</span><span class="p">)</span>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">              </span><span class="k">end</span>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="w">  </span><span class="k">end</span>
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="k">end</span>
 </span></code></pre></div>
 <hr />
-<h2 id="performance-testing">📈 Performance Testing<a class="headerlink" href="#performance-testing" title="Permanent link">&para;</a></h2>
-<h3 id="benchmark-setup">Benchmark Setup<a class="headerlink" href="#benchmark-setup" title="Permanent link">&para;</a></h3>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># Test all three transports</span>
-</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="n">transports</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="w">  </span><span class="ss">basic</span><span class="p">:</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:redis</span><span class="p">,</span><span class="w"> </span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;redis://localhost:6379&#39;</span><span class="p">),</span>
-</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="w">  </span><span class="ss">enhanced</span><span class="p">:</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisEnhancedTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;redis://localhost:6379&#39;</span><span class="p">),</span>
-</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="w">  </span><span class="ss">queue</span><span class="p">:</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:redis_queue</span><span class="p">,</span><span class="w"> </span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;redis://localhost:6379&#39;</span><span class="p">)</span>
-</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="p">}</span>
-</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>
-</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="c1"># Measure latency, throughput, memory usage</span>
-</span></code></pre></div>
-<h3 id="expected-results">Expected Results<a class="headerlink" href="#expected-results" title="Permanent link">&para;</a></h3>
+<h2 id="performance-characteristics">📈 Performance Characteristics<a class="headerlink" href="#performance-characteristics" title="Permanent link">&para;</a></h2>
+<h3 id="latency-comparison">Latency Comparison<a class="headerlink" href="#latency-comparison" title="Permanent link">&para;</a></h3>
 <ul>
-<li><strong>Basic</strong>: Lowest latency, highest throughput for simple scenarios</li>
-<li><strong>Enhanced</strong>: Slight overhead for pattern processing, excellent routing</li>
-<li><strong>Queue</strong>: Best overall performance with persistence and load balancing</li>
+<li><strong>Memory</strong>: ~0.1ms (fastest, no serialization)</li>
+<li><strong>STDOUT</strong>: ~1ms (JSON formatting overhead)</li>
+<li><strong>Redis</strong>: ~1ms (network + serialization)</li>
 </ul>
-<p><img alt="Performance Comparison" src="../../assets/images/performance-comparison.svg" /></p>
+<h3 id="throughput-comparison">Throughput Comparison<a class="headerlink" href="#throughput-comparison" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Memory</strong>: Highest (limited by CPU and memory)</li>
+<li><strong>STDOUT</strong>: Medium (limited by I/O operations)</li>
+<li><strong>Redis</strong>: High (limited by network and Redis performance)</li>
+</ul>
+<h3 id="memory-usage">Memory Usage<a class="headerlink" href="#memory-usage" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Memory</strong>: Grows with message volume (configurable limit)</li>
+<li><strong>STDOUT</strong>: Minimal (immediate output/write)</li>
+<li><strong>Redis</strong>: Low (messages not stored locally)</li>
+</ul>
 <hr />
 <h2 id="configuration-examples">🛠️ Configuration Examples<a class="headerlink" href="#configuration-examples" title="Permanent link">&para;</a></h2>
+<h3 id="test-environment">Test Environment<a class="headerlink" href="#test-environment" title="Permanent link">&para;</a></h3>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
+</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">default_transport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:memory</span><span class="p">,</span>
+</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="ss">auto_process</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">,</span>
+</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">    </span><span class="ss">max_messages</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span>
+</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">  </span><span class="p">)</span>
+</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="k">end</span>
+</span></code></pre></div>
 <h3 id="development-environment">Development Environment<a class="headerlink" href="#development-environment" title="Permanent link">&para;</a></h3>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1"># Use Enhanced for flexible development routing</span>
-</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">default_transport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisEnhancedTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
-</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="w">    </span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;redis://localhost:6379&#39;</span><span class="p">,</span>
-</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="w">    </span><span class="ss">db</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="w">  </span><span class="c1"># Separate dev database</span>
-</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="w">  </span><span class="p">)</span>
-</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="k">end</span>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
+</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">default_transport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:stdout</span><span class="p">,</span>
+</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span><span class="ss">loopback</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">,</span>
+</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">    </span><span class="ss">output</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;log/messages.log&quot;</span>
+</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">  </span><span class="p">)</span>
+</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="k">end</span>
 </span></code></pre></div>
 <h3 id="production-environment">Production Environment<a class="headerlink" href="#production-environment" title="Permanent link">&para;</a></h3>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># Use Queue for production reliability</span>
-</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">transport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:redis_queue</span>
-</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">transport_options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="w">    </span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;REDIS_URL&#39;</span><span class="o">]</span><span class="p">,</span>
-</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="w">    </span><span class="ss">db</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="w">    </span><span class="ss">queue_prefix</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;prod.smart_message&#39;</span><span class="p">,</span>
-</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a><span class="w">    </span><span class="ss">consumer_group</span><span class="p">:</span><span class="w"> </span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;CONSUMER_GROUP&#39;</span><span class="o">]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="s1">&#39;default_workers&#39;</span><span class="p">,</span>
-</span><span id="__span-20-9"><a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a><span class="w">    </span><span class="ss">consumer_timeout</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span>
-</span><span id="__span-20-10"><a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a><span class="w">    </span><span class="ss">reconnect_attempts</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span>
-</span><span id="__span-20-11"><a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a><span class="w">  </span><span class="p">}</span>
-</span><span id="__span-20-12"><a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a><span class="k">end</span>
-</span></code></pre></div>
-<h3 id="hybrid-approach">Hybrid Approach<a class="headerlink" href="#hybrid-approach" title="Permanent link">&para;</a></h3>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># Different transports for different message types</span>
-</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">LogMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="w">  </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:redis</span><span class="p">,</span><span class="w"> </span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;redis://localhost:6379&#39;</span><span class="p">)</span><span class="w">  </span><span class="c1"># Fire-and-forget</span>
-</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="k">end</span>
-</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>
-</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="k">class</span><span class="w"> </span><span class="nc">OrderMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span><span class="w">  </span>
-</span><span id="__span-21-7"><a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="w">  </span><span class="n">transport</span><span class="w"> </span><span class="ss">:redis_queue</span><span class="w">  </span><span class="c1"># Persistent and reliable</span>
-</span><span id="__span-21-8"><a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a><span class="k">end</span>
-</span><span id="__span-21-9"><a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a>
-</span><span id="__span-21-10"><a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a><span class="k">class</span><span class="w"> </span><span class="nc">HealthCheckMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-21-11"><a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a><span class="w">  </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisEnhancedTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
-</span><span id="__span-21-12"><a id="__codelineno-21-12" name="__codelineno-21-12" href="#__codelineno-21-12"></a><span class="w">    </span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;redis://localhost:6379&#39;</span>
-</span><span id="__span-21-13"><a id="__codelineno-21-13" name="__codelineno-21-13" href="#__codelineno-21-13"></a><span class="w">  </span><span class="p">)</span><span class="w">  </span><span class="c1"># Pattern-based routing</span>
-</span><span id="__span-21-14"><a id="__codelineno-21-14" name="__codelineno-21-14" href="#__codelineno-21-14"></a><span class="k">end</span>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
+</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">default_transport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:redis</span><span class="p">,</span>
+</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">    </span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;REDIS_URL&#39;</span><span class="o">]</span><span class="p">,</span>
+</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">    </span><span class="ss">db</span><span class="p">:</span><span class="w"> </span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;REDIS_DB&#39;</span><span class="o">]&amp;.</span><span class="n">to_i</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">    </span><span class="ss">reconnect_attempts</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span>
+</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="w">    </span><span class="ss">reconnect_delay</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span>
+</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">  </span><span class="p">)</span>
+</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="k">end</span>
 </span></code></pre></div>
 <hr />
-<h2 id="additional-resources">📚 Additional Resources<a class="headerlink" href="#additional-resources" title="Permanent link">&para;</a></h2>
-<ul>
-<li><a href="https://github.com/madbomber/smart_message/tree/main/examples/redis_basic">Basic Redis Transport Examples</a></li>
-<li><a href="https://github.com/madbomber/smart_message/tree/main/examples/redis_enhanced">Enhanced Redis Transport Examples</a></li>
-<li><a href="https://github.com/madbomber/smart_message/tree/main/examples/redis_queue">Queue Redis Transport Examples</a></li>
-<li><a href="../../guides/redis-queue-production/">Redis Queue Production Guide</a></li>
-<li><a href="../../guides/redis-queue-patterns/">Redis Queue Patterns Guide</a></li>
-<li><a href="../../reference/transports/">Transport Reference</a></li>
-</ul>
-<hr />
-<p>This comparison should help you choose the right Redis transport for your specific use case. Each transport has its strengths and is optimized for different scenarios within the SmartMessage ecosystem.</p>
+<p>This comparison should help you choose the right transport for your specific use case within the SmartMessage ecosystem. Each transport is optimized for different scenarios and provides the flexibility to grow your application from development to production.</p>
 
 
 

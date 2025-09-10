@@ -18,11 +18,11 @@
         <link rel="prev" href="../memory-transport/">
       
       
-        <link rel="next" href="../redis-enhanced-transport/">
+        <link rel="next" href="../redis-transport-comparison/">
       
       
       <link rel="icon" href="../../assets/smart_message.jpg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.18">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.19">
     
     
       
@@ -342,7 +342,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../guides/redis-queue-getting-started/" class="md-tabs__link">
+        <a href="../../guides/redis-queue-getting-started.md" class="md-tabs__link">
           
   
   
@@ -1470,15 +1470,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#migration-to-enhanced-transport" class="md-nav__link">
-    <span class="md-ellipsis">
-      Migration to Enhanced Transport
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#examples" class="md-nav__link">
     <span class="md-ellipsis">
       Examples
@@ -1563,7 +1554,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../redis-enhanced-transport/" class="md-nav__link">
+      <a href="../redis-enhanced-transport.md" class="md-nav__link">
         
   
   
@@ -1586,7 +1577,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../redis-queue-transport/" class="md-nav__link">
+      <a href="../redis-queue-transport.md" class="md-nav__link">
         
   
   
@@ -1690,7 +1681,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/redis-queue-getting-started/" class="md-nav__link">
+      <a href="../../guides/redis-queue-getting-started.md" class="md-nav__link">
         
   
   
@@ -1713,7 +1704,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/redis-queue-patterns/" class="md-nav__link">
+      <a href="../../guides/redis-queue-patterns.md" class="md-nav__link">
         
   
   
@@ -1736,7 +1727,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/redis-queue-production/" class="md-nav__link">
+      <a href="../../guides/redis-queue-production.md" class="md-nav__link">
         
   
   
@@ -2262,15 +2253,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#migration-to-enhanced-transport" class="md-nav__link">
-    <span class="md-ellipsis">
-      Migration to Enhanced Transport
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#examples" class="md-nav__link">
     <span class="md-ellipsis">
       Examples
@@ -2766,21 +2748,6 @@
 </span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="c1"># all 3 will process every OrderMessage</span>
 </span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="c1"># No load balancing between subscribers</span>
 </span></code></pre></div>
-<h2 id="migration-to-enhanced-transport">Migration to Enhanced Transport<a class="headerlink" href="#migration-to-enhanced-transport" title="Permanent link">&para;</a></h2>
-<p>When you need advanced routing, consider upgrading to Enhanced Transport:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># From Redis Transport</span>
-</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">default_transport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisTransport</span><span class="o">.</span><span class="n">new</span>
-</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="k">end</span>
-</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>
-</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="c1"># To Enhanced Transport (with backward compatibility)</span>
-</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">default_transport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisEnhancedTransport</span><span class="o">.</span><span class="n">new</span>
-</span><span id="__span-20-9"><a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a><span class="k">end</span>
-</span><span id="__span-20-10"><a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a>
-</span><span id="__span-20-11"><a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a><span class="c1"># All existing messages continue to work</span>
-</span><span id="__span-20-12"><a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a><span class="c1"># New messages gain pattern-matching capabilities</span>
-</span></code></pre></div>
 <h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
 <p>The <code>examples/redis/</code> directory contains production-ready examples demonstrating Redis Transport capabilities:</p>
 <h3 id="iot-and-real-time-messaging">IoT and Real-Time Messaging<a class="headerlink" href="#iot-and-real-time-messaging" title="Permanent link">&para;</a></h3>
@@ -2799,17 +2766,17 @@
 - <strong>Real-Time Data Flow</strong> - Continuous sensor data streaming
 - <strong>Multi-Process Communication</strong> - Distributed system simulation</p>
 <h3 id="running-examples">Running Examples<a class="headerlink" href="#running-examples" title="Permanent link">&para;</a></h3>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># Prerequisites: Start Redis server</span>
-</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>redis-server
-</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>
-</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="c1"># Navigate to the SmartMessage directory</span>
-</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="nb">cd</span><span class="w"> </span>smart_message
-</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>
-</span><span id="__span-21-7"><a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="c1"># Run the Redis Transport IoT demo</span>
-</span><span id="__span-21-8"><a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a>ruby<span class="w"> </span>examples/redis/01_smart_home_iot_demo.rb
-</span><span id="__span-21-9"><a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a>
-</span><span id="__span-21-10"><a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a><span class="c1"># Monitor Redis channels during the demo</span>
-</span><span id="__span-21-11"><a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a>redis-cli<span class="w"> </span>MONITOR
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># Prerequisites: Start Redis server</span>
+</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>redis-server
+</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>
+</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="c1"># Navigate to the SmartMessage directory</span>
+</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="nb">cd</span><span class="w"> </span>smart_message
+</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a>
+</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="c1"># Run the Redis Transport IoT demo</span>
+</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a>ruby<span class="w"> </span>examples/redis/01_smart_home_iot_demo.rb
+</span><span id="__span-20-9"><a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a>
+</span><span id="__span-20-10"><a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a><span class="c1"># Monitor Redis channels during the demo</span>
+</span><span id="__span-20-11"><a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a>redis-cli<span class="w"> </span>MONITOR
 </span></code></pre></div>
 <h3 id="example-architecture">Example Architecture<a class="headerlink" href="#example-architecture" title="Permanent link">&para;</a></h3>
 <p>The IoT demo creates a complete distributed system:
@@ -2824,10 +2791,9 @@
 - <strong><a href="https://github.com/MadBomber/smart_message/blob/main/examples/redis/smart_home_iot_dataflow.md">Complete Documentation</a></strong> - Detailed data flow analysis with SVG diagrams</p>
 <h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="../redis-enhanced-transport/">Redis Enhanced Transport</a> - Advanced routing with patterns</li>
-<li><a href="../redis-queue-transport/">Redis Queue Transport</a> - Persistent queues with load balancing  </li>
-<li><a href="../redis-transport-comparison/">Transport Comparison</a> - Compare all Redis transports</li>
 <li><a href="../../reference/transports/">Transport Overview</a> - All available transports</li>
+<li><a href="../../getting-started/examples/">Examples &amp; Use Cases</a> - Practical usage patterns</li>
+<li><a href="../../core-concepts/architecture/">Architecture Overview</a> - How SmartMessage works</li>
 </ul>
 
 
