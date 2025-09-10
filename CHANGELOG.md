@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.14] 2025-09-10
+
+### Fixed
+- **Configuration Architecture**: Fixed `SmartMessage::Serializer.default` method to properly reflect transport-owned serialization architecture
+  - **Issue**: `SmartMessage::Serializer.default` was trying to access a non-existent `default_serializer` method on global configuration
+  - **Root Cause**: Serialization belongs to transports, not global configuration, but the method was attempting to check global config first
+  - **Solution**: Updated method to return framework default (`SmartMessage::Serializer::Json`) directly without depending on global configuration
+  - **Architecture Clarification**: Each transport owns and configures its own serializer (line 19 in transport/base.rb: `@serializer = options[:serializer] || default_serializer`)
+  - **Demo Fix**: Updated `examples/memory/14_global_configuration_demo.rb` to remove incorrect `config.serializer =` attempts and added architecture comments
+- **Test Method Signatures**: Completed wrapper-to-message architecture transition by fixing remaining method signature issues
+  - **dispatcher_test.rb**: Changed `processer_one` and `processer_two` from instance methods to class methods (`def self.`)
+  - **Message Format**: Updated methods to use flat message structure (`message._sm_header.message_class` and `message.to_json`) instead of old two-tier format (`message_header, encoded_message = message`)
+  - **subscribe_test.rb**: Fixed `business_logic` method to be a class method (`def self.business_logic`) to match subscription call pattern
+  - **Result**: All tests now pass (`176 runs, 578 assertions, 0 failures, 0 errors, 1 skips`) completing the architectural transition
+
 ## [0.0.13] 2025-09-10
 
 ### Changed
