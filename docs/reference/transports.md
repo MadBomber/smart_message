@@ -5,10 +5,29 @@ The transport layer is responsible for moving messages between systems. SmartMes
 ## Overview
 
 Transports handle:
-- **Publishing**: Sending messages to a destination
+- **Publishing**: Sending messages to a destination (single or multiple transports)
 - **Subscribing**: Registering interest in message types
 - **Routing**: Directing incoming messages to the dispatcher
 - **Connection Management**: Handling connections to external systems
+
+## Multi-Transport Publishing
+
+SmartMessage supports publishing to **multiple transports simultaneously** for redundancy, integration, and migration scenarios. Configure an array of transports to send messages to multiple destinations with a single `publish()` call.
+
+```ruby
+class CriticalMessage < SmartMessage::Base
+  transport [
+    SmartMessage::Transport.create(:redis_queue, url: 'redis://primary:6379'),
+    SmartMessage::Transport.create(:redis, url: 'redis://backup:6379'),
+    SmartMessage::Transport::StdoutTransport.new(format: :json)
+  ]
+end
+
+message = CriticalMessage.new(data: "important")
+message.publish  # ✅ Publishes to all three transports
+```
+
+**📚 See [Multi-Transport Documentation](../transports/multi-transport.md) for comprehensive examples and best practices.**
 
 ## Built-in Transports
 

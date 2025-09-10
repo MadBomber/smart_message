@@ -21,13 +21,43 @@ module SmartMessage
         
         raise Errors::TransportNotConfigured if transport_missing?
         
-        # Transport now handles serialization - just pass the message instance
-        (self.class.logger || SmartMessage::Logger.default).debug { "[SmartMessage::Messaging] About to call transport.publish" }
-        transport.publish(self)
-        (self.class.logger || SmartMessage::Logger.default).debug { "[SmartMessage::Messaging] transport.publish completed" }
+        # Get all configured transports (supports both single and multiple)
+        transport_list = transports
+        logger = self.class.logger || SmartMessage::Logger.default
         
-        # Log the message publish
-        (self.class.logger || SmartMessage::Logger.default).info { "[SmartMessage] Published: #{self.class.name} via #{transport.class.name.split('::').last}" }
+        # Track publication results for each transport
+        successful_transports = []
+        failed_transports = []
+        
+        # Publish to each configured transport
+        transport_list.each do |transport_instance|
+          begin
+            # Transport handles serialization - just pass the message instance
+            logger.debug { "[SmartMessage::Messaging] About to call transport.publish on #{transport_instance.class.name.split('::').last}" }
+            transport_instance.publish(self)
+            logger.debug { "[SmartMessage::Messaging] transport.publish completed on #{transport_instance.class.name.split('::').last}" }
+            
+            successful_transports << transport_instance.class.name.split('::').last
+          rescue => transport_error
+            logger.error { "[SmartMessage] Transport #{transport_instance.class.name.split('::').last} failed: #{transport_error.class.name} - #{transport_error.message}" }
+            failed_transports << { transport: transport_instance.class.name.split('::').last, error: transport_error }
+          end
+        end
+        
+        # Log overall publication results
+        if successful_transports.any?
+          logger.info { "[SmartMessage] Published: #{self.class.name} via #{successful_transports.join(', ')}" }
+        end
+        
+        if failed_transports.any?
+          logger.warn { "[SmartMessage] Failed transports for #{self.class.name}: #{failed_transports.map { |ft| ft[:transport] }.join(', ')}" }
+        end
+        
+        # Raise error only if ALL transports failed
+        if successful_transports.empty? && failed_transports.any?
+          error_messages = failed_transports.map { |ft| "#{ft[:transport]}: #{ft[:error].message}" }.join('; ')
+          raise Errors::PublishError, "All transports failed: #{error_messages}"
+        end
 
         SS.add(_sm_header.message_class, 'publish')
         SS.get(_sm_header.message_class, 'publish')
