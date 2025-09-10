@@ -273,7 +273,6 @@ class DemoMessage < SmartMessage::Base
 
   config do
     transport SmartMessage::Transport::StdoutTransport.new
-    serializer SmartMessage::Serializer::Json.new
     from 'demo-logger-app'
   end
 

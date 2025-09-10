@@ -40,7 +40,7 @@ cd city_scenario
 **Key Features:**
 - Request-response messaging pattern
 - Error handling and payment validation
-- JSON serialization of complex business objects
+- Automatic serialization of complex business objects by transport
 - Service-to-service communication
 
 **Messages Used:**
@@ -393,7 +393,6 @@ Most examples use `StdoutTransport` with loopback enabled for demonstration purp
 ```ruby
 config do
   transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
-  serializer SmartMessage::Serializer::JSON.new
 end
 ```
 
@@ -406,13 +405,12 @@ config do
     db: 1,
     auto_subscribe: true
   )
-  serializer SmartMessage::Serializer::JSON.new
 end
 ```
 
 **For Production Use:**
 - Use production transports like Redis (see example #4), RabbitMQ, or Kafka
-- Configure appropriate serializers for your data needs
+- Transports handle serialization automatically
 - Add proper error handling and logging
 - Implement monitoring and metrics
 
@@ -547,7 +545,6 @@ class MyCustomMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
-    serializer SmartMessage::Serializer::JSON.new
   end
 end
 ```
@@ -676,9 +673,9 @@ When adapting these examples for production:
    - Implement proper error handling
 
 2. **Serialization:**
-   - Choose appropriate serializers for your data
-   - Consider performance and compatibility requirements
-   - Handle schema evolution
+   - Transports handle serialization automatically
+   - Choose transports based on serialization requirements
+   - Handle schema evolution at the message level
 
 3. **Monitoring:**
    - Add logging and metrics
@@ -699,7 +696,7 @@ When adapting these examples for production:
 
 - [SmartMessage Documentation](../docs/README.md)
 - [Transport Layer Guide](../docs/transports.md)
-- [Serialization Guide](../docs/serializers.md)
+- [Serialization Guide](../docs/serializers.md) (Note: Serialization is now handled by transports)
 - [Architecture Overview](../docs/architecture.md)
 
 ## Questions and Contributions

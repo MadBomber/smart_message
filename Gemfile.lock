@@ -30,7 +30,7 @@ GEM
       tzinfo (~> 2.0, >= 2.0.5)
       uri (>= 0.13.1)
     amazing_print (1.8.1)
-    async (2.29.0)
+    async (2.31.0)
       console (~> 1.29)
       fiber-annotation
       io-event (~> 1.11)
@@ -69,7 +69,7 @@ GEM
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
     io-endpoint (0.15.2)
-    io-event (1.13.0)
+    io-event (1.14.0)
     io-stream (0.10.0)
     json (2.13.2)
     logger (1.7.0)

@@ -26,7 +26,6 @@ class ProcHandlerTest < Minitest::Test
 
     config do
       reset_transport
-      reset_serializer
     end
 
     def self.process(wrapper)
@@ -38,7 +37,6 @@ class ProcHandlerTest < Minitest::Test
 
   def test_default_subscribe_still_works
     TestMessage.transport @transport
-    TestMessage.serializer SmartMessage::Serializer::Json.new
 
     # Should work the same as before
     handler_id = TestMessage.subscribe
@@ -49,7 +47,6 @@ class ProcHandlerTest < Minitest::Test
 
   def test_subscribe_with_block
     TestMessage.transport @transport
-    TestMessage.serializer SmartMessage::Serializer::Json.new
 
     @received_data = nil
 
@@ -77,7 +74,6 @@ class ProcHandlerTest < Minitest::Test
 
   def test_subscribe_with_proc_parameter
     TestMessage.transport @transport
-    TestMessage.serializer SmartMessage::Serializer::Json.new
 
     @received_data = nil
 
@@ -108,7 +104,6 @@ class ProcHandlerTest < Minitest::Test
 
   def test_subscribe_with_lambda
     TestMessage.transport @transport
-    TestMessage.serializer SmartMessage::Serializer::Json.new
 
     @received_data = nil
 
@@ -139,7 +134,6 @@ class ProcHandlerTest < Minitest::Test
 
   def test_multiple_proc_handlers
     TestMessage.transport @transport
-    TestMessage.serializer SmartMessage::Serializer::Json.new
 
     received_messages = []
 
@@ -173,7 +167,6 @@ class ProcHandlerTest < Minitest::Test
 
   def test_mix_proc_and_method_handlers
     TestMessage.transport @transport
-    TestMessage.serializer SmartMessage::Serializer::Json.new
 
     _received_data = nil
 
@@ -197,7 +190,6 @@ class ProcHandlerTest < Minitest::Test
 
   def test_unsubscribe_proc_handler
     TestMessage.transport @transport
-    TestMessage.serializer SmartMessage::Serializer::Json.new
 
     # Subscribe with a block
     handler_id = TestMessage.subscribe do |wrapper|
@@ -218,7 +210,6 @@ class ProcHandlerTest < Minitest::Test
 
   def test_proc_handler_with_message_header
     TestMessage.transport @transport
-    TestMessage.serializer SmartMessage::Serializer::Json.new
 
     received_header = nil
     received_uuid = nil
@@ -245,7 +236,6 @@ class ProcHandlerTest < Minitest::Test
 
   def test_proc_handler_error_handling
     TestMessage.transport @transport
-    TestMessage.serializer SmartMessage::Serializer::Json.new
 
     # Subscribe with a block that raises an error
     TestMessage.subscribe do |wrapper|
@@ -265,7 +255,6 @@ class ProcHandlerTest < Minitest::Test
 
   def test_proc_handler_with_complex_logic
     TestMessage.transport @transport
-    TestMessage.serializer SmartMessage::Serializer::Json.new
 
     processed_data = {}
 
@@ -300,7 +289,6 @@ class ProcHandlerTest < Minitest::Test
 
   def test_proc_registry_cleanup_on_unsubscribe_all
     TestMessage.transport @transport
-    TestMessage.serializer SmartMessage::Serializer::Json.new
 
     # Subscribe with several proc handlers
     proc1 = proc { |wrapper| }
@@ -324,7 +312,6 @@ class ProcHandlerTest < Minitest::Test
 
   def test_subscription_return_values
     TestMessage.transport @transport
-    TestMessage.serializer SmartMessage::Serializer::Json.new
 
     # All subscription methods should return identifiers
     default_id = TestMessage.subscribe

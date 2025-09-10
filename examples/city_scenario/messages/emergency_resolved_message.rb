@@ -14,7 +14,6 @@ module Messages
     description 'Emergency incident closure notification message broadcast by emergency services when incidents are successfully resolved, providing completion status, response duration, outcome details, and unit deployment information to all city services for operational awareness and incident tracking'
 
     transport  SmartMessage::Transport::RedisTransport.new
-    serializer SmartMessage::Serializer::Json.new
 
     property :incident_id, required: true,
                            description: 'Unique identifier of the emergency incident that was resolved'

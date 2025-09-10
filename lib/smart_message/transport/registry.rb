@@ -54,7 +54,6 @@ module SmartMessage
         register(:stdout, SmartMessage::Transport::StdoutTransport)
         register(:memory, SmartMessage::Transport::MemoryTransport)
         register(:redis, SmartMessage::Transport::RedisTransport)
-        register(:redis_queue, SmartMessage::Transport::RedisQueueTransport)
       end
     end
   end

@@ -9,10 +9,10 @@ SmartMessage is designed around the principle that **messages should be independ
 ### Core Principles
 
 1. **Separation of Concerns**: Message content, transport, and serialization are independent
-2. **Plugin Architecture**: Pluggable transports and serializers
+2. **Plugin Architecture**: Pluggable transports
 3. **Dual Configuration**: Both class-level and instance-level configuration
 4. **Thread Safety**: Concurrent message processing with thread pools
-5. **Gateway Support**: Messages can flow between different transports/serializers
+5. **Gateway Support**: Messages can flow between different transports
 
 ## Architecture Overview
 
@@ -26,7 +26,7 @@ The foundation class that all messages inherit from, built on `Hashie::Dash`.
 
 **Key Responsibilities:**
 - Property management and validation
-- Plugin configuration (transport, serializer, logger)
+- Plugin configuration (transport, logger)
 - Message lifecycle management
 - Header generation and management
 
@@ -40,7 +40,6 @@ class MyMessage < SmartMessage::Base
   
   config do
     transport MyTransport.new
-    serializer MySerializer.new
   end
 end
 ```
@@ -163,7 +162,6 @@ puts header.from          # "payment-service"
 puts header.to            # "order-service"
 puts header.reply_to      # "payment-service" (defaults to from)
 puts header.version       # 1
-puts header.serializer    # "SmartMessage::Serializer::JSON"
 ```
 
 ## Message Lifecycle
@@ -176,7 +174,6 @@ class OrderMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport.create(:memory)
-    serializer SmartMessage::Serializer::Json.new
   end
 end
 ```
@@ -201,7 +198,7 @@ order = OrderMessage.new(order_id: "123", amount: 99.99)
 order.from("order-service").to("payment-service")
 order.publish
 # 1. Creates header with UUID, timestamp, addressing
-# 2. Encodes message via serializer  
+# 2. Encodes message via transport's serializer  
 # 3. Sends via transport
 # 4. Circuit breaker monitors for failures
 ```
@@ -210,7 +207,7 @@ order.publish
 ```ruby
 # Transport receives serialized message
 transport.receive(message_class, serialized_message)
-# 1. Decodes message using class's configured serializer
+# 1. Decodes message using transport's serializer
 # 2. Routes decoded message to dispatcher
 # 3. Dispatcher checks DDQ for duplicates per handler
 # 4. Applies message filters (from/to/broadcast)
@@ -271,7 +268,6 @@ SmartMessage supports configuration at both class and instance levels:
 class PaymentMessage < SmartMessage::Base
   config do
     transport ProductionTransport.new
-    serializer SecureSerializer.new
   end
 end
 
@@ -459,7 +455,6 @@ Configuration uses method-based DSL:
 ```ruby
 config do
   transport MyTransport.new(option1: value1)
-  serializer MySerializer.new(option2: value2)
   logger MyLogger.new(level: :debug)
 end
 ```

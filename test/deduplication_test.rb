@@ -85,7 +85,7 @@ class DeduplicationTest < Minitest::Test
     
     dup_message = TestDedupMessage.new(
       _sm_header: header,
-      _sm_payload: { content: "test content" }
+      content: "test content"
     )
     
     # First time should not be duplicate
@@ -95,14 +95,13 @@ class DeduplicationTest < Minitest::Test
     # Second message with same UUID should be duplicate
     dup_message2 = TestDedupMessage.new(
       _sm_header: header,
-      _sm_payload: { content: "different content" }
+      content: "different content"
     )
     assert dup_message2.duplicate?
   end
   
   def test_dispatcher_deduplication_integration
     TestDedupMessage.transport(SmartMessage::Transport::MemoryTransport.new)
-    TestDedupMessage.serializer(SmartMessage::Serializer::Json.new)
     TestDedupMessage.subscribe('DeduplicationTest::TestDedupMessage.process')
     
     # Create message with specific UUID
@@ -117,7 +116,7 @@ class DeduplicationTest < Minitest::Test
     
     message = TestDedupMessage.new(
       _sm_header: header,
-      _sm_payload: { content: "test message" }
+      content: "test message"
     )
     
     # First publish should process
@@ -130,7 +129,7 @@ class DeduplicationTest < Minitest::Test
     # Second publish with same UUID should be skipped
     message2 = TestDedupMessage.new(
       _sm_header: header,
-      _sm_payload: { content: "duplicate message" }
+      content: "duplicate message"
     )
     
     message2.publish
@@ -142,7 +141,6 @@ class DeduplicationTest < Minitest::Test
   
   def test_normal_message_without_deduplication
     TestNormalMessage.transport(SmartMessage::Transport::MemoryTransport.new)
-    TestNormalMessage.serializer(SmartMessage::Serializer::Json.new)
     TestNormalMessage.subscribe('DeduplicationTest::TestNormalMessage.process')
     
     # Create messages with same UUID (simulating duplicates)
@@ -157,12 +155,12 @@ class DeduplicationTest < Minitest::Test
     
     message1 = TestNormalMessage.new(
       _sm_header: header,
-      _sm_payload: { content: "test message 1" }
+      content: "test message 1"
     )
     
     message2 = TestNormalMessage.new(
       _sm_header: header,
-      _sm_payload: { content: "test message 2" }
+      content: "test message 2"
     )
     
     # Both should process since deduplication is disabled

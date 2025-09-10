@@ -2,7 +2,6 @@
 
 require_relative "test_helper"
 
-require 'smart_message/serializer/json'
 require 'smart_message/transport'
 require 'logger'
 
@@ -54,33 +53,16 @@ module TransportTest
       TransportTest::MyMessage.config do
         reset_transport
         reset_logger
-        reset_serializer
       end
 
       assert TransportTest::MyMessage.transport_missing?
       assert TransportTest::MyMessage.logger_missing?
-      assert TransportTest::MyMessage.serializer_missing?
 
       refute TransportTest::MyMessage.transport_configured?
       refute TransportTest::MyMessage.logger_configured?
-      refute TransportTest::MyMessage.serializer_configured?
 
 
-      # Setup a serializer ...
-      TransportTest::MyMessage.config do
-        serializer SmartMessage::Serializer::Json.new
-      end
-
-      assert TransportTest::MyMessage.transport_missing?
-      assert TransportTest::MyMessage.logger_missing?
-      assert TransportTest::MyMessage.serializer_configured?
-
-      refute TransportTest::MyMessage.transport_configured?
-      refute TransportTest::MyMessage.logger_configured?
-      refute TransportTest::MyMessage.serializer_missing?
-
-
-      # Add in a transport ...
+      # Add in a transport...
       TransportTest::MyMessage.config do
         transport SmartMessage::Transport::StdoutTransport.new(loopback: false)
       end
@@ -89,11 +71,9 @@ module TransportTest
 
       assert TransportTest::MyMessage.transport_configured?
       assert TransportTest::MyMessage.logger_missing?
-      assert TransportTest::MyMessage.serializer_configured?
 
       refute TransportTest::MyMessage.transport_missing?
       refute TransportTest::MyMessage.logger_configured?
-      refute TransportTest::MyMessage.serializer_missing?
 
 
       # Add in a logger ...
@@ -103,18 +83,13 @@ module TransportTest
 
       assert TransportTest::MyMessage.transport_configured?
       assert TransportTest::MyMessage.logger_configured?
-      assert TransportTest::MyMessage.serializer_configured?
 
       refute TransportTest::MyMessage.transport_missing?
       refute TransportTest::MyMessage.logger_missing?
-      refute TransportTest::MyMessage.serializer_missing?
 
 
       assert_equal  SmartMessage::Transport::StdoutTransport,
                     TransportTest::MyMessage.transport.class
-
-      assert_equal  SmartMessage::Serializer::Json,
-                    TransportTest::MyMessage.serializer.class
 
       assert_equal  SmartMessage::Logger::Default,
                     TransportTest::MyMessage.logger.class
@@ -139,7 +114,6 @@ module TransportTest
       TransportTest::MyMessage.config do
         reset_transport
         reset_logger
-        reset_serializer
       end
 
       my_message = TransportTest::MyMessage.new(
@@ -148,8 +122,8 @@ module TransportTest
         baz: 'three'
       )
 
-      # The first step in publishing a message is to serializer it ...
-      assert_raises SmartMessage::Errors::SerializerNotConfigured do
+      # Publishing requires a transport to be configured...
+      assert_raises SmartMessage::Errors::TransportNotConfigured do
         my_message.publish
       end
 
@@ -161,7 +135,6 @@ module TransportTest
                       loopback: false,
                       output:   'transport_test.log'
                     )
-        serializer  SmartMessage::Serializer::Json.new
       end
 
       assert_equal false, TransportTest::MyMessage.transport.loopback?
@@ -188,7 +161,6 @@ module TransportTest
       TransportTest::MyMessage.config do
         reset_transport
         reset_logger
-        reset_serializer
       end
 
       assert_raises SmartMessage::Errors::TransportNotConfigured do
@@ -198,7 +170,6 @@ module TransportTest
       # Set class-level plugins to known configuration
       TransportTest::MyMessage.config do
         transport   SmartMessage::Transport::StdoutTransport.new(loopback: true)
-        serializer  SmartMessage::Serializer::Json.new
       end
 
       assert_equal true, TransportTest::MyMessage.transport.loopback?

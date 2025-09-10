@@ -23,11 +23,11 @@ class DeadLetterQueueTest < Minitest::Test
     
     # Configure message classes
     TestMessage.config do
-      serializer SmartMessage::Serializer::Json.new
+      # Using default transport serialization
     end
     
     OrderMessage.config do
-      serializer SmartMessage::Serializer::Json.new
+      # Using default transport serialization
     end
     
     @message = TestMessage.new(
@@ -37,8 +37,8 @@ class DeadLetterQueueTest < Minitest::Test
       to: 'target-service'
     )
     
-    # Store the expected payload (encoded message)
-    @payload = @message.encode
+    # Store the expected payload (JSON encoded message)
+    @payload = JSON.generate(@message.to_hash)
   end
   
   def teardown

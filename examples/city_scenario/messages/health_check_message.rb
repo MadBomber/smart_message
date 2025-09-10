@@ -14,7 +14,6 @@ module Messages
     description "Health monitoring message broadcast by the Health Department every 5 seconds to verify operational status of all city services including police, fire, banks, and residential monitoring systems"
 
     transport SmartMessage::Transport::RedisTransport.new
-    serializer SmartMessage::Serializer::Json.new
 
     property :check_id, required: true,
       description: "Unique identifier for this health check request (UUID format)"

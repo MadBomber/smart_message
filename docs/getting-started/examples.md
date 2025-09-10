@@ -20,7 +20,6 @@ class NotificationMessage < SmartMessage::Base
 
   config do
     transport SmartMessage::Transport.create(:stdout, loopback: true)
-    serializer SmartMessage::Serializer::Json.new
   end
 
   def self.process(decoded_message)
@@ -87,7 +86,6 @@ class UserRegisteredEvent < SmartMessage::Base
 
   config do
     transport SmartMessage::Transport.create(:memory, auto_process: true)
-    serializer SmartMessage::Serializer::Json.new
   end
 
   def self.process(decoded_message)
@@ -152,7 +150,6 @@ class WelcomeEmailMessage < SmartMessage::Base
 
   config do
     transport SmartMessage::Transport.create(:stdout)
-    serializer SmartMessage::Serializer::Json.new
   end
 
   def self.process(decoded_message)
@@ -171,7 +168,6 @@ class AnalyticsMessage < SmartMessage::Base
 
   config do
     transport SmartMessage::Transport.create(:stdout)
-    serializer SmartMessage::Serializer::Json.new
   end
 
   def self.process(decoded_message)
@@ -209,7 +205,6 @@ class OrderCreatedMessage < SmartMessage::Base
 
   config do
     transport SmartMessage::Transport.create(:memory, auto_process: true)
-    serializer SmartMessage::Serializer::Json.new
   end
 
   def self.process(decoded_message)
@@ -252,7 +247,6 @@ class InventoryReservationMessage < SmartMessage::Base
 
   config do
     transport SmartMessage::Transport.create(:memory, auto_process: true)
-    serializer SmartMessage::Serializer::Json.new
   end
 
   def self.process(decoded_message)
@@ -289,7 +283,6 @@ class PaymentProcessingMessage < SmartMessage::Base
 
   config do
     transport SmartMessage::Transport.create(:memory, auto_process: true)
-    serializer SmartMessage::Serializer::Json.new
   end
 
   def self.process(decoded_message)
@@ -362,7 +355,6 @@ class LogMessage < SmartMessage::Base
 
   config do
     transport SmartMessage::Transport.create(:stdout, output: "application.log")
-    serializer SmartMessage::Serializer::Json.new
   end
 
   def self.process(decoded_message)
@@ -412,7 +404,6 @@ class MetricMessage < SmartMessage::Base
 
   config do
     transport SmartMessage::Transport.create(:memory, auto_process: true)
-    serializer SmartMessage::Serializer::Json.new
   end
 
   def self.process(decoded_message)
@@ -496,7 +487,6 @@ class MessageGateway < SmartMessage::Base
   # Receive from one transport
   config do
     transport SmartMessage::Transport.create(:memory, auto_process: true)
-    serializer SmartMessage::Serializer::Json.new
   end
 
   def self.process(decoded_message)
@@ -621,7 +611,6 @@ class ResilientMessage < SmartMessage::Base
 
   config do
     transport SmartMessage::Transport.create(:memory, auto_process: true)
-    serializer SmartMessage::Serializer::Json.new
   end
 
   def self.process(decoded_message)
@@ -689,7 +678,6 @@ class DeadLetterMessage < SmartMessage::Base
 
   config do
     transport SmartMessage::Transport.create(:stdout, output: "dead_letter_queue.log")
-    serializer SmartMessage::Serializer::Json.new
   end
 
   def self.process(decoded_message)

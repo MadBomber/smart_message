@@ -2,7 +2,6 @@
 
 require_relative "test_helper"
 
-require 'smart_message/serializer/json'
 require 'smart_message/transport'
 
 module RedisTransportTest
@@ -89,14 +88,12 @@ module RedisTransportTest
       RedisTransportTest::TestMessage.config do
         reset_transport
         reset_logger
-        reset_serializer
         
         transport SmartMessage::Transport::RedisTransport.new(
           url: 'redis://localhost:6379',
           db: 15,
           auto_subscribe: false
         )
-        serializer SmartMessage::Serializer::Json.new
       end
 
       message = RedisTransportTest::TestMessage.new(
@@ -118,7 +115,6 @@ module RedisTransportTest
       RedisTransportTest::TestMessage.config do
         reset_transport
         reset_logger
-        reset_serializer
         
         transport SmartMessage::Transport::RedisTransport.new(
           url: 'redis://localhost:6379',
@@ -126,7 +122,6 @@ module RedisTransportTest
           auto_subscribe: true,
           debug: false
         )
-        serializer SmartMessage::Serializer::Json.new
       end
 
       # Clear subscription database
@@ -187,20 +182,16 @@ module RedisTransportTest
       RedisTransportTest::TestMessage.config do
         reset_transport
         reset_logger
-        reset_serializer
         
         transport shared_transport
-        serializer SmartMessage::Serializer::Json.new
       end
 
       # Configure AnotherTestMessage with same transport
       RedisTransportTest::AnotherTestMessage.config do
         reset_transport
         reset_logger
-        reset_serializer
         
         transport shared_transport
-        serializer SmartMessage::Serializer::Json.new
       end
 
       # Clear subscription database
@@ -265,7 +256,6 @@ module RedisTransportTest
       RedisTransportTest::TestMessage.config do
         reset_transport
         reset_logger
-        reset_serializer
         
         transport SmartMessage::Transport::RedisTransport.new(
           url: 'redis://localhost:6379',
@@ -273,7 +263,6 @@ module RedisTransportTest
           auto_subscribe: true,
           debug: false
         )
-        serializer SmartMessage::Serializer::Json.new
       end
 
       # Clear subscription database

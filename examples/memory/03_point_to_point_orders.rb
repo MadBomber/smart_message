@@ -36,7 +36,6 @@ class OrderMessage < SmartMessage::Base
   # Configure to use memory transport for this example
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
-    serializer SmartMessage::Serializer::Json.new
   end
 
   # Default processing - just logs the order
@@ -62,7 +61,6 @@ class PaymentResponseMessage < SmartMessage::Base
 
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
-    serializer SmartMessage::Serializer::Json.new
   end
 
   def self.process(message)

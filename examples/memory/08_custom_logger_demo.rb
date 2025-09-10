@@ -293,7 +293,6 @@ class OrderProcessingMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
-    serializer SmartMessage::Serializer::Json.new
     
     # Configure multi-logger to demonstrate different logging approaches
     logger SmartMessage::Logger::MultiLogger.new(
@@ -364,7 +363,6 @@ class NotificationMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
-    serializer SmartMessage::Serializer::Json.new
     
     # Use only file logger for notifications
     logger SmartMessage::Logger::FileLogger.new('logs/notifications.log', level: Logger::WARN)
@@ -401,7 +399,6 @@ class StandardLoggerMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
-    serializer SmartMessage::Serializer::Json.new
     
     # Example 1: Using Ruby's standard Logger directly
     # Create a standard Ruby logger that logs to STDOUT
@@ -439,7 +436,6 @@ class DefaultLoggerMessage < SmartMessage::Base
   
   config do
     transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
-    serializer SmartMessage::Serializer::Json.new
     
     # Use the built-in default logger - simplest option!
     logger SmartMessage::Logger::Default.new

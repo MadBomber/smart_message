@@ -79,7 +79,6 @@ class SensorDataMessage < SmartMessage::Base
 
   config do
     transport SHARED_TRANSPORT
-    serializer SmartMessage::Serializer::Json.new
   end
 
   def self.process(wrapper)
@@ -114,7 +113,6 @@ class DeviceCommandMessage < SmartMessage::Base
 
   config do
     transport SHARED_TRANSPORT
-    serializer SmartMessage::Serializer::Json.new
   end
 
   def self.process(wrapper)
@@ -147,7 +145,6 @@ class AlertMessage < SmartMessage::Base
 
   config do
     transport SHARED_TRANSPORT
-    serializer SmartMessage::Serializer::Json.new
   end
 
   def self.process(wrapper)
@@ -176,7 +173,6 @@ class DashboardStatusMessage < SmartMessage::Base
 
   config do
     transport SHARED_TRANSPORT
-    serializer SmartMessage::Serializer::Json.new
   end
 
   def self.process(wrapper)

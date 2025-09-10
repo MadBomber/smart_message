@@ -137,12 +137,7 @@ Production-ready Redis pub/sub transport for distributed messaging.
 - Configurable connection parameters
 - Background message subscription threads
 
-> **💡 Redis Transport Options:** SmartMessage provides three Redis-based transports:
-> - **Redis (Basic)** - Simple pub/sub for basic scenarios
-> - **Redis Enhanced** - Pattern-based routing with backwards compatibility
-> - **Redis Queue** - Persistent queues with load balancing
->
-> See the [Redis Transport Comparison](../transports/redis-transport-comparison.md) for detailed differences and usage guidance.
+> **💡 Redis Transport:** SmartMessage provides a Redis-based transport for production messaging using pub/sub channels. See the [Redis Transport documentation](../transports/redis-transport.md) for detailed usage guidance.
 
 **Usage:**
 
@@ -173,7 +168,6 @@ class OrderMessage < SmartMessage::Base
       url: 'redis://localhost:6379',
       db: 1
     )
-    serializer SmartMessage::Serializer::Json.new
   end
   
   def self.process(decoded_message)
@@ -250,7 +244,6 @@ redis_transport = SmartMessage::Transport.create(:redis,
 [OrderMessage, PaymentMessage, ShippingMessage].each do |msg_class|
   msg_class.config do
     transport redis_transport
-    serializer SmartMessage::Serializer::Json.new
   end
   
   # Subscribe to each message type (creates separate Redis subscriptions)
@@ -292,7 +285,6 @@ class ProductionMessage < SmartMessage::Base
       reconnect_attempts: 10,
       reconnect_delay: 5
     )
-    serializer SmartMessage::Serializer::Json.new
     logger Logger.new(STDOUT)
   end
 end
@@ -309,7 +301,6 @@ class TestMessage < SmartMessage::Base
       db: 15,  # Use separate database for tests
       auto_subscribe: true
     )
-    serializer SmartMessage::Serializer::Json.new
   end
 end
 
@@ -320,120 +311,6 @@ def setup
 end
 ```
 
-### Redis Enhanced Transport
-
-Advanced Redis transport with intelligent pattern-based routing and RabbitMQ-style capabilities.
-
-**Features:**
-- Pattern-based subscriptions with wildcard support (`*` matching)
-- Dual channel publishing for backwards compatibility
-- Fluent API for building complex subscription patterns
-- Enhanced routing with 3-part channel names: `message_type.from.to`
-- Convenience methods for common routing patterns
-- Service-oriented messaging patterns
-
-![Redis Enhanced Architecture](../assets/images/redis-enhanced-architecture.svg)
-
-**Usage:**
-
-```ruby
-# Create enhanced transport
-transport = SmartMessage::Transport::RedisEnhancedTransport.new(
-  url: 'redis://localhost:6379',
-  db: 0,
-  auto_subscribe: true
-)
-
-# Configure message with enhanced transport
-class OrderMessage < SmartMessage::Base
-  from 'e-commerce-api'
-  to 'order-processor'
-  
-  transport transport
-  serializer SmartMessage::Serializer::Json.new
-  
-  property :order_id, required: true
-  property :amount, required: true
-end
-
-# Pattern-based subscriptions
-transport.subscribe_pattern("ordermessage.*.*")         # All order messages
-transport.subscribe_pattern("*.payment_gateway.*")      # All from payment gateway
-transport.subscribe_to_recipient('order-processor')     # Convenience method
-transport.subscribe_to_alerts                           # Emergency patterns
-
-# Fluent API subscriptions
-transport.where.from('web-app').to('user-service').subscribe
-transport.where.type('OrderMessage').from('api').subscribe
-transport.where.from('monitoring').subscribe
-
-# Publishing (goes to BOTH channels for compatibility)
-order = OrderMessage.new(order_id: 'ORD-123', amount: 99.99)
-order.publish
-# Publishes to:
-# - "OrderMessage" (original format)
-# - "ordermessage.e_commerce_api.order_processor" (enhanced format)
-```
-
-**Pattern Wildcards:**
-- `*` - Matches exactly one segment
-- `ordermessage.*.*` - All order messages regardless of from/to
-- `*.payment_service.*` - All messages from payment service
-- `*.*.order_processor` - All messages to order processor
-
-**Convenience Methods:**
-```ruby
-transport.subscribe_to_recipient('service-name')  # *.*.service-name
-transport.subscribe_from_sender('api-gateway')    # *.api-gateway.*
-transport.subscribe_to_type('OrderMessage')       # ordermessage.*.*
-transport.subscribe_to_alerts                     # Multiple alert patterns
-transport.subscribe_to_broadcasts                 # *.*.broadcast
-```
-
-**Fluent API:**
-```ruby
-# Single conditions
-transport.where.from('api').subscribe              # *.api.*
-transport.where.to('database').subscribe           # *.*.database
-transport.where.type('LogMessage').subscribe       # logmessage.*.*
-
-# Combined conditions  
-transport.where.from('web').to('api').subscribe    # *.web.api
-transport.where.type('Order').from('shop').subscribe # order.shop.*
-```
-
-**Options:**
-- `url` (String): Redis connection URL (default: 'redis://localhost:6379')
-- `db` (Integer): Redis database number (default: 0)
-- `auto_subscribe` (Boolean): Automatically start subscriber threads (default: true)
-- `reconnect_attempts` (Integer): Connection retry attempts (default: 5)
-- `reconnect_delay` (Integer): Delay between retries in seconds (default: 1)
-
-**Backwards Compatibility:**
-
-The Enhanced Transport maintains full backwards compatibility with the basic Redis transport by publishing to both channel formats:
-
-```ruby
-# Enhanced transport publishes to BOTH:
-# 1. "OrderMessage" (basic format - for backwards compatibility)
-# 2. "ordermessage.from_service.to_service" (enhanced format - for pattern matching)
-
-# Basic Redis transport can still subscribe to "OrderMessage" 
-# Enhanced transport can use patterns on the enhanced format
-```
-
-**Use Cases:**
-- Microservices architectures requiring sophisticated routing
-- Migration from basic Redis transport (maintains compatibility)
-- Development environments needing flexible message routing
-- Applications requiring RabbitMQ-style patterns without RabbitMQ setup
-- Service-to-service communication with intelligent filtering
-
-**Performance:**
-- Minimal overhead over basic Redis transport
-- Client-side pattern matching (slightly higher CPU usage)
-- Dual publishing increases Redis network traffic by ~2x
-- Excellent performance for most production scenarios
 
 ## Transport Interface
 
@@ -533,7 +410,6 @@ class OrderMessage < SmartMessage::Base
   # All instances use this transport by default
   config do
     transport SmartMessage::Transport.create(:memory, auto_process: true)
-    serializer SmartMessage::Serializer::Json.new
   end
 end
 ```

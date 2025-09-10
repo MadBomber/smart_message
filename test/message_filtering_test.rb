@@ -25,7 +25,6 @@ module MessageFilteringTest
       # Configure transport with loopback for testing
       FilterTestMessage.config do
         transport SmartMessage::Transport::StdoutTransport.new(loopback: true)
-        serializer SmartMessage::Serializer::Json.new
       end
       
       # Clear any existing subscriptions

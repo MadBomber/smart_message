@@ -202,7 +202,6 @@ class LoggerDefaultTest < Minitest::Test
       should "work as a logger plugin in message configuration" do
         @message_class.config do
           transport SmartMessage::Transport::StdoutTransport.new(loopback: false)
-          serializer SmartMessage::Serializer::Json.new
           logger SmartMessage::Logger::Default.new(log_file: @log_file)
         end
         
@@ -216,7 +215,6 @@ class LoggerDefaultTest < Minitest::Test
         
         @message_class.config do
           transport SmartMessage::Transport::StdoutTransport.new(loopback: false)
-          serializer SmartMessage::Serializer::Json.new
           # No logger configured
         end
         

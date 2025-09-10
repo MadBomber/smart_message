@@ -13,7 +13,6 @@ module Messages
     description "Critical fire emergency alert message sent by residential monitoring systems to the Fire Department when smoke, heat, or fire is detected, triggering immediate emergency response with fire engine dispatch, specialized equipment deployment, and rescue operations based on fire type, severity, and occupant safety status"
 
     transport SmartMessage::Transport::RedisTransport.new
-    serializer SmartMessage::Serializer::Json.new
 
     VALID_FIRE_TYPES = %w[fire kitchen electrical basement garage wildfire]
     VALID_SEVERITY = %w[small medium large out_of_control]

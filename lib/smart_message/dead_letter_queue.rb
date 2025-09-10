@@ -48,7 +48,7 @@ module SmartMessage
     # @param error_info [Hash] Error details including :error, :retry_count, :transport, etc.
     def enqueue(message, error_info = {})
       message_header = message._sm_header
-      message_payload = message.encode
+      message_payload = JSON.generate(message.to_hash)
 
       entry = {
         timestamp: Time.now.iso8601,
