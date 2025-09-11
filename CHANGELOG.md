@@ -7,6 +7,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.16] 2025-09-10
+
+### Added
+- **FileTransport Demo Suite**: Comprehensive demonstration programs for FileTransport functionality
+  - **Basic FileTransport Demo** (`examples/file/01_basic_file_transport_demo.rb`): Complete demonstration of core FileTransport features including different output formats (JSON, YAML, raw), append vs overwrite modes, custom serialization, and file rotation examples
+  - **FIFO Transport Demo** (`examples/file/02_fifo_transport_demo.rb`): FIFO (named pipe) demonstrations covering FIFO creation, properties, and concepts with educational content about inter-process communication
+  - **File Watching Demo** (`examples/file/03_file_watching_demo.rb`): File monitoring and change detection examples with polling-based file watching
+  - **Multi-Transport File Demo** (`examples/file/04_multi_transport_file_demo.rb`): Advanced patterns including fan-out to multiple files, conditional routing, multi-transport combinations, archival strategies, and performance monitoring
+  - **Interactive Demo Runner** (`examples/file/00_run_all_file_demos.rb`): Menu-driven demo launcher with comprehensive error handling and user-friendly navigation
+
+### Fixed
+- **Demo Configuration Syntax**: Fixed incorrect `.configure` method usage throughout FileTransport demos
+  - **Issue**: Demos were using non-existent `MessageClass.configure` method causing "undefined method 'configure'" errors
+  - **Solution**: Updated all configuration calls to use `MessageClass.class_eval { transport transport_instance }` pattern consistent with working examples
+  - **Files Updated**: All FileTransport demo files now use correct transport configuration syntax
+- **Message Instantiation Arguments**: Fixed keyword argument errors in message creation
+  - **Issue**: Hash variables being passed to `MessageClass.new(hash_var)` instead of using keyword argument expansion
+  - **Solution**: Updated all message instantiation calls to use `MessageClass.new(**hash_var)` for proper keyword argument passing
+  - **Impact**: Resolves "wrong number of arguments (given 1, expected 0)" errors throughout demo suite
+- **Method Name Consistency**: Updated all demo files to use correct `publish` method instead of deprecated `send`
+  - **Issue**: Some demos were using `.send` method which is not the correct SmartMessage publishing method
+  - **Solution**: Replaced all instances of `.send` with `.publish` across FileTransport demos
+  - **Files Affected**: 02_fifo_transport_demo.rb, 04_multi_transport_file_demo.rb
+- **Missing `from` Property Declarations**: Added required `from` declarations to all message classes
+  - **Issue**: Message classes missing required `from` property causing "The property 'from' From entity ID is required" errors
+  - **Solution**: Added `from 'demo_source'` declarations to all message class definitions including dynamically created classes
+  - **Impact**: Ensures proper message routing and header initialization
+- **FIFO Blocking Issues**: Resolved program hanging when writing to FIFOs without concurrent readers
+  - **Issue**: FIFO operations block indefinitely when no reader process is available
+  - **Solution**: Simplified FIFO examples to demonstrate FIFO concepts and properties without blocking operations, replaced complex multi-process examples with educational demonstrations
+  - **Result**: Demos now complete successfully without hanging while still teaching FIFO fundamentals
+- **Variable Scope Issues**: Fixed transport variable accessibility problems in custom routing logic
+  - **Issue**: Complex custom routing classes couldn't access transport variables from outer scope
+  - **Solution**: Simplified conditional routing examples to use separate message classes for different severity levels instead of dynamic transport switching
+  - **Benefit**: Cleaner, more maintainable code that demonstrates routing concepts without scope complications
+
+### Enhanced
+- **Demo Educational Value**: Improved all FileTransport demos with comprehensive documentation and error handling
+  - **Documentation**: Added detailed comments explaining FileTransport concepts, FIFO characteristics, and usage patterns
+  - **Error Handling**: Enhanced error reporting and graceful degradation in all demo scenarios
+  - **User Experience**: Simplified complex examples to focus on core functionality while maintaining educational value
+  - **Output Clarity**: Improved console output formatting and messaging for better understanding of demo operations
+
+### Documentation
+- **FileTransport Demo README**: Comprehensive documentation for all FileTransport demonstration programs
+  - **Usage Instructions**: Step-by-step guide for running individual demos and the interactive demo runner
+  - **Concept Explanations**: Detailed explanations of FileTransport features, FIFO operations, and advanced patterns
+  - **Troubleshooting**: Common issues and solutions for FileTransport usage
+  - **Example Outputs**: Sample console outputs showing expected demo results
+
 ## [0.0.15] 2025-09-10
 
 ### Added
