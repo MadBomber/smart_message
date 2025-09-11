@@ -9,12 +9,15 @@ class DdqTest < Minitest::Test
   def setup
     @ddq_memory = SmartMessage::DDQ::Memory.new(3)
     
-    # Only test Redis if it's available
+    # Only test Redis if it's available and properly configured
     begin
-      @ddq_redis = SmartMessage::DDQ::Redis.new(3, redis: Redis.new)
+      # Test if Redis is available by pinging it
+      require 'redis'
+      redis_client = ::Redis.new(url: 'redis://localhost:6379', db: 15)
+      redis_client.ping
+      @ddq_redis = SmartMessage::DDQ::Redis.new(3, redis: redis_client)
     rescue => e
       @ddq_redis = nil
-      puts "Redis DDQ tests skipped: #{e.message}"
     end
   end
   

@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    smart_message (0.0.15)
+    smart_message (0.0.16)
       activesupport
       async
       async-redis

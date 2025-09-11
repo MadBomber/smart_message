@@ -7,6 +7,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.15] 2025-09-10
+
+### Added
+- **Multi-Transport Publishing**: Messages can now be configured to publish to multiple transports simultaneously
+  - **Core Feature**: Configure messages with an array of transports using `transport [transport1, transport2, transport3]` syntax
+  - **Resilient Publishing**: Publishing succeeds if ANY configured transport works; only fails if ALL transports fail
+  - **Error Handling**: Individual transport failures are logged but don't prevent publishing to remaining transports
+  - **Backward Compatibility**: Single transport configuration continues to work unchanged (`transport single_transport`)
+  - **Utility Methods**: Added `transports()`, `single_transport?()`, and `multiple_transports?()` for transport introspection
+  - **Use Cases**: Supports redundancy, integration, migration, and fan-out messaging patterns
+
+### Enhanced
+- **Transport Configuration API**: Extended transport configuration methods to handle both single transports and transport arrays
+  - **Plugins Module**: Updated `transport()` method in `lib/smart_message/plugins.rb` to accept arrays while maintaining backward compatibility
+  - **Internal Storage**: Transport arrays stored internally but `transport()` getter returns first transport for existing code compatibility
+  - **Instance Overrides**: Instance-level transport configuration can override class-level multi-transport settings
+- **Publishing Pipeline**: Enhanced message publishing in `lib/smart_message/messaging.rb` for multi-transport support
+  - **Parallel Publishing**: Iterates through all configured transports and publishes to each
+  - **Comprehensive Logging**: Logs successful and failed transports with detailed error information
+  - **Error Aggregation**: Collects all transport errors and raises `PublishError` only when all transports fail
+  - **Success Tracking**: Continues processing even when individual transports fail
+
+### Added - Error Handling
+- **PublishError**: New error class `SmartMessage::Errors::PublishError` for multi-transport failure scenarios
+  - **Condition**: Only raised when ALL configured transports fail to publish
+  - **Error Detail**: Aggregates error messages from all failed transports for comprehensive debugging
+  - **Added to**: `lib/smart_message/errors.rb`
+
+### Added - Documentation
+- **Comprehensive Guide**: Created `docs/transports/multi-transport.md` with complete multi-transport documentation
+  - **Real-World Examples**: High-availability, development/production dual publishing, monitoring integration, A/B testing
+  - **Best Practices**: Performance considerations, environment-specific configuration, health monitoring
+  - **Troubleshooting**: Common issues, debugging techniques, and solutions
+- **Integration Updates**: Updated main transport documentation and index to reference multi-transport capability
+  - **Transport Layer**: Added multi-transport section to `docs/reference/transports.md`
+  - **Table of Contents**: Added multi-transport link to main documentation index
+
+### Added - Testing
+- **Comprehensive Test Suite**: Created `test/multi_transport_test.rb` with 12 test cases covering all functionality
+  - **Backward Compatibility**: Verified single transport behavior remains unchanged
+  - **Multi-Transport Scenarios**: Tests for successful publishing, partial failures, complete failures
+  - **Configuration Testing**: Class vs instance configuration, transport introspection, method chaining
+  - **Mock Transports**: Added `FailingTransport` and `CountingTransport` for controlled testing
+  - **Integration Tests**: Real transport combinations (Memory + STDOUT)
+
+### Added - Examples
+- **README Integration**: Added multi-transport example to main README.md with practical use case
+  - **Features Section**: Added multi-transport publishing bullet point to feature list
+  - **Transport Implementations**: Complete section with `CriticalOrderMessage` example showing 3 transports
+  - **Key Benefits**: Highlighted redundancy, integration, migration, and resilience benefits
+- **Example File**: Created `examples/multi_transport_example.rb` demonstrating all multi-transport functionality
+  - **Usage Patterns**: Single transport (backward compatibility), multiple transports, instance overrides
+  - **Error Scenarios**: Partial transport failure resilience and complete failure handling
+  - **Utility Demonstrations**: Transport counting, type checking, and configuration inspection
+
 ## [0.0.14] 2025-09-10
 
 ### Fixed
