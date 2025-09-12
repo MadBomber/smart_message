@@ -480,7 +480,7 @@ Each example includes comprehensive logging and demonstrates production-ready pa
 ### Additional Resources
 
 For more Redis Transport examples and patterns, also see:
-- **[Memory Transport Examples](../../examples/memory/)** - Can be adapted to Redis Transport by changing configuration
+- **[Memory Transport Examples](https://github.com/MadBomber/smart_message/tree/main/examples/memory)** - Can be adapted to Redis Transport by changing configuration
 - **[Complete Documentation](https://github.com/MadBomber/smart_message/blob/main/examples/redis/smart_home_iot_dataflow.md)** - Detailed data flow analysis with SVG diagrams
 
 ## Related Documentation

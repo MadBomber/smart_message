@@ -7,6 +7,70 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.17] 2025-09-11
+
+### Enhanced
+- **FileTransport Message Handling**: Simplified FileTransport publish method to only handle message objects
+  - **Architecture Clarification**: FileTransport now exclusively accepts SmartMessage objects with `_sm_header`
+  - **Message Processing**: Proper extraction of message class from `message._sm_header.message_class`
+  - **Serialization Flow**: Clean serialization pipeline using `encode_message(message)` before file operations
+  - **Code Quality**: Eliminated unnecessary backward compatibility code for raw string payloads
+- **Demo Program Simplification**: Streamlined 06 demo with minimal message properties
+  - **Property Reduction**: DemoMessage now uses only `first_name` and `last_name` properties for clarity
+  - **Format Examples**: Three clear format demonstrations (Alice Johnson in :pretty, Bob Smith & Carol Williams in :jsonl, David Brown, Emma Davis & Frank Miller in :json)
+  - **Educational Value**: Simplified output makes format differences more apparent and easier to understand
+  - **Documentation Updates**: Updated usage examples and JQ query patterns to reflect simple property structure
+
+### Fixed
+- **FileTransport Test Compatibility**: Removed invalid compatibility test for raw string publishing
+  - **Issue**: Test `test_publish_compatibility_method` was passing raw strings to FileTransport.publish
+  - **Architecture Decision**: FileTransport should only handle SmartMessage objects, not raw strings
+  - **Solution**: Removed the invalid test that conflicted with proper message object architecture
+  - **Impact**: Test suite now properly validates FileTransport's message-only publishing contract
+- **StdoutTransport Architecture**: Simplified StdoutTransport to minimal subclass of FileTransport
+  - **Inheritance**: StdoutTransport now inherits all functionality from FileTransport with minimal 6-line implementation
+  - **Option Merging**: Fixed critical bug where `file_path: $stdout` always overwrote user-provided options
+  - **Solution**: Changed from `options.merge(defaults)` to `defaults.merge(options)` for proper option precedence
+  - **Flexibility**: StdoutTransport can now write to files when `file_path` option is provided, while defaulting to STDOUT
+- **FileTransport Format Support**: Added comprehensive output formatting capabilities to FileTransport
+  - **Format Options**: Implemented `:json` (raw), `:jsonl` (JSON with newline), and `:pretty` (amazing_print formatting)
+  - **Pretty Printing**: Added amazing_print integration for `:pretty` format using serializer's `decode` method
+  - **Serializer Integration**: Pretty format uses transport's serializer to deserialize messages back to Ruby objects
+  - **Fallback Handling**: Graceful fallback to raw output when amazing_print is unavailable or deserialization fails
+- **FileTransport IO Object Support**: Enhanced FileTransport to handle IO objects properly
+  - **IO Detection**: Added `respond_to?(:write)` checks to distinguish IO objects from file paths
+  - **Directory Operations**: Skip directory creation for IO objects in `ensure_directory_exists`
+  - **File Operations**: Return IO objects directly in `open_file_handle` instead of trying to open them
+  - **Compatibility**: Maintains full backward compatibility with string file paths
+
+### Fixed
+- **StdoutTransport Option Precedence**: Fixed critical configuration bug preventing file output
+  - **Issue**: `super(options.merge(file_path: $stdout))` caused defaults to always override user options
+  - **Impact**: StdoutTransport could not write to files when `file_path` was provided
+  - **Fix**: Reversed merge order to `defaults.merge(options)` for proper option precedence
+  - **Result**: StdoutTransport now correctly respects user-provided file paths while defaulting to STDOUT
+- **FileOperations Type Safety**: Enhanced type checking for file vs IO operations
+  - **Issue**: `File.dirname` called on IO objects caused "no implicit conversion" errors
+  - **Solution**: Added `respond_to?(:write)` checks throughout FileOperations module
+  - **Methods Fixed**: `ensure_directory_exists`, `open_file_handle`, and related file operations
+  - **Robustness**: FileTransport now handles both file paths and IO objects seamlessly
+
+### Added
+- **Pretty Format Demo**: Enhanced STDOUT transport demo with comprehensive format examples
+  - **Demo Update**: `examples/memory/06_stdout_publish_only.rb` now demonstrates all three formats
+  - **Format Examples**: LogMessage (jsonl), MetricsMessage (json), and DebugMessage (pretty)
+  - **Complex Data**: DebugMessage showcases pretty formatting with nested data structures
+  - **Educational Value**: Clear documentation of format differences and use cases
+
+### Tests
+- **Complete Test Suite**: All transport tests now pass without errors
+  - **Test Results**: 313 runs, 930 assertions, 0 failures, 0 errors, 27 skips
+  - **StdoutTransport Tests**: Fixed all TypeError issues related to IO object handling
+  - **FileTransport Integration**: Verified format support and IO object compatibility
+  - **Test Cleanup**: Removed invalid test that attempted to publish raw strings to FileTransport
+  - **Architecture Validation**: Test suite now properly validates message-only publishing contract
+  - **Regression Prevention**: Test coverage ensures option merging bug cannot reoccur
+
 ## [0.0.16] 2025-09-10
 
 ### Added

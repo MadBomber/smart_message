@@ -667,28 +667,32 @@ OrderMessage.new(
 
 ### STDOUT Transport (Publish-Only)
 
-The STDOUT transport is designed for publish-only scenarios - perfect for debugging, logging, or integration with external systems.
+The STDOUT transport is designed for publish-only scenarios - perfect for debugging, logging, or integration with external systems. Built as a minimal subclass of FileTransport, it inherits comprehensive formatting capabilities.
 
 ```ruby
 # Basic STDOUT output (publish-only)
 transport = SmartMessage::Transport::StdoutTransport.new
 
-# Pretty-printed format for human reading (default)
+# JSON Lines format - one message per line (default)
+transport = SmartMessage::Transport::StdoutTransport.new(format: :jsonl)
+
+# Pretty-printed format with amazing_print for human reading
 transport = SmartMessage::Transport::StdoutTransport.new(format: :pretty)
 
-# JSON format for machine processing
+# Compact JSON format without newlines
 transport = SmartMessage::Transport::StdoutTransport.new(format: :json)
 
 # Output to file instead of STDOUT
-transport = SmartMessage::Transport::StdoutTransport.new(output: "messages.log")
+transport = SmartMessage::Transport::StdoutTransport.new(file_path: "messages.log")
 ```
 
 **Key Features:**
 - **Publish-only**: No message processing or loopback
 - **Subscription attempts are ignored** with warning logs
-- **Two formats**: `:pretty` for debugging, `:json` for integration
+- **Three formats**: `:jsonl` (default), `:pretty` for debugging, `:json` for compact output
+- **Flexible Output**: Defaults to STDOUT but can write to files when `file_path` specified
 - **Perfect for**: debugging, logging, piping to external tools
-- **Use cases**: `./app | jq`, `./app | fluentd`, development monitoring
+- **Use cases**: `./app | jq '.first_name'`, `./app | fluentd`, development monitoring
 
 **For local message processing, use MemoryTransport instead:**
 ```ruby
