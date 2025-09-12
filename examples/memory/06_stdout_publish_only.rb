@@ -63,6 +63,26 @@ class MetricsMessage < SmartMessage::Base
   end
 end
 
+# Define a Debug Message for pretty-printed output
+class DebugMessage < SmartMessage::Base
+  description "Debug messages with complex data structures for development"
+
+  property :event,
+    description: "Event or action being debugged"
+  property :data,
+    description: "Complex data structure to debug"
+  property :stack_trace,
+    description: "Optional stack trace for debugging"
+  property :timestamp,
+    default: -> { Time.now.iso8601 },
+    description: "ISO8601 timestamp"
+
+  config do
+    transport SmartMessage::Transport::StdoutTransport.new(format: :pretty)  # Pretty format using amazing_print
+    from 'debug-service'
+  end
+end
+
 puts "📝 Publishing log messages to STDOUT..."
 puts "=" * 50
 
@@ -125,12 +145,72 @@ metrics_data.each do |metric_data|
   sleep(0.3)
 end
 
+puts "\n🐛 Publishing debug messages (Pretty format using amazing_print)..."
+puts "=" * 50
+
+# Create and publish debug messages with complex data
+debug_data = [
+  {
+    event: "user_registration",
+    data: {
+      user: {
+        id: 42,
+        username: "developer",
+        email: "dev@example.com",
+        roles: ["admin", "developer"],
+        preferences: {
+          theme: "dark",
+          notifications: true,
+          language: "en"
+        }
+      },
+      metadata: {
+        ip: "10.0.0.1",
+        user_agent: "Mozilla/5.0",
+        session_id: "abc123xyz"
+      }
+    }
+  },
+  {
+    event: "api_request_debug",
+    data: {
+      request: {
+        method: "POST",
+        url: "/api/v1/orders",
+        headers: {
+          "Content-Type" => "application/json",
+          "Authorization" => "Bearer token123"
+        },
+        body: {
+          items: [
+            { product_id: 1, quantity: 2, price: 29.99 },
+            { product_id: 5, quantity: 1, price: 149.99 }
+          ],
+          total: 209.97
+        }
+      },
+      response: {
+        status: 201,
+        data: { order_id: "ORD-2024-001", status: "pending" }
+      }
+    },
+    stack_trace: ["app/controllers/api/orders_controller.rb:15:in `create'",
+                  "actionpack/lib/action_controller/base.rb:123:in `process'"]
+  }
+]
+
+debug_data.each do |debug_info|
+  message = DebugMessage.new(**debug_info)
+  message.publish
+  sleep(0.5)
+end
+
 puts "\n" + "=" * 50
 puts "🔍 Key Points About STDOUT Transport:"
 puts "  ✓ Publish-only: No message processing"
 puts "  ✓ Perfect for logging and debugging scenarios"
 puts "  ✓ Great for integration with external systems"
-puts "  ✓ Supports both pretty-print and JSON formats"
+puts "  ✓ Supports multiple formats: :jsonl (default), :json, :pretty"
 puts "  ✓ Clean separation: output to STDOUT, logs to STDERR"
 puts "  ✓ Subscription attempts are ignored with warnings"
 
