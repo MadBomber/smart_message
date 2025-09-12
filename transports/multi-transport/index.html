@@ -15,6 +15,10 @@
         <link rel="canonical" href="https://madbomber.github.io/smart_message/transports/multi-transport/">
       
       
+        <link rel="prev" href="../file-transport/">
+      
+      
+        <link rel="next" href="../redis-transport-comparison/">
       
       
       <link rel="icon" href="../../assets/smart_message.jpg">
@@ -310,10 +314,12 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
+      <li class="md-tabs__item md-tabs__item--active">
         <a href="../memory-transport/" class="md-tabs__link">
           
   
@@ -336,7 +342,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../guides/redis-queue-getting-started.md" class="md-tabs__link">
+        <a href="../../guides/transport-selection/" class="md-tabs__link">
           
   
   
@@ -954,8 +960,10 @@
       
   
   
+    
   
   
+  
     
     
       
@@ -969,23 +977,28 @@
       
         
       
+        
+      
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
             
   
   
@@ -998,7 +1011,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
             🚚 Transports
@@ -1058,12 +1071,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../redis-enhanced-transport.md" class="md-nav__link">
+      <a href="../stdout-transport/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Redis Enhanced Transport
+    STDOUT Transport
     
   </span>
   
@@ -1081,17 +1094,372 @@
   
   
     <li class="md-nav__item">
-      <a href="../redis-queue-transport.md" class="md-nav__link">
+      <a href="../file-transport/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Redis Queue Transport
+    File Transport
     
   </span>
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Multi-Transport Publishing
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Multi-Transport Publishing
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#basic-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Configuration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transport-introspection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Transport Introspection
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#instance-level-overrides" class="md-nav__link">
+    <span class="md-ellipsis">
+      Instance-Level Overrides
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-handling-and-resilience" class="md-nav__link">
+    <span class="md-ellipsis">
+      Error Handling and Resilience
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Error Handling and Resilience">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#partial-failures" class="md-nav__link">
+    <span class="md-ellipsis">
+      Partial Failures
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#complete-failures" class="md-nav__link">
+    <span class="md-ellipsis">
+      Complete Failures
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#error-logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      Error Logging
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Use Cases
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Use Cases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-high-availability-critical-messages" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. High-Availability Critical Messages
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-development-and-production-dual-publishing" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Development and Production Dual Publishing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-monitoring-and-alerting-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Monitoring and Alerting Integration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-ab-testing-and-feature-rollouts" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. A/B Testing and Feature Rollouts
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Considerations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Performance Considerations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sequential-processing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sequential Processing
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transport-independence" class="md-nav__link">
+    <span class="md-ellipsis">
+      Transport Independence
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#memory-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Memory Usage
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-limit-transport-count" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Limit Transport Count
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-group-by-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Group by Purpose
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-environment-specific-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Environment-Specific Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-health-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Health Monitoring
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-strategies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration Strategies
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migration Strategies">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#gradual-migration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Gradual Migration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#blue-green-deployment" class="md-nav__link">
+    <span class="md-ellipsis">
+      Blue-Green Deployment
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Issues
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#see-also" class="md-nav__link">
+    <span class="md-ellipsis">
+      See Also
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1138,10 +1506,6 @@
       
         
       
-        
-      
-        
-      
     
     
     
@@ -1185,58 +1549,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guides/redis-queue-getting-started.md" class="md-nav__link">
+      <a href="../../guides/transport-selection/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Redis Queue Getting Started
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../guides/redis-queue-patterns.md" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Redis Queue Patterns
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../guides/redis-queue-production.md" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Redis Queue Production
+    Transport Selection
     
   </span>
   
@@ -2092,7 +2410,7 @@
 <li><a href="../redis-transport/">Redis Queue Transport</a> </li>
 <li><a href="../memory-transport/">Memory Transport</a></li>
 <li><a href="../../reference/dead-letter-queue/">Error Handling and Dead Letter Queues</a></li>
-<li><a href="../development/performance.md">Performance Optimization</a></li>
+<li><a href="../../development/troubleshooting/">Troubleshooting Guide</a></li>
 </ul>
 
 

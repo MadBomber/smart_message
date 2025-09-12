@@ -1,0 +1,2753 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Intelligent messages that know what to do and how to do it">
+      
+      
+        <meta name="author" content="madbomber">
+      
+      
+        <link rel="canonical" href="https://madbomber.github.io/smart_message/guides/transport-selection/">
+      
+      
+        <link rel="prev" href="../../transports/redis-transport-comparison/">
+      
+      
+        <link rel="next" href="../../development/troubleshooting/">
+      
+      
+      <link rel="icon" href="../../assets/smart_message.jpg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.19">
+    
+    
+      
+        <title>Transport Selection - SmartMessage Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="brown" data-md-color-accent="amber">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#transport-selection-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="SmartMessage Documentation" class="md-header__button md-logo" aria-label="SmartMessage Documentation" data-md-component="logo">
+      
+  <img src="../../assets/smart_message.jpg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            SmartMessage Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Transport Selection
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="brown" data-md-color-accent="amber"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="brown" data-md-color-accent="amber"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/madbomber/smart_message" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    madbomber/smart_message
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/quick-start/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  🚀 Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../core-concepts/architecture/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  📖 Core Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../reference/transports/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  🔌 Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../transports/memory-transport/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  🚚 Transports
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+    
+  
+  📚 Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../development/troubleshooting/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  ⚙️ Development
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="SmartMessage Documentation" class="md-nav__button md-logo" aria-label="SmartMessage Documentation" data-md-component="logo">
+      
+  <img src="../../assets/smart_message.jpg" alt="logo">
+
+    </a>
+    SmartMessage Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/madbomber/smart_message" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    madbomber/smart_message
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    🚀 Getting Started
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            🚀 Getting Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Examples
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    📖 Core Concepts
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            📖 Core Concepts
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../core-concepts/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../core-concepts/properties/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Properties
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../core-concepts/addressing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Addressing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../core-concepts/dispatcher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dispatcher
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../core-concepts/message-filtering/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Message Filtering
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../core-concepts/message-processing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Message Processing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    🔌 Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            🔌 Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/transports/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Transports
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/serializers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Serializers
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/logging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Logging
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/dead-letter-queue/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dead Letter Queue
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/message-deduplication/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Message Deduplication
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/proc-handlers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Proc Handlers
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    🚚 Transports
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            🚚 Transports
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../transports/memory-transport/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Memory Transport
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../transports/redis-transport/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Redis Transport
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../transports/stdout-transport/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    STDOUT Transport
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../transports/file-transport/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    File Transport
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../transports/multi-transport/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Multi-Transport Publishing
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../transports/redis-transport-comparison/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Redis Transport Comparison
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    📚 Guides
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            📚 Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Transport Selection
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Transport Selection
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#available-transports" class="md-nav__link">
+    <span class="md-ellipsis">
+      Available Transports
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Available Transports">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#memory-transport" class="md-nav__link">
+    <span class="md-ellipsis">
+      Memory Transport
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#redis-transport" class="md-nav__link">
+    <span class="md-ellipsis">
+      Redis Transport
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stdout-transport" class="md-nav__link">
+    <span class="md-ellipsis">
+      STDOUT Transport
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-transport" class="md-nav__link">
+    <span class="md-ellipsis">
+      File Transport
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-transport-publishing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Multi-Transport Publishing
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transport-selection-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      Transport Selection Matrix
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Transport Selection Matrix">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#by-development-phase" class="md-nav__link">
+    <span class="md-ellipsis">
+      By Development Phase
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#by-use-case" class="md-nav__link">
+    <span class="md-ellipsis">
+      By Use Case
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#by-architecture-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      By Architecture Pattern
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="By Architecture Pattern">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#single-application-monolith" class="md-nav__link">
+    <span class="md-ellipsis">
+      Single Application (Monolith)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#microservices-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      Microservices Architecture
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#event-driven-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Event-Driven System
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-tree" class="md-nav__link">
+    <span class="md-ellipsis">
+      Decision Tree
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Decision Tree">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-environment-classification" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Environment Classification
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-message-criticality-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Message Criticality (Production)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-scale-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Scale Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-integration-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 4: Integration Requirements
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration Examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environment-based-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment-Based Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#message-type-based-selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Message-Type Based Selection
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Considerations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Performance Considerations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#latency-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Latency Comparison
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#throughput-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Throughput Comparison
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resource-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Resource Usage
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-strategies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration Strategies
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migration Strategies">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#development-to-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      Development to Production
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transport-evolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      Transport Evolution
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#general-guidelines" class="md-nav__link">
+    <span class="md-ellipsis">
+      General Guidelines
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transport-specific" class="md-nav__link">
+    <span class="md-ellipsis">
+      Transport-Specific
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environment-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment Configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Issues
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Related Documentation
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    ⚙️ Development
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            ⚙️ Development
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../development/ideas/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Ideas & Roadmap
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#available-transports" class="md-nav__link">
+    <span class="md-ellipsis">
+      Available Transports
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Available Transports">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#memory-transport" class="md-nav__link">
+    <span class="md-ellipsis">
+      Memory Transport
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#redis-transport" class="md-nav__link">
+    <span class="md-ellipsis">
+      Redis Transport
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stdout-transport" class="md-nav__link">
+    <span class="md-ellipsis">
+      STDOUT Transport
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-transport" class="md-nav__link">
+    <span class="md-ellipsis">
+      File Transport
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-transport-publishing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Multi-Transport Publishing
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transport-selection-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      Transport Selection Matrix
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Transport Selection Matrix">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#by-development-phase" class="md-nav__link">
+    <span class="md-ellipsis">
+      By Development Phase
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#by-use-case" class="md-nav__link">
+    <span class="md-ellipsis">
+      By Use Case
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#by-architecture-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      By Architecture Pattern
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="By Architecture Pattern">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#single-application-monolith" class="md-nav__link">
+    <span class="md-ellipsis">
+      Single Application (Monolith)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#microservices-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      Microservices Architecture
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#event-driven-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Event-Driven System
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#decision-tree" class="md-nav__link">
+    <span class="md-ellipsis">
+      Decision Tree
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Decision Tree">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-1-environment-classification" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Environment Classification
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-2-message-criticality-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 2: Message Criticality (Production)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-3-scale-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 3: Scale Requirements
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-4-integration-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 4: Integration Requirements
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration Examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environment-based-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment-Based Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#message-type-based-selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Message-Type Based Selection
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-considerations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Performance Considerations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Performance Considerations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#latency-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Latency Comparison
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#throughput-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      Throughput Comparison
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resource-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Resource Usage
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#migration-strategies" class="md-nav__link">
+    <span class="md-ellipsis">
+      Migration Strategies
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Migration Strategies">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#development-to-production" class="md-nav__link">
+    <span class="md-ellipsis">
+      Development to Production
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transport-evolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      Transport Evolution
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Best Practices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#general-guidelines" class="md-nav__link">
+    <span class="md-ellipsis">
+      General Guidelines
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transport-specific" class="md-nav__link">
+    <span class="md-ellipsis">
+      Transport-Specific
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#environment-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment Configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Issues
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Related Documentation
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/madbomber/smart_message/edit/main/docs/guides/transport-selection.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+    
+      
+    
+    <a href="https://github.com/madbomber/smart_message/raw/main/docs/guides/transport-selection.md" title="View source of this page" class="md-content__button md-icon">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.2 8.2 0 0 1-1.23-2"/></svg>
+    </a>
+  
+
+
+<h1 id="transport-selection-guide">Transport Selection Guide<a class="headerlink" href="#transport-selection-guide" title="Permanent link">&para;</a></h1>
+<p>Choosing the right transport for your SmartMessage application is crucial for performance, reliability, and maintainability. This guide provides comprehensive information about each available transport and decision matrices to help you select the optimal transport configuration.</p>
+<h2 id="available-transports">Available Transports<a class="headerlink" href="#available-transports" title="Permanent link">&para;</a></h2>
+<h3 id="memory-transport">Memory Transport<a class="headerlink" href="#memory-transport" title="Permanent link">&para;</a></h3>
+<p><strong>In-memory message storage for development and testing</strong></p>
+<ul>
+<li><strong>Type</strong>: In-memory queue with optional auto-processing</li>
+<li><strong>Best For</strong>: Unit testing, development, rapid prototyping, message inspection</li>
+<li><strong>Key Features</strong>: </li>
+<li>No external dependencies</li>
+<li>Thread-safe operations</li>
+<li>Message inspection capabilities</li>
+<li>Configurable memory limits</li>
+<li>Fastest performance (~0.01ms latency)</li>
+<li><strong>Limitations</strong>: Single-process only, no persistence, memory usage grows with volume</li>
+<li><strong>Use Cases</strong>: Unit tests, development debugging, in-memory message queuing</li>
+</ul>
+<h3 id="redis-transport">Redis Transport<a class="headerlink" href="#redis-transport" title="Permanent link">&para;</a></h3>
+<p><strong>Production-ready Redis pub/sub for distributed messaging</strong></p>
+<ul>
+<li><strong>Type</strong>: Redis pub/sub with broadcast delivery</li>
+<li><strong>Best For</strong>: Production messaging, microservices communication, real-time applications</li>
+<li><strong>Key Features</strong>:</li>
+<li>Distributed messaging support</li>
+<li>Automatic reconnection handling</li>
+<li>High throughput (80K+ messages/second)</li>
+<li>Low latency (~1ms)</li>
+<li>Thread-based subscriber model</li>
+<li><strong>Limitations</strong>: No message persistence, no pattern matching, all subscribers receive all messages</li>
+<li><strong>Use Cases</strong>: Production systems, scalable architectures, service-to-service messaging</li>
+</ul>
+<h3 id="stdout-transport">STDOUT Transport<a class="headerlink" href="#stdout-transport" title="Permanent link">&para;</a></h3>
+<p><strong>Console and file output with multiple formatting options</strong></p>
+<ul>
+<li><strong>Type</strong>: Output-only transport with formatting capabilities</li>
+<li><strong>Best For</strong>: Development debugging, application logging, message tracing, integration testing</li>
+<li><strong>Key Features</strong>:</li>
+<li>Three output formats (<code>:pretty</code>, <code>:jsonl</code>, <code>:json</code>)</li>
+<li>Console or file output</li>
+<li>Optional loopback processing</li>
+<li>Human-readable pretty printing</li>
+<li>Thread-safe file operations</li>
+<li><strong>Limitations</strong>: Not suitable for production messaging, single output destination</li>
+<li><strong>Use Cases</strong>: Development debugging, structured logging, message flow tracing</li>
+</ul>
+<h3 id="file-transport">File Transport<a class="headerlink" href="#file-transport" title="Permanent link">&para;</a></h3>
+<p><strong>Base class for file-based messaging</strong></p>
+<ul>
+<li><strong>Type</strong>: Abstract base class for file-based transports</li>
+<li><strong>Best For</strong>: Custom file-based transport implementations, message archiving</li>
+<li><strong>Key Features</strong>:</li>
+<li>Automatic directory creation</li>
+<li>Thread-safe file operations</li>
+<li>Message serialization handling</li>
+<li>Extensible architecture for custom transports</li>
+<li><strong>Limitations</strong>: Rarely used directly, requires custom implementation</li>
+<li><strong>Use Cases</strong>: Custom transport development, message persistence, audit trails</li>
+</ul>
+<h3 id="multi-transport-publishing">Multi-Transport Publishing<a class="headerlink" href="#multi-transport-publishing" title="Permanent link">&para;</a></h3>
+<p><strong>Simultaneous publishing to multiple transports</strong></p>
+<ul>
+<li><strong>Type</strong>: Configuration pattern for publishing to multiple destinations</li>
+<li><strong>Best For</strong>: High availability, migration scenarios, monitoring integration, redundancy</li>
+<li><strong>Key Features</strong>:</li>
+<li>Publish to multiple transports with single <code>publish()</code> call</li>
+<li>Resilient to partial failures</li>
+<li>Sequential processing with error isolation</li>
+<li>Transport introspection methods</li>
+<li><strong>Limitations</strong>: Sequential processing can impact performance, memory usage scales with transport count</li>
+<li><strong>Use Cases</strong>: Critical message redundancy, gradual migration, operational monitoring</li>
+</ul>
+<h2 id="transport-selection-matrix">Transport Selection Matrix<a class="headerlink" href="#transport-selection-matrix" title="Permanent link">&para;</a></h2>
+<h3 id="by-development-phase">By Development Phase<a class="headerlink" href="#by-development-phase" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Primary Transport</th>
+<th>Secondary Transport</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Unit Testing</strong></td>
+<td>Memory</td>
+<td>-</td>
+<td>Fast, isolated, inspectable</td>
+</tr>
+<tr>
+<td><strong>Development</strong></td>
+<td>STDOUT (pretty)</td>
+<td>Memory (loopback)</td>
+<td>Human-readable debugging</td>
+</tr>
+<tr>
+<td><strong>Integration Testing</strong></td>
+<td>STDOUT (jsonl)</td>
+<td>Memory</td>
+<td>Structured output, verification</td>
+</tr>
+<tr>
+<td><strong>Staging</strong></td>
+<td>Redis</td>
+<td>STDOUT (file)</td>
+<td>Production-like with logging</td>
+</tr>
+<tr>
+<td><strong>Production</strong></td>
+<td>Redis</td>
+<td>Multi-transport</td>
+<td>Scalable with redundancy</td>
+</tr>
+</tbody>
+</table>
+<h3 id="by-use-case">By Use Case<a class="headerlink" href="#by-use-case" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Use Case</th>
+<th>Recommended Transport</th>
+<th>Configuration</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Unit Tests</strong></td>
+<td>Memory</td>
+<td><code>auto_process: true</code></td>
+<td>No dependencies, fast, inspectable</td>
+</tr>
+<tr>
+<td><strong>Development Debugging</strong></td>
+<td>STDOUT</td>
+<td><code>format: :pretty, loopback: true</code></td>
+<td>Human-readable with local processing</td>
+</tr>
+<tr>
+<td><strong>Application Logging</strong></td>
+<td>STDOUT</td>
+<td><code>format: :jsonl, file_path: 'app.log'</code></td>
+<td>Structured logs for analysis</td>
+</tr>
+<tr>
+<td><strong>Message Tracing</strong></td>
+<td>STDOUT</td>
+<td><code>format: :json, file_path: '/tmp/trace.log'</code></td>
+<td>Compact format for debugging</td>
+</tr>
+<tr>
+<td><strong>Production Messaging</strong></td>
+<td>Redis</td>
+<td><code>url: ENV['REDIS_URL']</code></td>
+<td>Distributed, reliable, scalable</td>
+</tr>
+<tr>
+<td><strong>Critical Messages</strong></td>
+<td>Multi-transport</td>
+<td><code>[Redis, STDOUT(file), Redis(backup)]</code></td>
+<td>Redundancy and audit trail</td>
+</tr>
+<tr>
+<td><strong>Migration Scenarios</strong></td>
+<td>Multi-transport</td>
+<td><code>[OldTransport, NewTransport]</code></td>
+<td>Gradual transition</td>
+</tr>
+<tr>
+<td><strong>Development→Production</strong></td>
+<td>Environment-based</td>
+<td>Switch based on <code>Rails.env</code></td>
+<td>Appropriate for each environment</td>
+</tr>
+</tbody>
+</table>
+<h3 id="by-architecture-pattern">By Architecture Pattern<a class="headerlink" href="#by-architecture-pattern" title="Permanent link">&para;</a></h3>
+<h4 id="single-application-monolith">Single Application (Monolith)<a class="headerlink" href="#single-application-monolith" title="Permanent link">&para;</a></h4>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Development</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="ss">transport</span><span class="p">:</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">StdoutTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="nb">format</span><span class="p">:</span><span class="w"> </span><span class="ss">:pretty</span><span class="p">)</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Production  </span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="ss">transport</span><span class="p">:</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;REDIS_URL&#39;</span><span class="o">]</span><span class="p">)</span>
+</span></code></pre></div>
+<h4 id="microservices-architecture">Microservices Architecture<a class="headerlink" href="#microservices-architecture" title="Permanent link">&para;</a></h4>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># High-availability critical messages</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="ss">transport</span><span class="p">:</span><span class="w"> </span><span class="o">[</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="n">primary_redis</span><span class="p">),</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="n">backup_redis</span><span class="p">),</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">StdoutTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">file_path</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;/var/log/audit.log&#39;</span><span class="p">)</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="o">]</span>
+</span></code></pre></div>
+<h4 id="event-driven-system">Event-Driven System<a class="headerlink" href="#event-driven-system" title="Permanent link">&para;</a></h4>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Events with monitoring</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="ss">transport</span><span class="p">:</span><span class="w"> </span><span class="o">[</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="n">event_redis</span><span class="p">),</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">StdoutTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">    </span><span class="nb">format</span><span class="p">:</span><span class="w"> </span><span class="ss">:jsonl</span><span class="p">,</span><span class="w"> </span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="ss">file_path</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;/var/log/events.log&#39;</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="p">)</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="o">]</span>
+</span></code></pre></div>
+<h2 id="decision-tree">Decision Tree<a class="headerlink" href="#decision-tree" title="Permanent link">&para;</a></h2>
+<h3 id="step-1-environment-classification">Step 1: Environment Classification<a class="headerlink" href="#step-1-environment-classification" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>Are you in...?
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>├── Unit Testing → Memory Transport
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>├── Development → STDOUT Transport (pretty format)  
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>├── Integration Testing → STDOUT Transport (jsonl format)
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>└── Production → Continue to Step 2
+</span></code></pre></div>
+<h3 id="step-2-message-criticality-production">Step 2: Message Criticality (Production)<a class="headerlink" href="#step-2-message-criticality-production" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>How critical are your messages?
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>├── Low criticality → Redis Transport (single)
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>├── Medium criticality → Redis + STDOUT file logging
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>└── High criticality → Multi-transport (Redis primary + backup + audit)
+</span></code></pre></div>
+<h3 id="step-3-scale-requirements">Step 3: Scale Requirements<a class="headerlink" href="#step-3-scale-requirements" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Expected message volume?
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>├── Low (&lt;1K/day) → Any transport suitable
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>├── Medium (1K-100K/day) → Redis Transport recommended
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>└── High (&gt;100K/day) → Redis Transport + performance tuning
+</span></code></pre></div>
+<h3 id="step-4-integration-requirements">Step 4: Integration Requirements<a class="headerlink" href="#step-4-integration-requirements" title="Permanent link">&para;</a></h3>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Need external integration?
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>├── Log aggregation → STDOUT Transport (jsonl to file)
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>├── Monitoring systems → Multi-transport (Redis + STDOUT)
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>├── Audit requirements → Multi-transport with file logging
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>└── None → Single transport sufficient
+</span></code></pre></div>
+<h2 id="configuration-examples">Configuration Examples<a class="headerlink" href="#configuration-examples" title="Permanent link">&para;</a></h2>
+<h3 id="environment-based-configuration">Environment-Based Configuration<a class="headerlink" href="#environment-based-configuration" title="Permanent link">&para;</a></h3>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">ApplicationMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="n">transport</span><span class="w"> </span><span class="k">case</span><span class="w"> </span><span class="no">Rails</span><span class="o">.</span><span class="n">env</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">            </span><span class="k">when</span><span class="w"> </span><span class="s1">&#39;test&#39;</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">              </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">MemoryTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">auto_process</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">)</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">            </span><span class="k">when</span><span class="w"> </span><span class="s1">&#39;development&#39;</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">              </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">StdoutTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">                </span><span class="nb">format</span><span class="p">:</span><span class="w"> </span><span class="ss">:pretty</span><span class="p">,</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">                </span><span class="ss">loopback</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">              </span><span class="p">)</span>
+</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">            </span><span class="k">when</span><span class="w"> </span><span class="s1">&#39;staging&#39;</span>
+</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">              </span><span class="o">[</span>
+</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">                </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;REDIS_URL&#39;</span><span class="o">]</span><span class="p">),</span>
+</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">                </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">StdoutTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">                  </span><span class="nb">format</span><span class="p">:</span><span class="w"> </span><span class="ss">:jsonl</span><span class="p">,</span>
+</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">                  </span><span class="ss">file_path</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;/var/log/staging.log&#39;</span>
+</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">                </span><span class="p">)</span>
+</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">              </span><span class="o">]</span>
+</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="w">            </span><span class="k">when</span><span class="w"> </span><span class="s1">&#39;production&#39;</span>
+</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="w">              </span><span class="o">[</span>
+</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="w">                </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;PRIMARY_REDIS_URL&#39;</span><span class="o">]</span><span class="p">),</span>
+</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="w">                </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;BACKUP_REDIS_URL&#39;</span><span class="o">]</span><span class="p">),</span>
+</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="w">                </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">StdoutTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="w">                  </span><span class="nb">format</span><span class="p">:</span><span class="w"> </span><span class="ss">:jsonl</span><span class="p">,</span>
+</span><span id="__span-7-24"><a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a><span class="w">                  </span><span class="ss">file_path</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;/var/log/production.log&#39;</span>
+</span><span id="__span-7-25"><a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a><span class="w">                </span><span class="p">)</span>
+</span><span id="__span-7-26"><a id="__codelineno-7-26" name="__codelineno-7-26" href="#__codelineno-7-26"></a><span class="w">              </span><span class="o">]</span>
+</span><span id="__span-7-27"><a id="__codelineno-7-27" name="__codelineno-7-27" href="#__codelineno-7-27"></a><span class="w">            </span><span class="k">end</span>
+</span><span id="__span-7-28"><a id="__codelineno-7-28" name="__codelineno-7-28" href="#__codelineno-7-28"></a><span class="k">end</span>
+</span></code></pre></div>
+<h3 id="message-type-based-selection">Message-Type Based Selection<a class="headerlink" href="#message-type-based-selection" title="Permanent link">&para;</a></h3>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># High-volume, low-criticality events</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">UserActivityMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;REDIS_URL&#39;</span><span class="o">]</span><span class="p">)</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="k">end</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="c1"># Critical business events</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="k">class</span><span class="w"> </span><span class="nc">PaymentProcessedMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="w">  </span><span class="n">transport</span><span class="w"> </span><span class="o">[</span>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="w">    </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;PRIMARY_REDIS_URL&#39;</span><span class="o">]</span><span class="p">),</span>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">    </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;BACKUP_REDIS_URL&#39;</span><span class="o">]</span><span class="p">),</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">    </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">StdoutTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">      </span><span class="nb">format</span><span class="p">:</span><span class="w"> </span><span class="ss">:jsonl</span><span class="p">,</span>
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">      </span><span class="ss">file_path</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;/var/log/payments.log&#39;</span>
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">    </span><span class="p">)</span>
+</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">  </span><span class="o">]</span>
+</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="k">end</span>
+</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>
+</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="c1"># Development/debugging messages</span>
+</span><span id="__span-8-19"><a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a><span class="k">class</span><span class="w"> </span><span class="nc">DebugMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
+</span><span id="__span-8-20"><a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a><span class="w">  </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">StdoutTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+</span><span id="__span-8-21"><a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a><span class="w">    </span><span class="nb">format</span><span class="p">:</span><span class="w"> </span><span class="ss">:pretty</span><span class="p">,</span>
+</span><span id="__span-8-22"><a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a><span class="w">    </span><span class="ss">loopback</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
+</span><span id="__span-8-23"><a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a><span class="w">  </span><span class="p">)</span>
+</span><span id="__span-8-24"><a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a><span class="k">end</span>
+</span></code></pre></div>
+<h2 id="performance-considerations">Performance Considerations<a class="headerlink" href="#performance-considerations" title="Permanent link">&para;</a></h2>
+<h3 id="latency-comparison">Latency Comparison<a class="headerlink" href="#latency-comparison" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Transport</th>
+<th>Typical Latency</th>
+<th>Best Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Memory</td>
+<td>~0.01ms</td>
+<td>Unit tests, development</td>
+</tr>
+<tr>
+<td>STDOUT</td>
+<td>~1ms</td>
+<td>Logging, debugging</td>
+</tr>
+<tr>
+<td>Redis</td>
+<td>~1ms</td>
+<td>Production messaging</td>
+</tr>
+<tr>
+<td>Multi-transport</td>
+<td>Sum of individual transports</td>
+<td>Critical messages</td>
+</tr>
+</tbody>
+</table>
+<h3 id="throughput-comparison">Throughput Comparison<a class="headerlink" href="#throughput-comparison" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Transport</th>
+<th>Throughput</th>
+<th>Limiting Factor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Memory</td>
+<td>Highest</td>
+<td>CPU and memory</td>
+</tr>
+<tr>
+<td>STDOUT</td>
+<td>Medium</td>
+<td>I/O operations</td>
+</tr>
+<tr>
+<td>Redis</td>
+<td>High</td>
+<td>Network and Redis performance</td>
+</tr>
+<tr>
+<td>Multi-transport</td>
+<td>Lowest individual transport</td>
+<td>Sequential processing</td>
+</tr>
+</tbody>
+</table>
+<h3 id="resource-usage">Resource Usage<a class="headerlink" href="#resource-usage" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Transport</th>
+<th>Memory Usage</th>
+<th>External Dependencies</th>
+<th>Setup Complexity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Memory</td>
+<td>Grows with volume</td>
+<td>None</td>
+<td>Minimal</td>
+</tr>
+<tr>
+<td>STDOUT</td>
+<td>Minimal</td>
+<td>None</td>
+<td>Minimal</td>
+</tr>
+<tr>
+<td>Redis</td>
+<td>Low</td>
+<td>Redis server</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td>File</td>
+<td>Minimal</td>
+<td>None</td>
+<td>Minimal</td>
+</tr>
+</tbody>
+</table>
+<h2 id="migration-strategies">Migration Strategies<a class="headerlink" href="#migration-strategies" title="Permanent link">&para;</a></h2>
+<h3 id="development-to-production">Development to Production<a class="headerlink" href="#development-to-production" title="Permanent link">&para;</a></h3>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Phase 1: Development (Memory/STDOUT)</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="ss">transport</span><span class="p">:</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">MemoryTransport</span><span class="o">.</span><span class="n">new</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># Phase 2: Integration Testing (STDOUT with file)</span>
+</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="ss">transport</span><span class="p">:</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">StdoutTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">  </span><span class="nb">format</span><span class="p">:</span><span class="w"> </span><span class="ss">:jsonl</span><span class="p">,</span>
+</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">  </span><span class="ss">file_path</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;/tmp/integration.log&#39;</span>
+</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="p">)</span>
+</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>
+</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="c1"># Phase 3: Staging (Redis + logging)</span>
+</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="ss">transport</span><span class="p">:</span><span class="w"> </span><span class="o">[</span>
+</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">  </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="n">staging_redis</span><span class="p">),</span>
+</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="w">  </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">StdoutTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">file_path</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;/var/log/staging.log&#39;</span><span class="p">)</span>
+</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="o">]</span>
+</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a>
+</span><span id="__span-9-16"><a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a><span class="c1"># Phase 4: Production (Multi-transport)</span>
+</span><span id="__span-9-17"><a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a><span class="ss">transport</span><span class="p">:</span><span class="w"> </span><span class="o">[</span>
+</span><span id="__span-9-18"><a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a><span class="w">  </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="n">primary_redis</span><span class="p">),</span>
+</span><span id="__span-9-19"><a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a><span class="w">  </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="n">backup_redis</span><span class="p">)</span>
+</span><span id="__span-9-20"><a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a><span class="o">]</span>
+</span></code></pre></div>
+<h3 id="transport-evolution">Transport Evolution<a class="headerlink" href="#transport-evolution" title="Permanent link">&para;</a></h3>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Start simple</span>
+</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
+</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">MemoryTransport</span><span class="o">.</span><span class="n">new</span>
+</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="k">end</span>
+</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>
+</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="c1"># Add logging</span>
+</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
+</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">  </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">StdoutTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="nb">format</span><span class="p">:</span><span class="w"> </span><span class="ss">:jsonl</span><span class="p">)</span>
+</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="k">end</span>
+</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>
+</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="c1"># Scale to production</span>
+</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
+</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="w">  </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;REDIS_URL&#39;</span><span class="o">]</span><span class="p">)</span>
+</span><span id="__span-10-14"><a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="k">end</span>
+</span><span id="__span-10-15"><a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a>
+</span><span id="__span-10-16"><a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="c1"># Add redundancy</span>
+</span><span id="__span-10-17"><a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
+</span><span id="__span-10-18"><a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a><span class="w">  </span><span class="n">transport</span><span class="w"> </span><span class="o">[</span>
+</span><span id="__span-10-19"><a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a><span class="w">    </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;PRIMARY_REDIS&#39;</span><span class="o">]</span><span class="p">),</span>
+</span><span id="__span-10-20"><a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a><span class="w">    </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;BACKUP_REDIS&#39;</span><span class="o">]</span><span class="p">)</span>
+</span><span id="__span-10-21"><a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a><span class="w">  </span><span class="o">]</span>
+</span><span id="__span-10-22"><a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a><span class="k">end</span>
+</span></code></pre></div>
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<h3 id="general-guidelines">General Guidelines<a class="headerlink" href="#general-guidelines" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Start Simple</strong>: Begin with Memory/STDOUT transports in development</li>
+<li><strong>Match Environment</strong>: Use appropriate transports for each environment</li>
+<li><strong>Consider Criticality</strong>: More critical messages need more redundant transports</li>
+<li><strong>Monitor Performance</strong>: Track latency and throughput in production</li>
+<li><strong>Plan Migration</strong>: Design transport evolution from development to production</li>
+</ol>
+<h3 id="transport-specific">Transport-Specific<a class="headerlink" href="#transport-specific" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Memory</strong>: Use in tests and development only, set reasonable message limits</li>
+<li><strong>STDOUT</strong>: Use <code>:pretty</code> for development, <code>:jsonl</code> for structured logging</li>
+<li><strong>Redis</strong>: Configure proper connection pooling and reconnection settings</li>
+<li><strong>Multi-transport</strong>: Limit to 2-4 transports, order by speed/criticality</li>
+</ul>
+<h3 id="environment-configuration">Environment Configuration<a class="headerlink" href="#environment-configuration" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Development</strong>: Readable formats, loopback enabled for testing</li>
+<li><strong>Testing</strong>: Fast, isolated transports with deterministic behavior</li>
+<li><strong>Staging</strong>: Production-like configuration with additional logging</li>
+<li><strong>Production</strong>: Redundant, monitored, with proper error handling</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="common-issues">Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">&para;</a></h3>
+<p><strong>Slow message publishing</strong>
+- Check multi-transport ordering (put fastest first)
+- Verify Redis connection health
+- Monitor file I/O performance</p>
+<p><strong>Messages not appearing</strong>
+- Verify transport configuration matches environment
+- Check Redis connectivity and permissions
+- Ensure file paths are writable</p>
+<p><strong>Memory issues</strong>
+- Set limits on Memory transport
+- Monitor multi-transport memory usage
+- Check for message accumulation in development</p>
+<p><strong>Test failures</strong>
+- Use Memory transport for predictable test behavior
+- Clear messages between tests
+- Mock external transport dependencies</p>
+<h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../../transports/multi-transport/">Multi-Transport Publishing</a> - Detailed multi-transport patterns</li>
+<li><a href="../../transports/memory-transport/">Memory Transport</a> - Development and testing transport</li>
+<li><a href="../../transports/redis-transport/">Redis Transport</a> - Production messaging transport</li>
+<li><a href="../../transports/stdout-transport/">STDOUT Transport</a> - Output and logging transport</li>
+<li><a href="../../transports/file-transport/">File Transport</a> - Base class for file-based transports</li>
+<li><a href="../../reference/transports/">Transport Overview</a> - Technical transport reference</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2025 madbomber
+    </div>
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/madbomber/smart_message" target="_blank" rel="noopener" title="GitHub Repository" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.path", "navigation.indexes", "navigation.top", "toc.follow", "search.suggest", "search.highlight", "search.share", "header.autohide", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "content.action.edit", "content.action.view"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.11"}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.92b07e13.min.js"></script>
+      
+        <script src="../../assets/javascripts/mathjax.js"></script>
+      
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
