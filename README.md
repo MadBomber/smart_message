@@ -1,3 +1,7 @@
+> [!CAUTION]
+> SmartMessage is under active alpha-level development. Detailed changes are kept in the [CHANGELOG.md](CHANGELOG.md).  Please review it for the latest changes and fixes.
+<br/><br/>
+
 <table border="0">
 <tr>
 <td width="30%" valign="top">
@@ -590,7 +594,7 @@ SmartMessage supports publishing to multiple transports simultaneously for redun
 class CriticalOrderMessage < SmartMessage::Base
   property :order_id, required: true
   property :amount, required: true
-  
+
   # Configure multiple transports - message goes to ALL of them
   transport [
     SmartMessage::Transport.create(:redis_queue, url: 'redis://primary:6379'),
@@ -610,7 +614,7 @@ puts message.transports.length     # => 3
 
 **Key Benefits:**
 - **Redundancy**: Messages reach multiple destinations for reliability
-- **Integration**: Simultaneously log to STDOUT, send to Redis, and webhook external systems  
+- **Integration**: Simultaneously log to STDOUT, send to Redis, and webhook external systems
 - **Migration**: Gradually transition between transport systems
 - **Resilient**: Publishing succeeds as long as ANY transport works
 
