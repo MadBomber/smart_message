@@ -53,6 +53,7 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'mutex_m'
   spec.add_development_dependency 'shoulda'
   spec.add_development_dependency 'minitest-power_assert'
+  spec.add_development_dependency 'minitest-mock'  # Minitest::Mock moved out of minitest 6
 
   spec.add_development_dependency 'amazing_print'
   spec.add_development_dependency 'debug_me'

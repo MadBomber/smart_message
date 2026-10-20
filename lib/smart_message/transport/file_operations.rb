@@ -52,11 +52,13 @@ module SmartMessage
         flush_buffer if buffered_mode?
         if @file_mutex
           @file_mutex.synchronize do
-            @file_handle&.close
+            @file_handle&.flush unless @file_handle&.closed?
+            @file_handle&.close unless @file_handle&.closed?
             @file_handle = nil
           end
         else
-          @file_handle&.close
+          @file_handle&.flush unless @file_handle&.closed?
+          @file_handle&.close unless @file_handle&.closed?
           @file_handle = nil
         end
       end
@@ -64,22 +66,51 @@ module SmartMessage
       private
 
       def prepare_file_content(serialized_message)
-        case @options[:file_format]
-        when :lines
-          "#{serialized_message}\n"
-        when :raw
+        case @options[:format] || @options[:file_format] || :jsonl
+        when :json, :raw
           serialized_message
+        when :jsonl, :lines
+          "#{serialized_message}\n"
+        when :pretty
+          begin
+            require 'amazing_print'
+            # Use the serializer to decode back to the original data structure
+            if @serializer.respond_to?(:decode)
+              data = @serializer.decode(serialized_message)
+              data.ai + "\n"
+            else
+              # Fallback: try to parse as JSON
+              begin
+                require 'json'
+                data = JSON.parse(serialized_message)
+                data.ai + "\n"
+              rescue JSON::ParserError
+                # If not JSON, pretty print the raw string
+                serialized_message.ai + "\n"
+              end
+            end
+          rescue LoadError
+            # Fallback if amazing_print not available
+            "#{serialized_message}\n"
+          rescue => e
+            # Handle any other errors (like circuit breaker issues)
+            "#{serialized_message}\n"
+          end
         else
-          "#{serialized_message}\n"  # default to lines
+          "#{serialized_message}\n"  # default to jsonl
         end
       end
 
       def open_file_handle
+        # Return IO objects directly, don't try to open them
+        return @options[:file_path] if @options[:file_path].respond_to?(:write)
+        # Open file handle for string paths
         File.open(current_file_path, file_mode, encoding: @options[:encoding])
       end
 
       def ensure_directory_exists
         return unless @options[:create_directories]
+        return if @options[:file_path].respond_to?(:write)  # Skip for IO objects
         
         dir = File.dirname(current_file_path)
         FileUtils.mkdir_p(dir) unless Dir.exist?(dir)
@@ -110,6 +141,7 @@ module SmartMessage
       end
 
       def direct_write(content)
+        return unless @file_handle
         @file_handle.write(content)
         @file_handle.flush if @options[:auto_flush]
       end

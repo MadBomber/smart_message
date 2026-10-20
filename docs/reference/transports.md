@@ -33,29 +33,36 @@ message.publish  # ✅ Publishes to all three transports
 
 ### STDOUT Transport
 
-**Publish-only transport** perfect for debugging, logging, and integration with external systems.
+**Publish-only transport** perfect for debugging, logging, and integration with external systems. Built as a minimal subclass of FileTransport, inheriting comprehensive formatting and IO handling capabilities.
 
 **Features:**
 - **Publish-only**: No message processing or loopback capability
-- Outputs messages to console or file in pretty-print or JSON formats
+- **Three output formats**: `:jsonl` (default), `:pretty` (amazing_print), `:json` (compact)
+- **Flexible output**: Defaults to STDOUT but can write to files
+- **Smart IO handling**: Automatically handles both IO objects and file paths
 - Subscription attempts are ignored with warning logs
 - Perfect for piping to external tools and log aggregators
 - No external dependencies
 
+**📚 See [STDOUT Transport Documentation](../transports/stdout-transport.md) for comprehensive usage examples.**
+
 **Usage:**
 
 ```ruby
-# Basic STDOUT output (publish-only)
+# Basic STDOUT output with default JSONL format
 transport = SmartMessage::Transport::StdoutTransport.new
 
-# Pretty-printed format for human reading (default)
+# JSON Lines format - one message per line (default)
+transport = SmartMessage::Transport::StdoutTransport.new(format: :jsonl)
+
+# Pretty-printed format with amazing_print for debugging
 transport = SmartMessage::Transport::StdoutTransport.new(format: :pretty)
 
-# JSON format for machine processing
+# Compact JSON format without newlines
 transport = SmartMessage::Transport::StdoutTransport.new(format: :json)
 
-# Output to file instead of console
-transport = SmartMessage::Transport::StdoutTransport.new(output: "messages.log")
+# Output to file instead of STDOUT
+transport = SmartMessage::Transport::StdoutTransport.new(file_path: "messages.log")
 
 # Configure in message class
 class LogMessage < SmartMessage::Base
@@ -65,25 +72,42 @@ class LogMessage < SmartMessage::Base
   config do
     transport SmartMessage::Transport::StdoutTransport.new(
       format: :json,
-      output: "app.log"
+      file_path: "app.log"
     )
   end
 end
 ```
 
 **Options:**
-- `format` (Symbol): Output format - `:pretty` for debugging, `:json` for integration (default: `:pretty`)
-- `output` (String|IO): Output destination - filename string or IO object (default: `$stdout`)
+- `format` (Symbol): Output format - `:jsonl` (default), `:pretty`, `:json`
+- `file_path` (String|IO): Output destination - filename string or IO object (default: `$stdout`)
+- All FileTransport options are inherited and available
 
 **Important:** For local message processing during development, use **MemoryTransport** instead.
 
-**Example Output:**
+**Format Examples:**
+
+**JSONL Format (default):**
+```json
+{"_sm_header":{"uuid":"abc-123","message_class":"DemoMessage"},"first_name":"Alice","last_name":"Johnson"}
+{"_sm_header":{"uuid":"def-456","message_class":"DemoMessage"},"first_name":"Bob","last_name":"Smith"}
 ```
-===================================================
-== SmartMessage Published via STDOUT Transport
-== Header: #<SmartMessage::Header:0x... @uuid="abc-123", @message_class="MyMessage", ...>
-== Payload: {"user_id":123,"action":"login","timestamp":"2025-08-17T10:30:00Z"}
-===================================================
+
+**Pretty Format:**
+```ruby
+{
+    "_sm_header" => {
+                 "uuid" => "abc-123",
+        "message_class" => "DemoMessage"
+    },
+    "first_name" => "Alice",
+     "last_name" => "Johnson"
+}
+```
+
+**JSON Format:**
+```json
+{"_sm_header":{"uuid":"abc-123"},"first_name":"Alice"}{"_sm_header":{"uuid":"def-456"},"first_name":"Bob"}
 ```
 
 ### Memory Transport
@@ -517,8 +541,8 @@ Each transport may have specific options:
 ```ruby
 # STDOUT specific (publish-only)
 SmartMessage::Transport::StdoutTransport.new(
-  format: :json,
-  output: "/var/log/messages.log"
+  format: :jsonl,              # :jsonl (default), :pretty, :json
+  file_path: "/var/log/messages.log"
 )
 
 # Memory specific  

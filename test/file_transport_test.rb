@@ -67,15 +67,6 @@ class FileTransportTest < Minitest::Test
     transport.disconnect
   end
 
-  def test_publish_compatibility_method
-    transport = SmartMessage::Transport::FileTransport.new(file_path: @test_file)
-    
-    transport.publish("test payload")
-    transport.disconnect
-    
-    content = File.read(@test_file)
-    assert_includes content, "test payload"
-  end
 
   def test_do_publish_regular_file
     transport = SmartMessage::Transport::FileTransport.new(file_path: @test_file)

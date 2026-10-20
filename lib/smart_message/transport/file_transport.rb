@@ -80,8 +80,11 @@ module SmartMessage
         end
       end
 
-      def publish(payload)
-        do_publish(nil, payload)
+      def publish(message)
+        # Extract message class and serialize the message
+        message_class = message._sm_header.message_class
+        serialized_message = encode_message(message)
+        do_publish(message_class, serialized_message)
       end
 
       def do_publish(message_class, serialized_message)

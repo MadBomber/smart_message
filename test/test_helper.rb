@@ -21,6 +21,7 @@ end
 
 require 'minitest/autorun'
 require 'minitest/power_assert'
+require 'minitest/mock'
 require 'shoulda'
 
 require 'ap'

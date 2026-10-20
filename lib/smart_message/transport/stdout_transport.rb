@@ -5,100 +5,12 @@
 require_relative 'file_transport'
 
 module SmartMessage
-  module Transport
-    # STDOUT transport for testing and development
-    # This is a publish-only transport that outputs messages to STDOUT
-    # Now inherits from FileTransport but maintains specialized formatting
-    class StdoutTransport < FileTransport
-      def initialize(options = {})
-        # Merge STDOUT-specific defaults with FileTransport defaults
-        stdout_options = {
-          file_path: $stdout,
-          file_mode: 'w',
-          file_type: :regular,
-          format: :pretty,  # :pretty or :json
-          enable_subscriptions: false,  # STDOUT is publish-only
-          auto_flush: true
-        }
-        super(stdout_options.merge(options))
-      end
-
-      # Default to JSON for readability in STDOUT
-      def default_serializer
-        SmartMessage::Serializer::Json.new
-      end
-      
-      # Override configuration to handle STDOUT-specific setup
-      def configure
-        # If file_path is a string, delegate to parent FileTransport
-        if @options[:file_path].is_a?(String)
-          super
-        else
-          # Use the IO object directly (like $stdout)
-          @file_handle = @options[:file_path]
-          @write_buffer = []
-          @last_flush = Time.now
-          @file_mutex = Mutex.new
-        end
-      end
-      
-      # Override write_to_file to handle STDOUT directly
-      def write_to_file(serialized_message)
-        # If using a string file path, delegate to parent
-        if @options[:file_path].is_a?(String)
-          super
-        else
-          # Use IO object directly
-          content = prepare_file_content(serialized_message)
-          @file_handle.write(content)
-          @file_handle.flush if @options[:auto_flush]
-        end
-      end
-
-      # Override the file content preparation to use custom formatting
-      def prepare_file_content(serialized_message)
-        format_message(@current_message_class, serialized_message)
-      end
-
-      # Override subscribe methods to log warnings since this is a publish-only transport
-      def subscribe(message_class, process_method, filter_options = {})
-        logger.warn { "[SmartMessage::StdoutTransport] Subscription attempt ignored - STDOUT transport is publish-only (message_class: #{message_class}, process_method: #{process_method})" }
-      end
-
-      def unsubscribe(message_class, process_method)
-        logger.warn { "[SmartMessage::StdoutTransport] Unsubscribe attempt ignored - STDOUT transport is publish-only (message_class: #{message_class}, process_method: #{process_method})" }
-      end
-
-      def unsubscribe!(message_class)
-        logger.warn { "[SmartMessage::StdoutTransport] Unsubscribe all attempt ignored - STDOUT transport is publish-only (message_class: #{message_class})" }
-      end
-
-      private
-
-      def format_message(message_class, serialized_message)
-        if @options[:format] == :json
-          # Output as JSON for machine parsing
-          {
-            transport: 'stdout',
-            message_class: message_class,
-            serialized_message: serialized_message,
-            timestamp: Time.now.iso8601
-          }.to_json + "\n"
-        else
-          # Pretty format for human reading
-          <<~MESSAGE
-
-            ===================================================
-            == SmartMessage Published via STDOUT Transport
-            == Message Class: #{message_class}
-            == Serializer: #{@serializer.class.name}
-            == Serialized Message:
-            #{serialized_message}
-            ===================================================
-
-          MESSAGE
+    module Transport
+      class StdoutTransport < FileTransport
+        def initialize(options = {})
+          defaults = { file_path: $stdout, file_mode: 'w', file_type: :regular }
+          super(defaults.merge(options))
         end
       end
     end
   end
-end

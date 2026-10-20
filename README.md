@@ -1,3 +1,7 @@
+> [!CAUTION]
+> SmartMessage is under active alpha-level development. Detailed changes are kept in the [CHANGELOG.md](CHANGELOG.md).  Please review it for the latest changes and fixes.
+<br/><br/>
+
 <table border="0">
 <tr>
 <td width="30%" valign="top">
@@ -590,7 +594,7 @@ SmartMessage supports publishing to multiple transports simultaneously for redun
 class CriticalOrderMessage < SmartMessage::Base
   property :order_id, required: true
   property :amount, required: true
-  
+
   # Configure multiple transports - message goes to ALL of them
   transport [
     SmartMessage::Transport.create(:redis_queue, url: 'redis://primary:6379'),
@@ -610,7 +614,7 @@ puts message.transports.length     # => 3
 
 **Key Benefits:**
 - **Redundancy**: Messages reach multiple destinations for reliability
-- **Integration**: Simultaneously log to STDOUT, send to Redis, and webhook external systems  
+- **Integration**: Simultaneously log to STDOUT, send to Redis, and webhook external systems
 - **Migration**: Gradually transition between transport systems
 - **Resilient**: Publishing succeeds as long as ANY transport works
 
@@ -667,28 +671,32 @@ OrderMessage.new(
 
 ### STDOUT Transport (Publish-Only)
 
-The STDOUT transport is designed for publish-only scenarios - perfect for debugging, logging, or integration with external systems.
+The STDOUT transport is designed for publish-only scenarios - perfect for debugging, logging, or integration with external systems. Built as a minimal subclass of FileTransport, it inherits comprehensive formatting capabilities.
 
 ```ruby
 # Basic STDOUT output (publish-only)
 transport = SmartMessage::Transport::StdoutTransport.new
 
-# Pretty-printed format for human reading (default)
+# JSON Lines format - one message per line (default)
+transport = SmartMessage::Transport::StdoutTransport.new(format: :jsonl)
+
+# Pretty-printed format with amazing_print for human reading
 transport = SmartMessage::Transport::StdoutTransport.new(format: :pretty)
 
-# JSON format for machine processing
+# Compact JSON format without newlines
 transport = SmartMessage::Transport::StdoutTransport.new(format: :json)
 
 # Output to file instead of STDOUT
-transport = SmartMessage::Transport::StdoutTransport.new(output: "messages.log")
+transport = SmartMessage::Transport::StdoutTransport.new(file_path: "messages.log")
 ```
 
 **Key Features:**
 - **Publish-only**: No message processing or loopback
 - **Subscription attempts are ignored** with warning logs
-- **Two formats**: `:pretty` for debugging, `:json` for integration
+- **Three formats**: `:jsonl` (default), `:pretty` for debugging, `:json` for compact output
+- **Flexible Output**: Defaults to STDOUT but can write to files when `file_path` specified
 - **Perfect for**: debugging, logging, piping to external tools
-- **Use cases**: `./app | jq`, `./app | fluentd`, development monitoring
+- **Use cases**: `./app | jq '.first_name'`, `./app | fluentd`, development monitoring
 
 **For local message processing, use MemoryTransport instead:**
 ```ruby
