@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.18] 2026-10-19
+
+### Changed
+- **Ruby 4.1 Support**: Runs and passes its test suite on Ruby 4.1.0-preview1
+  - **Ruby Version**: Added `.ruby-version` pinning 4.1.0-preview1
+  - **Dependencies**: Updated all gems (`bundle update --all`) and re-locked with bundler 4.1.0.beta2; bundler 2.7.1 crashes on Ruby 4.1
+  - **Test Dependencies**: Added `minitest-mock` development dependency; minitest 6 moved `Minitest::Mock` into a separate gem
+- **Lumberjack 2.x Logger**: Ported `SmartMessage::Logger::Lumberjack` to the Lumberjack 2.x API
+  - **Constructor**: Options passed as keywords instead of a positional hash
+  - **Log Rotation**: `roll_by_size`, `roll_by_date`, and `date_pattern` now map to standard library Logger rotation arguments
+  - **Templates**: Console and file output share one line template; `entry.attributes` replaces the removed `entry.tags`
+- **Pretty Printing**: `pretty_print` uses amazing_print when installed and falls back to the standard library `pp`
+
+### Fixed
+- **Duplicate Keys in `to_h`**: `Base#to_h` returned every property twice (nil Symbol keys plus String keys)
+  - **Cause**: `Hashie::Dash#to_h` merges Symbol-keyed defaults with the String keys stored by `IndifferentAccess`
+  - **Impact**: json 3.x raises on duplicate keys, so every JSON encode failed silently behind the serializer circuit breaker
+  - **Solution**: `to_h` builds one Symbol key per declared property; `to_hash` is now an alias
+- **amazing_print 3.x Load Crash**: Loading amazing_print after SmartMessage raised `NoMethodError` / `NameError`
+  - **Solution**: SmartMessage loads ActiveSupport's `Object#try` and `LogSubscriber` before anything requires amazing_print
+  - **Load Time**: `SimpleStats` no longer requires the development-only `ap` gem at load time
+- **Lumberjack JSON Format**: JSON log output crashed because `json` was never required
+- **Structured Log Attributes**: The log message text no longer leaks into each entry's structured attributes
+
 ## [0.0.17] 2025-09-11
 
 ### Enhanced
