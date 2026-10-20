@@ -151,15 +151,15 @@ module SmartMessage
 
 
 
-    # Convert message to hash for serialization
-    def to_hash
-      # Get all properties and their values
-      hash = {}
-      self.class.properties.each do |prop|
-        hash[prop] = self[prop]
-      end
-      hash
+    # Convert message to a Hash with one Symbol key per declared property.
+    #
+    # Hashie::Dash#to_h merges Symbol-keyed defaults with the instance's own
+    # keys, which IndifferentAccess stores as Strings, so every property
+    # appeared twice.  Build the hash from the property list instead.
+    def to_h
+      self.class.properties.to_h { [it, self[it]] }
     end
+    alias to_hash to_h
 
     ###########################################################
     ## class methods
