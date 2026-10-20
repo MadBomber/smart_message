@@ -4,6 +4,7 @@
 
 require 'lumberjack'
 require 'fileutils'
+require 'json'
 require 'colorize'
 
 module SmartMessage
@@ -108,41 +109,42 @@ module SmartMessage
       private
 
       def setup_lumberjack_logger
-        # Create log directory if needed
-        if @log_file.is_a?(String) && !@log_file.start_with?('/dev/')
-          log_dir = File.dirname(@log_file)
-          FileUtils.mkdir_p(log_dir) unless Dir.exist?(log_dir)
-        end
+        ensure_log_directory
 
-        # For STDOUT/STDERR, use Device::Writer with template for colorization
-        if console_output?
-          device = ::Lumberjack::Device::Writer.new(@log_file, template: create_template)
-          ::Lumberjack::Logger.new(device, level: normalize_level(@level))
+        # Console output gets an explicit Writer device so STDOUT/STDERR are
+        # never treated as rotatable log files.  Files are opened by Lumberjack
+        # itself, which passes the template and rotation settings to the device.
+        device = console_output? ? ::Lumberjack::Device::Writer.new(@log_file, template: create_template) : @log_file
+
+        ::Lumberjack::Logger.new(device, *rotation_args, level: normalize_level(@level), template: create_template, **rotation_options)
+      end
+
+      def ensure_log_directory
+        return unless @log_file.is_a?(String) && !@log_file.start_with?('/dev/')
+
+        FileUtils.mkdir_p(File.dirname(@log_file))
+      end
+
+      # Lumberjack 2.x uses the standard library Logger rotation arguments:
+      #   size based: (keep_count, max_bytes)
+      #   date based: ('daily' | 'weekly' | 'monthly')
+      def rotation_args
+        if @options[:roll_by_size]
+          [@options[:keep_files] || 5, @options[:max_file_size] || (10 * 1024 * 1024)]
+        elsif @options[:roll_by_date]
+          [@options[:roll_period] || 'daily']
         else
-          # Build Lumberjack options for file-based logging
-          lumberjack_options = {
-            level: normalize_level(@level),
-            formatter: create_formatter,
-            buffer_size: 0  # Disable buffering for immediate output
-          }
-          
-          # Add log rolling options if specified
-          if @options[:roll_by_date]
-            lumberjack_options[:date_pattern] = @options[:date_pattern] || '%Y-%m-%d'
-          end
-          
-          if @options[:roll_by_size]
-            lumberjack_options[:max_size] = @options[:max_file_size] || (10 * 1024 * 1024) # 10 MB
-            lumberjack_options[:keep] = @options[:keep_files] || 5
-          end
-
-          # Configure the Lumberjack logger
-          ::Lumberjack::Logger.new(@log_file, lumberjack_options)
+          []
         end
       end
 
+      # date_pattern names the rotated files (e.g. smart_message.log.2026-10-19)
+      def rotation_options
+        @options[:date_pattern] ? { shift_period_suffix: @options[:date_pattern] } : {}
+      end
+
       def create_template
-        # Template for Device::Writer (used for console output)
+        # Line template shared by console and file devices (Lumberjack 2.x)
         colorize_enabled = @colorize
         include_source = @include_source
         
@@ -157,13 +159,13 @@ module SmartMessage
             }
 
             # Add source location if available
-            if include_source && entry.tags[:source]
-              data[:source] = entry.tags[:source]
+            if include_source && entry['source']
+              data[:source] = entry['source']
             end
 
             # Add any structured data
-            entry.tags.each do |key, value|
-              next if key == :source
+            (entry.attributes || {}).each do |key, value|
+              next if key == 'source'
               data[key] = value
             end
 
@@ -176,7 +178,7 @@ module SmartMessage
             
             timestamp = entry.time.strftime('%Y-%m-%d %H:%M:%S.%3N')
             level = entry.severity_label.ljust(5)
-            source_info = include_source && entry.tags[:source] ? " #{entry.tags[:source]}" : ""
+            source_info = include_source && entry['source'] ? " #{entry['source']}" : ""
 
             line = "[#{timestamp}] #{level} --#{source_info} : #{entry.message}"
             
@@ -208,54 +210,15 @@ module SmartMessage
         end
       end
 
-      def create_formatter
-        case @format
-        when :json
-          # JSON formatter with structured data support
-          ::Lumberjack::Formatter.new do |entry|
-            data = {
-              timestamp: entry.time.strftime('%Y-%m-%d %H:%M:%S.%3N'),
-              level: entry.severity_label,
-              message: entry.message
-            }
-
-            # Add source location if available
-            if @include_source && entry.tags[:source]
-              data[:source] = entry.tags[:source]
-            end
-
-            # Add any structured data
-            entry.tags.each do |key, value|
-              next if key == :source
-              data[key] = value
-            end
-
-            data.to_json + "\n"
-          end
-        else
-          # Text formatter for file output (no colorization)
-          ::Lumberjack::Formatter.new do |entry|
-            timestamp = entry.time.strftime('%Y-%m-%d %H:%M:%S.%3N')
-            level = entry.severity_label.ljust(5)
-            source_info = @include_source && entry.tags[:source] ? " #{entry.tags[:source]}" : ""
-
-            "[#{timestamp}] #{level} --#{source_info} : #{entry.message}\n"
-          end
-        end
-      end
-
       def log_with_caller(level, caller_depth, structured_data = {}, &block)
         return unless @logger.send("#{level}?")
 
         caller_info = get_caller_info(caller_depth + 1)
         tags = structured_data.dup
+        text = tags.delete(:message)
         tags[:source] = caller_info if @include_source && caller_info
 
-        if block_given?
-          message = block.call(caller_info)
-        else
-          message = structured_data.delete(:message) || ""
-        end
+        message = block_given? ? block.call(caller_info) : (text || "")
 
         if tags.empty?
           @logger.send(level, message)

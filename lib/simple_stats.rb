@@ -1,6 +1,6 @@
 # lib/simple_stats.rb
 
-require 'ap'
+require 'pp'  # STDLIB
 
 # A dirt simple way of collecting statistics for use in testing
 # that has a multi-level key structure
@@ -49,7 +49,7 @@ class SimpleStats
 
     # return a pretty printed representation of the statistics
     def to_s
-      ap @@stat
+      @@stat.pretty_inspect
     end
   end
 end # class SimpleStat

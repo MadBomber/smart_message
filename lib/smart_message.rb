@@ -12,6 +12,11 @@ class MilClass  # IMO nil is the same as an empty String
 end
 
 require 'active_support/core_ext/string/inflections'
+# amazing_print 3.x expects Object#try and ActiveSupport::LogSubscriber to
+# exist whenever ActiveSupport is loaded.  Load them here so amazing_print
+# works no matter when an application (or this gem) requires it.
+require 'active_support/core_ext/object/try'
+require 'active_support/log_subscriber'
 require 'date'  # STDLIB
 require 'hashie'         # Your friendly neighborhood hash library.
 

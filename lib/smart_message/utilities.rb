@@ -44,6 +44,7 @@ module SmartMessage
     end
 
     # Pretty print the message content to STDOUT using amazing_print
+    # when it is installed, otherwise Ruby's pp
     # @param pp_or_include_header [PP, Boolean] Either a PP printer object (from Ruby's pp library) 
     #                                           or include_header boolean (for our custom usage)
     # @param include_header [Boolean] Whether to include the SmartMessage header (default: false)
@@ -60,8 +61,6 @@ module SmartMessage
         include_header = pp_or_include_header
       end
       
-      require 'amazing_print'
-      
       if include_header
         # Show both header and content
         puts "Header:"
@@ -71,7 +70,7 @@ module SmartMessage
         header_data = _sm_header.to_h
           .reject { |key, value| value.nil? }
         header_data = deep_symbolize_keys(header_data)
-        ap header_data
+        pretty_output(header_data)
         
         puts "\nContent:"
         puts "-" * 20
@@ -79,16 +78,26 @@ module SmartMessage
         # Get payload data (message properties excluding header)
         content_data = get_payload_data.reject { |key, value| value.nil? }
         content_data = deep_symbolize_keys(content_data)
-        ap content_data
+        pretty_output(content_data)
       else
         # Show only message content (excluding _sm_ properties and nil values)
         content_data = get_payload_data.reject { |key, value| value.nil? }
         content_data = deep_symbolize_keys(content_data)
-        ap content_data
+        pretty_output(content_data)
       end
     end
 
     private
+
+    # Print data with amazing_print when available; it is a development
+    # dependency, so fall back to the standard library pp otherwise.
+    def pretty_output(data, out: $stdout)
+      require 'amazing_print'
+      out.puts data.ai
+    rescue LoadError
+      require 'pp'
+      PP.pp(data, out)
+    end
 
     # Extract payload data (all properties except _sm_header)
     def get_payload_data

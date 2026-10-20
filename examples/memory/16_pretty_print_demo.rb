@@ -2,6 +2,7 @@
 # show_me.rb - Demonstrates the pretty_print method on SmartMessage instances
 
 require_relative '../../lib/smart_message'
+require 'amazing_print'
 
 # Define a sample order message
 class OrderMessage < SmartMessage::Base
