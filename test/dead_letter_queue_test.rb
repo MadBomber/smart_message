@@ -190,6 +190,14 @@ class DeadLetterQueueTest < Minitest::Test
       2.times { |i| dlq.enqueue(@message, error: "error #{i}") }
 
       assert_equal 2, dlq.inspect_messages(limit: 3).size
+    end
+  end
+
+  def test_inspect_messages_with_non_positive_limit_returns_empty
+    Dir.mktmpdir do |dir|
+      dlq = SmartMessage::DeadLetterQueue.new(File.join(dir, 'dlq.jsonl'))
+      dlq.enqueue(@message, error: 'error')
+
       assert_empty dlq.inspect_messages(limit: 0)
       assert_empty dlq.inspect_messages(limit: -1)
     end
