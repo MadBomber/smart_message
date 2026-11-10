@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Docs: removed an unused polyfill script from the docs site
+### Fixed
+- **DeadLetterQueue#inspect_messages**: `inspect_messages(limit:)` returned `[]` whenever the queue held more than `limit` entries; it now returns the first `limit` entries
 
 ## [0.0.18] 2026-10-19
 
