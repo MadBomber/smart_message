@@ -188,12 +188,14 @@ module SmartMessage
     # @param limit [Integer] Maximum number of messages to show
     # @return [Array<Hash>] Array of DLQ entries
     def inspect_messages(limit: 10)
-      count = 0
+      results = []
       read_entries_with_filter do |entry|
-        return [] if count >= limit
-        count += 1
-        entry
+        break if results.size >= limit
+
+        results << entry
+        nil
       end
+      results
     end
 
     # Filter messages by message class
