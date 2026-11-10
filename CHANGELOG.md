@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Docs: removed an unused polyfill script from the docs site
+
 ## [0.0.18] 2026-10-19
 
 ### Changed
