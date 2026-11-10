@@ -188,6 +188,8 @@ module SmartMessage
     # @param limit [Integer] Maximum number of messages to show
     # @return [Array<Hash>] Array of DLQ entries
     def inspect_messages(limit: 10)
+      return [] unless limit.positive?
+
       read_entries_with_filter.first(limit)
     end
 

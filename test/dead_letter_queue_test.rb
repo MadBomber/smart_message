@@ -177,7 +177,7 @@ class DeadLetterQueueTest < Minitest::Test
       dlq = SmartMessage::DeadLetterQueue.new(File.join(dir, 'dlq.jsonl'))
       5.times { |i| dlq.enqueue(@message, error: "error #{i}") }
 
-      errors = dlq.inspect_messages(limit: 3).map { it[:error] }
+      errors = dlq.inspect_messages(limit: 3).map { |entry| entry[:error] }
 
       assert_equal ['error 0', 'error 1', 'error 2'], errors
       assert_equal 5, dlq.size
@@ -191,6 +191,7 @@ class DeadLetterQueueTest < Minitest::Test
 
       assert_equal 2, dlq.inspect_messages(limit: 3).size
       assert_empty dlq.inspect_messages(limit: 0)
+      assert_empty dlq.inspect_messages(limit: -1)
     end
   end
 
