@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Docs: removed an unused polyfill script from the docs site
+### Added
+- **Test CI**: GitHub Actions workflow runs `bundle exec rake test` with a Redis service on Ruby 3.3, 3.4, 4.0, and 4.1.0-preview1 for pushes and pull requests to `main` and `develop`; the lockfile gains the `x86_64-linux` platform so the runners can install it
+
+### Removed
+- **Travis CI**: Deleted the unused `.travis.yml` (Ruby 2.6, bundler 1.16.5)
 
 ## [0.0.18] 2026-10-19
 
