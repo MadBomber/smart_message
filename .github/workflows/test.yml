@@ -10,12 +10,17 @@ on:
       - develop
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
@@ -28,7 +33,7 @@ jobs:
           - 6379:6379
         options: >-
           --health-cmd "redis-cli ping"
-          --health-interval 10s
+          --health-interval 2s
           --health-timeout 5s
           --health-retries 5
 
