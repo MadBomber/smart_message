@@ -188,12 +188,9 @@ module SmartMessage
     # @param limit [Integer] Maximum number of messages to show
     # @return [Array<Hash>] Array of DLQ entries
     def inspect_messages(limit: 10)
-      count = 0
-      read_entries_with_filter do |entry|
-        return [] if count >= limit
-        count += 1
-        entry
-      end
+      return [] unless limit.positive?
+
+      read_entries_with_filter.first(limit)
     end
 
     # Filter messages by message class
@@ -332,8 +329,10 @@ module SmartMessage
 
     # Generic file reading iterator with error handling
     # @param block [Proc] Block to execute for each valid entry
-    # @return [Array] Results from the block
+    # @return [Array] Results from the block, or an Enumerator of entries when no block is given
     def read_entries_with_filter(&block)
+      return enum_for(__method__) unless block
+
       return [] unless File.exist?(@file_path)
       
       results = []

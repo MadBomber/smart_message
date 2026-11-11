@@ -2,6 +2,7 @@
 # encoding: utf-8
 # frozen_string_literal: true
 
+require 'tmpdir'
 require_relative 'test_helper'
 
 class DeadLetterQueueTest < Minitest::Test
@@ -171,6 +172,37 @@ class DeadLetterQueueTest < Minitest::Test
     assert_equal 0, stats[:total]
   end
   
+  def test_inspect_messages_returns_first_limit_entries
+    Dir.mktmpdir do |dir|
+      dlq = SmartMessage::DeadLetterQueue.new(File.join(dir, 'dlq.jsonl'))
+      5.times { |i| dlq.enqueue(@message, error: "error #{i}") }
+
+      errors = dlq.inspect_messages(limit: 3).map { |entry| entry[:error] }
+
+      assert_equal ['error 0', 'error 1', 'error 2'], errors
+      assert_equal 5, dlq.size
+    end
+  end
+
+  def test_inspect_messages_returns_all_entries_under_limit
+    Dir.mktmpdir do |dir|
+      dlq = SmartMessage::DeadLetterQueue.new(File.join(dir, 'dlq.jsonl'))
+      2.times { |i| dlq.enqueue(@message, error: "error #{i}") }
+
+      assert_equal 2, dlq.inspect_messages(limit: 3).size
+    end
+  end
+
+  def test_inspect_messages_with_non_positive_limit_returns_empty
+    Dir.mktmpdir do |dir|
+      dlq = SmartMessage::DeadLetterQueue.new(File.join(dir, 'dlq.jsonl'))
+      dlq.enqueue(@message, error: 'error')
+
+      assert_empty dlq.inspect_messages(limit: 0)
+      assert_empty dlq.inspect_messages(limit: -1)
+    end
+  end
+
   def test_default_singleton
     # Test default singleton instance
     default_dlq = SmartMessage::DeadLetterQueue.default
