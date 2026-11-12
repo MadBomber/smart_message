@@ -15,7 +15,10 @@ module DispatcherTest
 
 
   class Test < Minitest::Test
+    RECEIVED = Queue.new
+
     def setup
+      RECEIVED.clear
       @dispatcher = SmartMessage::Dispatcher.new
 
       @m1 = DispatcherTest::MyMessage.new(
@@ -67,54 +70,39 @@ module DispatcherTest
 
 
     def test_dispatcher_routing
-      # simulate the subscription of a single message class with two
-      # business-logic received message processors.
+      # One message class with two subscribed processors
       @dispatcher.add('DispatcherTest::MyMessage', 'DispatcherTest::Test.processer_one')
       @dispatcher.add('DispatcherTest::MyMessage', 'DispatcherTest::Test.processer_two')
 
-      # verify that we have a single message class and to subscribed-to
-      # class methods that will receive the message.
       assert_equal 1, @dispatcher.subscribers.size
       assert_equal 'DispatcherTest::MyMessage', @dispatcher.subscribers.keys.first
       assert_equal 2, @dispatcher.subscribers['DispatcherTest::MyMessage'].size
 
-      # simulate the reception of a specific and route it to all of its
-      # subscribed-to processes.
       @dispatcher.route(@m1)
 
-      # NOTE: this shows that the messages are not being "processed"
-      #       in the order that they were published.
-      # TODO: Consider a buffered queue if the order of message processing
-      #       is important.
-      # 100.times do |msg_count|
-      #   @dispatcher.route(@m1._sm_header, msg_count.to_s)
-      # end
+      # Processors run on the pool; order between them is not guaranteed
+      wait_until(message: 'both processors should receive the message') { RECEIVED.size == 2 }
+
+      received = Array.new(2) { RECEIVED.pop }.sort_by(&:first)
+
+      assert_equal %i[one two], received.map(&:first)
+      received.each do |_processor, message|
+        assert_equal 'DispatcherTest::MyMessage', message._sm_header.message_class
+        assert_equal @m1._sm_header.uuid,         message._sm_header.uuid
+        assert_equal %w[one two three],           [message.foo, message.bar, message.baz]
+      end
     end
 
 
-    # The business logic for process a received subscribed-to message
-    # is implemented as a class method.
+    # The business logic for a received subscribed-to message is
+    # implemented as a class method; each records what it was given.
     def self.processer_one(message)
-      debug_me(' = ONE ='){[ :message ]}
-      unless 'DispatcherTest::MyMessage' == message._sm_header.message_class
-        puts "ERROR:  Expected DispatcherTest::MyMessage"
-        puts "        not #{message._sm_header.message_class}"
-      end
-      puts "INFO: " + message.to_json
-      puts
-      return 'it worked'
+      RECEIVED << [:one, message]
     end
 
 
     def self.processer_two(message)
-      debug_me(' == TWO =='){[ :message ]}
-      unless 'DispatcherTest::MyMessage' == message._sm_header.message_class
-        puts "ERROR:  Expected DispatcherTest::MyMessage"
-        puts "        not #{message._sm_header.message_class}"
-      end
-      puts "INFO: " + message.to_json
-      puts
-      return 'it worked'
+      RECEIVED << [:two, message]
     end
 
   end # class Test < Minitest::Test
