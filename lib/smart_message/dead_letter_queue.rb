@@ -407,7 +407,7 @@ module SmartMessage
     #   nil when it was stored without one (a transport with no channels)
     def stored_class_name(entry)
       name = entry.dig(:header, :message_class)
-      name unless name == UNKNOWN_CLASS
+      name unless name.to_s.empty? || name == UNKNOWN_CLASS
     end
   end
 end

@@ -417,15 +417,17 @@ class DeadLetterQueueTest < Minitest::Test
     OrderMessage.reset_transport
   end
 
-  def test_replay_of_a_raw_entry_from_a_channelless_transport_uses_the_payload_header
-    enqueue_raw_order(stored_as: SmartMessage::DeadLetterQueue::UNKNOWN_CLASS)
-    transport = SmartMessage::Transport::MemoryTransport.new(auto_process: false)
+  def test_replay_of_a_raw_entry_stored_without_a_class_uses_the_payload_header
+    [SmartMessage::DeadLetterQueue::UNKNOWN_CLASS, nil].each do |stored_as|
+      enqueue_raw_order(stored_as: stored_as)
+      transport = SmartMessage::Transport::MemoryTransport.new(auto_process: false)
 
-    result = @dlq.replay_one(transport)
+      result = @dlq.replay_one(transport)
 
-    assert result[:success]
-    assert_instance_of OrderMessage, result[:message]
-    assert @dlq.empty?
+      assert result[:success], "stored as #{stored_as.inspect}: #{result[:error]}"
+      assert_instance_of OrderMessage, result[:message]
+      assert @dlq.empty?
+    end
   end
 
   def test_default_path_is_absolute_and_not_in_the_working_directory
