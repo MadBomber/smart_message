@@ -30,6 +30,10 @@ module DispatcherTest
       )
     end
 
+    def teardown
+      @dispatcher.shutdown(timeout: 2)
+    end
+
     def test_dispatcher_admin
       refute_nil  @dispatcher
       assert      @dispatcher.running?, '@router_pool should be ready to process messages'
@@ -78,12 +82,12 @@ module DispatcherTest
       assert_equal 'DispatcherTest::MyMessage', @dispatcher.subscribers.keys.first
       assert_equal 2, @dispatcher.subscribers['DispatcherTest::MyMessage'].size
 
-      @dispatcher.route(@m1)
+      assert_equal 2, @dispatcher.route(@m1)
 
-      # Processors run on the pool; order between them is not guaranteed
-      received = Array.new(2) do
-        RECEIVED.pop(timeout: 5) or flunk('both processors should receive the message')
-      end.sort_by(&:first)
+      # Shutting down drains the pool, so every delivery has happened.
+      # Processors run concurrently; their order is not guaranteed.
+      assert @dispatcher.shutdown(timeout: 5), 'processors should finish in time'
+      received = Array.new(RECEIVED.size) { RECEIVED.pop }.sort_by(&:first)
 
       assert_equal %i[one two], received.map(&:first)
       received.each do |_processor, message|
