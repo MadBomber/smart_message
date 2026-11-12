@@ -81,9 +81,9 @@ module DispatcherTest
       @dispatcher.route(@m1)
 
       # Processors run on the pool; order between them is not guaranteed
-      wait_until(message: 'both processors should receive the message') { RECEIVED.size == 2 }
-
-      received = Array.new(2) { RECEIVED.pop }.sort_by(&:first)
+      received = Array.new(2) do
+        RECEIVED.pop(timeout: 5) or flunk('both processors should receive the message')
+      end.sort_by(&:first)
 
       assert_equal %i[one two], received.map(&:first)
       received.each do |_processor, message|
