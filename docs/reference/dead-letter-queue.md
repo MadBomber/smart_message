@@ -116,9 +116,9 @@ Replay semantics:
 - **Replay publishes; it does not call a handler.** The message goes out on its class's transports (or the override) and reaches whoever is subscribed, like any published message. This is true for handler failures too: replaying an entry whose `transport` is `handler:OrderMessage.process` republishes the message, and every current subscriber of the class receives it, not only the handler that failed. Enable [deduplication](message-deduplication.md) if the other handlers must not process it again; the failed handler's reservation was released, so it will run.
 - **An entry is removed only after it has been published again.** A replay that fails leaves the entry in the queue, with `retry_count` raised by one and `error` replaced by `"Replay failed: ..."`.
 - **The message class must be loaded.** Replay needs the `SmartMessage::Base` subclass named in the entry, and that class needs a transport (or pass one).
-- **The message is validated again,** because replay calls `publish`.
+- **The message is validated again before it is sent.** An invalid message counts as a failed replay.
 - **An undecodable payload cannot be replayed as it is.** Its replay fails for the same reason it could not be decoded, and it stays in the queue for inspection.
-- If the replay publish fails on a transport, `publish` writes a new entry for that failure as usual.
+- **A failed replay does not add a second entry.** Replay sends straight to the transports, not through `publish`, so a transport failure only updates the existing entry. Transports are tried in order and replay stops at the first failure, so any before the failing one have already sent the message, and the next replay sends it to them again.
 
 `dequeue` removes and returns the oldest entry without publishing it. `clear` deletes the queue file.
 
