@@ -90,6 +90,8 @@ module DispatcherTest
       received = Array.new(RECEIVED.size) { RECEIVED.pop }.sort_by(&:first)
 
       assert_equal %i[one two], received.map(&:first)
+      # Each processor gets its own copy of the message
+      refute_same received.dig(0, 1), received.dig(1, 1)
       received.each do |_processor, message|
         assert_equal 'DispatcherTest::MyMessage', message._sm_header.message_class
         assert_equal @m1._sm_header.uuid,         message._sm_header.uuid

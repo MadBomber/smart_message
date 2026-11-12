@@ -54,10 +54,7 @@ module SubscribeTest
         @my_message.publish
       end
 
-      wait_until(message: "expected #{how_many} messages processed") do
-        SS.get('SubscribeTest::MyMessage', 'process') == how_many &&
-          SS.get('SubscribeTest::MyMessage', 'business_logic') == how_many
-      end
+      wait_for_dispatch(SubscribeTest::MyMessage.transport)
 
       assert_equal how_many, SS.get('SubscribeTest::MyMessage', 'publish')
 
