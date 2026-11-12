@@ -84,14 +84,14 @@ module SmartMessage
     # (for example, one that failed to decode on receive).
     #
     # @param message_class [String, nil] the class or channel it arrived
-    #   for; nil or blank is stored as UNKNOWN_CLASS
+    #   for; nil is stored as UNKNOWN_CLASS
     # @param payload [String] the serialized bytes, stored untouched
     # @param error_info [Hash] :error, :retry_count, :transport,
     #   :stack_trace, :serializer (payload format; default 'json')
     # @return [Hash] the stored entry
     def enqueue_raw(message_class:, payload:, error_info: {})
       append(build_entry(
-        header:         { message_class: stored_class_name({ message_class: message_class }) || UNKNOWN_CLASS },
+        header:         { message_class: (message_class || UNKNOWN_CLASS).to_s },
         payload:        payload.to_s,
         payload_format: (error_info[:serializer] || 'json').to_s,
         error_info:     error_info
@@ -401,17 +401,17 @@ module SmartMessage
       Envelope.decode(
         entry[:payload],
         serializer:      serializer.new,
-        channel:         stored_class_name(entry[:header] || {}),
+        channel:         stored_class_name(entry),
         fallback_header: entry[:header]
       )
     end
 
-    # @param header [Hash] an entry header, Symbol keys
-    # @return [String, nil] the message class in the header, or nil when it
-    #   names none (missing, blank, or UNKNOWN_CLASS)
-    def stored_class_name(header)
-      name = header[:message_class].to_s
-      name unless name.strip.empty? || name == UNKNOWN_CLASS
+    # @return [String, nil] the message class the entry was stored for, or
+    #   nil when it was stored without one (UNKNOWN_CLASS or no class at all)
+    def stored_class_name(entry)
+      header = entry[:header]
+      name   = header[:message_class] if header.is_a?(Hash)
+      name unless name == UNKNOWN_CLASS
     end
   end
 end
