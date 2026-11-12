@@ -44,19 +44,6 @@ require 'ap'
 require 'debug_me'
 include DebugMe
 
-unless defined?(DebugMeDefaultOptions)
-  DebugMeDefaultOptions = {
-    tag: 'DEBUG:',   # A tag to prepend to each output line
-    time: true,      # Include a time-stamp in front of the tag
-    header: true,    # Print a header string before printing the variables
-    lvar: true,      # Include local variables
-    ivar: true,      # Include instance variables in the output
-    cvar: true,      # Include class variables in the output
-    cconst: true,    # Include class constants
-    file: File.open(File.join(TEST_RUN_DIR, 'debug_me.log'), 'a') # The output file
-  }
-end
-
 Minitest.after_run { FileUtils.remove_entry(TEST_RUN_DIR) if File.directory?(TEST_RUN_DIR) }
 
 # Short name used throughout the tests
