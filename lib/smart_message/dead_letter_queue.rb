@@ -22,6 +22,11 @@ module SmartMessage
   # Replay never removes an entry before it has been published again: a
   # failed replay leaves the entry in the queue with its retry count raised.
   class DeadLetterQueue
+    # The header message_class of a raw entry that arrived with no class
+    # (from a transport with no channels).  Replay of such an entry trusts
+    # the class named in its payload.
+    UNKNOWN_CLASS = 'Unknown'
+
     attr_reader :file_path
 
     @default_mutex = Mutex.new
@@ -78,14 +83,15 @@ module SmartMessage
     # Add a serialized payload that could not be turned into a message
     # (for example, one that failed to decode on receive).
     #
-    # @param message_class [String] the class or channel it arrived for
+    # @param message_class [String, nil] the class or channel it arrived
+    #   for; nil is stored as UNKNOWN_CLASS
     # @param payload [String] the serialized bytes, stored untouched
     # @param error_info [Hash] :error, :retry_count, :transport,
     #   :stack_trace, :serializer (payload format; default 'json')
     # @return [Hash] the stored entry
     def enqueue_raw(message_class:, payload:, error_info: {})
       append(build_entry(
-        header:         { message_class: message_class.to_s },
+        header:         { message_class: (message_class || UNKNOWN_CLASS).to_s },
         payload:        payload.to_s,
         payload_format: (error_info[:serializer] || 'json').to_s,
         error_info:     error_info
@@ -204,7 +210,7 @@ module SmartMessage
 
       {
         total:    valid.size,
-        by_class: valid.map { |entry| (entry.dig(:header, :message_class) || 'Unknown').split('::').last }.tally,
+        by_class: valid.map { |entry| (entry.dig(:header, :message_class) || UNKNOWN_CLASS).split('::').last }.tally,
         by_error: valid.map { |entry| entry[:error] || 'Unknown error' }.tally,
         corrupt:  lines.size - valid.size
       }
@@ -388,13 +394,24 @@ module SmartMessage
 
     # @return [SmartMessage::Base] the message stored in an entry, with its
     #   original header (same UUID)
+    # @raise [SmartMessage::Errors::MessageClassMismatch] when the payload
+    #   names a different class than the one the entry was stored for
     def rebuild_message(entry)
       serializer = Serializer.for(entry[:payload_format]) || Serializer::Json
       Envelope.decode(
         entry[:payload],
         serializer:      serializer.new,
+        channel:         stored_class_name(entry),
         fallback_header: entry[:header]
       )
+    end
+
+    # @return [String, nil] the message class the entry was stored for, or
+    #   nil when it was stored without one (UNKNOWN_CLASS or no class at all)
+    def stored_class_name(entry)
+      header = entry[:header]
+      name   = header[:message_class] if header.is_a?(Hash)
+      name unless name == UNKNOWN_CLASS
     end
   end
 end

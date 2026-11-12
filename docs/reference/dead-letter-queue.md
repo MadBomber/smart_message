@@ -66,7 +66,7 @@ If writing to the queue itself fails, that is logged at error level and the orig
 |-------|---------|
 | `id` | Unique id of the entry |
 | `timestamp` | When the entry was written |
-| `header` | The message header, for reading and filtering. For a payload that could not be decoded, only `message_class` (the channel it arrived for, or `"Unknown"`). Replay uses the header inside `payload`. |
+| `header` | The message header, for reading and filtering. For a payload that could not be decoded, only `message_class` (the channel it arrived for, or `"Unknown"`). Replay uses the header inside `payload`, and fails when that header names a different class than this `message_class` (unless it is `"Unknown"`). |
 | `payload` | The serialized message, including its header |
 | `payload_format` | Serializer of the payload; `"json"` |
 | `error` | `"ErrorClass: message"` |

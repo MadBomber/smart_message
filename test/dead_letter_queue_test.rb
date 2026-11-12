@@ -268,6 +268,12 @@ class DeadLetterQueueTest < Minitest::Test
     OrderMessage.new(**attrs)
   end
 
+  # Store an encoded OrderMessage as a raw entry received for +stored_as+
+  def enqueue_raw_order(stored_as:)
+    payload = SmartMessage::Envelope.encode(create_order_message("ORD-1"), SmartMessage::Serializer::Json.new)
+    @dlq.enqueue_raw(message_class: stored_as, payload: payload, error_info: { error: "could not be received" })
+  end
+
   public
 
   # ---- queue safety (review finding R6) ---------------------------------
@@ -393,6 +399,63 @@ class DeadLetterQueueTest < Minitest::Test
 
     refute result[:success], "an undecodable payload cannot be replayed"
     assert_equal 1, @dlq.size, "and it stays in the queue"
+  end
+
+  def test_replay_rebuilds_a_raw_entry_only_as_the_class_it_was_stored_for
+    enqueue_raw_order(stored_as: TestMessage.name)
+    transport = SmartMessage::Transport::MemoryTransport.new(auto_process: false)
+    OrderMessage.transport(transport)
+
+    results = @dlq.replay_all
+
+    assert_equal 0, results[:success]
+    assert_equal 1, results[:failed]
+    assert_match(/MessageClassMismatch/, results[:errors].first)
+    assert_equal 0, transport.message_count, "the payload is not published as #{OrderMessage}"
+    assert_equal 1, @dlq.size, "the entry stays in the queue"
+  ensure
+    OrderMessage.reset_transport
+  end
+
+  def test_replay_of_a_raw_entry_stored_without_a_class_uses_the_payload_header
+    [SmartMessage::DeadLetterQueue::UNKNOWN_CLASS, nil].each do |stored_as|
+      @dlq.clear
+      entry = enqueue_raw_order(stored_as: stored_as)
+
+      result = @dlq.replay_one(SmartMessage::Transport::MemoryTransport.new(auto_process: false))
+
+      assert_equal SmartMessage::DeadLetterQueue::UNKNOWN_CLASS, entry[:header][:message_class]
+      assert result[:success], "stored as #{stored_as.inspect}: #{result[:error]}"
+      assert_instance_of OrderMessage, result[:message]
+      assert @dlq.empty?
+    end
+  end
+
+  def test_replay_of_a_raw_entry_stored_for_a_blank_channel_fails
+    ["", " "].each do |stored_as|
+      @dlq.clear
+      enqueue_raw_order(stored_as: stored_as)
+
+      result = @dlq.replay_one(SmartMessage::Transport::MemoryTransport.new(auto_process: false))
+
+      refute result[:success], "stored as #{stored_as.inspect}"
+      assert_match(/MessageClassMismatch/, result[:error])
+    end
+  end
+
+  def test_replay_of_an_entry_whose_header_names_no_class_uses_the_payload_header
+    entry = enqueue_raw_order(stored_as: OrderMessage.name)
+    [{}, "not a header"].each do |header|
+      File.write(@test_dlq_file, "#{JSON.generate(entry.merge(header: header))}\n")
+
+      result = @dlq.replay_one(SmartMessage::Transport::MemoryTransport.new(auto_process: false))
+
+      assert result[:success], "header #{header.inspect}: #{result[:error]}"
+      assert @dlq.empty?
+    end
+    File.write(@test_dlq_file, "#{JSON.generate(entry.except(:header))}\n")
+    assert @dlq.replay_one(SmartMessage::Transport::MemoryTransport.new(auto_process: false))[:success]
+    assert @dlq.empty?
   end
 
   def test_default_path_is_absolute_and_not_in_the_working_directory
