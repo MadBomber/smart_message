@@ -388,13 +388,23 @@ module SmartMessage
 
     # @return [SmartMessage::Base] the message stored in an entry, with its
     #   original header (same UUID)
+    # @raise [SmartMessage::Errors::MessageClassMismatch] when the payload
+    #   names a different class than the one the entry was stored for
     def rebuild_message(entry)
       serializer = Serializer.for(entry[:payload_format]) || Serializer::Json
       Envelope.decode(
         entry[:payload],
         serializer:      serializer.new,
+        channel:         stored_class_name(entry),
         fallback_header: entry[:header]
       )
+    end
+
+    # @return [String, nil] the message class the entry was stored for, or
+    #   nil when it was stored without one (a transport with no channels)
+    def stored_class_name(entry)
+      name = entry.dig(:header, :message_class)
+      name unless name.nil? || name == 'Unknown'
     end
   end
 end

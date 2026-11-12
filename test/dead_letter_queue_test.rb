@@ -395,6 +395,38 @@ class DeadLetterQueueTest < Minitest::Test
     assert_equal 1, @dlq.size, "and it stays in the queue"
   end
 
+  def test_replay_rebuilds_a_raw_entry_only_as_the_class_it_was_stored_for
+    order = OrderMessage.new(order_id: "ORD-1", from: "order-service")
+    payload = SmartMessage::Envelope.encode(order, SmartMessage::Serializer::Json.new)
+    @dlq.enqueue_raw(message_class: TestMessage.name, payload: payload,
+                     error_info: { error: "MessageClassMismatch: received on another channel" })
+    transport = SmartMessage::Transport::MemoryTransport.new(auto_process: false)
+    OrderMessage.transport(transport)
+
+    results = @dlq.replay_all
+
+    assert_equal 0, results[:success]
+    assert_equal 1, results[:failed]
+    assert_match(/MessageClassMismatch/, results[:errors].first)
+    assert_equal 0, transport.message_count, "the payload is not published as #{OrderMessage}"
+    assert_equal 1, @dlq.size, "the entry stays in the queue"
+  ensure
+    OrderMessage.reset_transport
+  end
+
+  def test_replay_of_a_raw_entry_from_a_channelless_transport_uses_the_payload_header
+    order = OrderMessage.new(order_id: "ORD-1", from: "order-service")
+    payload = SmartMessage::Envelope.encode(order, SmartMessage::Serializer::Json.new)
+    @dlq.enqueue_raw(message_class: "Unknown", payload: payload, error_info: { error: "handler failed" })
+    transport = SmartMessage::Transport::MemoryTransport.new(auto_process: false)
+
+    result = @dlq.replay_one(transport)
+
+    assert result[:success]
+    assert_instance_of OrderMessage, result[:message]
+    assert @dlq.empty?
+  end
+
   def test_default_path_is_absolute_and_not_in_the_working_directory
     path = SmartMessage::Configuration.default_dlq_path({})
 

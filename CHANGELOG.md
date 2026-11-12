@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Dead letter queue**: replay rebuilds an entry only as the message class it was stored for; a payload whose header names another class fails to replay and stays in the queue
+
 ## [0.1.0] 2026-11-11
 
 A reliability release. It changes the public API in several places; the
