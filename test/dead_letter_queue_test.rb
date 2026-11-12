@@ -268,6 +268,12 @@ class DeadLetterQueueTest < Minitest::Test
     OrderMessage.new(**attrs)
   end
 
+  # Store an encoded OrderMessage as a raw entry received for +stored_as+
+  def enqueue_raw_order(stored_as:)
+    payload = SmartMessage::Envelope.encode(create_order_message("ORD-1"), SmartMessage::Serializer::Json.new)
+    @dlq.enqueue_raw(message_class: stored_as, payload: payload, error_info: { error: "could not be received" })
+  end
+
   public
 
   # ---- queue safety (review finding R6) ---------------------------------
@@ -396,10 +402,7 @@ class DeadLetterQueueTest < Minitest::Test
   end
 
   def test_replay_rebuilds_a_raw_entry_only_as_the_class_it_was_stored_for
-    order = OrderMessage.new(order_id: "ORD-1", from: "order-service")
-    payload = SmartMessage::Envelope.encode(order, SmartMessage::Serializer::Json.new)
-    @dlq.enqueue_raw(message_class: TestMessage.name, payload: payload,
-                     error_info: { error: "MessageClassMismatch: received on another channel" })
+    enqueue_raw_order(stored_as: TestMessage.name)
     transport = SmartMessage::Transport::MemoryTransport.new(auto_process: false)
     OrderMessage.transport(transport)
 
@@ -415,9 +418,7 @@ class DeadLetterQueueTest < Minitest::Test
   end
 
   def test_replay_of_a_raw_entry_from_a_channelless_transport_uses_the_payload_header
-    order = OrderMessage.new(order_id: "ORD-1", from: "order-service")
-    payload = SmartMessage::Envelope.encode(order, SmartMessage::Serializer::Json.new)
-    @dlq.enqueue_raw(message_class: "Unknown", payload: payload, error_info: { error: "handler failed" })
+    enqueue_raw_order(stored_as: SmartMessage::DeadLetterQueue::UNKNOWN_CLASS)
     transport = SmartMessage::Transport::MemoryTransport.new(auto_process: false)
 
     result = @dlq.replay_one(transport)

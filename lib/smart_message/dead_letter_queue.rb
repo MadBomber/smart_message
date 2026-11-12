@@ -22,6 +22,9 @@ module SmartMessage
   # Replay never removes an entry before it has been published again: a
   # failed replay leaves the entry in the queue with its retry count raised.
   class DeadLetterQueue
+    # The header message_class of a raw entry from a transport with no channels
+    UNKNOWN_CLASS = 'Unknown'
+
     attr_reader :file_path
 
     @default_mutex = Mutex.new
@@ -204,7 +207,7 @@ module SmartMessage
 
       {
         total:    valid.size,
-        by_class: valid.map { |entry| (entry.dig(:header, :message_class) || 'Unknown').split('::').last }.tally,
+        by_class: valid.map { |entry| (entry.dig(:header, :message_class) || UNKNOWN_CLASS).split('::').last }.tally,
         by_error: valid.map { |entry| entry[:error] || 'Unknown error' }.tally,
         corrupt:  lines.size - valid.size
       }
@@ -404,7 +407,7 @@ module SmartMessage
     #   nil when it was stored without one (a transport with no channels)
     def stored_class_name(entry)
       name = entry.dig(:header, :message_class)
-      name unless name.nil? || name == 'Unknown'
+      name unless name == UNKNOWN_CLASS
     end
   end
 end
