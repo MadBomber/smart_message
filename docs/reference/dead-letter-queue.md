@@ -118,7 +118,7 @@ Replay semantics:
 - **The message class must be loaded.** Replay needs the `SmartMessage::Base` subclass named in the entry, and that class needs a transport (or pass one).
 - **The message is validated again before it is sent.** An invalid message counts as a failed replay.
 - **An undecodable payload cannot be replayed as it is.** Its replay fails for the same reason it could not be decoded, and it stays in the queue for inspection.
-- **A failed replay does not add a second entry.** Replay sends straight to the transports, not through `publish`, so a transport failure only updates the existing entry. Transports are tried in order, so any that came before the failing one have already sent the message, and the next replay sends it to them again.
+- **A failed replay does not add a second entry.** Replay sends straight to the transports, not through `publish`, so a transport failure only updates the existing entry. Transports are tried in order and replay stops at the first failure, so any before the failing one have already sent the message, and the next replay sends it to them again.
 
 `dequeue` removes and returns the oldest entry without publishing it. `clear` deletes the queue file.
 
