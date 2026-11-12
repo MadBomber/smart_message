@@ -418,16 +418,28 @@ class DeadLetterQueueTest < Minitest::Test
   end
 
   def test_replay_of_a_raw_entry_stored_without_a_class_uses_the_payload_header
-    [SmartMessage::DeadLetterQueue::UNKNOWN_CLASS, nil].each do |stored_as|
-      enqueue_raw_order(stored_as: stored_as)
-      transport = SmartMessage::Transport::MemoryTransport.new(auto_process: false)
+    [SmartMessage::DeadLetterQueue::UNKNOWN_CLASS, nil, " "].each do |stored_as|
+      @dlq.clear
+      entry = enqueue_raw_order(stored_as: stored_as)
 
-      result = @dlq.replay_one(transport)
+      result = @dlq.replay_one(SmartMessage::Transport::MemoryTransport.new(auto_process: false))
 
+      assert_equal SmartMessage::DeadLetterQueue::UNKNOWN_CLASS, entry[:header][:message_class]
       assert result[:success], "stored as #{stored_as.inspect}: #{result[:error]}"
       assert_instance_of OrderMessage, result[:message]
       assert @dlq.empty?
     end
+  end
+
+  def test_replay_of_an_entry_whose_header_has_no_class_uses_the_payload_header
+    entry = enqueue_raw_order(stored_as: OrderMessage.name)
+    @dlq.clear
+    File.write(@test_dlq_file, "#{JSON.generate(entry.merge(header: {}))}\n")
+
+    result = @dlq.replay_one(SmartMessage::Transport::MemoryTransport.new(auto_process: false))
+
+    assert result[:success], result[:error]
+    assert @dlq.empty?
   end
 
   def test_default_path_is_absolute_and_not_in_the_working_directory

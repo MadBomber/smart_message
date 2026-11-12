@@ -202,7 +202,7 @@ module SmartMessage
 
       def dead_letter_undecodable(message_class, serialized_message, error)
         SmartMessage::DeadLetterQueue.default.enqueue_raw(
-          message_class: message_class || SmartMessage::DeadLetterQueue::UNKNOWN_CLASS,
+          message_class: message_class,
           payload:       serialized_message,
           error_info:    { error: "#{error.class.name}: #{error.message}", transport: self.class.name }
         )

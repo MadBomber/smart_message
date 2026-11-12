@@ -22,7 +22,9 @@ module SmartMessage
   # Replay never removes an entry before it has been published again: a
   # failed replay leaves the entry in the queue with its retry count raised.
   class DeadLetterQueue
-    # The header message_class of a raw entry from a transport with no channels
+    # The header message_class of a raw entry that arrived with no class
+    # (from a transport with no channels).  Replay of such an entry trusts
+    # the class named in its payload.
     UNKNOWN_CLASS = 'Unknown'
 
     attr_reader :file_path
@@ -81,14 +83,15 @@ module SmartMessage
     # Add a serialized payload that could not be turned into a message
     # (for example, one that failed to decode on receive).
     #
-    # @param message_class [String] the class or channel it arrived for
+    # @param message_class [String, nil] the class or channel it arrived
+    #   for; nil or blank is stored as UNKNOWN_CLASS
     # @param payload [String] the serialized bytes, stored untouched
     # @param error_info [Hash] :error, :retry_count, :transport,
     #   :stack_trace, :serializer (payload format; default 'json')
     # @return [Hash] the stored entry
     def enqueue_raw(message_class:, payload:, error_info: {})
       append(build_entry(
-        header:         { message_class: message_class.to_s },
+        header:         { message_class: stored_class_name({ message_class: message_class }) || UNKNOWN_CLASS },
         payload:        payload.to_s,
         payload_format: (error_info[:serializer] || 'json').to_s,
         error_info:     error_info
@@ -398,16 +401,17 @@ module SmartMessage
       Envelope.decode(
         entry[:payload],
         serializer:      serializer.new,
-        channel:         stored_class_name(entry),
+        channel:         stored_class_name(entry[:header] || {}),
         fallback_header: entry[:header]
       )
     end
 
-    # @return [String, nil] the message class the entry was stored for, or
-    #   nil when it was stored without one (a transport with no channels)
-    def stored_class_name(entry)
-      name = entry.dig(:header, :message_class)
-      name unless name.to_s.empty? || name == UNKNOWN_CLASS
+    # @param header [Hash] an entry header, Symbol keys
+    # @return [String, nil] the message class in the header, or nil when it
+    #   names none (missing, blank, or UNKNOWN_CLASS)
+    def stored_class_name(header)
+      name = header[:message_class].to_s
+      name unless name.strip.empty? || name == UNKNOWN_CLASS
     end
   end
 end
