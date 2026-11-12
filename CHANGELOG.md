@@ -50,7 +50,7 @@ A reliability release. It changes the public API in several places; the
 - **Test CI**: GitHub Actions workflow runs `bundle exec rake test` with a Redis service on Ruby 4.0 and 4.1.0-preview1 for pushes and pull requests to `main` and `develop`
 - **Tests**: 443 tests, none skipped when Redis is available (was 319 with 27 skipped); every test run uses its own temporary directory and Redis namespace
 
-### Tests
+### Fixed
 - **Lost messages**: a failed publish was counted and reported as a success
 - **Shared class state**: setting a transport, logger, or addressing value on one message class changed other classes; versioned subclasses built messages that failed their own validation; subclasses did not enforce their parent's validators
 - **Caller data**: building a message converted the caller's nested Hashes in place and shared them with the message
@@ -84,7 +84,7 @@ A reliability release. It changes the public API in several places; the
   - **Templates**: Console and file output share one line template; `entry.attributes` replaces the removed `entry.tags`
 - **Pretty Printing**: `pretty_print` uses amazing_print when installed and falls back to the standard library `pp`
 
-### Tests
+### Fixed
 - **Duplicate Keys in `to_h`**: `Base#to_h` returned every property twice (nil Symbol keys plus String keys)
   - **Cause**: `Hashie::Dash#to_h` merges Symbol-keyed defaults with the String keys stored by `IndifferentAccess`
   - **Impact**: json 3.x raises on duplicate keys, so every JSON encode failed silently behind the serializer circuit breaker
@@ -109,7 +109,7 @@ A reliability release. It changes the public API in several places; the
   - **Educational Value**: Simplified output makes format differences more apparent and easier to understand
   - **Documentation Updates**: Updated usage examples and JQ query patterns to reflect simple property structure
 
-### Tests
+### Fixed
 - **FileTransport Test Compatibility**: Removed invalid compatibility test for raw string publishing
   - **Issue**: Test `test_publish_compatibility_method` was passing raw strings to FileTransport.publish
   - **Architecture Decision**: FileTransport should only handle SmartMessage objects, not raw strings
@@ -131,7 +131,7 @@ A reliability release. It changes the public API in several places; the
   - **File Operations**: Return IO objects directly in `open_file_handle` instead of trying to open them
   - **Compatibility**: Maintains full backward compatibility with string file paths
 
-### Tests
+### Fixed
 - **StdoutTransport Option Precedence**: Fixed critical configuration bug preventing file output
   - **Issue**: `super(options.merge(file_path: $stdout))` caused defaults to always override user options
   - **Impact**: StdoutTransport could not write to files when `file_path` was provided
@@ -169,7 +169,7 @@ A reliability release. It changes the public API in several places; the
   - **Multi-Transport File Demo** (`examples/file/04_multi_transport_file_demo.rb`): Advanced patterns including fan-out to multiple files, conditional routing, multi-transport combinations, archival strategies, and performance monitoring
   - **Interactive Demo Runner** (`examples/file/00_run_all_file_demos.rb`): Menu-driven demo launcher with comprehensive error handling and user-friendly navigation
 
-### Tests
+### Fixed
 - **Demo Configuration Syntax**: Fixed incorrect `.configure` method usage throughout FileTransport demos
   - **Issue**: Demos were using non-existent `MessageClass.configure` method causing "undefined method 'configure'" errors
   - **Solution**: Updated all configuration calls to use `MessageClass.class_eval { transport transport_instance }` pattern consistent with working examples
@@ -266,7 +266,7 @@ A reliability release. It changes the public API in several places; the
 
 ## [0.0.14] 2025-09-10
 
-### Tests
+### Fixed
 - **Configuration Architecture**: Fixed `SmartMessage::Serializer.default` method to properly reflect transport-owned serialization architecture
   - **Issue**: `SmartMessage::Serializer.default` was trying to access a non-existent `default_serializer` method on global configuration
   - **Root Cause**: Serialization belongs to transports, not global configuration, but the method was attempting to check global config first
@@ -290,7 +290,7 @@ A reliability release. It changes the public API in several places; the
   - **Backward Compatibility**: Added `_sm_payload` and `split` methods to maintain compatibility with existing proc handlers
   - **Performance**: Simplified message processing pipeline with direct message instance passing instead of complex wrapper handling
 
-### Tests
+### Fixed
 - **Message Reconstruction**: Fixed critical bug in `SmartMessage::Base#initialize` where payload properties were not properly extracted from flat serialized structure
   - **Root Cause**: Initialization logic looked for `props[:_sm_payload]` but flat structure stores properties directly in `props`
   - **Solution**: Changed to `payload_props = props.except(:_sm_header)` to extract all non-header properties
@@ -356,7 +356,7 @@ A reliability release. It changes the public API in several places; the
   - Configuration DSL: `ddq_size`, `ddq_storage`, `enable_deduplication!`, `disable_deduplication!`
   - Comprehensive documentation and examples demonstrating distributed message processing scenarios
 
-### Tests
+### Fixed
 - **Message Filtering Logic**: Fixed critical bug in subscription filtering where nil broadcast filters caused incorrect behavior
   - **Root Cause**: `filters.key?(:broadcast)` returned true even when broadcast value was nil
   - **Solution**: Changed condition to check for non-nil values: `filters[:to] || filters[:broadcast]`
@@ -429,7 +429,7 @@ A reliability release. It changes the public API in several places; the
   - Better transport registration error reporting
   - Clearer serialization failure messages
 
-### Tests
+### Fixed
 - **Message Processing Simplification**: Removed unnecessary complexity in message wrapper
   - Eliminated redundant processing steps in wrapper initialization
   - Streamlined header and payload handling
@@ -475,7 +475,7 @@ A reliability release. It changes the public API in several places; the
   - Thread-safe operations with Mutex protection for concurrent access
   - Integration with circuit breaker fallbacks for automatic failed message capture
 
-### Tests
+### Fixed
 - **Code Quality: Dead Letter Queue Refactoring**: Eliminated multiple code smells for improved maintainability
   - **Hardcoded Serialization Assumption**: Added `payload_format` tracking with flexible deserialization supporting multiple formats
   - **Incomplete Header Restoration**: Complete header field restoration including `message_class`, `published_at`, `publisher_pid`, and `version`
@@ -518,7 +518,7 @@ A reliability release. It changes the public API in several places; the
   - Built-in fallback mechanisms including dead letter queue, retry with exponential backoff, and graceful degradation
   - Circuit breaker statistics and introspection capabilities for monitoring and debugging
 
-### Tests
+### Fixed
 - **Critical: Redis Transport Header Preservation**: Fixed message header information loss during Redis pub/sub transport
   - **Root Cause**: Redis transport was only sending message payload through channels, reconstructing generic headers on receive
   - **Impact**: Message addressing information (`from`, `to`, `reply_to`) was lost, breaking entity-aware filtering and routing
@@ -599,7 +599,7 @@ A reliability release. It changes the public API in several places; the
   - This change enables entity-aware filtering to work correctly with dynamic addressing
   - Previous behavior kept original addressing in headers while instance methods showed new values
 
-### Tests
+### Fixed
 - **Message Filtering Logic**: Resolved critical filtering implementation issues
   - Fixed message_matches_filters? method to properly evaluate filter criteria
   - Corrected AND/OR logic for combined broadcast and entity-specific filters
@@ -652,7 +652,7 @@ A reliability release. It changes the public API in several places; the
   - Enhanced readability and educational value of all demonstration code
   - Consistent documentation patterns across all messaging scenarios
 
-### Tests
+### Fixed
 - **Critical: Infinite Loop Bug in Chat Examples**
   - Fixed infinite message loops in `examples/03_many_to_many_chat.rb` and `examples/tmux_chat/bot_agent.rb`
   - **Root Cause**: Bots responding to other bots' messages containing trigger keywords ("hello", "hi")
@@ -739,7 +739,7 @@ A reliability release. It changes the public API in several places; the
 - Enhanced error handling and console compatibility across different Ruby environments
 - Updated transport terminology throughout codebase for consistency
 
-### Tests
+### Fixed
 - IO.console compatibility issues in tmux chat visualization components
 - Method signature consistency for keyword arguments across all transport classes
 - Console detection and graceful fallbacks for terminal size detection
