@@ -73,7 +73,7 @@
   
   <rect x="570" y="140" width="160" height="60" class="component"/>
   <text x="650" y="165" text-anchor="middle" class="text">DashboardStatusMessage</text>
-  <text x="650" y="185" text-anchor="middle" class="text">Every 10 seconds</text>
+  <text x="650" y="185" text-anchor="middle" class="text">Broadcast (no to:)</text>
   
   <!-- Flow arrows -->
   <path d="M 250 150 L 300 140" class="flow"/>
@@ -89,7 +89,7 @@
   <rect x="50" y="300" width="700" height="180" fill="#1a1a1a" stroke="#4a9eff" rx="8"/>
   <text x="70" y="325" class="title">Dashboard Status Message Content</text>
   
-  <text x="70" y="350" class="text">📊 System Metrics (Updated every 10 seconds):</text>
+  <text x="70" y="350" class="text">📊 System Metrics:</text>
   <text x="90" y="365" class="subtitle">• Active device count: Devices that have reported within last 30 seconds</text>
   <text x="90" y="380" class="subtitle">• Total alert count: Alerts generated in the last 5 minutes</text>
   <text x="90" y="395" class="subtitle">• Average battery level: Calculated across all battery-powered devices</text>

@@ -1,228 +1,87 @@
 #!/usr/bin/env ruby
-# examples/11_global_configuration_example.rb
+# examples/memory/14_global_configuration_demo.rb
+# frozen_string_literal: true
 #
-# Global Configuration System Example
+# Global configuration
 #
-# This example demonstrates how to use SmartMessage's global configuration
-# system to set default logger, transport, and serializer for all message
-# classes in your application.
+# SmartMessage.configure sets what every message class uses unless the
+# class sets its own: the transport, the logger, the dead letter queue
+# file, and the dispatcher limits.  There is no default transport and no
+# logging until something is configured.
 
-require_relative '../../lib/smart_message'
+require_relative '../support/example_helper'
+require_relative 'messages/order_status_message'
+require_relative 'messages/special_message'
 
-puts "=== SmartMessage Global Configuration Example ==="
-puts
+def order_status = OrderStatusMessage.new(order_id: 'ORD-1', status: 'shipped')
 
-# Example 1: Default behavior (no configuration) - NO LOGGING
-puts "1. Default Framework Behavior (NO LOGGING):"
-puts "   Default Logger: #{SmartMessage::Logger.default.class}"
-puts "   Default Transport: #{SmartMessage::Transport.default.class}" 
-puts "   Default Serializer: #{SmartMessage::Serializer.default.class}"
-puts "   Note: No logging unless explicitly configured!"
-puts
+Example.title 'Global configuration'
 
-# Example 2: Configure logging with string path
-puts "2. Configuring Logging with String Path:"
+Example.section 'Nothing configured'
+error = begin
+  order_status.publish
+rescue SmartMessage::Errors::TransportNotConfigured => e
+  e
+end
+puts "  #{error.class}: #{error.message}"
+Example.check('publishing without any transport raises TransportNotConfigured') { !error.nil? }
+Example.check('no logger is configured') { !SmartMessage.configuration.logger_configured? }
+
+Example.section 'SmartMessage.configure'
+log_path         = Example.tmp_path('log', 'application.log')
+global_transport = SmartMessage::Transport::MemoryTransport.new
+
 SmartMessage.configure do |config|
-  config.logger = "log/my_application.log"  # String = Lumberjack logger with this path
-  config.transport = SmartMessage::Transport::MemoryTransport.new
-  # Note: Serializers are configured per transport, not globally
+  config.transport              = global_transport
+  config.logger                 = log_path # a path, STDOUT/STDERR, :default, or a logger object
+  config.log_level              = :info
+  config.dlq_path               = Example.tmp_path('app_dead_letters.jsonl')
+  config.dispatcher_max_threads = 4
+  config.shutdown_timeout       = 2
 end
 
-puts "   Configured Logger: #{SmartMessage::Logger.default.class}"
-puts "   Log File: #{SmartMessage::Logger.default.log_file rescue 'N/A'}"
-puts "   Configured Transport: #{SmartMessage::Transport.default.class}"
-puts "   Framework Default Serializer: #{SmartMessage::Serializer.default.class}"
-puts
-
-# Reset for next example
-SmartMessage.reset_configuration!
-
-# Example 3: Configure with :default symbol (framework defaults)
-puts "3. Configuring with :default Symbol:"
-SmartMessage.configure do |config|
-  config.logger = :default  # Use Lumberjack with default settings
-  config.transport = SmartMessage::Transport::MemoryTransport.new
-  # Note: Serializers are configured per transport, not globally
-end
-
-puts "   Configured Logger: #{SmartMessage::Logger.default.class}"
-puts "   Log File: #{SmartMessage::Logger.default.log_file rescue 'N/A'}"
-puts "   Configured Transport: #{SmartMessage::Transport.default.class}"
-puts "   Framework Default Serializer: #{SmartMessage::Serializer.default.class}"
-puts
-
-# Example 4: Message classes automatically use global configuration
-puts "4. Message Classes Using Global Configuration:"
-
-class NotificationMessage < SmartMessage::Base
-  property :recipient
-  property :message
-  property :priority, default: 'normal'
-  
-  # Explicitly use global configuration for demonstration
-  config do
-    transport SmartMessage::Transport.default
-    logger SmartMessage::Logger.default
-  end
-  
-  def process(message)
-    message_header, message_payload = message
-    data = JSON.parse(message_payload)
-    
-    priority_emoji = case data['priority']
-                     when 'high' then '🔴'
-                     when 'medium' then '🟡'
-                     else '🟢'
-                     end
-    
-    puts "#{priority_emoji} Notification: #{data['message']} (to: #{data['recipient']})"
-  end
-end
-
-class OrderStatusMessage < SmartMessage::Base
-  property :order_id
-  property :status
-  property :customer_id
-  
-  # Explicitly use global configuration for demonstration
-  config do
-    transport SmartMessage::Transport.default
-    logger SmartMessage::Logger.default
-  end
-  
-  def process(message)
-    message_header, message_payload = message
-    data = JSON.parse(message_payload)
-    
-    status_emoji = case data['status']
-                   when 'confirmed' then '✅'
-                   when 'shipped' then '📦'
-                   when 'delivered' then '🎉'
-                   when 'cancelled' then '❌'
-                   else '⏳'
-                   end
-    
-    puts "#{status_emoji} Order #{data['order_id']}: #{data['status']}"
-  end
-end
-
-puts "   Message classes configured automatically!"
-puts
-
-# Subscribe to messages to see them in action (after configuration is complete)
-# Message classes now explicitly use global configuration via config blocks
-NotificationMessage.subscribe
 OrderStatusMessage.subscribe
-
-# Example 5: Creating and publishing messages
-puts "4. Publishing Messages (using global configuration):"
-
-notification = NotificationMessage.new(
-  recipient: "admin@example.com",
-  message: "System maintenance scheduled for tonight",
-  priority: "high",
-  from: "SystemService"
-)
-
-order_status = OrderStatusMessage.new(
-  order_id: "ORD-12345",
-  status: "shipped",
-  customer_id: "CUST-001",
-  from: "OrderService"
-)
-
-puts "\n--- Publishing Messages ---"
-notification.publish
 order_status.publish
+Example.wait_for_idle(global_transport)
 
-# Give time for async processing
-sleep(0.5)
-
-puts
-
-# Example 5: Individual classes can still override global configuration
-puts "5. Overriding Global Configuration for Specific Classes:"
-
-class SpecialMessage < SmartMessage::Base
-  property :content
-  
-  # Override just the logger, keep global transport and serializer
-  config do
-    logger SmartMessage::Logger::Default.new(log_file: STDERR, level: Logger::WARN)
-    # transport and serializer still use global configuration
-  end
-  
-  def process(message)
-    message_header, message_payload = message
-    data = JSON.parse(message_payload)
-    puts "⭐ Special processing: #{data['content']}"
-  end
+Example.check('a class without its own transport uses the global one') do
+  OrderStatusMessage.transport.equal?(global_transport) && Example.inbox[:global] == ['ORD-1']
+end
+Example.check('the dead letter queue follows config.dlq_path') do
+  SmartMessage::DeadLetterQueue.default.file_path == Example.tmp_path('app_dead_letters.jsonl')
+end
+SmartMessage::Logger.default.close # flush the log file before reading it
+Example.check('the configured log file received the publish') do
+  File.read(log_path).include?('Published: OrderStatusMessage via MemoryTransport')
 end
 
+Example.section 'A class-level transport takes precedence'
+special_transport = SmartMessage::Transport::MemoryTransport.new
+SpecialMessage.transport(special_transport)
 SpecialMessage.subscribe
+SpecialMessage.new(content: 'handled apart').publish
+Example.wait_for_idle(special_transport)
+Example.check('SpecialMessage used its own transport') do
+  SpecialMessage.transport.equal?(special_transport) && Example.inbox[:special] == ['handled apart']
+end
+Example.check('the global transport never saw SpecialMessage') do
+  global_transport.subscribers.keys == ['OrderStatusMessage']
+end
 
-special = SpecialMessage.new(
-  content: "This uses custom logger but global transport/serializer",
-  from: "SpecialService"
-)
+Example.section 'An instance-level transport takes precedence over both'
+captured = SmartMessage::Transport::MemoryTransport.new(auto_process: false)
+one_off  = SpecialMessage.new(content: 'captured')
+one_off.transport(captured)
+one_off.publish
+Example.check('only the instance used the third transport') do
+  captured.message_count == 1 && Example.inbox.count(:special) == 1
+end
 
-puts "   SpecialMessage logger: #{SpecialMessage.logger.class}"
-puts "   (Should be SmartMessage::Logger::Default with STDERR output)"
-
-special.publish
-sleep(0.5)
-
-puts
-
-# Example 6: Resetting configuration
-puts "6. Resetting to Framework Defaults:"
+Example.section 'Resetting'
+SpecialMessage.reset_transport
+Example.check('reset_transport falls back to the global transport') { SpecialMessage.transport.equal?(global_transport) }
 SmartMessage.reset_configuration!
+Example.isolate_dead_letters # reset restored the default DLQ path
+Example.check('reset_configuration! removes the global transport') { OrderStatusMessage.transport_missing? }
 
-puts "   After reset:"
-puts "   Logger: #{SmartMessage::Logger.default.class}"
-puts "   Transport: #{SmartMessage::Transport.default.class}"
-puts "   Serializer: #{SmartMessage::Serializer.default.class}"
-
-puts "\n✨ Global Configuration Example Complete!"
-puts
-puts "Key Benefits:"
-puts "• Set defaults once for entire application"
-puts "• All message classes inherit global configuration automatically"
-puts "• Individual classes can still override when needed"
-puts "• Clean, centralized configuration management"
-puts "• No need for repetitive config blocks in every message class"
-puts "• Easy integration with Rails.logger or any other logger"
-puts
-puts "Configuration Options Summary:"
-puts "  # No configuration = NO LOGGING (new default behavior)"
-puts "  # No SmartMessage.configure block needed"
-puts
-puts "  # String path = Lumberjack logger with that file"
-puts "  SmartMessage.configure do |config|"
-puts "    config.logger = 'log/my_app.log'    # String path"
-puts "  end"
-puts
-puts "  # STDOUT/STDERR = Lumberjack logger to console"
-puts "  SmartMessage.configure do |config|"
-puts "    config.logger = STDOUT              # Log to STDOUT"
-puts "    config.logger = STDERR              # Log to STDERR"
-puts "  end"
-puts
-puts "  # :default symbol = Lumberjack with framework defaults" 
-puts "  SmartMessage.configure do |config|"
-puts "    config.logger = :default            # Framework default (file)"
-puts "  end"
-puts
-puts "  # Custom logger object = Use that logger"
-puts "  SmartMessage.configure do |config|"
-puts "    config.logger = Rails.logger        # Rails logger"
-puts "    config.logger = MyApp::Logger.new   # Custom logger"
-puts "  end"
-puts
-puts "  # Explicit nil = No logging (same as no configuration)"
-puts "  SmartMessage.configure do |config|"
-puts "    config.logger = nil                 # Explicit no logging"
-puts "  end"
-
-# Clean up test file
-File.delete('test_config.rb') if File.exist?('test_config.rb')
+Example.finish

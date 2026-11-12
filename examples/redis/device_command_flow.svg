@@ -31,7 +31,7 @@
   
   <!-- Title -->
   <text x="400" y="25" text-anchor="middle" class="title">Device Command Flow</text>
-  <text x="400" y="45" text-anchor="middle" class="subtitle">Device-Specific Command Routing via Redis Channel</text>
+  <text x="400" y="45" text-anchor="middle" class="subtitle">Commands Addressed to One Device with to:</text>
   
   <!-- Participants -->
   <rect x="50" y="80" width="120" height="60" class="app"/>
@@ -64,50 +64,50 @@
   <!-- Command 1: Thermostat Command -->
   <path d="M 110 170 L 380 170" class="command"/>
   <text x="245" y="165" text-anchor="middle" class="text">DeviceCommandMessage</text>
-  <text x="245" y="185" text-anchor="middle" class="note">device_id: THERM-001, command: set_temperature</text>
+  <text x="245" y="185" text-anchor="middle" class="note">to: THERM-001, command: set_temperature</text>
   
   <!-- Routing to devices -->
   <path d="M 380 190 L 580 80" class="process"/>
-  <text x="480" y="135" text-anchor="middle" class="text">✅ Processes THERM prefix match</text>
+  <text x="480" y="135" text-anchor="middle" class="text">✅ Delivered: to is THERM-001</text>
   
   <path d="M 380 190 L 580 160" class="ignore"/>
-  <text x="480" y="175" text-anchor="middle" class="text">❌ Ignores not CAM prefix</text>
+  <text x="480" y="175" text-anchor="middle" class="text">❌ Not delivered to CAM-001</text>
   
   <path d="M 380 190 L 580 240" class="ignore"/>
-  <text x="480" y="215" text-anchor="middle" class="text">❌ Ignores not LOCK prefix</text>
+  <text x="480" y="215" text-anchor="middle" class="text">❌ Not delivered to LOCK-001</text>
   
   <!-- Command 2: Camera Command -->
   <path d="M 110 280 L 380 280" class="command"/>
   <text x="245" y="275" text-anchor="middle" class="text">DeviceCommandMessage</text>
-  <text x="245" y="295" text-anchor="middle" class="note">device_id: CAM-001, command: start_recording</text>
+  <text x="245" y="295" text-anchor="middle" class="note">to: CAM-001, command: start_recording</text>
   
   <!-- Routing to devices for command 2 -->
   <path d="M 380 300 L 580 80" class="ignore"/>
-  <text x="480" y="285" text-anchor="middle" class="text">❌ Ignores not THERM prefix</text>
+  <text x="480" y="285" text-anchor="middle" class="text">❌ Not delivered to THERM-001</text>
   
   <path d="M 380 300 L 580 160" class="process"/>
-  <text x="480" y="305" text-anchor="middle" class="text">✅ Processes CAM prefix match</text>
+  <text x="480" y="305" text-anchor="middle" class="text">✅ Delivered: to is CAM-001</text>
   
   <path d="M 380 300 L 580 240" class="ignore"/>
-  <text x="480" y="325" text-anchor="middle" class="text">❌ Ignores not LOCK prefix</text>
+  <text x="480" y="325" text-anchor="middle" class="text">❌ Not delivered to LOCK-001</text>
   
-  <!-- Device Command Filtering Rules -->
+  <!-- Device Command Subscriptions -->
   <rect x="50" y="320" width="700" height="160" fill="#1a1a1a" stroke="#4a9eff" rx="8"/>
-  <text x="70" y="345" class="title">Device Command Filtering Rules</text>
+  <text x="70" y="345" class="title">Device Command Subscriptions</text>
   
-  <text x="70" y="370" class="text">🌡️ THERM-* devices:</text>
+  <text x="70" y="370" class="text">🌡️ THERM-001:</text>
   <text x="90" y="385" class="subtitle">• Accept: set_temperature, get_status</text>
-  <text x="90" y="400" class="subtitle">• Filter: Only process commands with device_id starting with "THERM-"</text>
+  <text x="90" y="400" class="subtitle">• DeviceCommandMessage.subscribe(to: &quot;THERM-001&quot;)</text>
   
-  <text x="400" y="370" class="text">📹 CAM-* devices:</text>
+  <text x="400" y="370" class="text">📹 CAM-001:</text>
   <text x="420" y="385" class="subtitle">• Accept: start_recording, stop_recording, get_status</text>
-  <text x="420" y="400" class="subtitle">• Filter: Only process commands with device_id starting with "CAM-"</text>
+  <text x="420" y="400" class="subtitle">• DeviceCommandMessage.subscribe(to: &quot;CAM-001&quot;)</text>
   
-  <text x="70" y="425" class="text">🚪 LOCK-* devices:</text>
+  <text x="70" y="425" class="text">🚪 LOCK-001:</text>
   <text x="90" y="440" class="subtitle">• Accept: lock, unlock, get_status</text>
-  <text x="90" y="455" class="subtitle">• Filter: Only process commands with device_id starting with "LOCK-"</text>
+  <text x="90" y="455" class="subtitle">• DeviceCommandMessage.subscribe(to: &quot;LOCK-001&quot;)</text>
   
   <text x="400" y="425" class="text">📊 Architecture Benefits:</text>
-  <text x="420" y="440" class="subtitle">• Efficient: Devices ignore irrelevant commands automatically</text>
-  <text x="420" y="455" class="subtitle">• Scalable: Easy to add new device types with new prefixes</text>
+  <text x="420" y="440" class="subtitle">• Handlers see only their own commands</text>
+  <text x="420" y="455" class="subtitle">• A new device subscribes with its own id</text>
 </svg>

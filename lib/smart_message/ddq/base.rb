@@ -5,32 +5,48 @@
 module SmartMessage
   module DDQ
     # Base class for Deduplication Queue implementations
-    # 
+    #
     # Defines the interface that all DDQ storage backends must implement.
-    # Provides circular queue semantics with O(1) lookup performance.
+    # The dispatcher uses #reserve before a handler runs and #release when
+    # the handler fails; both must be atomic.
     class Base
-      attr_reader :size, :logger
-      
+      attr_reader :size
+
       def initialize(size)
         @size = size
-        @logger = SmartMessage::Logger.default
         validate_size!
       end
-      
+
+      # Atomically record a UUID unless it is already recorded.
+      # @param uuid [String] The UUID to reserve
+      # @return [Boolean] true when this call recorded it, false when it was
+      #   already there (a duplicate)
+      def reserve(uuid)
+        raise NotImplementedError, "Subclasses must implement #reserve"
+      end
+
+      # Forget a UUID, so the message can be processed again.
+      # @param uuid [String] The UUID to release
+      # @return [void]
+      def release(uuid)
+        raise NotImplementedError, "Subclasses must implement #release"
+      end
+
       # Check if a UUID exists in the queue
       # @param uuid [String] The UUID to check
       # @return [Boolean] true if UUID exists, false otherwise
       def contains?(uuid)
         raise NotImplementedError, "Subclasses must implement #contains?"
       end
-      
-      # Add a UUID to the queue (removes oldest if full)
+
+      # Add a UUID to the queue.  Same as #reserve without the answer.
       # @param uuid [String] The UUID to add
       # @return [void]
       def add(uuid)
-        raise NotImplementedError, "Subclasses must implement #add"
+        reserve(uuid)
+        nil
       end
-      
+
       # Get current queue statistics
       # @return [Hash] Statistics about the queue
       def stats
@@ -40,31 +56,35 @@ module SmartMessage
           implementation: self.class.name
         }
       end
-      
+
       # Clear all entries from the queue
       # @return [void]
       def clear
         raise NotImplementedError, "Subclasses must implement #clear"
       end
-      
+
       # Get the storage type identifier
       # @return [Symbol] Storage type (:memory, :redis, etc.)
       def storage_type
         raise NotImplementedError, "Subclasses must implement #storage_type"
       end
-      
+
       private
-      
-      def validate_size!
-        unless @size.is_a?(Integer) && @size > 0
-          raise ArgumentError, "DDQ size must be a positive integer, got: #{@size.inspect}"
-        end
+
+      def logger
+        SmartMessage::Logger.default
       end
-      
+
+      def validate_size!
+        return if @size.is_a?(Integer) && @size.positive?
+
+        raise ArgumentError, "DDQ size must be a positive integer, got: #{@size.inspect}"
+      end
+
       def validate_uuid!(uuid)
-        unless uuid.is_a?(String) && !uuid.empty?
-          raise ArgumentError, "UUID must be a non-empty string, got: #{uuid.inspect}"
-        end
+        return if uuid.is_a?(String) && !uuid.empty?
+
+        raise ArgumentError, "UUID must be a non-empty string, got: #{uuid.inspect}"
       end
     end
   end

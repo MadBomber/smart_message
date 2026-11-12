@@ -311,10 +311,9 @@ class ProcHandlerTest < Minitest::Test
     # Unsubscribe all handlers for this message class
     TestMessage.unsubscribe!
 
-    # Registry should still contain the procs since unsubscribe! doesn't clean individual procs
-    # This is expected behavior - unsubscribe! only removes from dispatcher
-    assert TestMessage.proc_handler?(id1)
-    assert TestMessage.proc_handler?(id2)
+    # unsubscribe! removes the class's procs from the registry too
+    refute TestMessage.proc_handler?(id1)
+    refute TestMessage.proc_handler?(id2)
   end
 
   def test_subscription_return_values

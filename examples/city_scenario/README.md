@@ -1,515 +1,234 @@
 # SmartMessage City Emergency Services Demo
 
-This comprehensive demo showcases a complete city emergency services communication system built with SmartMessage. It demonstrates real-world scenarios including emergency response coordination, health monitoring, and AI-powered incident reporting.
+A city's emergency services as a set of independent programs that talk to each other through the SmartMessage Redis transport. Each program is its own process; they coordinate only by publishing and subscribing to messages.
 
-## 🏙️ City Scenario Overview
+It is long-running and multi-process, so `examples/run_all.rb` does not run it. `smoke_test.rb` checks it in a few seconds.
 
-The demo simulates a city emergency services network with multiple independent services that communicate through a Redis pub/sub messaging system. Each service operates autonomously but coordinates with others through standardized message protocols.
+## Programs
 
-### 🏢 City Services
+| Program | Address (`from`) | What it does |
+|---------|------------------|--------------|
+| `health_department.rb` | `health-department` | Broadcasts a health check every 5 seconds, shows each service's status and every resolved incident |
+| `emergency_dispatch_center.rb` | `emergency-dispatch-center`, receives calls sent to `911` | Routes each 911 call to the fire department, the police department, or both |
+| `police_department.rb` | `police_department` | Answers silent alarms and 911 calls, assigns units, reports resolved incidents |
+| `fire_department.rb` | `fire_department` | Answers fire emergencies and 911 calls, assigns engines, reports resolved incidents |
+| `local_bank.rb` | `first-national-bank` | Occasionally sends a silent alarm to the police |
+| `house.rb [address]` | `house-<address>` | Occasionally reports a fire to the fire department |
+| `citizen.rb [auto]` | `citizen-<name>` | Calls 911, on Enter or automatically |
+| `visitor.rb [seconds \| --once]` | `visitor` | Reports observations; chooses the message class itself (see below) |
+| `redis_monitor.rb` | | Shows every message on the city's channels as it is published |
+| `redis_stats.rb` | | Terminal dashboard of the Redis server's pub/sub statistics |
+| `smoke_test.rb` | | Publishes and receives one sample of every message class |
 
-| Service | Program File | Purpose | Key Features |
-|---------|-------------|---------|--------------|
-| **Emergency Dispatch Center** | `emergency_dispatch_center.rb` | 911 call routing and coordination | Call triage, department dispatch, call tracking |
-| **Citizen** | `citizen.rb` | 911 emergency call simulation | Realistic emergency scenarios, automatic/manual calling |
-| **Fire Department** | `fire_department.rb` | Fire emergency response coordination | Fire engine dispatch, equipment deployment |
-| **Police Department** | `police_department.rb` | Law enforcement and security response | Unit assignment, crime response, alarm handling |
-| **Local Bank** | `local_bank.rb` | Banking security monitoring | Silent alarm system, robbery detection |
-| **Residential House** | `house.rb` | Fire safety monitoring | Smoke detection, resident safety alerts |
-| **Health Department** | `health_department.rb` | City services health monitoring | Service status tracking, COVID-19 protocols |
-| **Smart Visitor** | `visitor.rb` | AI-powered incident reporting | Emergency report generation, message selection |
-| **Redis Monitor** | `redis_monitor.rb` | Real-time message monitoring | Live message traffic visualization |
-| **Redis Stats** | `redis_stats.rb` | Performance analytics dashboard | Pub/sub statistics, throughput analysis |
+Supporting files:
 
-## 📨 Message Types
+- `messages/` holds the eight message classes.
+- `common/city.rb` configures SmartMessage for a process: transport, namespace, log file, dead letter queue.
+- `common/service.rb` gives a program its name, logger, lock and main loop.
+- `common/health_monitor.rb` answers health checks and stops a service that no longer receives them.
+- `smart_message_ai_agent.rb` is the base class of the visitor.
 
-The city uses 8 standardized message types for emergency communication:
+## Message types
 
-### Emergency Messages
-- **📞 Emergency911Message** - Citizen calls to 911 dispatch center
-- **🔥 FireEmergencyMessage** - Fire alerts from houses or 911 to Fire Department
-- **🚨 SilentAlarmMessage** - Security breaches from banks to Police Department
-- **👮 PoliceDispatchMessage** - Police unit coordination responses
-- **🚒 FireDispatchMessage** - Fire suppression deployment responses
+| Message | Publisher | Receiver | Addressing |
+|---------|-----------|----------|------------|
+| `Emergency911Message` | citizen, visitor | dispatch center | `to: '911'` |
+| `Emergency911Message` (forwarded) | dispatch center | police or fire | `to:` the department |
+| `FireEmergencyMessage` | house, dispatch center | fire department | `to: 'fire_department'` |
+| `FireDispatchMessage` | fire department | whoever reported the fire | `to:` the sender of the emergency |
+| `SilentAlarmMessage` | bank | police department | `to: 'police_department'` |
+| `PoliceDispatchMessage` | police department | the bank | `to:` the sender of the alarm |
+| `EmergencyResolvedMessage` | police, fire | health department | broadcast |
+| `HealthCheckMessage` | health department | every service | broadcast |
+| `HealthStatusMessage` | every service | health department | `to:` the sender of the health check |
 
-### System Messages
-- **✅ EmergencyResolvedMessage** - Incident closure notifications
-- **💚 HealthCheckMessage** - Service availability monitoring (every 5 seconds)
-- **📊 HealthStatusMessage** - Service condition responses
+Every message class lives in `messages/` and has no transport of its own. `common/city.rb` sets one Redis transport for all of them:
 
-## 🔄 System Architecture
+```ruby
+SmartMessage.configure do |config|
+  config.logger    = SmartMessage::Logger::Default.new(log_file: log_file(program_name), level: :info)
+  config.dlq_path  = File.join(log_dir, 'dead_letters.jsonl')
+  config.transport ||= SmartMessage::Transport::RedisTransport.new(url: redis_url, namespace: namespace)
+end
+```
 
-### Health Monitoring System
-All city services implement a **countdown timer health system** that:
-- Resets on each HealthCheckMessage received (10-second timeout)
-- Triggers COVID-19 shutdown if no health check received
-- Responds with HealthStatusMessage (green/yellow/red status)
-- Replaces traditional circuit breaker patterns
+A service subscribes with a block and an address filter, and replies to the sender:
 
-### AI-Powered Incident Reporting
-The Visitor service uses RubyLLM for intelligent incident reporting:
-- Dynamically discovers available message types
-- AI selects appropriate message format for incidents
-- AI generates realistic property values
-- Comprehensive logging of AI interactions
+```ruby
+Messages::SilentAlarmMessage.subscribe(to: 'police_department') { |alarm| handle_silent_alarm(alarm) }
 
-## 📊 Message Flow Diagrams
+Messages::PoliceDispatchMessage.new(dispatch_id: id, units_assigned: units, ..., from: 'police_department', to: alarm.from).publish
+```
 
-### 1. 911 Emergency Call Flow
+## Message flow diagrams
+
+### 911 emergency call
 
 ![911 Emergency Call Flow](911_emergency_call_flow.svg)
 
-### 2. Fire Emergency Flow
+### Fire emergency
 
 ![Fire Emergency Flow](fire_emergency_flow.svg)
 
-### 3. Security Emergency Flow
+### Security emergency
 
 ![Security Emergency Flow](security_emergency_flow.svg)
 
-### 4. AI Visitor Intelligence Flow
+### Visitor reporting
 
 ![AI Visitor Intelligence Flow](ai_visitor_intelligence_flow.svg)
 
-### Health Monitoring System
+### Health monitoring
 
 ![Health Monitoring System](health_monitoring_system.svg)
 
-### 5. Service Internal Architecture
+### Service internals
 
 ![Service Internal Architecture](service_internal_architecture.svg)
 
-## 🚀 Getting Started
+## Running
 
 ### Prerequisites
-- **macOS** (required for start_demo.sh/stop_demo.sh scripts)
-- **iTerm2** terminal emulator (for automated demo startup)
-- Ruby 2.7 or higher
-- Redis server
-- RubyLLM gem with AI provider credentials (OpenAI, Anthropic, etc.)
-- SmartMessage gem
 
-### Installation
-```bash
-# Install iTerm2 (macOS only)
-brew install --cask iterm2
+- Ruby 4.0 or newer and `bundle install` in the repository root
+- A Redis server on `redis://localhost:6379` (or set `CITY_REDIS_URL`)
+- For `start_demo.sh` and `stop_demo.sh`: macOS with iTerm2
 
-# Install Redis
-brew install redis
-brew services start redis
-
-# Install dependencies
-bundle install
-
-# Set up AI credentials (optional - fallback logic available)
-export OPENAI_API_KEY="your-key-here"
-export ANTHROPIC_API_KEY="your-key-here"
-```
-
-### Quick Start (macOS + iTerm2)
-```bash
-# Make scripts executable
-chmod +x start_demo.sh stop_demo.sh
-
-# Start all services in iTerm2 (macOS only)
-./start_demo.sh
-
-# Stop all services and close iTerm2 window (macOS only)
-./stop_demo.sh
-```
-
-### Manual Start (Cross-Platform)
-For non-macOS systems or when not using iTerm2:
-```bash
-# Terminal 1 - Health monitoring
-ruby health_department.rb
-
-# Terminal 2 - Emergency dispatch center (911)
-ruby emergency_dispatch_center.rb
-
-# Terminal 3 - Emergency services
-ruby fire_department.rb
-
-# Terminal 4 - Law enforcement
-ruby police_department.rb
-
-# Terminal 5 - Banking security
-ruby local_bank.rb
-
-# Terminal 6 - Residential monitoring
-ruby house.rb
-
-# Terminal 7 - Citizen 911 caller (optional)
-ruby citizen.rb
-
-# Terminal 8 - AI visitor (optional)
-ruby visitor.rb
-
-# Terminal 9 - Message monitoring (optional)
-ruby redis_monitor.rb
-
-# Terminal 10 - Performance analytics (optional)
-ruby redis_stats.rb
-```
-
-## 🎭 Demo Scenarios
-
-### 📞 911 Emergency Call Scenario
-1. **Citizen witnesses emergency** → Generates Emergency911Message with random scenario
-2. **911 Dispatch Center receives call** → Analyzes emergency type and severity
-3. **Call routing** → Dispatches to appropriate departments (Fire/Police)
-4. **Department response** → Services respond with dispatch messages
-5. **Call tracking** → Statistics maintained until resolution
-
-### 🔥 Fire Emergency Scenario
-1. **House detects smoke** → Publishes FireEmergencyMessage
-2. **Fire Department responds** → Analyzes severity, dispatches equipment
-3. **Incident resolution** → Publishes EmergencyResolvedMessage
-
-### 🚨 Security Emergency Scenario
-1. **Bank detects robbery** → Publishes SilentAlarmMessage
-2. **Police Department responds** → Assigns units, coordinates response
-3. **Incident resolved** → Publishes EmergencyResolvedMessage
-
-### 🤖 AI-Powered Visitor Reporting
-1. **Visitor witnesses incident** → Analyzes available message types
-2. **AI selects appropriate message** → SilentAlarmMessage for robbery
-3. **AI generates properties** → Realistic bank name, location, details
-4. **Message published** → Emergency services receive report
-
-### 💚 Health Monitoring Scenario
-1. **Health Department broadcasts** → HealthCheckMessage every 5 seconds
-2. **All services respond** → HealthStatusMessage with current status
-3. **Timeout handling** → Services shut down after 10 seconds without health check
-
-## 📋 Service Details
-
-### Emergency Dispatch Center (`emergency_dispatch_center.rb`)
-```ruby
-# 911 emergency call coordination hub
-- Subscribes to: Emergency911Message (to: '911')
-- Publishes: FireEmergencyMessage, Emergency911Message (routed)
-- Call analysis: Determines which departments to dispatch
-- Call tracking: Maintains active call registry with timestamps
-- Statistics: Tracks calls by type and department dispatches
-- Routing rules: Fire/Medical → Fire Dept, Crime/Security → Police
-```
-
-### Citizen (`citizen.rb`)
-```ruby
-# 911 emergency call simulation system
-- Publishes: Emergency911Message (to: '911')
-- Emergency scenarios: 15+ realistic emergency types
-- Types: fire, medical, crime, accident, hazmat, rescue, other
-- Modes: Interactive (press Enter) or Automatic (15-30 sec intervals)
-- Realistic data: Random caller names, phone numbers, locations
-- Severity levels: critical, high, medium, low
-```
-
-### Fire Department (`fire_department.rb`)
-```ruby
-# Handles fire emergencies with equipment dispatch
-- Subscribes to: FireEmergencyMessage, Emergency911Message, HealthCheckMessage
-- Publishes: FireDispatchMessage, HealthStatusMessage, EmergencyResolvedMessage
-- Equipment: Engine-1, Ladder-1, Rescue-1, Hazmat-1
-- Response time: 3-8 minutes based on severity
-```
-
-### Police Department (`police_department.rb`)
-```ruby
-# Coordinates law enforcement response
-- Subscribes to: SilentAlarmMessage, Emergency911Message, HealthCheckMessage
-- Publishes: PoliceDispatchMessage, HealthStatusMessage, EmergencyResolvedMessage
-- Units: Unit-101, Unit-102, Unit-103, Detective-1, SWAT-Alpha
-- Priority levels: routine, urgent, emergency, critical
-```
-
-### Smart Visitor (`visitor.rb`)
-```ruby
-# AI-powered incident reporting system
-- Dynamic message type discovery
-- RubyLLM integration for intelligent selection
-- Comprehensive AI interaction logging
-- Fallback logic when AI unavailable
-- Realistic data generation
-```
-
-### Redis Monitor (`redis_monitor.rb`)
-```ruby
-# Real-time message traffic visualization
-- Subscribes to: All Redis channels (wildcard pattern)
-- Live message stream display with color coding
-- Message type-specific payload formatting
-- Timestamp and routing information
-- Emergency/health message categorization
-```
-
-### Redis Stats (`redis_stats.rb`)
-```ruby
-# Comprehensive performance analytics dashboard
-- Real-time pub/sub statistics
-- Message throughput analysis (messages/sec)
-- Channel activity monitoring
-- Command performance metrics
-- Interactive controls (q=quit, r=refresh, +/-=rate)
-- Terminal-optimized full-screen display
-```
-
-## 🛠️ Configuration
-
-### Health Monitoring
-```ruby
-# Customize health check interval (default: 5 seconds)
-HEALTH_CHECK_INTERVAL = 5
-
-# Customize service timeout (default: 10 seconds)
-SERVICE_TIMEOUT = 10
-```
-
-### AI Configuration
-```ruby
-# Configure RubyLLM providers
-RubyLLM.configure do |config|
-  config.openai_api_key = ENV['OPENAI_API_KEY']
-  config.anthropic_api_key = ENV['ANTHROPIC_API_KEY']
-  config.log_level = :info
-end
-```
-
-### Redis Transport
-```ruby
-# Customize Redis connection
-SmartMessage.configure do |config|
-  config.transport = SmartMessage::Transport::RedisTransport.new(
-    host: 'localhost',
-    port: 6379,
-    db: 0
-  )
-end
-```
-
-## 📊 Monitoring and Observability
-
-### Real-Time Monitoring Tools
-
-#### 🔍 Redis Monitor (`redis_monitor.rb`)
-Live message stream monitoring with formatted output:
+### Smoke test
 
 ```bash
-ruby redis_monitor.rb
+bundle exec ruby -Ilib examples/city_scenario/smoke_test.rb
 ```
 
-**Features:**
-- **Color-coded messages** by type (Health=Green, Emergency=Red, Dispatch=Blue)
-- **Formatted payload display** showing relevant details for each message type
-- **Real-time streaming** of all Redis pub/sub traffic
-- **Message routing info** (from/to fields, timestamps)
-- **Emergency context** (fire severity, police units, health status)
+It loads every file in `messages/`, then builds, validates, publishes and receives one sample of each message class over Redis, in its own namespace. It exits non-zero when anything fails.
 
-**Example Output:**
-```
-🔍 SmartMessage Redis Monitor
-   Monitoring Redis pub/sub traffic...
-
-[14:35:22] Messages::SilentAlarmMessage
-   📤 From: local-bank
-   📥 To: police-department
-   🚨 First National Bank - robbery (high)
-   📍 123 Main Street
-
-[14:35:23] Messages::PoliceDispatchMessage  
-   📤 From: police-department
-   📥 To: broadcast
-   🚔 Units: Unit-101, Unit-102
-   📍 Location: 123 Main Street
-   ⏱️ ETA: 3 minutes
-```
-
-#### 📈 Redis Stats (`redis_stats.rb`)
-Interactive performance analytics dashboard:
+### All programs in iTerm2 (macOS)
 
 ```bash
-ruby redis_stats.rb
+cd examples/city_scenario
+./start_demo.sh     # one tab per program
+./stop_demo.sh      # stops the programs and closes the window
 ```
 
-**Features:**
-- **Full-screen terminal dashboard** with real-time updates
-- **Pub/Sub statistics** (subscribers, channels, message rates)
-- **Channel analytics** (top channels by volume, rates per channel)
-- **Command performance** (Redis command statistics and latency)
-- **Session tracking** (messages since start, peak rates)
-- **Interactive controls** (keyboard shortcuts for navigation)
+### By hand
 
-**Dashboard Sections:**
-1. **Pub/Sub Overview** - Total messages, active channels, rates
-2. **Channel Analytics** - Per-channel message counts and rates
-3. **Command Statistics** - Redis command performance metrics
-4. **Latency Metrics** - Response time analysis
-5. **System Health** - Memory usage, connected clients
+Start each program in its own terminal, from the repository root. Start the health department early: a service that receives no health check for 15 seconds shuts itself down.
 
-**Keyboard Controls:**
-- `q` / `Q` / `Esc` - Quit monitor
-- `r` / `R` - Force refresh
-- `+` - Increase refresh rate  
-- `-` - Decrease refresh rate
-- `h` / `H` / `?` - Show help overlay
+```bash
+bundle exec ruby -Ilib examples/city_scenario/health_department.rb
+bundle exec ruby -Ilib examples/city_scenario/emergency_dispatch_center.rb
+bundle exec ruby -Ilib examples/city_scenario/fire_department.rb
+bundle exec ruby -Ilib examples/city_scenario/police_department.rb
+bundle exec ruby -Ilib examples/city_scenario/local_bank.rb
+bundle exec ruby -Ilib examples/city_scenario/house.rb '456 Oak Street'
+bundle exec ruby -Ilib examples/city_scenario/citizen.rb auto
+bundle exec ruby -Ilib examples/city_scenario/visitor.rb
+bundle exec ruby -Ilib examples/city_scenario/redis_monitor.rb
+bundle exec ruby -Ilib examples/city_scenario/redis_stats.rb
+```
 
-### Service Logs
-Each service maintains detailed logs:
-- `health_department.log` - Health monitoring activities
-- `fire_department.log` - Fire response coordination
-- `police_department.log` - Law enforcement activities
-- `visitor.log` - AI interaction details
+Stop a program with Ctrl+C.
 
-### Message Tracing
-All messages include comprehensive headers:
+Redis pub/sub delivers a message only to the programs that are subscribed at that moment. A 911 call made while the dispatch center is not running is lost; nothing queues it.
+
+## Configuration
+
+| Variable | Default | Meaning |
+|----------|---------|---------|
+| `CITY_REDIS_URL` | `$SMART_MESSAGE_TEST_REDIS_URL`, else `redis://localhost:6379` | Redis server |
+| `CITY_NAMESPACE` | `city_scenario` | Redis channel prefix. Every program of one city must use the same value. Two cities on one server need different values, because pub/sub channels are global to a Redis server |
+| `CITY_LOG_DIR` | `<system temp dir>/smart_message_city_scenario` | Log files and the dead letter queue |
+| `CITY_HEALTH_CHECK_RATE` | `5` | Seconds between health checks |
+| `CITY_ALARM_CHANCE` | `8` | Percent chance that a bank activity is a silent alarm |
+| `CITY_FIRE_CHANCE` | `6` | Percent chance that a house activity is a fire |
+| `CITY_CALL_INTERVAL` | random 15-30 | Seconds between a citizen's automatic calls |
+
+To see a lot happen quickly:
+
+```bash
+CITY_ALARM_CHANCE=100 bundle exec ruby -Ilib examples/city_scenario/local_bank.rb
+CITY_FIRE_CHANCE=100  bundle exec ruby -Ilib examples/city_scenario/house.rb
+CITY_CALL_INTERVAL=3  bundle exec ruby -Ilib examples/city_scenario/citizen.rb auto
+```
+
+## Logs and dead letters
+
+Nothing is written into the repository. Each program logs to `$CITY_LOG_DIR/<address>.log` (for example `police_department.log`, `house-456-oak-street.log`), and SmartMessage's own log lines go to the same file. The health department prints its log file's path when it starts.
+
+A message whose handler raised, or that could not be published, is stored in `$CITY_LOG_DIR/dead_letters.jsonl`:
+
+```ruby
+SmartMessage::DeadLetterQueue.default.statistics
+SmartMessage::DeadLetterQueue.default.inspect_messages(limit: 5)
+```
+
+## Health monitoring
+
+1. The health department broadcasts a `HealthCheckMessage` every 5 seconds.
+2. Each service answers the sender with a `HealthStatusMessage`: `healthy`, `warning`, `critical` or `failed`, plus a line of detail.
+3. The health department prints the answers in green, yellow, orange and red.
+4. A service that has received no health check for 15 seconds (`Common::HealthMonitor::FAIL_SAFE`) prints a warning and exits with status 1.
+
+## The visitor
+
+`visitor.rb` does not know in advance which message to send. `SmartMessageAIAgent` reads the description of each allowed message class, chooses one for the observation, reads the property descriptions and validation rules, and fills the message in.
+
+- With the `ruby_llm` gem installed and a provider key in the environment (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, or `OLLAMA_API_BASE`), a language model makes both choices. A message that fails validation is built again, with the validation errors given back to the model, up to three times.
+- Otherwise the visitor uses its fallback rules: an `Emergency911Message` built from the observation.
+
+`ruby_llm` is not a dependency of smart_message, so `bundle exec` does not load it. To use a model, install the gem and run the visitor without `bundle exec`, or add `ruby_llm` to your own Gemfile.
+
+## Monitoring tools
+
+`redis_monitor.rb` subscribes to `<namespace>:*` with its own Redis connection and prints each message: class, sender, receiver and the main properties. On the wire a message is one JSON object: its properties, plus its header under `_sm_header`.
+
 ```json
 {
   "_sm_header": {
-    "uuid": "unique-message-id",
+    "uuid": "0ab7367a-9d82-4e8e-8416-07de3111ff30",
     "message_class": "Messages::FireEmergencyMessage",
-    "published_at": "2025-08-22T04:29:27-05:00",
+    "published_at": "2026-11-11T22:00:03.195000-06:00",
     "publisher_pid": 12345,
     "version": 1,
-    "from": "house-sensor-01",
-    "transport": "SmartMessage::Transport::RedisTransport"
+    "from": "house-456-oak-street",
+    "to": "fire_department",
+    "serializer": "SmartMessage::Serializer::Json"
   },
-  "_sm_payload": {
-    "location": "123 Oak Street",
-    "fire_type": "electrical",
-    "severity": "high"
-  }
+  "house_address": "456 Oak Street",
+  "fire_type": "electrical",
+  "severity": "medium",
+  "timestamp": "2026-11-11 22:00:03",
+  "occupants_status": "evacuated",
+  "spread_risk": "medium"
 }
 ```
 
-## 🔧 Development and Extensions
+`redis_stats.rb` is a full-screen dashboard of the Redis server: pub/sub channels and subscribers, command rates, latency, connections and memory. Keys: `q` quit, `r` refresh, `+`/`-` refresh rate, `h` help.
 
-### Adding New Services
-1. Create service class inheriting from appropriate base
-2. Implement health monitoring with countdown timer
-3. Define message subscriptions and handlers
-4. Add service to demo startup scripts
+## Adding to the city
 
-### Custom Message Types
-1. Create message class in `messages/` directory
-2. Define properties with validation
-3. Add descriptions for AI discovery
-4. Implement handlers in relevant services
+A new service:
 
-### AI Enhancement
-1. Customize prompts in `visitor.rb`
-2. Add new incident types
-3. Enhance property generation logic
-4. Implement multi-step AI workflows
+1. `include Common::Service` (and `Common::HealthMonitor` if it should answer health checks, which needs a `get_status_details` method returning `[status, details]`).
+2. Call `setup_service('its-address')`, subscribe with `to:` its address, and call `setup_health_monitor`.
+3. Run its main loop with `run_service(interval) { ... }` and end with `shutdown_service`.
 
-## 🚨 Emergency Procedures
+Handlers run on the dispatcher's thread pool while the main loop runs on the main thread. Change shared state inside `synchronize { ... }` (the `handling` helper does this for a handler).
 
-### Service Recovery
-If a service becomes unresponsive:
-```bash
-# Check service status
-ps aux | grep ruby
+A new message type:
 
-# Use monitoring tools to diagnose issues
-ruby redis_monitor.rb  # Watch live message flow
-ruby redis_stats.rb    # Check performance metrics
+1. Add the class to `messages/`, in the `Messages` module, with a `description` for the class and for each property.
+2. Add a sample of it to `SAMPLES` in `smoke_test.rb`.
+3. Subscribe to it in the services that should receive it.
 
-# Restart specific service
-ruby fire_department.rb
+## Troubleshooting
 
-# Full system restart (macOS with iTerm2)
-./stop_demo.sh && ./start_demo.sh
-```
+- **A service exits after 15 seconds**: the health department is not running, or runs with another `CITY_NAMESPACE`.
+- **Nothing arrives**: check that every program uses the same `CITY_NAMESPACE` and Redis server, and watch `redis_monitor.rb`.
+- **`No Redis server answered`**: start Redis or set `CITY_REDIS_URL`.
+- **A handler fails**: the error is printed and logged, and the message is in `dead_letters.jsonl`.
 
-### Health System Reset
-```bash
-# Reset all service health timers
-redis-cli FLUSHDB
+## See also
 
-# Monitor health recovery in real-time
-ruby redis_monitor.rb &  # Background monitoring
-ruby health_department.rb
-```
-
-### Troubleshooting with Monitoring Tools
-
-#### Message Flow Issues
-```bash
-# Watch live message traffic to identify bottlenecks
-ruby redis_monitor.rb
-
-# Look for missing message types or routing problems
-# Check if health checks are flowing properly
-# Verify emergency messages reach appropriate services
-```
-
-#### Performance Analysis  
-```bash
-# Launch interactive performance dashboard
-ruby redis_stats.rb
-
-# Monitor for:
-# - High message rates that might overwhelm services
-# - Channel imbalances (some channels too busy/idle)
-# - Redis command performance issues
-# - Memory usage spikes
-```
-
-#### Platform-Specific Issues
-
-**macOS with iTerm2:**
-```bash
-# If start_demo.sh fails to open iTerm2
-# Ensure iTerm2 is installed and in Applications folder
-brew install --cask iterm2
-
-# If demo window doesn't close properly
-./stop_demo.sh
-# Or manually: pkill -f "ruby.*\.rb"
-```
-
-**Cross-Platform Manual Start:**
-```bash
-# If automated scripts don't work on your platform
-# Use manual start approach with individual terminals
-# All programs work on any Ruby-supported platform
-```
-
-## 📈 Performance Metrics
-
-The demo tracks various performance metrics:
-- Message throughput (messages/second)
-- Response times (service-to-service)
-- AI processing times
-- Health check compliance rates
-- Emergency response coordination times
-
-## 🎯 Real-World Applications
-
-This demo architecture demonstrates patterns applicable to:
-- **Emergency Services Coordination**
-- **IoT Device Management**
-- **Microservices Communication**
-- **Event-Driven Architecture**
-- **AI-Powered System Integration**
-- **Health Monitoring Systems**
-
-## 📚 Further Reading
-
-- [SmartMessage Documentation](../README.md)
-- [Message Filtering Guide](../../docs/message_filtering.md)
-- [Transport Configuration](../../docs/transports.md)
-- [AI Integration Patterns](../../docs/ai_integration.md)
-
-## 🤝 Contributing
-
-This demo welcomes contributions:
-1. Fork the repository
-2. Create feature branch
-3. Add new services or scenarios
-4. Test with existing city infrastructure
-5. Submit pull request with detailed description
-
----
-
-*The SmartMessage City Emergency Services Demo - Demonstrating real-world distributed system communication with AI-powered intelligence and comprehensive health monitoring.*
+- [Redis transport examples](../redis/README.md)
+- [Redis transport documentation](../../docs/transports/redis-transport.md)

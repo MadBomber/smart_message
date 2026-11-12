@@ -2,32 +2,47 @@
 # encoding: utf-8
 # frozen_string_literal: true
 
-require_relative 'logger/base'
-require_relative 'logger/default'
-require_relative 'logger/lumberjack'
-
 module SmartMessage
+  # Logging for SmartMessage.
+  #
+  # Every component asks SmartMessage::Logger.default for its logger.  That
+  # is the logger built from SmartMessage.configuration; with nothing
+  # configured it is a Null logger, so nothing is written and no file is
+  # created.
+  #
+  # The framework itself only ever calls the five level methods with a
+  # block (logger.info { "..." }), so any object with the standard Ruby
+  # Logger interface can be configured.  The loggers shipped here
+  # (Lumberjack, Default, Null) share the richer interface defined by
+  # SmartMessage::Logger::Base.
   module Logger
+    LEVELS = %i[debug info warn error fatal].freeze
+
     class << self
-      # Global default logger instance - uses configuration if available
-      def default(options = {})
-        # Always check current configuration first (don't cache when config is available)
-        if defined?(SmartMessage.configuration) && SmartMessage.configuration.logger_configured?
-          SmartMessage.configuration.default_logger
-        else
-          # Cache the framework default logger only when no configuration
-          @default ||= Lumberjack.new(**options)
-        end
+      # The global logger
+      def default
+        @override || SmartMessage.configuration.default_logger
       end
 
-      # Set the default logger
+      # Force a logger regardless of configuration (nil removes the override)
       def default=(logger)
-        @default = logger
+        @override = logger
       end
-      
-      # Reset the cached default logger
+
+      # Remove any override set with default=
       def reset!
-        @default = nil
+        @override = nil
+      end
+
+      # Turn a level given as a Symbol, String, or Integer into its index
+      # in LEVELS (the same numbers ::Logger uses for DEBUG..FATAL).
+      #
+      # @raise [ArgumentError] for a level that does not exist
+      def severity(level)
+        index = level.is_a?(Integer) ? level : LEVELS.index(level.to_s.downcase.to_sym)
+        return index if index && index.between?(0, LEVELS.size - 1)
+
+        raise ArgumentError, "Unknown log level: #{level.inspect}. Use one of #{LEVELS.inspect}"
       end
     end
   end

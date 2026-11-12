@@ -1,377 +1,216 @@
+# Quick Start
 
-# Getting Started with SmartMessage
+## Install
 
-This guide will help you get up and running with SmartMessage quickly.
-
-## Installation
-
-Add SmartMessage to your Gemfile:
+SmartMessage requires Ruby 4.0 or newer.
 
 ```ruby
+# Gemfile
 gem 'smart_message'
 ```
-
-Then run:
 
 ```bash
 bundle install
 ```
 
-Or install directly:
+## A complete program
 
-```bash
-gem install smart_message
-```
-
-## Requirements
-
-- Ruby >= 3.0.0
-- No additional system dependencies for basic usage
-
-## Transport Options
-
-SmartMessage supports multiple transport layers:
-
-### Built-in Transports
-
-- **Memory Transport** - Perfect for development and testing. No external dependencies required.
-- **STDOUT Transport** - Great for debugging and logging. No external dependencies.
-- **Redis Transport** - Production-ready transport for distributed systems. Requires Redis server.
-
-### Redis Installation (Optional)
-
-The Redis transport is built-in but requires Redis server to be installed. However, **you don't need Redis just to play around** - the Memory transport works great for development and testing.
-
-If you want to use Redis transport:
-
-**macOS:**
-```bash
-brew install redis
-brew services start redis
-```
-
-**Ubuntu/Debian:**
-```bash
-sudo apt-get update
-sudo apt-get install redis-server
-```
-
-**Other Transports:**
-Additional transport layers (RabbitMQ, Kafka, etc.) are available as separate plugin repositories. Check the [Transports documentation](../reference/transports.md) for more information.
-
-## Your First Message
-
-Let's create a simple message class and see it in action:
-
-### 1. Define a Message Class
+Save this as `quick_start.rb` and run `ruby quick_start.rb`. It uses the memory transport, so it needs no external service.
 
 ```ruby
 require 'smart_message'
 
+# In an application this class lives in messages/welcome_message.rb
 class WelcomeMessage < SmartMessage::Base
-  # Add a description for the message class
-  description "Welcomes new users after successful signup"
-  
-  # Configure entity addressing (Method 1: Direct methods)
-  from 'user-service'           # Required: identifies sender
-  to 'notification-service'     # Optional: specific recipient
-  reply_to 'user-service'       # Optional: where responses go
-  
-  # Alternative Method 2: Using header block
-  # header do
-  #   from 'user-service'
-  #   to 'notification-service'
-  #   reply_to 'user-service'
-  # end
-  
-  # Define message properties
-  property :user_name
-  property :email
-  property :signup_date
+  description 'Welcomes a new user'
+  from 'signup-service'
+  transport SmartMessage::Transport::MemoryTransport.new
 
-  # Configure the transport (where messages go)
-  config do
-    transport SmartMessage::Transport.create(:stdout, loopback: true)
-  end
+  property :user_name, required: true
+  property :email,     required: true,
+                       validate: /\A[^@\s]+@[^@\s]+\z/,
+                       validation_message: 'email must look like an address'
+  property :plan,      default: 'free', validate: %w[free pro]
 
-  # Define how to process received messages
-  def self.process(decoded_message)
-    # decoded_message is already a message instance
-    welcome = decoded_message
-    
-    # Process the welcome message
-    puts "🎉 Welcome #{welcome.user_name}!"
-    puts "📧 Email: #{welcome.email}"
-    puts "📅 Signed up: #{welcome.signup_date}"
+  # The default handler: a class method named process
+  def self.process(message)
+    puts "Welcome #{message.user_name} <#{message.email}> on the #{message.plan} plan"
   end
 end
-```
 
-### 2. Subscribe to Messages
-
-Before publishing, set up a subscription to receive messages. SmartMessage provides several ways to handle incoming messages:
-
-```ruby
-# 1. Default handler (uses the self.process method defined above)
+# Subscribe the default handler (WelcomeMessage.process)
 WelcomeMessage.subscribe
 
-# 2. Block handler (inline processing logic)
-WelcomeMessage.subscribe do |header, payload|
-  data = JSON.parse(payload)
-  puts "👋 Quick welcome for #{data['user_name']}"
+# Publish a message.  publish validates first and returns a PublishResult.
+result = WelcomeMessage.new(user_name: 'Alice', email: 'alice@example.com').publish
+puts "Published #{result.uuid}: success=#{result.success?}"
+
+# An invalid message is not sent.
+begin
+  WelcomeMessage.new(user_name: 'Bob', email: 'not-an-address').publish
+rescue SmartMessage::Errors::ValidationError => e
+  puts "Not published: #{e.message}"
 end
 
-# 3. Proc handler (reusable processing logic)
-welcome_processor = proc do |header, payload|
-  data = JSON.parse(payload)
-  EmailService.send_welcome_email(data['email'], data['user_name'])
-end
-WelcomeMessage.subscribe(welcome_processor)
-
-# 4. Custom method handler
-WelcomeMessage.subscribe("UserService.handle_welcome")
+# Handlers run on a thread pool.  Wait for them before the program ends.
+SmartMessage.shutdown
 ```
 
-### 3. Create and Publish a Message
+Output (the `Welcome` line comes from another thread, so its position can vary):
+
+```
+Published 6c5f0f0e-...: success=true
+Welcome Alice <alice@example.com> on the free plan
+Not published: WelcomeMessage#email: email must look like an address
+```
+
+The rest of this page explains each part.
+
+## Message classes
+
+A message class inherits from `SmartMessage::Base`. In an application, keep message classes in a `messages/` directory, one class per file.
 
 ```ruby
-# Create a new welcome message
-welcome = WelcomeMessage.new(
-  user_name: "Alice Johnson",
-  email: "alice@example.com", 
-  signup_date: Date.today.to_s
-)
+class WelcomeMessage < SmartMessage::Base
+  description 'Welcomes a new user'   # optional
+  version 1                           # optional, default 1
 
-# Publish the message
-welcome.publish
-```
-
-### 4. See It in Action
-
-Run your script and you should see:
-
-```
-===================================================
-== SmartMessage Published via STDOUT Transport
-== Header: #<SmartMessage::Header:0x... @uuid="...", @message_class="WelcomeMessage", ...>
-== Payload: {"user_name":"Alice Johnson","email":"alice@example.com","signup_date":"2025-08-17"}
-===================================================
-
-🎉 Welcome Alice Johnson!
-📧 Email: alice@example.com
-📅 Signed up: 2025-08-17
-```
-
-## Understanding What Happened
-
-1. **Message Definition**: We created a `WelcomeMessage` class with three properties
-2. **Configuration**: We configured it to use STDOUT transport with loopback enabled
-3. **Subscription**: We subscribed to process incoming messages of this type
-4. **Publishing**: We created an instance and published it
-5. **Processing**: Because loopback is enabled, the message was immediately routed back and processed
-
-## Key Concepts
-
-### Properties
-Messages use Hashie::Dash properties for type-safe attributes:
-
-```ruby
-class OrderMessage < SmartMessage::Base
-  description "Represents customer orders for processing and fulfillment"
-  
-  property :order_id, required: true
-  property :amount, transform_with: ->(v) { BigDecimal(v.to_s) }
-  property :items, default: []
-  property :created_at, default: -> { Time.now }
+  property :user_name, required: true
+  property :plan,      default: 'free'
 end
 ```
 
-### Headers
-Every message automatically gets a header with metadata:
+`property` accepts `required:`, `message:`, `default:`, `validate:`, `validation_message:` and `description:`. See [Properties and Validation](../core-concepts/properties.md).
+
+## A transport is required
+
+There is no default transport. A message class gets one in either of two ways:
 
 ```ruby
-message = WelcomeMessage.new(user_name: "Bob")
-puts message._sm_header.uuid          # Unique identifier
-puts message._sm_header.message_class # "WelcomeMessage"
-puts message._sm_header.published_at  # Timestamp when published
-puts message._sm_header.publisher_pid # Process ID of publisher
-puts message._sm_header.from          # 'user-service'
-puts message._sm_header.to            # 'notification-service'
-puts message._sm_header.reply_to      # 'user-service'
+# On the class (subclasses inherit it)
+WelcomeMessage.transport SmartMessage::Transport::MemoryTransport.new
+
+# Globally, for every class that does not set its own
+SmartMessage.configure do |config|
+  config.transport = SmartMessage::Transport::MemoryTransport.new
+end
 ```
 
-### Transports
-Transports handle where messages go. Built-in options include:
+Publishing or subscribing with no transport raises `SmartMessage::Errors::TransportNotConfigured`.
+
+Four transports ship with the gem: memory, stdout, file and Redis pub/sub. They differ in what they guarantee; read [Transports](../reference/transports.md) before choosing one for production.
+
+## A sender is required
+
+Every message needs a `from`. Set a default on the class, or pass it when building the message:
 
 ```ruby
-# STDOUT - for development/debugging
-transport SmartMessage::Transport.create(:stdout, loopback: true)
+class WelcomeMessage < SmartMessage::Base
+  from 'signup-service'
+end
 
-# Memory - for testing
-transport SmartMessage::Transport.create(:memory, auto_process: true)
+WelcomeMessage.new(user_name: 'Alice', email: 'a@example.com', from: 'admin-console')
 ```
 
-### Serializers
-Transports handle their own serialization automatically:
-- **MemoryTransport**: No serialization (objects passed directly)
-- **StdoutTransport**: JSON serialization for readability
-- **RedisTransport**: MessagePack (with JSON fallback) for efficiency
+A message with no `from` fails validation. `to` and `reply_to` are optional; see [Addressing](../core-concepts/addressing.md).
 
-### Message Handlers
+## Building and validating
 
-SmartMessage supports four types of message handlers to give you flexibility in how you process messages:
+`new` never raises for a missing or invalid property. Validation happens when you ask for it, and when you publish.
 
 ```ruby
-class OrderMessage < SmartMessage::Base
-  description "Handles customer order processing and fulfillment"
-  
-  # Define your message properties
-  property :order_id
-  property :amount
-  
-  # Default handler - processed when no custom handler specified
-  def self.process(header, payload)
-    puts "Default processing for order"
+message = WelcomeMessage.new(user_name: 'Bob')   # email is missing: no error yet
+
+message.valid?              # => false
+message.validation_errors   # => [{ property: :email, value: nil, message: "...", source: "message" }]
+message.validate!           # raises SmartMessage::Errors::ValidationError
+```
+
+## Publishing
+
+```ruby
+result = message.publish
+```
+
+`publish` calls `validate!`, sends the message on every configured transport, and returns a `SmartMessage::PublishResult`. It raises `SmartMessage::Errors::PublishError` when every transport fails. See [Publishing](../reference/publishing.md).
+
+## Subscribing
+
+You subscribe at the class level. A handler is a class method, a block, a proc or a lambda.
+
+```ruby
+# 1. The default handler: WelcomeMessage.process
+WelcomeMessage.subscribe
+
+# 2. A class method somewhere else, named as "Class.method"
+WelcomeMessage.subscribe('Mailer.send_welcome')
+
+# 3. A block
+WelcomeMessage.subscribe do |message|
+  Metrics.increment('signups', plan: message.plan)
+end
+
+# 4. A proc or lambda
+audit = ->(message) { AuditLog.record(message.to_h) }
+WelcomeMessage.subscribe(audit)
+```
+
+`subscribe` returns a handler id. Pass it to `unsubscribe` to remove that handler; `unsubscribe!` removes every handler of the class.
+
+Handlers run on a thread pool, each with its own copy of the message. A handler that raises does not affect the others; its copy of the message goes to the [dead letter queue](../reference/dead-letter-queue.md).
+
+## Waiting for handlers
+
+Because handlers run on other threads, a short script can reach its last line before they finish. `SmartMessage.shutdown` waits for them:
+
+```ruby
+SmartMessage.shutdown               # waits config.shutdown_timeout seconds (default 5)
+SmartMessage.shutdown(timeout: 30)  # or as long as you say
+```
+
+SmartMessage also registers `SmartMessage.shutdown` with `at_exit`, so handlers that are still running when the process ends get the configured timeout to finish. Calling it yourself makes the wait explicit and lets you check the return value (`true` when everything finished in time). Call it once, at the end: after a shutdown the thread pools are closed, and a handler for any later message runs on the thread that published or received it.
+
+## A second program: filters and two handlers
+
+```ruby
+require 'smart_message'
+
+SmartMessage.configure do |config|
+  config.transport = SmartMessage::Transport::MemoryTransport.new
+end
+
+# messages/alert_message.rb
+class AlertMessage < SmartMessage::Base
+  from 'monitoring'
+
+  property :level, required: true, validate: %w[info warning critical]
+  property :text,  required: true
+
+  def self.process(message)
+    puts "[#{message.level}] #{message.text} (to: #{message.to || 'everyone'})"
   end
 end
 
-# 1. Default handler (uses self.process)
-OrderMessage.subscribe
+# Every alert
+AlertMessage.subscribe
 
-# 2. Block handler - great for simple, inline logic
-OrderMessage.subscribe do |header, payload|
-  data = JSON.parse(payload)
-  puts "Block handler: Processing order #{data['order_id']}"
+# Only alerts addressed to the on-call entity
+AlertMessage.subscribe(to: 'on-call') do |message|
+  puts "PAGE on-call: #{message.text}"
 end
 
-# 3. Proc handler - reusable across message types
-audit_logger = proc do |header, payload|
-  puts "Audit: #{header.message_class} at #{header.published_at}"
-end
-OrderMessage.subscribe(audit_logger)
+AlertMessage.new(level: 'info', text: 'Deploy finished').publish
+AlertMessage.new(level: 'critical', text: 'Database is down', to: 'on-call').publish
 
-# 4. Method handler - organized in service classes
-class OrderService
-  def self.process_order(header, payload)
-    puts "Service processing order"
-  end
-end
-OrderMessage.subscribe("OrderService.process_order")
+SmartMessage.shutdown
 ```
 
-**When to use each type:**
-- **Default**: Simple built-in processing for the message type
-- **Block**: Quick inline logic specific to one subscription
-- **Proc**: Reusable handlers that work across multiple message types
-- **Method**: Complex business logic organized in service classes
+It prints three lines: both alerts from `AlertMessage.process`, and the page for the second one.
 
-### Entity Addressing
+## Next steps
 
-SmartMessage supports entity-to-entity addressing for sophisticated messaging patterns:
-
-```ruby
-# Point-to-point messaging
-class PaymentMessage < SmartMessage::Base
-  from 'payment-service'    # Required: sender identity
-  to 'bank-gateway'         # Optional: specific recipient
-  reply_to 'payment-service' # Optional: where responses go
-  
-  property :amount, required: true
-end
-
-# Broadcast messaging (no 'to' field)
-class AnnouncementMessage < SmartMessage::Base
-  from 'admin-service'      # Required sender
-  # No 'to' = broadcast to all subscribers
-  
-  property :message, required: true
-end
-
-# Instance-level addressing override
-payment = PaymentMessage.new(amount: 100.00)
-payment.to('backup-gateway')  # Override destination
-payment.publish
-```
-
-For more details, see [Entity Addressing](../core-concepts/addressing.md).
-
-## Next Steps
-
-Now that you have the basics working, explore:
-
-- [Architecture Overview](../core-concepts/architecture.md) - Understand how SmartMessage works
-- [Examples](examples.md) - See more practical use cases
-- [Transports](../reference/transports.md) - Learn about different transport options
-
-## Common Patterns
-
-### Simple Notification System
-
-```ruby
-class NotificationMessage < SmartMessage::Base
-  description "Sends notifications to users via email, SMS, or push"
-  
-  property :recipient
-  property :subject
-  property :body
-  property :priority, default: 'normal'
-
-  config do
-    transport SmartMessage::Transport.create(:memory, auto_process: true)
-  end
-
-  def self.process(decoded_message)
-    # decoded_message is already a message instance
-    notification = decoded_message
-    
-    # Send email, SMS, push notification, etc.
-    send_notification(notification)
-  end
-
-  private
-
-  def self.send_notification(notification)
-    puts "Sending #{notification.priority} notification to #{notification.recipient}"
-    puts "Subject: #{notification.subject}"
-  end
-end
-
-# Subscribe and send
-NotificationMessage.subscribe
-
-NotificationMessage.new(
-  recipient: "user@example.com",
-  subject: "Welcome!",
-  body: "Thanks for signing up!",
-  priority: "high"
-).publish
-```
-
-### Event Logging
-
-```ruby
-class EventMessage < SmartMessage::Base
-  description "Logs application events for monitoring and analytics"
-  
-  property :event_type
-  property :user_id
-  property :data
-  property :timestamp, default: -> { Time.now.iso8601 }
-
-  config do
-    transport SmartMessage::Transport.create(:stdout, output: 'events.log')
-  end
-end
-
-# Log events
-EventMessage.new(
-  event_type: 'user_login',
-  user_id: 123,
-  data: { ip: '192.168.1.1', user_agent: 'Chrome' }
-).publish
-```
-
-## Need Help?
-
-- Check the [Troubleshooting Guide](../development/troubleshooting.md)
-- Look at more [Examples](examples.md)
+- [Transports](../reference/transports.md): what each transport guarantees
+- [Properties and Validation](../core-concepts/properties.md)
+- [Message Filtering](../core-concepts/message-filtering.md)
+- [Dead Letter Queue](../reference/dead-letter-queue.md)
+- [Examples](examples.md)

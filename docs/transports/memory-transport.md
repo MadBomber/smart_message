@@ -1,375 +1,108 @@
 # Memory Transport
 
-The **Memory Transport** is an in-memory transport implementation designed for testing, development, and rapid prototyping. It stores messages in memory and provides synchronous processing capabilities.
+`SmartMessage::Transport::MemoryTransport` keeps everything inside the process. It is meant for tests and local development.
 
-## Overview
+## Delivery semantics
 
-The Memory Transport is perfect for:
-- **Unit testing** - No external dependencies required
-- **Local development** - Fast, lightweight message processing
-- **Rapid prototyping** - Quick setup without infrastructure
-- **Debug and inspection** - Full visibility into message flow
+- **In-process only.** A published message is delivered to the handlers subscribed on the same transport instance. Nothing is sent to another process.
+- With `auto_process: true` (the default), `publish` hands the message to the dispatcher immediately. Handlers run on the dispatcher's thread pool.
+- With `auto_process: false`, messages are stored and delivered only when you call `process_all`.
+- Stored messages live in memory, are capped at `max_messages` (oldest dropped first), and are lost when the process ends.
 
-## Key Features
-
-- 🧠 **In-Memory Storage** - Messages stored in process memory
-- ⚡ **Synchronous Processing** - Immediate message processing
-- 🔍 **Message Inspection** - View and count stored messages
-- 🔄 **Auto-Processing** - Optional automatic message processing
-- 🛡️ **Memory Protection** - Configurable message limits to prevent overflow
-- 🧵 **Thread-Safe** - Mutex-protected operations
-
-## Configuration
-
-### Basic Setup
+## Options
 
 ```ruby
-# Minimal configuration
-transport = SmartMessage::Transport::MemoryTransport.new
-
-# With options
-transport = SmartMessage::Transport::MemoryTransport.new(
-  auto_process: true,     # Process messages immediately (default: true)
-  max_messages: 1000      # Maximum messages to store (default: 1000)
+SmartMessage::Transport::MemoryTransport.new(
+  auto_process:   true,   # deliver to subscribers on publish
+  store_messages: nil,    # keep published messages; default: only when auto_process is false
+  max_messages:   1000,   # how many stored messages to keep
+  serialize:      true    # encode on publish and decode on delivery
 )
+
+SmartMessage::Transport.create(:memory, auto_process: false)
 ```
 
-### Using with SmartMessage
+| Option | Default | Meaning |
+|--------|---------|---------|
+| `auto_process` | `true` | Deliver to subscribers as part of `publish` |
+| `store_messages` | `nil` | Keep published messages for `all_messages` and `process_all`. `nil` means "only when `auto_process` is false". |
+| `max_messages` | `1000` | Upper bound on stored messages |
+| `serialize` | `true` | Encode to JSON on publish and decode on delivery, as a real transport does. With `false`, handlers receive copies of the published object, and type changes caused by serialization go unnoticed. |
 
-```ruby
-# Configure as default transport
-SmartMessage.configure do |config|
-  config.default_transport = SmartMessage::Transport::MemoryTransport.new
-end
+Leave `serialize` on in tests: it makes the memory transport behave like the others, so a property that does not survive JSON (a `Time`, a Symbol) shows up in the test and not in production.
 
-# Use in message class
-class TestMessage < SmartMessage::Base
-  property :content, required: true
-  
-  transport :memory
-  
-  def process
-    puts "Processing: #{content}"
-  end
-end
-```
-
-## Configuration Options
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `auto_process` | Boolean | `true` | Automatically process messages when published |
-| `max_messages` | Integer | `1000` | Maximum messages to store (prevents memory overflow) |
-
-## Usage Examples
-
-### Basic Message Processing
-
-```ruby
-# Create transport
-transport = SmartMessage::Transport::MemoryTransport.new
-
-# Define message
-class AlertMessage < SmartMessage::Base
-  property :message, required: true
-  property :severity, default: 'info'
-  
-  transport transport
-  
-  def process
-    puts "[#{severity.upcase}] #{message}"
-  end
-end
-
-# Publish message
-AlertMessage.new(
-  message: "System startup complete",
-  severity: "info"
-).publish
-
-# Output: [INFO] System startup complete
-```
-
-### Manual Processing Control
-
-```ruby
-# Disable auto-processing for batch operations
-transport = SmartMessage::Transport::MemoryTransport.new(auto_process: false)
-
-class DataMessage < SmartMessage::Base
-  property :data
-  transport transport
-  
-  def process
-    puts "Processing: #{data}"
-  end
-end
-
-# Publish multiple messages
-DataMessage.new(data: "batch 1").publish
-DataMessage.new(data: "batch 2").publish
-DataMessage.new(data: "batch 3").publish
-
-puts "Messages stored: #{transport.message_count}"
-# Output: Messages stored: 3
-
-# Process all at once
-transport.process_all
-# Output: 
-# Processing: batch 1
-# Processing: batch 2
-# Processing: batch 3
-```
-
-### Message Inspection
+## Stored messages
 
 ```ruby
 transport = SmartMessage::Transport::MemoryTransport.new(auto_process: false)
 
+transport.all_messages     # => [{ message_class: "OrderMessage", payload: "{...}", published_at: Time }, ...]
+transport.messages         # alias
+transport.message_count    # => 2
+transport.process_all      # deliver every stored message, remove it, return how many
+transport.clear_messages   # discard stored messages
+```
+
+`payload` is the serialized String (or, with `serialize: false`, a copy of the message object). To get a message back from a stored entry:
+
+```ruby
+entry   = transport.all_messages.first
+message = transport.decode_message(entry[:payload])
+```
+
+`process_all` removes what it delivers, so calling it twice does not deliver anything twice.
+
+## A complete program
+
+```ruby
+require 'smart_message'
+
+# messages/order_message.rb
 class OrderMessage < SmartMessage::Base
+  from 'order-service'
   property :order_id, required: true
-  property :amount, required: true
-  transport transport
+
+  def self.process(message)
+    puts "processing #{message.order_id}"
+  end
 end
 
-# Publish test messages
-OrderMessage.new(order_id: "ORD-001", amount: 99.99).publish
-OrderMessage.new(order_id: "ORD-002", amount: 149.50).publish
-
-# Inspect stored messages
-puts "Total messages: #{transport.message_count}"
-transport.all_messages.each_with_index do |msg, index|
-  puts "Message #{index + 1}: #{msg[:message_class]} at #{msg[:published_at]}"
-end
-
-# Clear messages when done
-transport.clear_messages
-puts "Messages after clear: #{transport.message_count}"
-```
-
-## API Reference
-
-### Instance Methods
-
-#### `#message_count`
-Returns the number of messages currently stored.
-
-```ruby
-count = transport.message_count
-puts "Stored messages: #{count}"
-```
-
-#### `#all_messages`
-Returns a copy of all stored messages with metadata.
-
-```ruby
-messages = transport.all_messages
-messages.each do |msg|
-  puts "Class: #{msg[:message_class]}"
-  puts "Time: #{msg[:published_at]}"
-  puts "Data: #{msg[:serialized_message]}"
-end
-```
-
-#### `#clear_messages`
-Removes all stored messages from memory.
-
-```ruby
-transport.clear_messages
-```
-
-#### `#process_all`
-Manually processes all stored messages (useful when `auto_process: false`).
-
-```ruby
-# Publish messages without auto-processing
 transport = SmartMessage::Transport::MemoryTransport.new(auto_process: false)
-# ... publish messages ...
+OrderMessage.transport(transport)
+OrderMessage.subscribe
 
-# Process them all at once
-transport.process_all
+OrderMessage.new(order_id: 'ORD-1').publish
+OrderMessage.new(order_id: 'ORD-2').publish
+
+puts "stored before: #{transport.message_count}"   # 2: nothing delivered yet
+delivered = transport.process_all
+SmartMessage.shutdown                               # wait for the handlers
+
+puts "delivered: #{delivered}, stored after: #{transport.message_count}"
 ```
 
-#### `#connected?`
-Always returns `true` since memory transport is always available.
+## In tests
+
+Create a transport per test so that subscriptions and stored messages do not leak between tests:
 
 ```ruby
-puts transport.connected?  # => true
-```
-
-## Use Cases
-
-### Unit Testing
-
-```ruby
-RSpec.describe "Message Processing" do
-  let(:transport) { SmartMessage::Transport::MemoryTransport.new }
-  
-  before do
-    MyMessage.transport = transport
-    transport.clear_messages
+class OrderMessageTest < Minitest::Test
+  def setup
+    @transport = SmartMessage::Transport::MemoryTransport.new(auto_process: false)
+    OrderMessage.transport(@transport)
   end
-  
-  it "processes messages correctly" do
-    MyMessage.new(data: "test").publish
-    expect(transport.message_count).to eq(1)
+
+  def teardown
+    OrderMessage.reset_transport
   end
-  
-  it "respects message limits" do
-    transport = SmartMessage::Transport::MemoryTransport.new(max_messages: 2)
-    
-    3.times { |i| MyMessage.new(data: i).publish }
-    expect(transport.message_count).to eq(2)  # Oldest message dropped
+
+  def test_publishes_one_message
+    OrderMessage.new(order_id: 'ORD-1').publish
+
+    assert_equal 1, @transport.message_count
+    assert_equal 'ORD-1', @transport.decode_message(@transport.all_messages.first[:payload]).order_id
   end
 end
 ```
 
-### Development Environment
-
-```ruby
-# config/environments/development.rb
-SmartMessage.configure do |config|
-  config.default_transport = SmartMessage::Transport::MemoryTransport.new(
-    auto_process: true,
-    max_messages: 500
-  )
-  config.logger.level = Logger::DEBUG  # See all message activity
-end
-```
-
-### Batch Processing
-
-```ruby
-# Collect messages for batch processing
-transport = SmartMessage::Transport::MemoryTransport.new(auto_process: false)
-
-# Publish work items
-work_items.each do |item|
-  WorkMessage.new(item: item).publish
-end
-
-# Process batch when ready
-puts "Processing #{transport.message_count} work items..."
-start_time = Time.now
-transport.process_all
-puts "Completed in #{Time.now - start_time} seconds"
-```
-
-## Performance Characteristics
-
-- **Latency**: ~0.01ms (memory access)
-- **Throughput**: 100K+ messages/second
-- **Memory Usage**: ~1KB per stored message
-- **Concurrency**: Thread-safe with mutex protection
-- **Persistence**: None (messages lost when process ends)
-
-## Best Practices
-
-### Testing
-- Use `clear_messages` in test setup/teardown
-- Set reasonable `max_messages` limits for long-running tests
-- Disable `auto_process` for message inspection tests
-
-### Development
-- Enable debug logging to see message flow
-- Use message inspection methods for debugging
-- Consider memory limits in long-running development processes
-
-### Production
-⚠️ **Not recommended for production use**
-- Messages are lost when process restarts
-- No persistence or durability guarantees
-- Limited by process memory
-
-## Thread Safety
-
-The Memory Transport is fully thread-safe:
-- All operations use mutex synchronization
-- Messages can be published from multiple threads
-- Inspection methods return safe copies
-
-```ruby
-# Thread-safe concurrent publishing
-threads = []
-10.times do |i|
-  threads << Thread.new do
-    100.times { |j| TestMessage.new(data: "#{i}-#{j}").publish }
-  end
-end
-threads.each(&:join)
-
-puts "Total messages: #{transport.message_count}"  # Always accurate
-```
-
-## Migration from Memory Transport
-
-When moving from Memory Transport to production transports:
-
-```ruby
-# Development (Memory Transport)
-SmartMessage.configure do |config|
-  config.default_transport = SmartMessage::Transport::MemoryTransport.new
-end
-
-# Production (Redis Transport)
-SmartMessage.configure do |config|
-  config.default_transport = SmartMessage::Transport::RedisTransport.new(
-    url: ENV['REDIS_URL']
-  )
-end
-```
-
-Messages and processing logic remain identical - only the transport configuration changes.
-
-## Examples
-
-The `examples/memory/` directory contains comprehensive, runnable examples demonstrating Memory Transport capabilities:
-
-### Core Messaging Examples
-- **[03_point_to_point_orders.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/03_point_to_point_orders.rb)** - Point-to-point order processing with payment integration
-- **[04_publish_subscribe_events.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/04_publish_subscribe_events.rb)** - Event broadcasting to multiple services (email, SMS, audit)
-- **[05_many_to_many_chat.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/05_many_to_many_chat.rb)** - Interactive chat system with rooms, bots, and human agents
-
-### Advanced Features
-- **[01_message_deduplication_demo.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/01_message_deduplication_demo.rb)** - Message deduplication patterns and strategies
-- **[02_dead_letter_queue_demo.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/02_dead_letter_queue_demo.rb)** - Complete Dead Letter Queue system with circuit breakers
-- **[07_proc_handlers_demo.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/07_proc_handlers_demo.rb)** - Flexible message handlers (blocks, procs, lambdas, methods)
-
-### Configuration & Monitoring
-- **[08_custom_logger_demo.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/08_custom_logger_demo.rb)** - Advanced logging with SmartMessage::Logger::Default
-- **[09_error_handling_demo.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/09_error_handling_demo.rb)** - Comprehensive validation, version mismatch, and error handling
-- **[13_header_block_configuration.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/13_header_block_configuration.rb)** - Header and block configuration examples
-- **[14_global_configuration_demo.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/14_global_configuration_demo.rb)** - Global configuration management
-- **[15_logger_demo.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/15_logger_demo.rb)** - Advanced logging demonstrations
-
-### Entity Addressing & Filtering
-- **[10_entity_addressing_basic.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/10_entity_addressing_basic.rb)** - Basic FROM/TO/REPLY_TO message addressing
-- **[11_entity_addressing_with_filtering.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/11_entity_addressing_with_filtering.rb)** - Advanced entity-aware message filtering
-- **[12_regex_filtering_microservices.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/12_regex_filtering_microservices.rb)** - Advanced regex filtering for microservices
-
-### Visual Demonstrations
-- **[06_stdout_publish_only.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/06_stdout_publish_only.rb)** - STDOUT transport publish-only demonstration with logging and metrics examples
-- **[16_pretty_print_demo.rb](https://github.com/MadBomber/smart_message/blob/main/examples/memory/16_pretty_print_demo.rb)** - Message inspection and pretty-printing capabilities
-
-### Running Examples
-
-```bash
-# Navigate to the SmartMessage directory
-cd smart_message
-
-# Run any Memory Transport example
-ruby examples/memory/03_point_to_point_orders.rb
-ruby examples/memory/05_many_to_many_chat.rb
-ruby examples/memory/02_dead_letter_queue_demo.rb
-
-# Or explore the entire directory
-ls examples/memory/
-```
-
-Each example is self-contained and demonstrates specific Memory Transport features with clear educational comments and real-world scenarios.
-
-## Related Documentation
-
-- [Transport Overview](../reference/transports.md) - All available transports
-- [Redis Transport](redis-transport.md) - Production-ready Redis transport
-- [Testing Guide](../development/troubleshooting.md) - Testing strategies with SmartMessage
+To test a handler, call it directly with a message (`OrderMessage.process(OrderMessage.new(order_id: 'ORD-1'))`), or publish with `auto_process: true` and call `transport.dispatcher.shutdown` to wait for it.

@@ -2,307 +2,166 @@
 # encoding: utf-8
 # frozen_string_literal: true
 
-require 'concurrent'
-require_relative 'circuit_breaker'
-
 module SmartMessage
-
-  # The disoatcher routes incoming messages to all of the methods that
+  # The dispatcher routes incoming messages to all of the handlers that
   # have been subscribed to the message.
+  #
+  # Each handler runs on a bounded thread pool, gets its own copy of the
+  # message, and is protected by its own circuit breaker.  A handler that
+  # raises, or whose circuit is open, sends its copy of the message to the
+  # dead letter queue; other handlers are not affected.
   class Dispatcher
-    include BreakerMachines::DSL
+    NO_SUBSCRIPTIONS = [].freeze
 
-    # TODO: setup forwardable for some @router_pool methods
+    @registry       = ObjectSpace::WeakMap.new
+    @registry_mutex = Mutex.new
 
-    def initialize(circuit_breaker_options = {})
-      @subscribers = Hash.new { |h, k| h[k] = [] }
-      @subscriber_ddqs = {}  # Hash to store DDQs per subscriber: "MessageClass:subscriber_id" => DDQ
-      @router_pool = Concurrent::CachedThreadPool.new
-
-      # Configure circuit breakers
-      configure_circuit_breakers(circuit_breaker_options)
-      at_exit do
-        shutdown_pool
+    class << self
+      # @return [Array<SmartMessage::Dispatcher>] every dispatcher still alive
+      def all
+        @registry_mutex.synchronize { @registry.keys }
       end
-      
-      logger.debug { "[SmartMessage::Dispatcher] Initialized with circuit breaker options: #{circuit_breaker_options}" }
-    rescue => e
-      logger.error { "[SmartMessage] Error in dispatcher initialization: #{e.class.name} - #{e.message}" }
-      raise
-    end
-    
-    private
-    
-    def logger
-      @logger ||= SmartMessage::Logger.default
-    end
-    
-    public
 
-
-    def what_can_i_do?
-      # TODO: Return pool methods list for debugging
-      @router_pool.methods.sort
+      def register(dispatcher)
+        @registry_mutex.synchronize { @registry[dispatcher] = true }
+      end
     end
 
+    # @param circuit_breaker_options [Hash] { message_processor: { threshold:
+    #   { failures:, within: }, reset_after: } } overrides for handler circuits
+    # @param max_threads [Integer, nil] pool size; default from configuration
+    # @param max_queue [Integer, nil] tasks that may wait for a thread;
+    #   default from configuration.  When the queue is full the publishing
+    #   (or receiving) thread runs the handler itself, which slows it down
+    #   instead of growing without bound.
+    def initialize(circuit_breaker_options = {}, max_threads: nil, max_queue: nil)
+      config = SmartMessage.configuration
+
+      @subscribers     = {}.freeze
+      @mutex           = Mutex.new
+      @subscriber_ddqs = Concurrent::Map.new
+      @circuits        = Concurrent::Map.new
+      @in_flight       = Concurrent::Map.new
+      @circuit_config  = CircuitBreaker.config_for(:message_processor, circuit_breaker_options[:message_processor])
+      @router_pool     = Concurrent::ThreadPoolExecutor.new(
+        min_threads:     0,
+        max_threads:     max_threads || config.dispatcher_max_threads,
+        max_queue:       max_queue || config.dispatcher_max_queue,
+        fallback_policy: :caller_runs
+      )
+
+      self.class.register(self)
+    end
+
+    #########################################################
+    ## Pool status
 
     def status
-      # TODO: Return proper status hash
       {
-        scheduled_task_count: @router_pool.scheduled_task_count,
-        completed_task_count: @router_pool.completed_task_count,
-        queue_length: @router_pool.queue_length,
-        length: @router_pool.length,
-        running: @router_pool.running?
+        scheduled_task_count: scheduled_task_count,
+        completed_task_count: completed_task_count,
+        queue_length:         queue_length,
+        length:               current_length,
+        in_flight:            @in_flight.size,
+        running:              running?
       }
-    rescue NoMethodError
-      what_can_i_do?
     end
 
+    def scheduled_task_count = @router_pool.scheduled_task_count
+    def completed_task_count = @router_pool.completed_task_count
+    def queue_length         = @router_pool.queue_length
+    def current_length       = @router_pool.length
+    def running?             = @router_pool.running?
 
-    def pool
-      @router_pool.instance_variable_get('@pool'.to_sym)
-    end
+    #########################################################
+    ## Subscriptions
 
-    def scheduled_task_count
-      @router_pool.scheduled_task_count
-    end
-
-    def worker_task_completed
-      @router_pool.worker_task_completed
-    end
-
-    def completed_task_count
-      @router_pool.completed_task_count
-    end
-
-    def queue_length
-      @router_pool.queue_length
-    end
-
-
-    def  current_length
-      @router_pool.length
-    end
-
-
-    def running?
-      @router_pool.running?
-    end
-
-
+    # @return [Hash] message class name => Array of subscriptions.  A
+    #   snapshot: changing it does not change the dispatcher.
     def subscribers
-      @subscribers
+      Hash.new(NO_SUBSCRIPTIONS).merge!(@subscribers)
     end
 
-
+    # Subscribe a handler to a message class.
+    #
+    # @param message_class [String, Class] The message class (name)
+    # @param process_method_as_string [String] "Class.method" or a proc handler id
+    # @param filter_options [Hash] :from, :to, :broadcast filters
     def add(message_class, process_method_as_string, filter_options = {})
-      klass = String(message_class)
-      
-      # Subscriber ID is derived from the process method (handler-only scoping)
-      subscriber_id = process_method_as_string
-      
-      # Initialize DDQ for this handler if message class supports deduplication
-      begin
-        message_class_obj = klass.constantize
-        if message_class_obj.respond_to?(:ddq_enabled?) && message_class_obj.ddq_enabled?
-          initialize_ddq_for_subscriber(klass, subscriber_id, message_class_obj)
-        end
-      rescue NameError
-        # Message class doesn't exist as a constant (e.g., in tests with fake class names)
-        # Skip DDQ initialization - this is fine since the class wouldn't support deduplication anyway
-      end
-
-      # Create subscription entry with filter options and derived subscriber ID
+      klass        = String(message_class)
       subscription = {
-        subscriber_id: subscriber_id,
+        subscriber_id:  process_method_as_string,
         process_method: process_method_as_string,
-        filters: filter_options
-      }
+        filters:        filter_options
+      }.freeze
 
-      # Check if this exact subscription already exists
-      existing_subscription = @subscribers[klass].find do |sub|
-        sub[:subscriber_id] == subscriber_id &&
-        sub[:process_method] == process_method_as_string && 
-        sub[:filters] == filter_options
+      # A class with deduplication enabled gets its queue now, so a bad
+      # DDQ configuration fails the subscribe instead of going unnoticed.
+      ddq_for(klass, process_method_as_string, message_class_named(klass))
+
+      update_subscriptions(klass) do |current|
+        current.include?(subscription) ? current : current + [subscription]
       end
 
-      unless existing_subscription
-        @subscribers[klass] << subscription
-        logger.debug { "[SmartMessage::Dispatcher] Added subscription: #{klass} for #{subscriber_id}" }
-      end
+      logger.debug { "[SmartMessage::Dispatcher] Added subscription: #{klass} for #{process_method_as_string}" }
     end
 
-
-    # drop a processer from a subscribed message
-    def drop(message_class, process_method_as_string, filter_options = {})
+    # Drop one handler from a message class.
+    def drop(message_class, process_method_as_string, _filter_options = {})
       klass = String(message_class)
-      
-      # Subscriber ID is derived from the process method
-      subscriber_id = process_method_as_string
-      
-      # Drop the specific method (now uniquely identified by handler)
-      @subscribers[klass].reject! do |sub| 
-        sub[:subscriber_id] == subscriber_id && sub[:process_method] == process_method_as_string
+
+      update_subscriptions(klass) do |current|
+        current.reject { |subscription| subscription[:subscriber_id] == process_method_as_string }
       end
-      
-      # Clean up DDQ if no more subscriptions for this handler
-      cleanup_ddq_if_empty(klass, subscriber_id)
+
+      forget_subscriber(klass, process_method_as_string)
     end
 
-    # drop all processors for a specific handler (subscriber)
+    # Drop every subscription a handler has on a message class.
     def drop_subscriber(message_class, handler_method)
-      klass = String(message_class)
       unless handler_method.is_a?(String) && !handler_method.empty?
         raise ArgumentError, "handler_method must be a non-empty String, got: #{handler_method.inspect}"
       end
-      
-      # Handler method is the subscriber ID
-      subscriber_id = handler_method
-      @subscribers[klass].reject! { |sub| sub[:subscriber_id] == subscriber_id }
-      cleanup_ddq_if_empty(klass, subscriber_id)
+
+      drop(message_class, handler_method)
     end
 
-    # drop all processors from a subscribed message
+    # Drop every handler of a message class.
     def drop_all(message_class)
-      klass = String(message_class)
-      
-      # Clean up all DDQs for this message class
-      if @subscribers[klass]
-        @subscribers[klass].each do |sub|
-          cleanup_ddq_if_empty(klass, sub[:subscriber_id], force: true)
-        end
+      klass   = String(message_class)
+      dropped = @mutex.synchronize do
+        current      = @subscribers.fetch(klass, NO_SUBSCRIPTIONS)
+        @subscribers = @subscribers.except(klass).freeze
+        current
       end
-      
-      @subscribers.delete klass
+
+      dropped.each { |subscription| forget_subscriber(klass, subscription[:subscriber_id]) }
     end
 
-    # complete reset all subscriptions
+    # Drop every subscription.
     def drop_all!
-      # Clean up all DDQs
-      @subscriber_ddqs&.clear
-      @subscribers = Hash.new { |h, k| h[k] = [] }
+      @mutex.synchronize { @subscribers = {}.freeze }
+      @subscriber_ddqs.clear
+      @circuits.clear
     end
 
+    #########################################################
+    ## Routing
 
-    # Route a decoded message to appropriate message processors
-    # @param decoded_message [SmartMessage::Base] The decoded message instance
-    def route(decoded_message)
-      message_header = decoded_message._sm_header
-      message_klass = message_header.message_class
-      
-      # Try to get the message class object for deduplication checks
-      message_class_obj = nil
-      begin
-        message_class_obj = message_klass.constantize
-      rescue NameError
-        # Message class doesn't exist as a constant - skip deduplication checks
-      end
-      
-      logger.debug { "[SmartMessage::Dispatcher] Routing message #{message_klass} to #{@subscribers[message_klass]&.size || 0} subscribers" }
-      logger.debug { "[SmartMessage::Dispatcher] Available subscribers: #{@subscribers.keys}" }
-      return nil if @subscribers[message_klass].nil? || @subscribers[message_klass].empty?
+    # Route a message to every subscribed handler whose filters match.
+    #
+    # @param message [SmartMessage::Base] The decoded message instance
+    # @return [Integer, nil] how many handlers were scheduled; nil when the
+    #   message class has no subscribers
+    def route(message)
+      header        = message._sm_header
+      klass         = header.message_class
+      subscriptions = @subscribers.fetch(klass, NO_SUBSCRIPTIONS)
 
-      @subscribers[message_klass].each do |subscription|
-        # Extract subscription details
-        subscriber_id = subscription[:subscriber_id]
-        message_processor = subscription[:process_method]
-        filters = subscription[:filters]
+      logger.debug { "[SmartMessage::Dispatcher] Routing #{klass} to #{subscriptions.size} subscribers" }
+      return nil if subscriptions.empty?
 
-        # Check if message matches filters
-        next unless message_matches_filters?(message_header, filters)
-
-        # Subscriber-specific deduplication check (only if class exists and supports it)
-        if message_class_obj&.respond_to?(:ddq_enabled?) && message_class_obj.ddq_enabled?
-          ddq = get_ddq_for_subscriber(message_klass, subscriber_id)
-          if ddq&.contains?(decoded_message.uuid)
-            logger.warn { "[SmartMessage::Dispatcher] Skipping duplicate for #{subscriber_id}: #{decoded_message.uuid} | Header: #{decoded_message._sm_header.to_h}" }
-            next  # Skip this subscriber, continue to next
-          end
-        end
-
-        SS.add(message_klass, message_processor, 'routed' )
-        @router_pool.post do
-          # Use circuit breaker to protect message processing
-          circuit_result = circuit(:message_processor).wrap do
-            # Check if this is a proc handler or a regular method call
-            if proc_handler?(message_processor)
-              # Call the proc handler via SmartMessage::Base
-              SmartMessage::Base.call_proc_handler(message_processor, decoded_message)
-            else
-              # Method call logic with decoded message
-              parts         = message_processor.split('.')
-              target_klass  = parts[0]
-              class_method  = parts[1]
-              target_klass.constantize
-                          .method(class_method)
-                          .call(decoded_message)
-            end
-          end
-
-          # Handle circuit breaker fallback responses
-          if circuit_result.is_a?(Hash) && circuit_result[:circuit_breaker]
-            handle_circuit_breaker_fallback(circuit_result, decoded_message, message_processor)
-          else
-            # Mark message as processed in subscriber's DDQ after successful processing
-            if message_class_obj&.respond_to?(:ddq_enabled?) && message_class_obj.ddq_enabled?
-              ddq = get_ddq_for_subscriber(message_klass, subscriber_id)
-              if ddq && decoded_message.uuid
-                ddq.add(decoded_message.uuid)
-                logger.debug { "[SmartMessage::Dispatcher] Marked UUID as processed for #{subscriber_id}: #{decoded_message.uuid}" }
-              end
-            end
-          end
-        end
-      end
-    end
-
-    # Get circuit breaker statistics
-    # @return [Hash] Circuit breaker statistics
-    def circuit_breaker_stats
-      stats = {}
-
-      begin
-        if respond_to?(:circuit)
-          breaker = circuit(:message_processor)
-          if breaker
-            stats[:message_processor] = {
-              status: breaker.status,
-              closed: breaker.closed?,
-              open: breaker.open?,
-              half_open: breaker.half_open?,
-              last_error: breaker.last_error,
-              opened_at: breaker.opened_at,
-              stats: breaker.stats
-            }
-          end
-        end
-      rescue => e
-        stats[:error] = "Failed to get circuit breaker stats: #{e.message}"
-      end
-
-      stats
-    end
-
-    # Reset circuit breakers
-    # @param circuit_name [Symbol] Optional specific circuit to reset
-    def reset_circuit_breakers!(circuit_name = nil)
-      if circuit_name
-        circuit(circuit_name)&.reset!
-      else
-        # Reset all known circuits
-        circuit(:message_processor)&.reset!
-      end
-    end
-
-    # Shutdown the router pool with timeout and fallback
-    def shutdown_pool
-      @router_pool.shutdown
-
-      # Wait for graceful shutdown, force kill if timeout
-      unless @router_pool.wait_for_termination(3)
-        @router_pool.kill
-      end
+      subscriptions.count { |subscription| schedule(subscription, message) }
     end
 
     # Check if a message matches the subscription filters
@@ -310,220 +169,298 @@ module SmartMessage
     # @param filters [Hash] The filter criteria
     # @return [Boolean] True if the message matches all filters
     def message_matches_filters?(message_header, filters)
-      # Check from filter first (if specified)
-      if filters[:from]
-        from_match = filter_value_matches?(message_header.from, filters[:from])
-        return false unless from_match
-      end
+      return false if filters[:from] && !filter_value_matches?(message_header.from, filters[:from])
 
-      # Check to/broadcast filters (OR logic between them)
-      # Only consider explicit filtering if the values are not nil
-      if filters[:to] || filters[:broadcast]
-        # Explicit filtering specified
-        broadcast_match = filters[:broadcast] && message_header.to.nil?
-        to_match = filters[:to] && filter_value_matches?(message_header.to, filters[:to])
-        
-        # At least one must match
-        return (broadcast_match || to_match)
-      else
-        # No to/broadcast filtering - accept all messages (backward compatibility)
-        return true
-      end
+      # Without a to or broadcast filter, every message is accepted
+      return true unless filters[:to] || filters[:broadcast]
+
+      # With them, at least one must match
+      broadcast_match = filters[:broadcast] && message_header.to.nil?
+      to_match        = filters[:to] && filter_value_matches?(message_header.to, filters[:to])
+      !!(broadcast_match || to_match)
     end
 
     # Check if a value matches any of the filter criteria
-    # Supports both exact string matching and regex pattern matching
     # @param value [String, nil] The value to match against
-    # @param filter_array [Array] Array of strings and/or regexps to match against
+    # @param filter_array [Array<String, Regexp>] exact strings and patterns
     # @return [Boolean] True if the value matches any filter in the array
     def filter_value_matches?(value, filter_array)
       return false if value.nil? || filter_array.nil?
 
       filter_array.any? do |filter|
         case filter
-        when String
-          filter == value
-        when Regexp
-          filter.match?(value)
-        else
-          false
+        when String then filter == value
+        when Regexp then filter.match?(value)
+        else false
         end
       end
     end
 
-    # Check if a message processor is a proc handler
-    # @param message_processor [String] The message processor identifier
-    # @return [Boolean] True if this is a proc handler
+    # Check if a message processor is a registered proc handler
     def proc_handler?(message_processor)
       SmartMessage::Base.proc_handler?(message_processor)
     end
 
-    # Configure circuit breakers for the dispatcher
-    # @param options [Hash] Circuit breaker configuration options
-    def configure_circuit_breakers(options = {})
-      # Ensure CircuitBreaker module is available
-      return unless defined?(SmartMessage::CircuitBreaker::DEFAULT_CONFIGS)
+    # Turn a handler id into something callable, now, so a later
+    # unsubscribe cannot change what an already-routed message does.
+    #
+    # @param process_method [String] "Class.method" or a proc handler id
+    # @return [#call, nil] nil when a proc handler is no longer registered
+    def resolve_handler(process_method)
+      return SmartMessage::Base.proc_handler(process_method) if Subscription.proc_handler_id?(process_method)
 
-      # Configure message processor circuit breaker
-      default_config = SmartMessage::CircuitBreaker::DEFAULT_CONFIGS[:message_processor]
-      return unless default_config
-
-      processor_config = default_config.merge(options[:message_processor] || {})
-
-      # Define the circuit using the class-level DSL
-      self.class.circuit :message_processor do
-        threshold failures: processor_config[:threshold][:failures],
-                 within: processor_config[:threshold][:within].seconds
-        reset_after processor_config[:reset_after].seconds
-
-        # Configure storage backend
-        case processor_config[:storage]
-        when :redis
-          # Use Redis storage if configured and available
-          if defined?(SmartMessage::Transport::RedisTransport)
-            begin
-              redis_transport = SmartMessage::Transport::RedisTransport.new
-              storage BreakerMachines::Storage::Redis.new(redis: redis_transport.redis_pub)
-            rescue
-              # Fall back to memory storage if Redis not available
-              storage BreakerMachines::Storage::Memory.new
-            end
-          else
-            storage BreakerMachines::Storage::Memory.new
-          end
-        else
-          storage BreakerMachines::Storage::Memory.new
-        end
-
-        # Default fallback for message processing failures
-        fallback do |exception|
-          {
-            circuit_breaker: {
-              circuit: :message_processor,
-              state: 'open',
-              error: exception.message,
-              error_class: exception.class.name,
-              timestamp: Time.now.iso8601,
-              fallback_triggered: true
-            }
-          }
-        end
-      end
-
+      target, method_name = process_method.to_s.split('.', 2)
+      ->(message) { Object.const_get(target).method(method_name).call(message) }
     end
 
-    # Handle circuit breaker fallback responses
-    # @param circuit_result [Hash] The circuit breaker fallback result
-    # @param decoded_message [SmartMessage::Base] The decoded message instance
-    # @param message_processor [String] The processor that failed
-    def handle_circuit_breaker_fallback(circuit_result, decoded_message, message_processor)
-      message_header = decoded_message._sm_header
+    #########################################################
+    ## Circuit breakers
 
-      # Always log circuit breaker activation for debugging
-      error_msg = circuit_result[:circuit_breaker][:error]
-      logger.error { "[SmartMessage::Dispatcher] Circuit breaker activated for processor: #{message_processor}" }
-      logger.error { "[SmartMessage::Dispatcher] Error: #{error_msg}" }
-      logger.error { "[SmartMessage::Dispatcher] Message: #{message_header.message_class} from #{message_header.from}" }
+    # Get circuit breaker statistics, one entry per handler circuit.
+    # @return [Hash] "MessageClass:handler" => stats
+    def circuit_breaker_stats
+      @circuits.each_pair.to_h do |name, breaker|
+        [name, {
+          status:     breaker.status_name,
+          closed:     breaker.closed?,
+          open:       breaker.open?,
+          half_open:  breaker.half_open?,
+          last_error: CircuitBreaker.last_error_of(breaker),
+          stats:      breaker.stats.to_h
+        }]
+      end
+    end
 
-      # Send to dead letter queue
-      SmartMessage::DeadLetterQueue.default.enqueue(decoded_message,
-        error: circuit_result[:circuit_breaker][:error],
-        retry_count: 0,
-        transport: 'circuit_breaker'
+    # Close handler circuits and forget their failures.
+    # @param circuit_name [String, nil] "MessageClass:handler", or nil for all
+    def reset_circuit_breakers!(circuit_name = nil)
+      if circuit_name
+        @circuits.delete(circuit_name.to_s)
+      else
+        @circuits.clear
+      end
+      nil
+    end
+
+    # The circuit protecting one handler of one message class.
+    def circuit_for(message_class, subscriber_id)
+      name = subscriber_key(message_class, subscriber_id)
+      @circuits.compute_if_absent(name) { CircuitBreaker.build(name, @circuit_config) }
+    end
+
+    #########################################################
+    ## Deduplication queues
+
+    # Get DDQ statistics, optionally for one message class.
+    # @return [Hash] "MessageClass:handler" => stats
+    def ddq_stats(message_class = nil)
+      ddqs_of(message_class).to_h do |key, ddq|
+        [key, ddq.stats]
+      rescue StandardError => e
+        [key, { error: e.message }]
+      end
+    end
+
+    # Forget every UUID seen, optionally for one message class.
+    def clear_ddqs(message_class = nil)
+      ddqs_of(message_class).each { |_key, ddq| ddq.clear }
+      nil
+    end
+
+    # The deduplication queue for one handler, created on first use.
+    #
+    # @param message_class_obj [Class, nil] the message class; nil when the
+    #   name does not belong to a loaded message class
+    # @return [SmartMessage::DDQ::Base, nil] nil when deduplication is off
+    # @raise [StandardError] when the queue cannot be created
+    def ddq_for(message_class, subscriber_id, message_class_obj)
+      return nil unless message_class_obj.respond_to?(:ddq_enabled?) && message_class_obj.ddq_enabled?
+
+      key = subscriber_key(message_class, subscriber_id)
+      @subscriber_ddqs.compute_if_absent(key) do
+        config = message_class_obj.ddq_config
+        SmartMessage::DDQ.create(config[:storage], config[:size], config[:options].merge(key_prefix: "smart_message:ddq:#{key}"))
+      end
+    end
+
+    #########################################################
+    ## Shutdown
+
+    # Stop accepting work and wait for running handlers.
+    #
+    # Handlers still running after +timeout+ seconds are killed; each of
+    # their messages is logged and written to the dead letter queue.
+    #
+    # @param timeout [Numeric] seconds to wait
+    # @return [Boolean] true when everything finished in time
+    def shutdown(timeout: SmartMessage::DEFAULT_SHUTDOWN_TIMEOUT)
+      return true if @router_pool.shutdown? && @in_flight.empty?
+
+      @router_pool.shutdown
+      return true if @router_pool.wait_for_termination(timeout)
+
+      abandoned = @in_flight.values
+      @router_pool.kill
+      @in_flight.clear
+      abandoned.each { |message, processor| record_abandoned(message, processor) }
+      false
+    end
+    alias shutdown_pool shutdown
+
+    private
+
+    def logger
+      SmartMessage::Logger.default
+    end
+
+    def subscriber_key(message_class, subscriber_id)
+      "#{message_class}:#{subscriber_id}"
+    end
+
+    # @return [Class, nil] the loaded message class with that name
+    def message_class_named(class_name)
+      Envelope.resolve_message_class(class_name)
+    rescue Errors::UnknownMessageClass
+      nil
+    end
+
+    # Replace one class's subscription list (copy-on-write, so #route can
+    # read without a lock).
+    def update_subscriptions(klass)
+      @mutex.synchronize do
+        updated      = yield(@subscribers.fetch(klass, NO_SUBSCRIPTIONS)).freeze
+        @subscribers = (updated.empty? ? @subscribers.except(klass) : @subscribers.merge(klass => updated)).freeze
+      end
+    end
+
+    # Drop a handler's queue and circuit once it has no subscription left.
+    def forget_subscriber(klass, subscriber_id)
+      still_subscribed = @subscribers.fetch(klass, NO_SUBSCRIPTIONS).any? do |subscription|
+        subscription[:subscriber_id] == subscriber_id
+      end
+      return if still_subscribed
+
+      key = subscriber_key(klass, subscriber_id)
+      @subscriber_ddqs.delete(key)
+      @circuits.delete(key)
+    end
+
+    def ddqs_of(message_class)
+      pairs = @subscriber_ddqs.each_pair.to_a
+      return pairs if message_class.nil?
+
+      prefix = "#{message_class}:"
+      pairs.select { |key, _ddq| key.start_with?(prefix) }
+    end
+
+    # Decide whether one subscription gets this message, and if so hand it
+    # to the pool.
+    #
+    # @return [Boolean] true when the handler was scheduled
+    def schedule(subscription, message)
+      header    = message._sm_header
+      klass     = header.message_class
+      processor = subscription[:process_method]
+
+      return false unless message_matches_filters?(header, subscription[:filters])
+
+      handler = resolve_handler(processor)
+      if handler.nil?
+        logger.debug { "[SmartMessage::Dispatcher] Handler #{processor} is no longer registered; skipping" }
+        return false
+      end
+
+      ddq = reserve_for(subscription, message)
+      return false if ddq == :duplicate
+
+      SmartMessage::Stats.add(klass, processor, 'routed')
+
+      copy    = message.dup
+      task_id = copy.object_id
+      @in_flight[task_id] = [copy, processor]
+
+      @router_pool.post do
+        deliver(handler, copy, processor, ddq)
+      ensure
+        @in_flight.delete(task_id)
+      end
+
+      true
+    end
+
+    # Reserve the message's UUID for this handler.
+    #
+    # @return [SmartMessage::DDQ::Base, nil, :duplicate] the queue holding
+    #   the reservation, nil when deduplication is off or unavailable, or
+    #   :duplicate when this handler has already seen the message
+    def reserve_for(subscription, message)
+      header = message._sm_header
+      ddq    = ddq_for(header.message_class, subscription[:subscriber_id], message.class)
+      return nil unless ddq
+      return ddq if ddq.reserve(header.uuid)
+
+      SmartMessage::Stats.add(header.message_class, subscription[:process_method], 'duplicate')
+      logger.warn do
+        "[SmartMessage::Dispatcher] Skipping duplicate for #{subscription[:subscriber_id]}: #{header.uuid}"
+      end
+      :duplicate
+    rescue StandardError => e
+      logger.error do
+        "[SmartMessage::Dispatcher] Deduplication unavailable for #{subscription[:subscriber_id]}: " \
+          "#{e.class.name} - #{e.message}; processing without it"
+      end
+      nil
+    end
+
+    # Run one handler for one message.  Runs on a pool thread, so nothing
+    # may escape: concurrent-ruby would discard it without a trace.
+    def deliver(handler, message, processor, ddq)
+      klass = message._sm_header.message_class
+
+      circuit_for(klass, processor).wrap { handler.call(message) }
+      SmartMessage::Stats.add(klass, processor, 'processed')
+    rescue StandardError, ScriptError => e
+      handle_failure(message, processor, ddq, e)
+    end
+
+    # A handler failed or its circuit rejected the call: release the
+    # deduplication reservation and dead-letter the message.
+    def handle_failure(message, processor, ddq, error)
+      header = message._sm_header
+      SmartMessage::Stats.add(header.message_class, processor, 'failed')
+
+      logger.error do
+        "[SmartMessage::Dispatcher] Handler #{processor} failed for #{header.message_class} " \
+          "#{header.uuid}: #{error.class.name} - #{error.message}"
+      end
+
+      ddq&.release(header.uuid)
+      dead_letter(message, processor, error)
+    rescue StandardError => e
+      logger.error do
+        "[SmartMessage::Dispatcher] Could not record failure of #{processor} for " \
+          "#{message._sm_header.uuid}: #{e.class.name} - #{e.message}"
+      end
+    end
+
+    def dead_letter(message, processor, error)
+      SmartMessage::DeadLetterQueue.default.enqueue(
+        message,
+        error:       "#{error.class.name}: #{error.message}",
+        transport:   "handler:#{processor}",
+        stack_trace: error.backtrace&.join("\n")
       )
-
-      # TODO: Integrate with structured logging when implemented
-      # TODO: Emit metrics/events for monitoring
-
-      # Record the failure in simple stats
-      SS.add(message_header.message_class, message_processor, 'circuit_breaker_fallback')
     end
 
-    # Initialize DDQ for a subscriber if message class supports deduplication
-    # @param message_class [String] The message class name
-    # @param subscriber_id [String] The subscriber identifier
-    # @param message_class_obj [Class] The message class object
-    def initialize_ddq_for_subscriber(message_class, subscriber_id, message_class_obj)
-      ddq_key = "#{message_class}:#{subscriber_id}"
-      return if @subscriber_ddqs[ddq_key]  # Already initialized
-      
-      # Get DDQ configuration from message class
-      ddq_config = message_class_obj.ddq_config
-      
-      begin
-        # Create DDQ instance using message class configuration
-        ddq = SmartMessage::DDQ.create(
-          ddq_config[:storage], 
-          ddq_config[:size], 
-          ddq_config[:options].merge(key_prefix: ddq_key)
-        )
-        
-        @subscriber_ddqs[ddq_key] = ddq
-        
-        logger.debug do
-          "[SmartMessage::Dispatcher] Initialized DDQ for #{subscriber_id}: " \
-          "storage=#{ddq_config[:storage]}, size=#{ddq_config[:size]}"
-        end
-      rescue => e
-        logger.error do
-          "[SmartMessage::Dispatcher] Failed to initialize DDQ for #{subscriber_id}: #{e.message}"
-        end
+    # A handler was killed at shutdown before it finished.
+    def record_abandoned(message, processor)
+      logger.error do
+        "[SmartMessage::Dispatcher] Shutdown interrupted #{processor} while processing " \
+          "#{message._sm_header.message_class} #{message._sm_header.uuid}"
       end
+      dead_letter(message, processor, Errors::Error.new('Dispatcher shut down before the handler finished'))
+    rescue StandardError => e
+      logger.error { "[SmartMessage::Dispatcher] Could not record abandoned message: #{e.class.name} - #{e.message}" }
     end
-
-    # Get DDQ instance for a specific subscriber
-    # @param message_class [String] The message class name
-    # @param subscriber_id [String] The subscriber identifier
-    # @return [SmartMessage::DDQ::Base, nil] The DDQ instance or nil
-    def get_ddq_for_subscriber(message_class, subscriber_id)
-      ddq_key = "#{message_class}:#{subscriber_id}"
-      @subscriber_ddqs[ddq_key]
-    end
-
-    # Clean up DDQ if no more subscriptions exist for a subscriber
-    # @param message_class [String] The message class name
-    # @param subscriber_id [String] The subscriber identifier
-    # @param force [Boolean] Force cleanup even if subscriptions exist
-    def cleanup_ddq_if_empty(message_class, subscriber_id, force: false)
-      ddq_key = "#{message_class}:#{subscriber_id}"
-      
-      # Check if any subscriptions still exist for this subscriber
-      has_subscriptions = @subscribers[message_class]&.any? do |sub|
-        sub[:subscriber_id] == subscriber_id
-      end
-      
-      if force || !has_subscriptions
-        ddq = @subscriber_ddqs.delete(ddq_key)
-        if ddq
-          logger.debug do
-            "[SmartMessage::Dispatcher] Cleaned up DDQ for #{subscriber_id}"
-          end
-        end
-      end
-    end
-
-    # Get DDQ statistics for all subscribers
-    # @return [Hash] DDQ statistics keyed by subscriber
-    def ddq_stats
-      stats = {}
-      
-      @subscriber_ddqs.each do |ddq_key, ddq|
-        begin
-          stats[ddq_key] = ddq.stats
-        rescue => e
-          stats[ddq_key] = { error: e.message }
-        end
-      end
-      
-      stats
-    end
-
-
-    #######################################################
-    ## Class methods
-
-    class << self
-      # TODO: may want a class-level config method
-    end # class << self
-  end # class Dispatcher
-end # module SmartMessage
+  end
+end

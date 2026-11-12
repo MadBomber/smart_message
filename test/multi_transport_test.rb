@@ -234,14 +234,19 @@ class MultiTransportTest < Minitest::Test
   def test_transport_configuration_validation
     msg = TestMessage.new(content: "test", from: "test_app")
     
-    # Should work with nil (uses default)
-    msg.transport(nil)
-    assert msg.transports.length >= 1 # Default transport(s)
+    # transport(nil) is a read: the class-level transport shows through
+    assert_equal TestMessage.transports, msg.transports
     
-    # Should work with empty array (though not practically useful)
+    # An empty instance override also falls through to the class
     msg.transport([])
-    assert_equal 0, msg.transports.length
-    assert msg.transport.nil? # No transport available
+    assert_equal TestMessage.transports, msg.transports
+    
+    # With no transport anywhere there is none, and publishing says so
+    unconfigured = Class.new(SmartMessage::Base) { property :content }.new(content: 'x', from: 'test_app')
+    assert_empty unconfigured.transports
+    assert_nil unconfigured.transport
+    assert unconfigured.transport_missing?
+    assert_raises(SmartMessage::Errors::TransportNotConfigured) { unconfigured.publish }
   end
 
   # Test transport utility methods

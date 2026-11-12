@@ -4,65 +4,67 @@
 
 module SmartMessage
   # Plugin configuration module for SmartMessage::Base
-  # Handles transport and logger configuration at both
-  # class and instance levels
+  # Handles transport and logger configuration at class and instance levels.
+  #
+  # Precedence, highest first:
+  #
+  #   1. the instance        message.transport(t)
+  #   2. the class           MyMessage.transport(t)
+  #   3. a parent class      (inherited)
+  #   4. global config       SmartMessage.configure { |c| c.transport = t }
+  #
+  # There is no framework default transport: a class with none configured
+  # anywhere has no transports, and publishing raises TransportNotConfigured.
+  # The logger falls back to SmartMessage::Logger.default, which logs nothing
+  # unless a logger was configured.
   module Plugins
     def self.included(base)
       base.extend(ClassMethods)
-      base.class_eval do
-        # Class-level plugin storage
-        class_variable_set(:@@transport, nil) unless class_variable_defined?(:@@transport)
-        class_variable_set(:@@logger, nil) unless class_variable_defined?(:@@logger)
+    end
+
+    # Resolve a list of transports from the first source that has one.
+    #
+    # @param candidates [Array] values in precedence order; each may be nil,
+    #   one transport, or an Array of transports
+    # @return [Array] the transports of the first non-empty candidate
+    def self.resolve_transports(*candidates)
+      candidates.each do |candidate|
+        list = Array(candidate)
+        return list unless list.empty?
       end
+      []
     end
 
     #########################################################
     ## instance-level configuration
 
-    # Configure the plugins for transport, serializer and logger
     def config(&block)
       instance_eval(&block) if block_given?
     end
 
-    #########################################################
-    ## instance-level transport configuration
-
+    # Get the first transport, or set an instance-level override.
     def transport(klass_or_instance = nil)
-      if klass_or_instance.nil?
-        # Return instance transport, class transport, or global configuration
-        # For backward compatibility, return first transport if array, otherwise single transport
-        transport_value = @transport || self.class.class_variable_get(:@@transport) || SmartMessage::Transport.default
-        transport_value.is_a?(Array) ? transport_value.first : transport_value
-      else
-        # Normalize to array for internal consistent handling
-        @transport = Array(klass_or_instance)
-        # Return the original value for backward compatibility with method chaining
-        klass_or_instance
-      end
+      return transports.first if klass_or_instance.nil?
+
+      @transport = Array(klass_or_instance)
+      klass_or_instance
     end
 
-    def transport_configured?;  !transport_missing?;   end
-    def transport_missing?
-      # Check if transport is explicitly configured (without fallback to defaults)
-      @transport.nil? && 
-        (self.class.class_variable_get(:@@transport) rescue nil).nil?
-    end
-    def reset_transport;        @transport = nil;  end
-
-    # Utility methods for working with transport collections
+    # @return [Array] every transport this instance publishes to.  Read at
+    #   call time, so a class-level change after construction is honoured.
     def transports
-      # Get the raw transport value (which is internally stored as array)
-      raw_transport = @transport || self.class.class_variable_get(:@@transport) || SmartMessage::Transport.default
-      # Always return as array for consistent handling
-      raw_transport.is_a?(Array) ? raw_transport : Array(raw_transport)
+      Plugins.resolve_transports(@transport, self.class.transports)
     end
 
-    def single_transport?
-      transports.length == 1
-    end
+    def transport_configured?; !transport_missing?; end
+    def transport_missing?;    transports.empty?;   end
+    def reset_transport;       @transport = nil;    end
+    def single_transport?;     transports.length == 1; end
+    def multiple_transports?;  transports.length > 1;  end
 
-    def multiple_transports?
-      transports.length > 1
+    # The logger for this message's class
+    def logger
+      self.class.logger
     end
 
     module ClassMethods
@@ -73,64 +75,40 @@ module SmartMessage
         class_eval(&block) if block_given?
       end
 
-      #########################################################
-      ## class-level transport configuration
-
+      # Get the first transport, or set this class's transport(s).
       def transport(klass_or_instance = nil)
-        if klass_or_instance.nil?
-          # Return class-level transport or fall back to global configuration
-          # For backward compatibility, return first transport if array, otherwise single transport
-          transport_value = class_variable_get(:@@transport) || SmartMessage::Transport.default
-          transport_value.is_a?(Array) ? transport_value.first : transport_value
-        else
-          # Normalize to array for internal consistent handling
-          class_variable_set(:@@transport, Array(klass_or_instance))
-          # Return the original value for backward compatibility with method chaining
-          klass_or_instance
-        end
+        return transports.first if klass_or_instance.nil?
+
+        set_setting(:transport, Array(klass_or_instance))
+        klass_or_instance
       end
 
-      def transport_configured?;  !transport_missing?;   end
-      def transport_missing?
-        # Check if class-level transport is explicitly configured (without fallback to defaults)
-        (class_variable_get(:@@transport) rescue nil).nil?
-      end
-      def reset_transport;       class_variable_set(:@@transport, nil);  end
-
-      # Utility methods for working with transport collections  
+      # @return [Array] this class's transports, else its parent's, else the
+      #   globally configured transport, else none
       def transports
-        # Get the raw transport value (which is internally stored as array)
-        raw_transport = class_variable_get(:@@transport) || SmartMessage::Transport.default
-        # Always return as array for consistent handling
-        raw_transport.is_a?(Array) ? raw_transport : Array(raw_transport)
+        Plugins.resolve_transports(setting(:transport), SmartMessage.configuration.transport)
       end
 
-      def single_transport?
-        transports.length == 1
-      end
-
-      def multiple_transports?
-        transports.length > 1
-      end
+      def transport_configured?; !transport_missing?; end
+      def transport_missing?;    transports.empty?;   end
+      def reset_transport;       clear_setting(:transport); end
+      def single_transport?;     transports.length == 1; end
+      def multiple_transports?;  transports.length > 1;  end
 
       #########################################################
       ## class-level logger configuration
 
+      # Get the logger, or set this class's logger.
       def logger(klass_or_instance = nil)
-        if klass_or_instance.nil?
-          # Return class-level logger or fall back to global configuration
-          class_variable_get(:@@logger) || SmartMessage::Logger.default
-        else
-          class_variable_set(:@@logger, klass_or_instance)
-        end
+        return setting(:logger) || SmartMessage::Logger.default if klass_or_instance.nil?
+
+        set_setting(:logger, klass_or_instance)
       end
 
-      def logger_configured?;     !logger_missing?;   end
-      def logger_missing?
-        # Check if class-level logger is explicitly configured (without fallback to defaults)
-        (class_variable_get(:@@logger) rescue nil).nil?
-      end
-      def reset_logger;          class_variable_set(:@@logger, nil);  end
+      # Is a logger set on this class or an ancestor (not just globally)?
+      def logger_configured?; !logger_missing?;      end
+      def logger_missing?;    setting(:logger).nil?; end
+      def reset_logger;       clear_setting(:logger); end
     end
   end
 end

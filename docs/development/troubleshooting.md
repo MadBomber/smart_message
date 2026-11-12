@@ -1,582 +1,119 @@
-# Troubleshooting Guide
+# Troubleshooting
 
-This guide helps you diagnose and solve common issues when working with SmartMessage.
+Start by turning logging on. SmartMessage logs nothing unless a logger is configured.
 
-## Common Issues
-
-### 1. Messages Not Being Processed
-
-**Symptoms:**
-- Messages are published but process methods are never called
-- No errors are thrown
-- Statistics show messages published but not routed
-
-**Possible Causes & Solutions:**
-
-#### Missing Subscription
 ```ruby
-# Problem: Forgot to subscribe
-class MyMessage < SmartMessage::Base
-  property :data
-  
-  def self.process(header, payload)
-    puts "Processing message"
-  end
-end
-
-MyMessage.new(data: "test").publish  # Nothing happens
-
-# Solution: Add subscription
-MyMessage.subscribe
-MyMessage.new(data: "test").publish  # Now it works
-```
-
-#### Transport Not Configured for Loopback
-```ruby
-# Problem: Using STDOUT without loopback
-class MyMessage < SmartMessage::Base
-  property :data
-  
-  config do
-    transport SmartMessage::Transport.create(:stdout)  # No loopback
-    serializer SmartMessage::Serializer::Json.new
-  end
-end
-
-# Solution: Enable loopback for local testing
-class MyMessage < SmartMessage::Base
-  config do
-    transport SmartMessage::Transport.create(:stdout, loopback: true)
-    serializer SmartMessage::Serializer::Json.new
-  end
+SmartMessage.configure do |config|
+  config.logger    = STDERR
+  config.log_level = :debug
 end
 ```
 
-#### Auto-process Disabled
-```ruby
-# Problem: Memory transport with auto_process disabled
-class MyMessage < SmartMessage::Base
-  config do
-    transport SmartMessage::Transport.create(:memory, auto_process: false)
-  end
-end
-
-# Messages are stored but not processed
-transport = MyMessage.transport
-puts transport.message_count  # Shows stored messages
-
-# Solution: Enable auto_process or manually process
-MyMessage.config do
-  transport SmartMessage::Transport.create(:memory, auto_process: true)
-end
-
-# Or manually trigger processing
-transport.process_all
-```
-
-### 2. Serialization Errors
-
-**Symptoms:**
-- `SmartMessage::Errors::SerializerNotConfigured` exceptions
-- Encoding/decoding failures
-- Malformed message data
-
-**Solutions:**
-
-#### Missing Serializer Configuration
-```ruby
-# Problem: No serializer configured
-class MyMessage < SmartMessage::Base
-  property :data
-  
-  config do
-    transport SmartMessage::Transport.create(:memory)
-    # Missing serializer!
-  end
-end
-
-# Throws: SmartMessage::Errors::SerializerNotConfigured
-MyMessage.new(data: "test").publish
-
-# Solution: Add serializer
-class MyMessage < SmartMessage::Base
-  config do
-    transport SmartMessage::Transport.create(:memory)
-    serializer SmartMessage::Serializer::Json.new
-  end
-end
-```
-
-#### JSON Encoding Issues
-```ruby
-# Problem: Objects that can't be serialized to JSON
-class ProblematicMessage < SmartMessage::Base
-  property :data
-  
-  config do
-    serializer SmartMessage::Serializer::Json.new
-  end
-end
-
-# This will fail
-message = ProblematicMessage.new(data: Object.new)
-message.publish  # JSON::GeneratorError
-
-# Solution: Ensure data is JSON-serializable
-message = ProblematicMessage.new(data: { key: "value" })
-message.publish  # Works fine
-
-# Or implement custom serialization
-class SafeMessage < SmartMessage::Base
-  property :data
-  
-  def to_h
-    hash = super
-    hash[:data] = hash[:data].to_s if hash[:data]
-    hash
-  end
-end
-```
-
-### 3. Transport Configuration Issues
-
-**Symptoms:**
-- `SmartMessage::Errors::TransportNotConfigured` exceptions
-- Connection failures
-- Messages not being sent
-
-**Solutions:**
-
-#### Missing Transport Configuration
-```ruby
-# Problem: No transport configured
-class MyMessage < SmartMessage::Base
-  property :data
-  
-  config do
-    serializer SmartMessage::Serializer::Json.new
-    # Missing transport!
-  end
-end
-
-MyMessage.new(data: "test").publish  # Throws TransportNotConfigured
-
-# Solution: Add transport
-class MyMessage < SmartMessage::Base
-  config do
-    transport SmartMessage::Transport.create(:memory)
-    serializer SmartMessage::Serializer::Json.new
-  end
-end
-```
-
-#### Transport Connection Issues
-```ruby
-# For custom transports that might fail to connect
-class MyMessage < SmartMessage::Base
-  config do
-    transport CustomTransport.new(host: "unreachable-host")
-  end
-end
-
-# Check transport status
-transport = MyMessage.transport
-puts "Connected: #{transport.connected?}"
-
-# Solution: Verify connection settings
-class MyMessage < SmartMessage::Base
-  config do
-    transport CustomTransport.new(
-      host: "localhost",
-      port: 5672,
-      retry_attempts: 3
-    )
-  end
-end
-```
-
-### 4. Thread Pool Issues
-
-**Symptoms:**
-- Messages processed very slowly
-- Application hangs on exit
-- High memory usage
-
-**Debugging Thread Pool:**
+Then look at the dead letter queue, where every failure ends up:
 
 ```ruby
-dispatcher = SmartMessage::Dispatcher.new
-
-# Check thread pool status
-status = dispatcher.status
-puts "Running: #{status[:running]}"
-puts "Queue length: #{status[:queue_length]}"
-puts "Scheduled tasks: #{status[:scheduled_task_count]}"
-puts "Completed tasks: #{status[:completed_task_count]}"
-puts "Pool size: #{status[:length]}"
-
-# If queue is growing, messages are being created faster than processed
-if status[:queue_length] > 100
-  puts "⚠️  Large queue detected - consider optimizing message processing"
-end
-
-# If pool is not running
-unless status[:running]
-  puts "❌ Thread pool is not running - check for shutdown issues"
-end
+dlq = SmartMessage::DeadLetterQueue.default
+dlq.file_path
+dlq.statistics
+dlq.inspect_messages(limit: 5)
 ```
 
-**Solutions:**
+## `TransportNotConfigured`
 
-#### Slow Message Processing
-```ruby
-# Problem: Slow process method blocking thread pool
-class SlowMessage < SmartMessage::Base
-  def self.process(header, payload)
-    sleep(10)  # Very slow operation
-    # Processing logic
-  end
-end
+`SmartMessage::Errors::TransportNotConfigured: OrderMessage has no transport configured`
 
-# Solution: Optimize or use background jobs
-class OptimizedMessage < SmartMessage::Base
-  def self.process(header, payload)
-    # Quick validation
-    data = JSON.parse(payload)
-    
-    # Delegate heavy work to background job
-    BackgroundJob.perform_async(data)
-  end
-end
-```
+There is no default transport. Set one on the class (`transport ...`), on a parent class, or globally (`config.transport = ...`). See [Configuration](../core-concepts/configuration.md).
 
-#### Application Hanging on Exit
-```ruby
-# Problem: Threads not shutting down gracefully
-# The dispatcher handles this automatically, but if you create custom threads:
+If the transport is set globally, check that `SmartMessage.configure` runs before the first `publish` or `subscribe`, and that nothing called `SmartMessage.reset_configuration!` in between.
 
-class CustomMessage < SmartMessage::Base
-  def self.process(header, payload)
-    # Problem: Creating non-daemon threads
-    Thread.new do
-      loop do
-        # Long-running work
-        sleep(1)
-      end
-    end
-  end
-end
+## `ValidationError` on publish, but `new` worked
 
-# Solution: Use daemon threads or proper cleanup
-class BetterMessage < SmartMessage::Base
-  def self.process(header, payload)
-    thread = Thread.new do
-      loop do
-        break if Thread.current[:stop_requested]
-        # Work with interruption points
-        sleep(1)
-      end
-    end
-    
-    # Register cleanup
-    at_exit do
-      thread[:stop_requested] = true
-      thread.join(5)  # Wait up to 5 seconds
-    end
-  end
-end
-```
-
-### 5. Memory Issues
-
-**Symptoms:**
-- Increasing memory usage over time
-- Out of memory errors
-- Slow performance
-
-**Debugging Memory Usage:**
+`new` does not validate; `publish` does. Inspect the message:
 
 ```ruby
-# Check message storage in memory transport
-transport = SmartMessage::Transport.create(:memory)
-puts "Stored messages: #{transport.message_count}"
-puts "Max messages: #{transport.instance_variable_get(:@options)[:max_messages]}"
-
-# Check statistics storage
-puts "Statistics entries: #{SS.stat.keys.length}"
-
-# Monitor object creation
-class MemoryMonitorMessage < SmartMessage::Base
-  def self.process(header, payload)
-    puts "Objects before: #{ObjectSpace.count_objects[:TOTAL]}"
-    
-    # Your processing logic
-    data = JSON.parse(payload)
-    
-    puts "Objects after: #{ObjectSpace.count_objects[:TOTAL]}"
-  end
-end
+message.valid?
+message.validation_errors   # each has :property, :value, :message, :source
 ```
 
-**Solutions:**
+A `source` of `"header"` with `property: :from` means the message has no sender: set `from` on the class or pass `from:` to `new`.
 
-#### Memory Transport Overflow
-```ruby
-# Problem: Memory transport storing too many messages
-transport = SmartMessage::Transport.create(:memory, max_messages: 10000)
+## `ReservedPropertyName` when a class is loaded
 
-# Monitor and clean up
-def cleanup_memory_transport(transport)
-  if transport.message_count > 5000
-    puts "Cleaning up old messages..."
-    transport.clear_messages
-  end
-end
+A property uses a name the framework owns (`from`, `to`, `reply_to`, `uuid`, `transport`, `logger`, `to_h`, and others, or a name starting with `_sm_`). Rename the property. The full list is in [Properties and Validation](../core-concepts/properties.md).
 
-# Or use smaller limits
-transport = SmartMessage::Transport.create(:memory, max_messages: 100)
-```
+## The handler never runs
 
-#### Statistics Memory Growth
-```ruby
-# Problem: Statistics growing without bounds
-# Check current statistics size
-puts "Statistics size: #{SS.stat.size}"
+Work through these in order.
 
-# Solution: Periodic cleanup
-def cleanup_statistics
-  # Keep only recent statistics
-  current_stats = SS.stat
-  important_stats = current_stats.select do |key, value|
-    # Keep publish counts and recent routing stats
-    key.include?('publish') || value > 0
-  end
-  
-  SS.reset
-  important_stats.each { |key, value| SS.add(*key.split('+'), how_many: value) }
-end
+1. **Did the program exit first?** Handlers run on a thread pool. In a short script, call `SmartMessage.shutdown` before the end.
+2. **Is the class subscribed on the transport the message arrives on?** `MessageClass.transport.subscribers` shows the subscriptions. A subscription made before the transport was changed belongs to the old transport.
+3. **Does the transport deliver at all?** The stdout transport calls handlers only with `loopback: true`. The memory transport with `auto_process: false` delivers only on `process_all`.
+4. **Do the filters match?** A `to:` filter never matches a broadcast (`to` is `nil`); add `broadcast: true` if you want both. See [Message Filtering](../core-concepts/message-filtering.md).
+5. **Was it a duplicate?** With deduplication on, a UUID that the handler has already processed is skipped. Check `SmartMessage::Stats.get('OrderMessage', 'OrderMessage.process', 'duplicate')`.
+6. **Did the handler raise, or is its circuit open?** Then the message is in the dead letter queue. Check `dispatcher.circuit_breaker_stats`.
+7. **Redis: was the subscriber connected when the message was published?** Redis pub/sub does not keep messages for subscribers that are not connected. Also check that publisher and subscriber use the same `namespace:`.
+8. **File: is the reader starting at the end?** By default a new subscription sees only lines written after it started. Use `read_from_end: false` to read existing lines.
 
-# Run cleanup periodically
-Thread.new do
-  loop do
-    sleep(3600)  # Every hour
-    cleanup_statistics
-  end
-end
-```
+## The handler runs, but a property has the wrong type
 
-### 6. Debugging Message Flow
+The message went through JSON. A `Time` arrives as a String, a Symbol as a String, nested Hash keys as Symbols. Declare `coerce_key` for properties that need their type back. See [Serializers](../reference/serializers.md).
 
-**Enable Debug Logging:**
+## Messages cross between environments or test runs on Redis
+
+Redis pub/sub channels are global to the server. The `db` number does not separate them. Give each environment, and each test run, its own `namespace:`. See [Redis Transport](../transports/redis-transport.md).
+
+## `TransportError` from the Redis transport
+
+- `... is disconnected`: the transport was disconnected; call `transport.connect`.
+- `Redis did not confirm the subscription to ... within 5s`: the server is unreachable or slow. Check the `url`, and raise `subscribe_timeout` if needed.
+
+## `PublishError`, or a result that is `partial?`
+
+Every transport (or some of them) failed. `error.result.failed` or `result.failed` lists each failed transport with its exception. The message is in the dead letter queue once per failed transport.
+
+`BreakerMachines::CircuitOpenError` as the error means that transport's circuit is open after repeated failures. It closes again by itself after the reset time, or call `transport.reset_transport_circuits!` once the cause is fixed. See [Circuit Breakers](../reference/circuit-breakers.md).
+
+## `UnknownMessageClass` or `MessageClassMismatch` in the log
+
+A payload named a class that is not a loaded `SmartMessage::Base` subclass in the receiving process, or arrived on a channel that belongs to another class. The payload is in the dead letter queue. Make sure the receiving process loads the message class (for instance, requires everything under `messages/`).
+
+## Where is the dead letter queue file?
 
 ```ruby
-# Add debug output to your message classes
-class DebugMessage < SmartMessage::Base
-  property :data
-  
-  def publish
-    puts "🚀 Publishing #{self.class.name}: #{self.to_h}"
-    super
-  end
-  
-  def self.process(header, payload)
-    puts "📥 Processing #{header.message_class}: #{payload}"
-    
-    # Your processing logic
-    data = JSON.parse(payload)
-    message = new(data)
-    
-    puts "✅ Processed #{header.message_class}: #{message.data}"
-  end
-end
+SmartMessage.configuration.dlq_path
 ```
 
-**Trace Message Path:**
+By default `$SMART_MESSAGE_DLQ_PATH`, else `$XDG_STATE_HOME/smart_message/dead_letters.jsonl`, else `~/.local/state/smart_message/dead_letters.jsonl`. It is no longer `dead_letters.jsonl` in the working directory. See [Dead Letter Queue](../reference/dead-letter-queue.md).
+
+## No log file appears
+
+That is the default. Set `config.logger`; `config.logger = :default` writes to `log/smart_message.log`. See [Logging](../reference/logging.md).
+
+## Shutdown takes several seconds
+
+`SmartMessage.shutdown` (also run at exit) waits up to `config.shutdown_timeout` seconds (default 5) for running handlers. A handler that is blocked holds the process until the timeout, then is killed and its message dead-lettered. Lower the timeout, or fix the handler.
+
+A Redis subscriber thread or a file poller is stopped with `transport.disconnect`, not by `SmartMessage.shutdown`.
+
+## Handlers slow the publisher down
+
+When the dispatcher's queue is full, the delivering thread runs handlers itself. Raise `config.dispatcher_max_threads` or `config.dispatcher_max_queue` before creating transports, or make the handlers faster. See [Dispatcher](../core-concepts/dispatcher.md).
+
+## Looking at what is going on
 
 ```ruby
-# Add correlation IDs for tracing
-class TrackedMessage < SmartMessage::Base
-  property :data
-  property :correlation_id, default: -> { SecureRandom.uuid }
-  
-  def publish
-    puts "[#{correlation_id}] Publishing message"
-    super
-  end
-  
-  def self.process(header, payload)
-    data = JSON.parse(payload)
-    message = new(data)
-    
-    puts "[#{message.correlation_id}] Processing message"
-    
-    # Your logic here
-    
-    puts "[#{message.correlation_id}] Processing complete"
-  end
-end
+transport  = OrderMessage.transport
+dispatcher = transport.dispatcher
+
+transport.connected?
+transport.subscribers
+transport.transport_circuit_stats
+dispatcher.status
+dispatcher.circuit_breaker_stats
+OrderMessage.ddq_stats
+SmartMessage::Stats.stat
 ```
 
-**Check Statistics:**
+## Reporting a problem
 
-```ruby
-# Monitor message flow with statistics
-def print_message_stats(message_class)
-  class_name = message_class.to_s
-  published = SS.get(class_name, 'publish')
-  routed = SS.get(class_name, "#{class_name}.process", 'routed')
-  
-  puts "#{class_name} Statistics:"
-  puts "  Published: #{published}"
-  puts "  Routed: #{routed}"
-  puts "  Success rate: #{routed.to_f / published * 100}%" if published > 0
-end
-
-# Usage
-print_message_stats(MyMessage)
-```
-
-### 7. Configuration Issues
-
-**Debug Configuration:**
-
-```ruby
-# Check current configuration
-def debug_message_config(message_class)
-  puts "#{message_class} Configuration:"
-  puts "  Transport: #{message_class.transport.class.name}"
-  puts "  Transport configured: #{message_class.transport_configured?}"
-  puts "  Serializer: #{message_class.serializer.class.name}"
-  puts "  Serializer configured: #{message_class.serializer_configured?}"
-  
-  # Check instance-level overrides
-  instance = message_class.new
-  puts "  Instance transport: #{instance.transport.class.name}"
-  puts "  Instance serializer: #{instance.serializer.class.name}"
-end
-
-debug_message_config(MyMessage)
-```
-
-**Reset Configuration:**
-
-```ruby
-# If configuration gets corrupted, reset it
-class MyMessage < SmartMessage::Base
-  # Reset all configuration
-  reset_transport
-  reset_serializer
-  reset_logger
-  
-  # Reconfigure
-  config do
-    transport SmartMessage::Transport.create(:memory)
-    serializer SmartMessage::Serializer::Json.new
-  end
-end
-```
-
-## Performance Troubleshooting
-
-### Slow Message Processing
-
-```ruby
-# Benchmark message processing
-require 'benchmark'
-
-def benchmark_message_processing(message_class, count = 100)
-  time = Benchmark.measure do
-    count.times do |i|
-      message_class.new(data: "test #{i}").publish
-    end
-    
-    # Wait for processing to complete
-    sleep(1)
-  end
-  
-  puts "Processed #{count} messages in #{time.real.round(2)} seconds"
-  puts "Rate: #{(count / time.real).round(2)} messages/second"
-end
-
-benchmark_message_processing(MyMessage, 1000)
-```
-
-### High Memory Usage
-
-```ruby
-# Monitor memory during message processing
-def monitor_memory_usage
-  require 'objspace'
-  
-  initial_memory = ObjectSpace.count_objects[:TOTAL]
-  
-  # Process some messages
-  100.times { |i| MyMessage.new(data: "test #{i}").publish }
-  
-  # Force garbage collection
-  GC.start
-  
-  final_memory = ObjectSpace.count_objects[:TOTAL]
-  
-  puts "Memory usage:"
-  puts "  Initial: #{initial_memory} objects"
-  puts "  Final: #{final_memory} objects"
-  puts "  Difference: #{final_memory - initial_memory} objects"
-end
-
-monitor_memory_usage
-```
-
-## Getting Help
-
-### Collect Debug Information
-
-```ruby
-def collect_debug_info
-  puts "SmartMessage Debug Information"
-  puts "=============================="
-  puts "Version: #{SmartMessage::VERSION}"
-  puts "Ruby version: #{RUBY_VERSION}"
-  puts "Platform: #{RUBY_PLATFORM}"
-  puts ""
-  
-  # Available transports
-  puts "Available transports: #{SmartMessage::Transport.available.join(', ')}"
-  puts ""
-  
-  # Current statistics
-  puts "Current statistics:"
-  SS.stat.each { |key, value| puts "  #{key}: #{value}" }
-  puts ""
-  
-  # Thread pool status if dispatcher exists
-  begin
-    dispatcher = SmartMessage::Dispatcher.new
-    status = dispatcher.status
-    puts "Dispatcher status:"
-    status.each { |key, value| puts "  #{key}: #{value}" }
-  rescue => e
-    puts "Dispatcher error: #{e.message}"
-  end
-end
-
-collect_debug_info
-```
-
-### Enable Verbose Logging
-
-```ruby
-# Enable debug output in test.log
-require 'debug_me'
-include DebugMe
-
-# This will log to test.log with detailed information
-debug_me { "Message published: #{message.to_h}" }
-```
-
-If you're still experiencing issues after trying these troubleshooting steps, please open an issue on the [GitHub repository](https://github.com/MadBomber/smart_message) with:
-
-1. Your debug information (use `collect_debug_info` above)
-2. A minimal code example that reproduces the issue
-3. The full error message and stack trace
-4. Your system environment details
+Open an issue at <https://github.com/MadBomber/smart_message/issues> with the SmartMessage version (`SmartMessage::VERSION`), the Ruby version, the transport and its options, and the smallest program that shows the problem.

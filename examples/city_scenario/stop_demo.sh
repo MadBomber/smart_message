@@ -61,7 +61,7 @@ fi
 echo "Checking for remaining city service processes..."
 
 # Include all demo programs in the cleanup
-ORPHANS=$(pgrep -f "(health_department|police_department|fire_department|local_bank|house|emergency_dispatch_center|citizen|redis_monitor|redis_stats)\.rb")
+ORPHANS=$(pgrep -f "(health_department|police_department|fire_department|local_bank|house|emergency_dispatch_center|citizen|visitor|redis_monitor|redis_stats)\.rb")
 
 if [ -n "$ORPHANS" ]; then
     echo "Found orphaned city service processes. Cleaning up..."
@@ -74,7 +74,7 @@ if [ -n "$ORPHANS" ]; then
     sleep 1
     
     # Force kill any remaining processes
-    REMAINING=$(pgrep -f "(health_department|police_department|fire_department|local_bank|house|emergency_dispatch_center|citizen|redis_monitor|redis_stats)\.rb")
+    REMAINING=$(pgrep -f "(health_department|police_department|fire_department|local_bank|house|emergency_dispatch_center|citizen|visitor|redis_monitor|redis_stats)\.rb")
     if [ -n "$REMAINING" ]; then
         echo "Force killing remaining processes..."
         echo "$REMAINING" | while read pid; do
@@ -88,16 +88,8 @@ else
     echo "✅ No orphaned processes found."
 fi
 
-# Clean up Redis channels and reset message counts
-echo "Cleaning up Redis channels..."
-redis-cli <<EOF > /dev/null 2>&1
-# Unsubscribe all clients from SmartMessage channels
-CLIENT LIST | grep -o 'id=[0-9]*' | cut -d= -f2 | xargs -I {} CLIENT KILL ID {}
-# Note: We can't actually "clear" channels in Redis, but killing clients removes subscriptions
-# The publish counts remain in Redis stats but that's historical data
-EOF
-
-echo "✅ Redis channels cleaned up."
+# Redis pub/sub keeps no state: once the programs have exited, their
+# subscriptions are gone and there is nothing to clean up on the server.
 
 echo ""
 echo "🛑 SmartMessage city demo has been stopped."

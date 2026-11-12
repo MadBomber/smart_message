@@ -113,21 +113,21 @@
   
   <text x="70" y="550" class="text">🎯 Efficient Message Routing:</text>
   <text x="90" y="565" class="subtitle">• Each message type uses dedicated Redis channel</text>
-  <text x="90" y="580" class="subtitle">• Devices only process relevant messages (no unnecessary filtering)</text>
-  <text x="90" y="595" class="subtitle">• Automatic load balancing through Redis pub/sub mechanism</text>
+  <text x="90" y="580" class="subtitle">• Channel names carry the namespace of the environment</text>
+  <text x="90" y="595" class="subtitle">• Every connected subscriber of a channel gets the message</text>
   
   <text x="450" y="550" class="text">🔧 Device-Specific Processing:</text>
-  <text x="470" y="565" class="subtitle">• THERM-* devices process temperature commands only</text>
-  <text x="470" y="580" class="subtitle">• CAM-* devices handle recording commands only</text>
-  <text x="470" y="595" class="subtitle">• LOCK-* devices respond to lock/unlock commands only</text>
+  <text x="470" y="565" class="subtitle">• Each device subscribes with to: its own id</text>
+  <text x="470" y="580" class="subtitle">• A command reaches only the device it is addressed to</text>
+  <text x="470" y="595" class="subtitle">• The dashboard broadcasts its status (no to:)</text>
   
   <text x="70" y="620" class="text">📈 Scalable Architecture:</text>
-  <text x="90" y="635" class="subtitle">• Easy to add new device types with new ID prefixes</text>
+  <text x="90" y="635" class="subtitle">• Easy to add new devices with new ids</text>
   <text x="90" y="650" class="subtitle">• Multiple instances of same device type supported</text>
   <text x="90" y="665" class="subtitle">• Dashboard aggregates all data for centralized monitoring</text>
   
   <text x="450" y="620" class="text">🔄 Event-Driven Communication:</text>
-  <text x="470" y="635" class="subtitle">• Real-time sensor data publishing every 3-5 seconds</text>
+  <text x="470" y="635" class="subtitle">• Sensor data is published as it is measured</text>
   <text x="470" y="650" class="subtitle">• Immediate alert generation on threshold conditions</text>
   <text x="470" y="665" class="subtitle">• Bidirectional command and status flow</text>
 </svg>

@@ -1,14 +1,19 @@
 #!/usr/bin/env ruby
-# Redis Statistics Monitor for SmartMessage Demo
-# Shows comprehensive pub/sub and performance statistics
+# examples/city_scenario/redis_stats.rb
+#
+# Redis Statistics Monitor for the city scenario
+# Shows pub/sub and performance statistics of the Redis server, and the
+# subscribers of each city channel (CITY_NAMESPACE, default city_scenario).
 
 require 'redis'
 require 'json'
 require 'io/console'
 
+require_relative 'common/city'
+
 class RedisStats
   def initialize
-    @redis = Redis.new
+    @redis = Redis.new(url: Common::City.redis_url)
     @start_time = Time.now
     @message_counts = Hash.new(0)
     @channel_stats = Hash.new { |h, k| h[k] = { last_count: 0, rate: 0, total_messages: 0 } }
@@ -67,9 +72,9 @@ class RedisStats
 
   def setup_signal_handlers
     %w[INT TERM].each do |signal|
-      Signal.trap(signal) do
-        cleanup_and_exit
-      end
+      # Redis cannot be used inside a signal handler, so the handler only
+      # asks the main loop to stop.
+      Signal.trap(signal) { @stop_requested = true }
     end
   end
 
@@ -93,6 +98,8 @@ class RedisStats
     end
     
     loop do
+      cleanup_and_exit if @stop_requested
+
       # Update terminal size if console is available
       if IO.console
         @terminal_height, @terminal_width = IO.console.winsize
@@ -304,7 +311,7 @@ class RedisStats
     ]
 
     message_types.each do |msg_type|
-      channel = "Messages::#{msg_type[:pattern]}"
+      channel = Common::City.channel_for("Messages::#{msg_type[:pattern]}")
       if channels.include?(channel)
         subscriber_count = @redis.pubsub("numsub", channel)[1] || 0
         
@@ -481,7 +488,7 @@ class RedisStats
     ]
 
     message_types.each do |msg|
-      channel = "Messages::#{msg[:name]}Message"
+      channel = Common::City.channel_for("Messages::#{msg[:name]}Message")
       subscribers = @redis.pubsub("numsub", channel)[1] || 0
       
       status_icon = subscribers > 0 ? "🟢" : "🔴"

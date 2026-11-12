@@ -6,14 +6,11 @@
 #
 require_relative '../../../lib/smart_message'
 
-
 module Messages
   class EmergencyResolvedMessage < SmartMessage::Base
     version 1
 
     description 'Emergency incident closure notification message broadcast by emergency services when incidents are successfully resolved, providing completion status, response duration, outcome details, and unit deployment information to all city services for operational awareness and incident tracking'
-
-    transport  SmartMessage::Transport::RedisTransport.new
 
     property :incident_id, required: true,
                            description: 'Unique identifier of the emergency incident that was resolved'

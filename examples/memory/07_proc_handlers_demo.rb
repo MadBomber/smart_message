@@ -1,189 +1,73 @@
 #!/usr/bin/env ruby
-# examples/05_proc_handlers.rb
+# examples/memory/07_proc_handlers_demo.rb
+# frozen_string_literal: true
 #
-# Proc and Block Handler Example
+# Handler types: default method, block, proc, lambda, and named method
 #
-# This example demonstrates the new proc and block handler functionality
-# in SmartMessage, showing different ways to subscribe to messages beyond
-# the traditional self.process method.
+#   NotificationMessage.subscribe                     # => NotificationMessage.process(message)
+#   NotificationMessage.subscribe { |message| ... }   # block
+#   NotificationMessage.subscribe(a_proc_or_lambda)   # any callable
+#   NotificationMessage.subscribe('Service.method')   # class method, by name
+#
+# Every handler receives its own copy of the message.  subscribe returns the
+# handler id that unsubscribe takes.
 
-require_relative '../../lib/smart_message'
+require_relative '../support/example_helper'
+require_relative 'messages/notification_message'
 
-puts "=== SmartMessage Proc and Block Handler Example ==="
-puts
+TRANSPORT = SmartMessage::Transport::MemoryTransport.new
+NotificationMessage.transport(TRANSPORT)
 
-# Define a simple notification message
-class NotificationMessage < SmartMessage::Base
-  description "System notifications processed by different types of handlers"
-  
-  property :type, 
-    description: "Notification type: 'info', 'warning', 'error'"
-  property :title, 
-    description: "Short title or subject of the notification"
-  property :message, 
-    description: "Detailed notification message content"
-  property :user_id, 
-    description: "Target user ID for the notification (optional)"
-  property :timestamp, 
-    description: "ISO8601 timestamp when notification was created"
-
-  config do
-    transport SmartMessage::Transport::MemoryTransport.new
-  end
-
-  # Default handler
-  def process(message)
-    message_header, message_payload = message
-    data = JSON.parse(message_payload)
-    icon = case data['type']
-           when 'info' then 'ℹ️'
-           when 'warning' then '⚠️'
-           when 'error' then '🚨'
-           else '📢'
-           end
-    puts "#{icon} [DEFAULT] #{data['title']}: #{data['message']}"
+# A handler that lives in a service class.
+module NotificationService
+  def self.handle(message)
+    Example.inbox.add(:service, message.title)
   end
 end
 
-puts "🚀 Setting up different types of message handlers"
-puts
-
-# 1. Default handler (traditional way)
-puts "1️⃣ Default handler subscription:"
-default_id = NotificationMessage.subscribe
-puts "   Subscribed with ID: #{default_id}"
-puts
-
-# 2. Block handler
-puts "2️⃣ Block handler subscription:"
-block_id = NotificationMessage.subscribe do |message|
-  data = message
-  if data['type'] == 'error'
-    puts "🔥 [BLOCK] Critical error logged: #{data['title']}"
-    # Could send to error tracking service here
-  end
-end
-puts "   Subscribed with ID: #{block_id}"
-puts
-
-# 3. Proc handler
-puts "3️⃣ Proc handler subscription:"
-audit_logger = proc do |message|
-  data = message
-  timestamp = message._sm_header.published_at.strftime('%Y-%m-%d %H:%M:%S')
-  puts "📝 [AUDIT] #{timestamp} - User #{data['user_id']}: #{data['type'].upcase}"
+def notify(kind, title)
+  NotificationMessage.new(kind: kind, title: title, user_id: 'U-1').publish
+  Example.wait_for_idle(TRANSPORT)
 end
 
-proc_id = NotificationMessage.subscribe(audit_logger)
-puts "   Subscribed with ID: #{proc_id}"
-puts
+Example.title 'Handler types'
 
-# 4. Lambda handler
-puts "4️⃣ Lambda handler subscription:"
-warning_filter = lambda do |message|
-  data = message
-  if data['type'] == 'warning'
-    puts "⚡ [LAMBDA] Warning for user #{data['user_id']}: #{data['message']}"
-  end
+audit_proc   = proc { |message| Example.inbox.add(:proc, message.title) }
+error_lambda = ->(message) { Example.inbox.add(:lambda, message.title) if message.kind == 'error' }
+
+handler_ids = {
+  default: NotificationMessage.subscribe,
+  block:   NotificationMessage.subscribe { |message| Example.inbox.add(:block, message.title) },
+  proc:    NotificationMessage.subscribe(audit_proc),
+  lambda:  NotificationMessage.subscribe(error_lambda),
+  service: NotificationMessage.subscribe('NotificationService.handle')
+}
+handler_ids.each { |kind, id| puts "  #{kind.to_s.ljust(8)} #{id}" }
+
+notify('info', 'Welcome')
+notify('error', 'Disk full')
+
+Example.check('five handlers are subscribed') { TRANSPORT.subscribers['NotificationMessage'].size == 5 }
+Example.check('default, block, proc and service handlers each saw both notifications') do
+  %i[default block proc service].all? { Example.inbox[it].sort == ['Disk full', 'Welcome'] }
+end
+Example.check('the lambda kept only the error') { Example.inbox[:lambda] == ['Disk full'] }
+Example.check('named handlers use their name as id; callables get a generated id') do
+  handler_ids[:default] == 'NotificationMessage.process' &&
+    handler_ids[:service] == 'NotificationService.handle' &&
+    handler_ids[:block].start_with?('NotificationMessage.proc_')
 end
 
-lambda_id = NotificationMessage.subscribe(warning_filter)
-puts "   Subscribed with ID: #{lambda_id}"
-puts
+Example.section 'Unsubscribing one handler'
+NotificationMessage.unsubscribe(handler_ids[:block])
+notify('warning', 'Low battery')
+Example.check('the block handler saw nothing new') { Example.inbox.count(:block) == 2 }
+Example.check('the other handlers still run') { Example.inbox.count(:proc) == 3 && Example.inbox.count(:default) == 3 }
 
-# 5. Method handler (traditional, but shown for comparison)
-puts "5️⃣ Method handler subscription:"
-class NotificationService
-  def handle_notifications(message)
-    data = message
-    puts "🏢 [SERVICE] Processing #{data['type']} notification for user #{data['user_id']}"
-  end
-end
+Example.section 'Unsubscribing everything'
+NotificationMessage.unsubscribe!
+notify('info', 'Nobody listens')
+Example.check('no handler is left') { TRANSPORT.subscribers['NotificationMessage'].empty? }
+Example.check('nothing was delivered') { Example.inbox.count(:proc) == 3 }
 
-method_id = NotificationMessage.subscribe("NotificationService.handle_notifications")
-puts "   Subscribed with ID: #{method_id}"
-puts
-
-puts "=" * 60
-puts "📡 Publishing test notifications (watch the different handlers respond!)"
-puts "=" * 60
-puts
-
-# Test the handlers with different notification types
-notifications = [
-  {
-    type: 'info',
-    title: 'Welcome',
-    message: 'Welcome to the system!',
-    user_id: 'user123',
-    timestamp: Time.now.iso8601
-  },
-  {
-    type: 'warning',
-    title: 'Low Disk Space',
-    message: 'Your disk space is running low',
-    user_id: 'user456',
-    timestamp: Time.now.iso8601
-  },
-  {
-    type: 'error',
-    title: 'Database Connection Failed',
-    message: 'Unable to connect to the database',
-    user_id: 'system',
-    timestamp: Time.now.iso8601
-  }
-]
-
-notifications.each_with_index do |notification_data, index|
-  puts "\n📤 Publishing notification #{index + 1}: #{notification_data[:title]}"
-
-  notification = NotificationMessage.new(**notification_data, from: 'ProcHandlerDemo')
-  notification.publish
-
-  # Give time for all handlers to process
-  sleep(0.5)
-
-  puts "   ✅ All handlers processed the #{notification_data[:type]} notification"
-end
-
-puts "\n" + "=" * 60
-puts "🔧 Demonstrating handler management"
-puts "=" * 60
-
-# Show how to unsubscribe handlers
-puts "\n🗑️  Unsubscribing the block handler..."
-NotificationMessage.unsubscribe(block_id)
-puts "   Block handler removed"
-
-puts "\n📤 Publishing another error notification (block handler won't respond):"
-error_notification = NotificationMessage.new(
-  type: 'error',
-  title: 'Another Error',
-  message: 'This error won\'t trigger the block handler',
-  user_id: 'test_user',
-  timestamp: Time.now.iso8601,
-  from: 'ProcHandlerDemo'
-)
-
-error_notification.publish
-sleep(0.5)
-
-puts "\n" + "=" * 60
-puts "✨ Example completed!"
-puts "=" * 60
-
-puts "\nThis example demonstrated:"
-puts "• ✅ Default self.process method (traditional)"
-puts "• ✅ Block handlers with subscribe { |message| ... } (NEW!)"
-puts "• ✅ Proc handlers with subscribe(proc { ... }) (NEW!)"
-puts "• ✅ Lambda handlers with subscribe(lambda { ... }) (NEW!)"
-puts "• ✅ Method handlers with subscribe('Class.method') (traditional)"
-puts "• ✅ Handler unsubscription and management"
-puts "\nEach handler type has its own use cases:"
-puts "• 🎯 Default: Simple built-in processing"
-puts "• 🔧 Blocks: Inline logic for specific subscriptions"
-puts "• 🔄 Procs: Reusable handlers across message types"
-puts "• ⚡ Lambdas: Strict argument checking and functional style"
-puts "• 🏢 Methods: Organized, testable business logic"
-
-puts "\n🎉 Choose the handler type that best fits your needs!"
+Example.finish

@@ -4,65 +4,57 @@
 
 module SmartMessage
   module Transport
-    # In-memory transport for testing and local development
-    # Messages are stored in memory and can be synchronously processed
+    # In-memory transport for testing and local development.
+    #
+    # Options:
+    #   auto_process:   deliver to subscribers on publish (default true)
+    #   store_messages: keep published messages for #all_messages and
+    #                   #process_all (default: true only when auto_process
+    #                   is false)
+    #   max_messages:   how many stored messages to keep (default 1000)
+    #   serialize:      encode on publish and decode on delivery, as a real
+    #                   transport does (default true).  With false, handlers
+    #                   receive copies of the published object and type
+    #                   changes caused by serialization go unnoticed.
     class MemoryTransport < Base
-      attr_reader :messages
-
       def default_options
         {
-          auto_process: true,
-          max_messages: 1000
+          auto_process:   true,
+          store_messages: nil,
+          max_messages:   1000,
+          serialize:      true
         }
       end
 
-      # Memory transport doesn't need serialization
-      def default_serializer
-        nil
-      end
-
       def configure
-        @messages = []
+        @messages      = []
         @message_mutex = Mutex.new
       end
 
-      # Implement do_publish for memory transport (no serialization needed)
-      def do_publish(message_class, serialized_message)
-        # For memory transport, serialized_message is actually the message object
-        message = serialized_message
-        
-        @message_mutex.synchronize do
-          # Prevent memory overflow
-          @messages.shift if @messages.size >= @options[:max_messages]
-          
-          # Store the actual message object, no serialization needed
-          @messages << {
-            message_class: message_class,
-            message: message.dup,  # Store a copy to prevent mutation
-            published_at: Time.now
-          }
-        end
-
-        # Auto-process if enabled
-        if @options[:auto_process]
-          # Route directly without serialization
-          @dispatcher.route(message)
-        end
+      # @return [Boolean] are published messages kept?
+      def store_messages?
+        @options[:store_messages].nil? ? !@options[:auto_process] : @options[:store_messages]
       end
 
-      # Override encode_message to return the message object directly
       def encode_message(message)
-        # Update header with serializer info (even though we don't serialize)
+        return super if @options[:serialize]
+
         message._sm_header.serializer = 'none'
-        
-        # Return the message object itself (no encoding needed)
-        message
+        message.dup
       end
 
-      # Get all stored messages
+      # @param payload [String, SmartMessage::Base] the encoded message, or
+      #   a copy of the message when serialize: false
+      def do_publish(message_class, payload)
+        store(message_class, payload) if store_messages?
+        deliver(message_class, payload) if @options[:auto_process]
+      end
+
+      # @return [Array<Hash>] stored entries: { message_class:, payload:, published_at: }
       def all_messages
         @message_mutex.synchronize { @messages.dup }
       end
+      alias messages all_messages
 
       # Get message count
       def message_count
@@ -74,16 +66,35 @@ module SmartMessage
         @message_mutex.synchronize { @messages.clear }
       end
 
-      # Process all pending messages
+      # Deliver every stored message to subscribers and remove it from the
+      # store, so calling this twice does not deliver anything twice.
+      # @return [Integer] how many messages were processed
       def process_all
-        messages_to_process = @message_mutex.synchronize { @messages.dup }
-        messages_to_process.each do |msg|
-          @dispatcher.route(msg[:message])
+        pending = @message_mutex.synchronize do
+          drained = @messages.dup
+          @messages.clear
+          drained
+        end
+
+        pending.each { |entry| deliver(entry[:message_class], entry[:payload]) }
+        pending.size
+      end
+
+      private
+
+      def store(message_class, payload)
+        @message_mutex.synchronize do
+          @messages.shift while @messages.size >= @options[:max_messages]
+          @messages << { message_class: message_class, payload: payload, published_at: Time.now }
         end
       end
 
-      def connected?
-        true
+      def deliver(message_class, payload)
+        if payload.is_a?(SmartMessage::Base)
+          @dispatcher.route(payload)
+        else
+          receive(message_class, payload)
+        end
       end
     end
   end

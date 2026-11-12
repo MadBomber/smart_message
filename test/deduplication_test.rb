@@ -4,198 +4,185 @@
 
 require_relative 'test_helper'
 
+# Deduplication from the message class down to the handler
+# (review findings R8, K5).
 class DeduplicationTest < Minitest::Test
-  class TestDedupMessage < SmartMessage::Base
-    version 1
-    property :content, required: true
-    
-    from "test-service"
-    
-    ddq_size 5
-    ddq_storage :memory
+  class Deduped < SmartMessage::Base
+    from 'dedup-test'
+    property :value
+
+    ddq_size 20
     enable_deduplication!
-    
-    def self.process(message)
-      @@processed_messages ||= []
-      @@processed_messages << message.uuid
-    end
-    
-    def self.processed_messages
-      @@processed_messages || []
-    end
-    
-    def self.clear_processed
-      @@processed_messages = []
-    end
   end
-  
-  class TestNormalMessage < SmartMessage::Base
-    version 1
-    property :content, required: true
-    
-    from "test-service"
-    
-    def self.process(message)
-      @@processed_messages ||= []
-      @@processed_messages << message.uuid
-    end
-    
-    def self.processed_messages
-      @@processed_messages || []
-    end
-    
-    def self.clear_processed
-      @@processed_messages = []
-    end
+
+  class Plain < SmartMessage::Base
+    from 'dedup-test'
+    property :value
   end
-  
+
   def setup
-    TestDedupMessage.clear_ddq!
-    TestDedupMessage.clear_processed
-    TestNormalMessage.clear_processed
+    @transport = SmartMessage::Transport::MemoryTransport.new
+    [Deduped, Plain].each { |klass| klass.transport(@transport) }
+    @seen = Queue.new
   end
-  
-  def test_deduplication_configuration
-    assert TestDedupMessage.ddq_enabled?
-    refute TestNormalMessage.ddq_enabled?
-    
-    config = TestDedupMessage.ddq_config
-    assert config[:enabled]
-    assert_equal 5, config[:size]
-    assert_equal :memory, config[:storage]
+
+  def teardown
+    [Deduped, Plain].each do |klass|
+      klass.unsubscribe!
+      klass.reset_transport
+    end
+    @transport.dispatcher.shutdown(timeout: 2)
   end
-  
-  def test_deduplication_instance_methods
-    message = TestDedupMessage.new(content: "test")
-    refute message.duplicate?
-    
-    # Mark as processed
-    message.mark_as_processed!
-    
-    # Create same message again (different instance, same UUID won't work)
-    # So let's create a message with a known UUID
-    header = SmartMessage::Header.new(
-      uuid: "test-uuid-123",
-      message_class: "DeduplicationTest::TestDedupMessage",
-      published_at: Time.now,
-      publisher_pid: Process.pid,
-      version: 1,
-      from: "test-service"
-    )
-    
-    dup_message = TestDedupMessage.new(
-      _sm_header: header,
-      content: "test content"
-    )
-    
-    # First time should not be duplicate
-    refute dup_message.duplicate?
-    dup_message.mark_as_processed!
-    
-    # Second message with same UUID should be duplicate
-    dup_message2 = TestDedupMessage.new(
-      _sm_header: header,
-      content: "different content"
-    )
-    assert dup_message2.duplicate?
+
+  # Deliver the same message (same UUID) again, as a redelivery would.
+  def redeliver(message)
+    @transport.publish(message)
+    wait_for_dispatch(@transport)
   end
-  
-  def test_dispatcher_deduplication_integration
-    TestDedupMessage.transport(SmartMessage::Transport::MemoryTransport.new)
-    TestDedupMessage.subscribe('DeduplicationTest::TestDedupMessage.process')
-    
-    # Create message with specific UUID
-    header = SmartMessage::Header.new(
-      uuid: "dedup-test-uuid",
-      message_class: "DeduplicationTest::TestDedupMessage", 
-      published_at: Time.now,
-      publisher_pid: Process.pid,
-      version: 1,
-      from: "test-service"
-    )
-    
-    message = TestDedupMessage.new(
-      _sm_header: header,
-      content: "test message"
-    )
-    
-    # First publish should process
-    message.publish
-    sleep 0.1  # Allow async processing
-    
-    assert_equal 1, TestDedupMessage.processed_messages.length
-    assert_includes TestDedupMessage.processed_messages, "dedup-test-uuid"
-    
-    # Second publish with same UUID should be skipped
-    message2 = TestDedupMessage.new(
-      _sm_header: header,
-      content: "duplicate message"
-    )
-    
-    message2.publish
-    sleep 0.1  # Allow async processing
-    
-    # Should still only have 1 processed message
-    assert_equal 1, TestDedupMessage.processed_messages.length
+
+  # ---- settings ------------------------------------------------------------
+
+  def test_settings_are_validated
+    assert_raises(ArgumentError) { Plain.ddq_size(0) }
+    assert_raises(ArgumentError) { Plain.ddq_size('10') }
+    assert_raises(ArgumentError) { Plain.ddq_storage(:disk) }
+    assert_raises(ArgumentError) { Plain.ddq_storage(nil) }
+    refute Plain.ddq_enabled?
+    assert_equal({ enabled: false }, Plain.ddq_stats)
   end
-  
-  def test_normal_message_without_deduplication
-    TestNormalMessage.transport(SmartMessage::Transport::MemoryTransport.new)
-    TestNormalMessage.subscribe('DeduplicationTest::TestNormalMessage.process')
-    
-    # Create messages with same UUID (simulating duplicates)
-    header = SmartMessage::Header.new(
-      uuid: "normal-test-uuid",
-      message_class: "DeduplicationTest::TestNormalMessage",
-      published_at: Time.now,
-      publisher_pid: Process.pid,
-      version: 1,
-      from: "test-service"
-    )
-    
-    message1 = TestNormalMessage.new(
-      _sm_header: header,
-      content: "test message 1"
-    )
-    
-    message2 = TestNormalMessage.new(
-      _sm_header: header,
-      content: "test message 2"
-    )
-    
-    # Both should process since deduplication is disabled
-    message1.publish
-    sleep 0.1
-    message2.publish
-    sleep 0.1
-    
-    assert_equal 2, TestNormalMessage.processed_messages.length
+
+  def test_storage_options_are_kept
+    klass = Class.new(SmartMessage::Base) { ddq_storage :redis, ttl: 60 }
+
+    assert_equal :redis, klass.ddq_config[:storage]
+    assert_equal({ ttl: 60 }, klass.ddq_config[:options])
   end
-  
-  def test_ddq_stats
-    stats = TestDedupMessage.ddq_stats
+
+  def test_message_uuid
+    message = Deduped.new(value: 1)
+
+    assert_equal message._sm_header.uuid, message.uuid
+  end
+
+  # ---- behaviour -----------------------------------------------------------
+
+  def test_a_redelivered_message_is_handled_once
+    Deduped.subscribe { |message| @seen << message.value }
+    message = Deduped.new(value: 1)
+
+    3.times { redeliver(message) }
+
+    assert_equal 1, @seen.size
+  end
+
+  def test_different_messages_are_all_handled
+    Deduped.subscribe { |message| @seen << message.value }
+
+    5.times { |i| redeliver(Deduped.new(value: i)) }
+
+    assert_equal 5, @seen.size
+  end
+
+  def test_without_deduplication_a_redelivery_is_handled_again
+    Plain.subscribe { |message| @seen << message.value }
+    message = Plain.new(value: 1)
+
+    2.times { redeliver(message) }
+
+    assert_equal 2, @seen.size
+  end
+
+  def test_each_handler_has_its_own_queue
+    first  = Queue.new
+    second = Queue.new
+    Deduped.subscribe { |message| first << message.value }
+    message = Deduped.new(value: 1)
+    redeliver(message)
+
+    Deduped.subscribe { |message| second << message.value } # subscribes later
+    redeliver(message)
+
+    assert_equal 1, first.size,  'the first handler skips the duplicate'
+    assert_equal 1, second.size, 'the new handler has not seen this message yet'
+    assert_equal 2, Deduped.ddq_stats[:queues].size
+  end
+
+  def test_a_failed_handler_releases_the_message_for_redelivery
+    attempts = Queue.new
+    Deduped.subscribe do |message|
+      attempts << message.uuid
+      raise 'first attempt fails' if attempts.size == 1
+    end
+    message = Deduped.new(value: 1)
+
+    redeliver(message)
+    redeliver(message)
+    redeliver(message)
+
+    assert_equal 2, attempts.size, 'the failure is retried once, then the success is remembered'
+    assert_equal 1, dlq.size
+  end
+
+  def test_concurrent_deliveries_of_one_message_run_the_handler_once
+    Deduped.subscribe do |message|
+      sleep 0.02 # still running while the other deliveries arrive
+      @seen << message.value
+    end
+    message = Deduped.new(value: 1)
+    start   = Queue.new
+
+    threads = Array.new(12) do
+      Thread.new do
+        start.pop
+        @transport.publish(message)
+      end
+    end
+    12.times { start << :go }
+    threads.each(&:join)
+    wait_for_dispatch(@transport)
+
+    assert_equal 1, @seen.size
+  end
+
+  def test_stats_and_clear
+    handler = Deduped.subscribe { |message| @seen << message.value }
+    message = Deduped.new(value: 1)
+    redeliver(message)
+
+    stats = Deduped.ddq_stats
     assert stats[:enabled]
-    assert_equal 0, stats[:current_count]
-    
-    # Add some UUIDs
-    TestDedupMessage.get_ddq_instance.add("uuid-1")
-    TestDedupMessage.get_ddq_instance.add("uuid-2")
-    
-    stats = TestDedupMessage.ddq_stats
-    assert_equal 2, stats[:current_count]
+    queue = stats[:queues].fetch("DeduplicationTest::Deduped:#{handler}")
+    assert_equal 1, queue[:current_count]
+    assert_equal 20, queue[:size]
+    assert_equal :memory, queue[:storage_type]
+
+    Deduped.clear_ddq!
+    redeliver(message)
+
+    assert_equal 2, @seen.size, 'after clear_ddq! the message is new again'
   end
-  
-  def test_class_level_duplicate_check
-    refute TestDedupMessage.duplicate_uuid?("unknown-uuid")
-    
-    TestDedupMessage.get_ddq_instance.add("known-uuid")
-    assert TestDedupMessage.duplicate_uuid?("known-uuid")
+
+  def test_unsubscribing_drops_the_handlers_queue
+    handler = Deduped.subscribe { |message| @seen << message.value }
+    redeliver(Deduped.new(value: 1))
+
+    Deduped.unsubscribe(handler)
+
+    assert_empty Deduped.ddq_stats[:queues]
   end
-  
-  private
-  
-  # Helper method to access private method for testing
-  def get_ddq_instance_for(klass)
-    klass.send(:get_ddq_instance)
+
+  def test_a_bad_ddq_configuration_fails_the_subscribe
+    klass = Class.new(SmartMessage::Base) do
+      from 'dedup-test'
+      ddq_storage :redis, redis: Redis.new(url: 'redis://127.0.0.1:1', reconnect_attempts: 0, connect_timeout: 0.2)
+      enable_deduplication!
+    end
+    self.class.const_set(:Unreachable, klass)
+    klass.transport(@transport)
+
+    assert_raises(SmartMessage::Errors::TransportError) { klass.subscribe { |_message| nil } }
+    assert_empty @transport.subscribers[klass.to_s]
+  ensure
+    self.class.send(:remove_const, :Unreachable)
   end
 end

@@ -1,225 +1,277 @@
 # test/transport_test.rb
+# encoding: utf-8
+# frozen_string_literal: true
 
-require_relative "test_helper"
+require_relative 'test_helper'
+require_relative 'helpers/transport_contract'
 
-require 'smart_message/transport'
-require 'logger'
+# The transport registry, the base class, and the two in-process
+# transports (review findings T4, T5, T7, T8).
+class TransportRegistryTest < Minitest::Test
+  def test_built_in_transports_are_registered
+    assert_equal %i[memory stdout file redis], SmartMessage::Transport.available & %i[memory stdout file redis]
+    assert_same SmartMessage::Transport::MemoryTransport, SmartMessage::Transport.get(:memory)
+    assert_same SmartMessage::Transport::StdoutTransport, SmartMessage::Transport.get('stdout')
+    assert_same SmartMessage::Transport::FileTransport,   SmartMessage::Transport.get(:file)
+    assert_same SmartMessage::Transport::RedisTransport,  SmartMessage::Transport.get(:redis)
+    assert_nil SmartMessage::Transport.get(:carrier_pigeon)
+  end
 
-module TransportTest
-  # A simple example message model
-  class MyMessage < SmartMessage::Base
-    from 'test-service'
-    
-    property :foo
-    property :bar
-    property :baz
-    # The business logic of a smart message is located in
-    # its class-level process method.
-    class << self
-      def process(message)
-        SS.add(whoami, 'process')
-        return 'it worked'
-      end # def process(message)
-    end # class << self
-  end # class MyMessage < SmartMessage::Base
+  def test_create_builds_a_transport_with_its_options
+    transport = SmartMessage::Transport.create(:memory, auto_process: false)
 
-  # NOTE: That sense the base class had properties and
-  #       this one adds more properties then the actual
-  #       message should contain a total of six
-  #       properties.
-  class MyOtherMessage < MyMessage
-    property :foo_two, default: 'two for foo'
-    property :bar_two, default: 'two for bar'
-    property :baz_two, default: 'two for baz'
+    assert_instance_of SmartMessage::Transport::MemoryTransport, transport
+    refute transport.options[:auto_process]
+  end
 
-    # NOTE: will use the same class process method as MyMessage
-  end # class MyOtherMessage < MyMessage
+  def test_create_raises_for_an_unknown_transport
+    error = assert_raises(ArgumentError) { SmartMessage::Transport.create(:carrier_pigeon) }
 
+    assert_match(/Unknown transport: :carrier_pigeon/, error.message)
+    assert_match(/memory/, error.message)
+  end
 
-  # encapsulate the test methods
-  class Test < Minitest::Test
+  def test_register_accepts_only_transport_classes
+    registry = SmartMessage::Transport::Registry.new
+    custom   = Class.new(SmartMessage::Transport::Base)
 
-    def setup
-      # c;ear all stats
-      SS.reset
+    registry.register('custom', custom)
+
+    assert registry.registered?(:custom)
+    assert_same custom, registry.get(:custom)
+    assert_includes registry.list, :custom
+    assert_raises(ArgumentError) { registry.register(:bad, String) }
+    assert_raises(ArgumentError) { registry.register(:bad, 'SmartMessage::Transport::MemoryTransport') }
+
+    registry.clear
+    assert_empty registry.list
+  end
+
+  def test_there_is_no_default_transport
+    assert_nil SmartMessage::Transport.default
+
+    transport = SmartMessage::Transport::MemoryTransport.new
+    SmartMessage.configure { |config| config.transport = transport }
+
+    assert_same transport, SmartMessage::Transport.default
+  end
+end
+
+class TransportBaseTest < Minitest::Test
+  class Sample < SmartMessage::Base
+    from 'base-test'
+    property :value
+  end
+
+  # Exposes #receive, which is protected
+  class Inbound < SmartMessage::Transport::Base
+    def do_publish(_message_class, _serialized_message) = nil
+    def deliver(message_class, payload) = receive(message_class, payload)
+  end
+
+  def test_do_publish_must_be_implemented
+    bare = SmartMessage::Transport::Base.new
+
+    assert_raises(SmartMessage::Errors::NotImplemented) { bare.publish(Sample.new(value: 1)) }
+    assert_kind_of StandardError, SmartMessage::Errors::NotImplemented.new
+  end
+
+  def test_options_merge_over_the_defaults
+    klass = Class.new(SmartMessage::Transport::Base) do
+      def default_options = { a: 1, b: 2 }
     end
 
-    ##################################################################
-    def test_0010_basic_transport_assignment_actions
-      skip("Logger configuration tests skipped - set SM_LOGGER_TEST=true to enable") unless ENV['SM_LOGGER_TEST'] == 'true'
+    assert_equal({ a: 1, b: 3, c: 4 }, klass.new(b: 3, c: 4).options)
+  end
 
-      # Set class-level plugins to known configuration
-      TransportTest::MyMessage.config do
-        reset_transport
-        reset_logger
-      end
+  def test_a_dispatcher_and_serializer_can_be_supplied
+    dispatcher = SmartMessage::Dispatcher.new
+    serializer = SmartMessage::Serializer::Json.new
 
-      assert TransportTest::MyMessage.transport_missing?
-      assert TransportTest::MyMessage.logger_missing?
+    transport = Inbound.new(dispatcher: dispatcher, serializer: serializer)
 
-      refute TransportTest::MyMessage.transport_configured?
-      refute TransportTest::MyMessage.logger_configured?
+    assert_same dispatcher, transport.dispatcher
+    assert_same serializer, transport.serializer
+  end
 
+  def test_an_undecodable_payload_is_dead_lettered_and_raised
+    transport = Inbound.new
 
-      # Add in a transport...
-      TransportTest::MyMessage.config do
-        transport SmartMessage::Transport::StdoutTransport.new
-      end
+    assert_raises(SmartMessage::Errors::DecodeError) { transport.deliver('TransportBaseTest::Sample', '{not json') }
 
-      assert TransportTest::MyMessage.transport_configured?
-      assert TransportTest::MyMessage.logger_missing?
+    assert_equal 1, dlq.size
+    entry = dlq.peek
+    assert_equal '{not json', entry[:payload]
+    assert_equal 'TransportBaseTest::Sample', entry[:header][:message_class]
+    assert_match(/DecodeError/, entry[:error])
+    assert_equal 'TransportBaseTest::Inbound', entry[:transport]
+  end
 
-      refute TransportTest::MyMessage.transport_missing?
-      refute TransportTest::MyMessage.logger_configured?
+  def test_a_payload_for_the_wrong_channel_is_dead_lettered_and_raised
+    transport = Inbound.new
+    payload   = transport.encode_message(Sample.new(value: 1))
 
+    assert_raises(SmartMessage::Errors::MessageClassMismatch) { transport.deliver('Some::Other::Class', payload) }
+    assert_equal 1, dlq.size
+  end
 
-      # Add in a logger ...
-      TransportTest::MyMessage.config do
-        logger SmartMessage::Logger::Default.new
-      end
+  def test_receive_without_subscribers_routes_to_nobody
+    transport = Inbound.new
 
-      assert TransportTest::MyMessage.transport_configured?
-      assert TransportTest::MyMessage.logger_configured?
+    assert_nil transport.deliver(nil, transport.encode_message(Sample.new(value: 1)))
+    assert dlq.empty?
+  end
+end
 
-      refute TransportTest::MyMessage.transport_missing?
-      refute TransportTest::MyMessage.logger_missing?
+class MemoryTransportTest < Minitest::Test
+  include TransportContract
 
+  def new_transport(**options)
+    SmartMessage::Transport::MemoryTransport.new(**options)
+  end
 
-      assert_equal  SmartMessage::Transport::StdoutTransport,
-                    TransportTest::MyMessage.transport.class
+  def test_stores_messages_only_when_not_auto_processing
+    refute new_transport.store_messages?
+    assert new_transport(auto_process: false).store_messages?
+    assert new_transport(store_messages: true).store_messages?
+    refute new_transport(auto_process: false, store_messages: false).store_messages?
+  end
 
-      assert_equal  SmartMessage::Logger::Default,
-                    TransportTest::MyMessage.logger.class
+  def test_auto_processing_does_not_grow_the_store
+    use
+    collect
 
+    50.times { |i| ContractMessage.new(value: i).publish }
 
-      my_message        = TransportTest::MyMessage.new(foo: 'foo', bar:'bar')
-      my_other_message  = TransportTest::MyOtherMessage.new(bar_two:'bar_two', baz_two: 'baz_two')
+    assert_equal 0, transport.message_count
+  end
 
-      assert_equal 'TransportTest::MyMessage',       my_message.whoami
-      assert_equal 'TransportTest::MyOtherMessage',  my_other_message.whoami
-      assert_equal 'TransportTest::MyMessage',       TransportTest::MyMessage.whoami
-      assert_equal 'TransportTest::MyOtherMessage',  TransportTest::MyOtherMessage.whoami
+  def test_stored_messages_are_bounded
+    stored = use(track(new_transport(auto_process: false, max_messages: 3)))
 
+    5.times { |i| ContractMessage.new(value: i).publish }
 
-    end # def test_0010_basic_transport_assignment_actions
+    assert_equal 3, stored.message_count
+    values = stored.all_messages.map { |entry| stored.decode_message(entry[:payload]).value }
+    assert_equal [2, 3, 4], values, 'the oldest messages were dropped'
+    assert_equal %i[message_class payload published_at], stored.all_messages.first.keys
 
+    stored.clear_messages
+    assert_equal 0, stored.message_count
+  end
 
-    ##################################################################
-    def test_0015_basic_transport_publish_actions
+  def test_process_all_delivers_each_stored_message_once
+    stored   = use(track(new_transport(auto_process: false)))
+    received = collect
+    3.times { |i| ContractMessage.new(value: i).publish }
+    assert received.empty?, 'nothing is delivered until process_all'
 
-      # Set class-level plugins to known configuration
-      TransportTest::MyMessage.config do
-        reset_transport
-        reset_logger
-      end
+    assert_equal 3, stored.process_all
+    assert_equal 0, stored.process_all, 'a second call has nothing left to deliver'
 
-      my_message = TransportTest::MyMessage.new(
-        foo: 'one',
-        bar: 'two',
-        baz: 'three'
-      )
+    wait_for_dispatch(stored)
+    assert_equal 3, received.size
+    assert_equal 0, stored.message_count
+  end
 
-      # Publishing requires a transport to be configured...
-      assert_raises SmartMessage::Errors::TransportNotConfigured do
-        my_message.publish
-      end
+  def test_serialization_is_on_by_default_so_type_changes_show_up
+    use
+    received = collect
 
-      assert_equal 0, SS.get('TransportTest::MyMessage', 'publish')
+    ContractMessage.new(value: :a_symbol).publish
+    wait_until { !received.empty? }
 
-      # Set class-level plugins to known configuration
-      TransportTest::MyMessage.config do
-        transport   SmartMessage::Transport::StdoutTransport.new(
-                      output:   'transport_test.log'
-                    )
-      end
+    assert_equal 'a_symbol', received.pop.value, 'as it would over a real transport'
+  end
 
-      my_other_message = TransportTest::MyOtherMessage.new(
-        foo: 'one for the money',
-        bar: 'two for the show',
-        baz: 'three to get ready',
-        xyzzy: 'four to go'         # not defined so ignored
-      )
+  def test_serialize_false_hands_handlers_a_copy_of_the_object
+    direct   = use(track(new_transport(serialize: false)))
+    received = collect
+    original = ContractMessage.new(value: :a_symbol, detail: { list: [1] })
 
-      my_other_message.publish
+    original.publish
+    wait_until { !received.empty? }
+    copy = received.pop
 
+    assert_equal :a_symbol, copy.value
+    refute_same original, copy
+    copy.detail[:list] << 2
+    assert_equal [1], original.detail[:list]
+    assert_same direct, ContractMessage.transport
+  end
+end
 
-      assert_equal 1, SS.get('TransportTest::MyOtherMessage','publish')
+class StdoutTransportTest < Minitest::Test
+  include TransportContract
 
-    end # def test_0015_basic_transport_publish_actions
+  def output
+    @output ||= StringIO.new
+  end
 
+  def new_transport(**options)
+    SmartMessage::Transport::StdoutTransport.new(output: output, loopback: true, **options)
+  end
 
-    ##################################################################
-    def test_0020_basic_transport_subscription_management
+  def test_writes_one_line_of_json_per_message
+    plain = use(track(SmartMessage::Transport::StdoutTransport.new(output: output)))
 
-      # Set class-level plugins to known configuration
-      TransportTest::MyMessage.config do
-        reset_transport
-        reset_logger
-      end
+    2.times { |i| ContractMessage.new(value: i).publish }
 
-      assert_raises SmartMessage::Errors::TransportNotConfigured do
-        TransportTest::MyMessage.subscribe
-      end
+    lines = output.string.lines
+    assert_equal 2, lines.size
+    assert_equal [0, 1], lines.map { |line| JSON.parse(line)['value'] }
+    assert_equal 'TransportContract::ContractMessage', JSON.parse(lines.first).dig('_sm_header', 'message_class')
+    assert_same plain, ContractMessage.transport
+  end
 
-      # Set class-level plugins to known configuration  
-      TransportTest::MyMessage.config do
-        transport   SmartMessage::Transport::StdoutTransport.new
-      end
+  def test_without_loopback_subscribers_are_not_called
+    use(track(SmartMessage::Transport::StdoutTransport.new(output: output)))
+    received = collect
 
-      # clear out the subscription db because its been
-      # polluted by other tests.
-      TransportTest::MyMessage.transport.dispatcher.drop_all!
+    ContractMessage.new(value: 1).publish
+    sleep 0.05
 
-      # Use the default class-level process method
-      # STDOUT transport is publish-only, so subscription should be ignored
-      TransportTest::MyMessage.subscribe
+    assert received.empty?
+  end
 
-      message_class = 'TransportTest::MyMessage'
+  def test_default_output_is_the_current_stdout
+    plain = track(SmartMessage::Transport::StdoutTransport.new)
 
-      # STDOUT transport is publish-only - no subscribers should be added
-      assert_equal [], TransportTest::MyMessage.transport.subscribers.keys
+    out, _err = capture_io { plain.publish(ContractMessage.new(value: 'to-stdout')) }
 
-      default_process_method = message_class + '.process'
+    assert_match(/"value":"to-stdout"/, out)
+    assert_same $stdout, plain.output
+  end
 
-      # STDOUT transport ignores subscription attempts
-      assert_equal 0, TransportTest::MyMessage.transport.subscribers[message_class].length
+  def test_disconnect_never_closes_the_io
+    transport.publish(ContractMessage.new(value: 1))
 
-      specialized_process_method = 'TransportTest::Test.specialized_process'
+    transport.disconnect
 
-      # Use the class-level specialized process method - should also be ignored
-      TransportTest::MyMessage.subscribe(specialized_process_method)
+    refute output.closed?
+    refute $stdout.closed?
+    assert transport.publish(ContractMessage.new(value: 2)), 'and the transport still works'
+  end
 
-      # Still no subscribers because STDOUT transport is publish-only
-      assert_equal 0, TransportTest::MyMessage.transport.subscribers[message_class].length
+  def test_an_io_that_fails_makes_the_publish_fail
+    read_end, write_end = IO.pipe
+    write_end.close
+    broken = use(track(SmartMessage::Transport::StdoutTransport.new(output: write_end)))
 
-      # Unsubscribe attempts should also be ignored (but won't error)
-      TransportTest::MyMessage.unsubscribe
+    assert_raises(SmartMessage::Errors::PublishError) { ContractMessage.new(value: 1).publish }
+    assert_equal 1, dlq.size
+    assert broken.transport_circuit_stats[:transport_publish][:closed], 'one failure is below the threshold'
+  ensure
+    read_end&.close
+  end
 
-      # Still no subscribers
-      assert_equal 0, TransportTest::MyMessage.transport.subscribers[message_class].length
+  def test_concurrent_publishers_do_not_interleave_lines
+    plain = track(SmartMessage::Transport::StdoutTransport.new(output: output))
 
-      # STDOUT transport subscribers hash may have empty message class entries
-      # but no actual subscribers for this message class
-      assert_equal 0, TransportTest::MyMessage.transport.subscribers[message_class].length
+    Array.new(8) { |t| Thread.new { 25.times { |i| plain.publish(ContractMessage.new(value: "#{t}-#{i}", detail: 'x' * 200)) } } }.each(&:join)
 
-      assert_equal 6, TransportTest::MyOtherMessage.fields.size
-
-      assert_equal  [:foo, :bar, :baz, :foo_two, :bar_two, :baz_two],
-                    TransportTest::MyOtherMessage.fields.to_a
-
-      # STDOUT transport subscription attempts are ignored
-      TransportTest::MyMessage.subscribe
-      TransportTest::MyOtherMessage.subscribe
-
-      # Since STDOUT transport is publish-only, expect only one entry (from earlier test)
-      assert_equal  ['TransportTest::MyMessage'],
-                    TransportTest::MyMessage.transport.subscribers.keys
-
-      # Both message classes should share the same transport instance
-      assert_equal  TransportTest::MyMessage.transport.subscribers,
-                    TransportTest::MyOtherMessage.transport.subscribers
-
-    end
-
-  end # class TransportTest < Minitest::Test
-end # module TransportTest
+    lines = output.string.lines
+    assert_equal 200, lines.size
+    assert_equal 200, lines.map { |line| JSON.parse(line)['value'] }.uniq.size
+  end
+end

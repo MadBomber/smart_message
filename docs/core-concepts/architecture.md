@@ -1,478 +1,110 @@
-# SmartMessage Architecture
+# Architecture
 
-SmartMessage follows a plugin-based architecture that cleanly separates message concerns from transport and serialization mechanisms.
+SmartMessage has four parts: message classes, an envelope codec with a serializer, transports, and a dispatcher. A message class knows what a message contains and who handles it. A transport knows how to move bytes. The envelope turns one into the other, and the dispatcher runs handlers.
 
-## Design Philosophy
+![Message flow from publish to handlers, with the failure paths into the dead letter queue](../assets/images/message_flow.svg)
 
-SmartMessage is designed around the principle that **messages should be independent of their delivery mechanism**. Just as ActiveRecord abstracts database operations from business logic, SmartMessage abstracts message delivery from message content.
+## The parts
 
-### Core Principles
+### Message classes
 
-1. **Separation of Concerns**: Message content, transport, and serialization are independent
-2. **Plugin Architecture**: Pluggable transports
-3. **Dual Configuration**: Both class-level and instance-level configuration
-4. **Thread Safety**: Concurrent message processing with thread pools
-5. **Gateway Support**: Messages can flow between different transports
+A message class inherits from `SmartMessage::Base` (a `Hashie::Dash`). It declares:
 
-## Architecture Overview
+- properties, with defaults, validation and descriptions ([Properties and Validation](properties.md))
+- default addressing: `from`, `to`, `reply_to` ([Addressing](addressing.md))
+- a schema `version`
+- its transport or transports, unless the global configuration supplies one ([Configuration](configuration.md))
+- optionally, deduplication ([Message Deduplication](../reference/message-deduplication.md))
+- a default handler, `def self.process(message)` ([Handlers](message-processing.md))
 
-![SmartMessage Architecture Overview](../assets/images/smartmessage_architecture_overview.svg)
+Each instance carries a header (`message._sm_header`, a `SmartMessage::Header`) with these fields:
 
-## Core Components
+| Field | Meaning |
+|-------|---------|
+| `uuid` | Unique id of this message instance; used for deduplication |
+| `message_class` | Name of the message class |
+| `published_at` | Set when the message is built and again when it is published |
+| `publisher_pid` | Process id of the publisher |
+| `version` | Schema version of the message class |
+| `from`, `to`, `reply_to` | Addressing |
+| `serializer` | Class name of the serializer that encoded it |
+| `extensions` | Header fields this version does not define; kept so they survive a round trip |
 
-### 1. SmartMessage::Base
+### Envelope and serializer
 
-The foundation class that all messages inherit from, built on `Hashie::Dash`.
+`SmartMessage::Envelope` is the single codec every transport uses. On the wire a message is one flat structure: its properties plus a `_sm_header` entry. The serializer (`SmartMessage::Serializer::Json`) turns that structure into a String and back.
 
-**Key Responsibilities:**
-- Property management and validation
-- Plugin configuration (transport, logger)
-- Message lifecycle management
-- Header generation and management
+Decoding does not trust its input:
 
-**Location:** `lib/smart_message/base.rb:17-199`
+- the class named in the header must be a loaded subclass of `SmartMessage::Base`, otherwise `SmartMessage::Errors::UnknownMessageClass`
+- when the payload arrived on a channel (the Redis transport has channels), the class named in the header must match that channel, otherwise `SmartMessage::Errors::MessageClassMismatch`
+- only declared properties are passed to the message; anything else in the payload is dropped
+- a payload that is not an envelope raises `SmartMessage::Errors::DecodeError`
 
-```ruby
-class MyMessage < SmartMessage::Base
-  description "Handles custom message processing for my application"
-  
-  property :data
-  
-  config do
-    transport MyTransport.new
-  end
-end
-```
+A decoded message is not validated automatically. A handler that needs the guarantee calls `message.valid?` or `message.validate!`.
 
-### 2. Transport Layer
+### Transports
 
-Handles message delivery and routing between systems.
+A transport is a subclass of `SmartMessage::Transport::Base`. It publishes serialized messages and hands inbound payloads to its dispatcher. Each transport instance owns:
 
-**Key Responsibilities:**
-- Message publishing and receiving
-- Subscription management
-- Connection handling
-- Transport-specific configuration
+- a serializer
+- a dispatcher (pass `dispatcher:` to share one between transports)
+- a circuit breaker around publishing
 
-**Location:** `lib/smart_message/transport/`
+Four transports ship with the gem: memory, stdout, file and Redis pub/sub. They have different delivery semantics; see [Transports](../reference/transports.md).
 
-```ruby
-# Transport interface
-class CustomTransport < SmartMessage::Transport::Base
-  def do_publish(message_class, serialized_message)
-    # Send message via your transport
-  end
-  
-  def subscribe(message_class, process_method, filter_options = {})
-    # Set up subscription via dispatcher
-    @dispatcher.add(message_class, process_method, filter_options)
-  end
-end
-```
+### Dispatcher
 
-### 3. Serializer System
+The dispatcher keeps the subscriptions of one transport. For each incoming message it finds the handlers subscribed to that message class, applies their filters, reserves the UUID when deduplication is on, and posts each handler to a bounded thread pool with its own copy of the message. See [Dispatcher](dispatcher.md).
 
-Handles encoding and decoding of message content.
+## Publishing, step by step
 
-**Key Responsibilities:**
-- Message encoding (Ruby object → wire format)
-- Message decoding (wire format → Ruby object)
-- Format-specific handling
+`message.publish` does this:
 
-**Location:** `lib/smart_message/serializer/`
+1. `validate!`: raises `SmartMessage::Errors::ValidationError` if the message is invalid.
+2. Raises `SmartMessage::Errors::TransportNotConfigured` if there is no transport.
+3. Stamps `published_at` and `publisher_pid` in the header.
+4. For each transport, independently: encode the message and call the transport inside its circuit breaker. A failure is recorded in the result and the message is written to the dead letter queue with that transport's name.
+5. Returns a `SmartMessage::PublishResult`, or raises `SmartMessage::Errors::PublishError` if every transport failed.
 
-```ruby
-class CustomSerializer < SmartMessage::Serializer::Base
-  def do_encode(message_instance)
-    # Convert message instance to wire format
-    # Default implementation uses message_instance.to_h
-  end
-  
-  def do_decode(payload)
-    # Convert from wire format back to hash
-    # Must return hash compatible with message initialization
-  end
-end
-```
+## Receiving, step by step
 
-### 4. Dispatcher
+When a transport receives a payload:
 
-Routes incoming messages to appropriate handlers using concurrent processing with integrated deduplication.
+1. `Envelope.decode` rebuilds the message. A payload that cannot be decoded is stored in the dead letter queue.
+2. The dispatcher looks up the subscriptions for the message class.
+3. For each subscription whose [filters](message-filtering.md) match:
+    1. if deduplication is enabled, the UUID is reserved in that handler's queue; a UUID that is already there is skipped
+    2. the handler is posted to the thread pool with a copy of the message
+4. On a pool thread, the handler runs inside its own circuit breaker.
+5. If the handler raises, or its circuit is open, the deduplication reservation is released and the message goes to the dead letter queue. Other handlers are not affected.
 
-**Key Responsibilities:**
-- Message routing based on class
-- Thread pool management  
-- Subscription catalog management
-- Handler-scoped DDQ management
-- Message filtering and statistics collection
+## Failure handling at a glance
 
-**Location:** `lib/smart_message/dispatcher.rb`
+| What went wrong | What happens |
+|-----------------|--------------|
+| Message is invalid | `publish` raises `ValidationError`; nothing is sent |
+| No transport | `publish` / `subscribe` raise `TransportNotConfigured` |
+| One of several transports fails | The result is `partial?`; the message is dead-lettered for that transport |
+| Every transport fails | `publish` raises `PublishError`; the message is dead-lettered once per transport |
+| Payload cannot be decoded | Stored raw in the dead letter queue |
+| Handler raises | Message dead-lettered with `transport: "handler:<handler id>"` |
+| Handler circuit is open | Handler is not called; message dead-lettered |
+| Handler still running at shutdown timeout | Handler is killed; message dead-lettered |
+
+See [Dead Letter Queue](../reference/dead-letter-queue.md) and [Circuit Breakers](../reference/circuit-breakers.md).
+
+## Statistics
+
+`SmartMessage::Stats` is a thread-safe counter store. The framework counts `publish` per message class, and `routed`, `processed`, `failed` and `duplicate` per message class and handler.
 
 ```ruby
-dispatcher = SmartMessage::Dispatcher.new
-dispatcher.add("MyMessage", "MyMessage.process")
-dispatcher.route(decoded_message)
-
-# DDQ integration is automatic when enabled
-MyMessage.enable_deduplication!
+SmartMessage::Stats.get('OrderMessage', 'publish')                              # => 12
+SmartMessage::Stats.get('OrderMessage', 'OrderMessage.process', 'processed')    # => 12
+SmartMessage::Stats.stat    # every counter, keys joined with "+"
+SmartMessage::Stats.reset   # clear all counters
 ```
 
-### 5. Deduplication Queue (DDQ)
+## Extension gems
 
-Handler-scoped message deduplication system preventing duplicate processing.
-
-**Key Responsibilities:**
-- UUID-based duplicate detection
-- Handler isolation (each handler gets own DDQ)
-- Memory and Redis storage backends
-- O(1) performance with hybrid Array + Set data structure
-
-**Architecture:**
-
-![DDQ Architecture](../assets/images/ddq_architecture.svg)
-
-**Location:** `lib/smart_message/deduplication.rb`, `lib/smart_message/ddq/`
-
-**Key Features:**
-- Handler-scoped deduplication (each handler gets its own DDQ)
-- UUID-based duplicate detection
-- Multiple storage backends (Memory, Redis)
-- O(1) performance with hybrid Array + Set data structure
-- Thread-safe operations with mutex locks
-
-### 6. Message Headers
-
-Standard metadata attached to every message with entity addressing support.
-
-**Key Responsibilities:**
-- Message identification (UUID)
-- Routing information (message class, version)
-- Tracking data (timestamps, process IDs)
-- Entity addressing (from, to, reply_to)
-
-**Location:** `lib/smart_message/header.rb`
-
-```ruby
-header = message._sm_header
-puts header.uuid          # "550e8400-e29b-41d4-a716-446655440000"
-puts header.message_class # "MyMessage"
-puts header.published_at  # 2025-08-17 10:30:00 UTC
-puts header.publisher_pid # 12345
-puts header.from          # "payment-service"
-puts header.to            # "order-service"
-puts header.reply_to      # "payment-service" (defaults to from)
-puts header.version       # 1
-```
-
-## Message Lifecycle
-
-### 1. Definition Phase
-```ruby
-class OrderMessage < SmartMessage::Base
-  property :order_id
-  property :amount
-  
-  config do
-    transport SmartMessage::Transport.create(:memory)
-  end
-end
-```
-
-### 2. Subscription Phase
-```ruby
-# Basic subscription
-OrderMessage.subscribe
-
-# Subscription with filtering
-OrderMessage.subscribe(from: /^payment-.*/, to: 'order-service')
-OrderMessage.subscribe('PaymentService.process', broadcast: true)
-
-# Each subscription gets its own DDQ automatically
-# DDQ Key: "OrderMessage:OrderMessage.process"
-# DDQ Key: "OrderMessage:PaymentService.process"
-```
-
-### 3. Publishing Phase
-```ruby
-order = OrderMessage.new(order_id: "123", amount: 99.99)
-order.from("order-service").to("payment-service")
-order.publish
-# 1. Creates header with UUID, timestamp, addressing
-# 2. Encodes message via transport's serializer  
-# 3. Sends via transport
-# 4. Circuit breaker monitors for failures
-```
-
-### 4. Receiving Phase
-```ruby
-# Transport receives serialized message
-transport.receive(message_class, serialized_message)
-# 1. Decodes message using transport's serializer
-# 2. Routes decoded message to dispatcher
-# 3. Dispatcher checks DDQ for duplicates per handler
-# 4. Applies message filters (from/to/broadcast)
-# 5. Spawns thread for processing matching handlers
-# 6. Marks UUID as processed in handler's DDQ after successful processing
-```
-
-### 5. Message Handler Processing
-
-SmartMessage supports multiple handler types, routed through the dispatcher:
-
-```ruby
-# Default handler (self.process method) - receives decoded message instance
-def self.process(decoded_message)
-  order = decoded_message  # Already a fully decoded OrderMessage instance
-  fulfill_order(order)
-end
-
-# Block handler (inline processing) - receives decoded message instance
-OrderMessage.subscribe do |decoded_message|
-  quick_processing(decoded_message)
-end
-
-# Proc handler (reusable across message types) - receives decoded message instance
-audit_proc = proc do |decoded_message|
-  AuditService.log_message(decoded_message.class.name, decoded_message)
-end
-OrderMessage.subscribe(audit_proc)
-
-# Method handler (service class processing) - receives decoded message instance
-class OrderService
-  def self.process_order(decoded_message)
-    complex_business_logic(decoded_message)
-  end
-end
-OrderMessage.subscribe("OrderService.process_order")
-```
-
-**Handler Routing Process:**
-1. Dispatcher receives decoded message instance
-2. Looks up all registered handlers for message class
-3. For each handler that matches filters:
-   - Checks DDQ for duplicates (handler-scoped)
-   - **String handlers**: Resolves to class method via constantize
-   - **Proc handlers**: Calls proc directly from registry
-4. Executes handlers in parallel threads with circuit breaker protection
-5. Marks UUID as processed in handler's DDQ after successful completion
-6. Collects statistics and handles errors
-
-## Plugin System Architecture
-
-### Dual-Level Configuration
-
-SmartMessage supports configuration at both class and instance levels:
-
-```ruby
-# Class-level (default for all instances)
-class PaymentMessage < SmartMessage::Base
-  config do
-    transport ProductionTransport.new
-  end
-end
-
-# Instance-level (overrides class configuration)
-test_payment = PaymentMessage.new(amount: 1.00)
-test_payment.config do
-  transport TestTransport.new  # Override for this instance
-end
-```
-
-This enables sophisticated gateway patterns where messages can be:
-- Received from one transport (e.g., RabbitMQ)
-- Processed with business logic
-- Republished to another transport (e.g., Kafka)
-
-### Plugin Registration
-
-Transports are registered in a central registry:
-
-```ruby
-# Register custom transport
-SmartMessage::Transport.register(:redis, RedisTransport)
-
-# Use registered transport
-MyMessage.config do
-  transport SmartMessage::Transport.create(:redis, url: "redis://localhost")
-end
-```
-
-## Thread Safety & Concurrency
-
-### Thread Pool Management
-
-The dispatcher uses `Concurrent::CachedThreadPool` for processing:
-
-```ruby
-# Each message processing happens in its own thread with circuit breaker protection
-@router_pool.post do
-  circuit_result = circuit(:message_processor).wrap do
-    if proc_handler?(message_processor)
-      SmartMessage::Base.call_proc_handler(message_processor, decoded_message)
-    else
-      target_class.constantize.method(class_method).call(decoded_message)
-    end
-  end
-end
-```
-
-### Thread Safety Considerations
-
-1. **Message Instances**: Each message is processed in isolation
-2. **Shared State**: Avoid shared mutable state in message classes
-3. **Statistics**: Thread-safe statistics collection via `SimpleStats`
-4. **Graceful Shutdown**: Automatic cleanup on process exit
-
-### Monitoring Thread Pools
-
-```ruby
-dispatcher = SmartMessage::Dispatcher.new
-status = dispatcher.status
-
-puts "Running: #{status[:running]}"
-puts "Queue length: #{status[:queue_length]}"
-puts "Completed tasks: #{status[:completed_task_count]}"
-```
-
-## Error Handling Architecture
-
-### Exception Isolation
-
-Processing exceptions are isolated to prevent cascade failures:
-
-```ruby
-circuit_result = circuit(:message_processor).wrap do
-  # Handler execution with circuit breaker protection
-end
-
-# Handle circuit breaker fallback responses
-if circuit_result.is_a?(Hash) && circuit_result[:circuit_breaker]
-  handle_circuit_breaker_fallback(circuit_result, decoded_message, message_processor)
-end
-```
-
-### Custom Error Types
-
-SmartMessage defines specific error types for different failure modes:
-
-```ruby
-module SmartMessage::Errors
-  class TransportNotConfigured < RuntimeError; end
-  class SerializerNotConfigured < RuntimeError; end
-  class NotImplemented < RuntimeError; end
-  class ReceivedMessageNotSubscribed < RuntimeError; end
-  class UnknownMessageClass < RuntimeError; end
-  class ValidationError < RuntimeError; end
-end
-```
-
-## Reliability & Fault Tolerance
-
-### Circuit Breaker Integration
-
-SmartMessage integrates BreakerMachines for production-grade reliability:
-
-```ruby
-# Circuit breakers are automatically configured for all transports
-class MyTransport < SmartMessage::Transport::Base
-  # Inherits circuit breaker configuration:
-  # - :transport_publish for publishing operations
-  # - :transport_subscribe for subscription operations
-  # - Automatic DLQ fallback for failed publishes
-end
-```
-
-**Circuit Breaker States:**
-- **Closed**: Normal operation, requests pass through
-- **Open**: Threshold exceeded, requests fail fast
-- **Half-Open**: Testing if service recovered
-
-### Dead Letter Queue
-
-Failed messages are automatically captured in the Dead Letter Queue:
-
-```ruby
-# Automatic capture when circuit breaker trips
-message.publish  # If transport fails, goes to DLQ
-
-# Manual capture for business logic failures
-dlq = SmartMessage::DeadLetterQueue.default
-dlq.enqueue(decoded_message, error: "Validation failed", transport: "manual")
-```
-
-**DLQ Architecture:**
-
-![Dead Letter Queue Architecture](../assets/images/dlq_architecture.svg)
-
-**DLQ Features:**
-- JSON Lines format for efficient append operations
-- FIFO queue operations with thread safety
-- Replay capabilities with transport override
-- Administrative tools for filtering and analysis
-
-## Statistics & Monitoring
-
-### Built-in Statistics
-
-SmartMessage automatically collects processing statistics including DDQ metrics:
-
-```ruby
-# Statistics are collected for:
-SS.add(message_class, 'publish')
-SS.add(message_class, process_method, 'routed')
-
-# Access statistics
-puts SS.stat
-puts SS.get("MyMessage", "publish")
-
-# DDQ-specific statistics
-stats = OrderMessage.ddq_stats
-puts "DDQ utilization: #{stats[:utilization]}%"
-puts "Current count: #{stats[:current_count]}"
-```
-
-### Monitoring Points
-
-1. **Message Publishing**: Count of published messages per class
-2. **Message Routing**: Count of routed messages per processor
-3. **Thread Pool**: Queue length, completed tasks, running status
-4. **Transport Status**: Connection status, message counts
-5. **DDQ Metrics**: Utilization, duplicate detection rates, memory usage
-6. **Message Filtering**: Filter match rates, entity-aware routing statistics
-
-## Configuration Architecture
-
-### Configuration Hierarchy
-
-1. **Class-level defaults**: Set via `MyMessage.config`
-2. **Instance-level overrides**: Set via `message.config`
-3. **Runtime configuration**: Dynamic plugin switching
-
-### Configuration Objects
-
-Configuration uses method-based DSL:
-
-```ruby
-config do
-  transport MyTransport.new(option1: value1)
-  logger MyLogger.new(level: :debug)
-end
-```
-
-### Plugin Resolution
-
-When a message needs a plugin:
-
-1. Check instance-level configuration
-2. Fall back to class-level configuration
-3. Raise error if not configured
-
-```ruby
-def transport
-  @transport || self.class.class_variable_get(:@@transport) || raise(Errors::TransportNotConfigured)
-rescue NameError
-  raise(Errors::TransportNotConfigured)
-end
-```
-
-This architecture provides flexibility while maintaining clear fallback behavior.
+Transports for NATS, RabbitMQ, named pipes and lanet exist as separate `smart_message-transport-*` gems; they have not yet been updated for 0.1.0.

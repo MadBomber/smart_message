@@ -30,14 +30,14 @@
   
   <!-- Title -->
   <text x="450" y="25" text-anchor="middle" class="title">Health Monitoring System</text>
-  <text x="450" y="45" text-anchor="middle" class="subtitle">COVID-19 Compliant Service Health Checks (Every 5 seconds)</text>
+  <text x="450" y="45" text-anchor="middle" class="subtitle">Service Health Checks (Every 5 seconds)</text>
   
   <!-- Participants -->
   <rect x="50" y="80" width="120" height="80" class="health"/>
   <text x="110" y="105" text-anchor="middle" class="text">🏥 Health</text>
   <text x="110" y="120" text-anchor="middle" class="text">Department</text>
   <text x="110" y="140" text-anchor="middle" class="subtitle">Central Monitor</text>
-  <text x="110" y="155" text-anchor="middle" class="subtitle">COVID-19 Compliance</text>
+  <text x="110" y="155" text-anchor="middle" class="subtitle">Status Display</text>
   
   <rect x="240" y="80" width="120" height="80" class="fire"/>
   <text x="300" y="105" text-anchor="middle" class="text">🚒 Fire</text>
@@ -107,9 +107,9 @@
   
   <!-- Countdown timer notes -->
   <rect x="200" y="420" width="500" height="60" fill="#1a1a1a" stroke="#ffaa4a" rx="6"/>
-  <text x="210" y="440" class="text">10-second Countdown Timer System:</text>
-  <text x="210" y="455" class="note">• Resets on each HealthCheckMessage received</text>
-  <text x="210" y="470" class="note">• Services shut down after 10 seconds without health check (COVID-19 protocol)</text>
+  <text x="210" y="440" class="text">15-second Fail-Safe:</text>
+  <text x="210" y="455" class="note">• Each HealthCheckMessage received restarts the 15 seconds</text>
+  <text x="210" y="470" class="note">• A service shuts down after 15 seconds without a health check</text>
   <text x="210" y="485" class="note">• Status: Green (healthy), Yellow (warning), Red (critical/offline)</text>
   
   <!-- Service status legend -->
@@ -125,6 +125,6 @@
   <circle cx="580" cy="540" r="8" fill="#ff4a4a"/>
   <text x="600" y="545" class="text">Red: Service critical or unresponsive</text>
   
-  <text x="70" y="565" class="text">All services implement countdown timer health monitoring for COVID-19 compliance</text>
+  <text x="70" y="565" class="text">Each service answers the sender of the health check with a HealthStatusMessage</text>
   <text x="70" y="580" class="text">Health Department broadcasts HealthCheckMessage every 5 seconds to maintain service operation</text>
 </svg>

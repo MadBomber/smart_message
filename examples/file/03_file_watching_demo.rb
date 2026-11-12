@@ -1,332 +1,98 @@
 #!/usr/bin/env ruby
-# encoding: utf-8
+# examples/file/03_file_watching_demo.rb
 # frozen_string_literal: true
+#
+# Watching a file: the tailing poller
+#
+# Subscribing on a FileTransport starts one background thread that tails
+# the file and delivers every new line to the handlers of the message class
+# named in that line.  Writers append, readers tail, so several transports
+# (or several processes) can share one file.
+#
+#   poll_interval:  seconds between checks for new lines (default 0.5)
+#   read_from_end:  true  - only lines written after subscribing (default)
+#                   false - read the whole file first, then tail
 
-# File Watching Demo
-# 
-# This example demonstrates SmartMessage's FileTransport file watching capabilities.
-# It shows how to monitor files for changes and automatically process new content.
+require_relative '../support/example_helper'
+require_relative 'messages/log_entry'
 
-require_relative '../../lib/smart_message'
-require 'tempfile'
-require 'fileutils'
+LOG_PATH = Example.tmp_path('shared.jsonl')
 
-# Define message classes
-Dir.mkdir('messages') unless Dir.exist?('messages')
-
-class LogEntry < SmartMessage::Base
-  property :timestamp, required: true
-  property :level, required: true
-  property :message, required: true
-  property :source_file, required: true
-  
-  from 'file_watching_demo'
+def file_transport(**options)
+  SmartMessage::Transport::FileTransport.new(file_path: LOG_PATH, poll_interval: 0.05, **options)
 end
 
-class ConfigChange < SmartMessage::Base
-  property :setting, required: true
-  property :old_value
-  property :new_value, required: true
-  property :changed_at, default: -> { Time.now.iso8601 }
-  
-  from 'file_watching_demo'
+# Append entries numbered +range+ through the writer's transport.
+def write_entries(writer, range)
+  range.each do |sequence|
+    entry = LogEntry.new(sequence: sequence, text: "entry #{sequence}")
+    entry.transport(writer)
+    entry.publish
+  end
 end
 
-puts "=== SmartMessage File Watching Demo ==="
-puts
-
-demo_dir = Dir.mktmpdir('file_watching_demo')
-puts "Demo directory: #{demo_dir}"
-
-begin
-  # Example 1: Basic File Watching
-  puts "\n1. Basic File Watching"
-  puts "=" * 30
-  
-  watch_file = File.join(demo_dir, 'application.log')
-  File.write(watch_file, "")  # Create empty file
-  
-  # Configure file watching transport
-  watching_transport = SmartMessage::Transport::FileTransport.new(
-    file_path: watch_file,
-    enable_subscriptions: true,
-    subscription_mode: :poll_changes,
-    poll_interval: 0.5,  # Check every 500ms
-    read_from: :end      # Only read new content
-  )
-  
-  received_entries = []
-  
-  # Subscribe to file changes
-  watching_transport.subscribe('LogEntry', ->(entry) {
-    received_entries << entry
-    puts "[Watcher] New log entry: #{entry.message}"
-  }, {})
-  
-  puts "✓ Started watching: #{watch_file}"
-  puts "✓ Polling interval: 500ms"
-  
-  # Simulate log entries being written to the file
-  Thread.new do
-    sleep 1  # Let watcher start
-    
-    log_entries = [
-      "2024-01-15T10:00:00Z INFO Application started",
-      "2024-01-15T10:00:01Z DEBUG Loading configuration",
-      "2024-01-15T10:00:02Z INFO Database connected",
-      "2024-01-15T10:00:03Z WARN Deprecated API used",
-      "2024-01-15T10:00:04Z ERROR Connection timeout"
-    ]
-    
-    log_entries.each do |entry|
-      File.open(watch_file, 'a') do |f|
-        f.puts entry
-        f.flush
-      end
-      puts "[Writer] Added: #{entry}"
-      sleep 0.8  # Slower than poll interval
-    end
-  end
-  
-  # Let the watcher run for a few seconds
-  sleep 6
-  watching_transport.disconnect
-  
-  puts "✓ Watched file changes, received #{received_entries.length} entries"
-
-  # Example 2: Configuration File Monitoring
-  puts "\n2. Configuration File Monitoring"
-  puts "=" * 40
-  
-  config_file = File.join(demo_dir, 'app_config.ini')
-  
-  # Initial configuration
-  initial_config = <<~CONFIG
-    [database]
-    host=localhost
-    port=5432
-    pool_size=10
-    
-    [logging]
-    level=INFO
-    format=json
-  CONFIG
-  
-  File.write(config_file, initial_config)
-  
-  config_transport = SmartMessage::Transport::FileTransport.new(
-    file_path: config_file,
-    enable_subscriptions: true,
-    subscription_mode: :poll_changes,
-    poll_interval: 0.3,
-    read_from: :beginning  # Re-read entire file on changes
-  )
-  
-  current_config = {}
-  
-  # Monitor configuration changes
-  config_transport.subscribe('ConfigChange', ->(change) {
-    puts "[Config Monitor] Setting '#{change.setting}' changed: #{change.old_value} → #{change.new_value}"
-    current_config[change.setting] = change.new_value
-  }, {})
-  
-  puts "✓ Started monitoring config file: #{config_file}"
-  
-  # Simulate configuration changes
-  Thread.new do
-    sleep 1
-    
-    changes = [
-      { file: config_file, content: initial_config.gsub('pool_size=10', 'pool_size=20') },
-      { file: config_file, content: initial_config.gsub('pool_size=10', 'pool_size=20').gsub('level=INFO', 'level=DEBUG') },
-      { file: config_file, content: initial_config.gsub('pool_size=10', 'pool_size=15').gsub('level=INFO', 'level=WARN').gsub('format=json', 'format=text') }
-    ]
-    
-    changes.each_with_index do |change, i|
-      File.write(change[:file], change[:content])
-      puts "[Config Writer] Applied configuration change #{i + 1}"
-      sleep 1.2
-    end
-  end
-  
-  sleep 5
-  config_transport.disconnect
-  
-  puts "✓ Configuration monitoring completed"
-
-  # Example 3: Log Rotation Handling
-  puts "\n3. Log Rotation Handling"
-  puts "=" * 30
-  
-  rotating_log = File.join(demo_dir, 'rotating.log')
-  File.write(rotating_log, "")
-  
-  rotation_transport = SmartMessage::Transport::FileTransport.new(
-    file_path: rotating_log,
-    enable_subscriptions: true,
-    subscription_mode: :poll_changes,
-    poll_interval: 0.4,
-    read_from: :end,
-    handle_rotation: true  # Handle file rotation
-  )
-  
-  rotation_messages = []
-  
-  rotation_transport.subscribe('LogEntry', ->(entry) {
-    rotation_messages << entry
-    puts "[Rotation Watcher] #{entry.message}"
-  }, {})
-  
-  puts "✓ Started rotation-aware watching: #{rotating_log}"
-  
-  # Simulate log rotation
-  Thread.new do
-    sleep 1
-    
-    # Write some initial entries
-    3.times do |i|
-      File.open(rotating_log, 'a') { |f| f.puts "Entry #{i + 1} before rotation" }
-      sleep 0.5
-    end
-    
-    # Simulate rotation
-    puts "[Rotator] Rotating log file..."
-    FileUtils.mv(rotating_log, "#{rotating_log}.1")
-    File.write(rotating_log, "")  # New file
-    
-    # Write entries to new file
-    3.times do |i|
-      File.open(rotating_log, 'a') { |f| f.puts "Entry #{i + 1} after rotation" }
-      sleep 0.5
-    end
-  end
-  
-  sleep 5
-  rotation_transport.disconnect
-  
-  puts "✓ Log rotation handling completed, processed #{rotation_messages.length} messages"
-
-  # Example 4: Multiple File Watching
-  puts "\n4. Multiple File Watching"
-  puts "=" * 30
-  
-  files_to_watch = %w[app1.log app2.log app3.log].map { |name| File.join(demo_dir, name) }
-  
-  # Create empty files
-  files_to_watch.each { |file| File.write(file, "") }
-  
-  watchers = []
-  all_messages = []
-  
-  files_to_watch.each_with_index do |file, index|
-    transport = SmartMessage::Transport::FileTransport.new(
-      file_path: file,
-      enable_subscriptions: true,
-      subscription_mode: :poll_changes,
-      poll_interval: 0.3,
-      read_from: :end
-    )
-    
-    transport.subscribe('LogEntry', ->(entry) {
-      all_messages << entry
-      puts "[Multi-Watcher] #{File.basename(entry.source_file)}: #{entry.message}"
-    }, {})
-    
-    watchers << transport
-  end
-  
-  puts "✓ Started watching #{files_to_watch.length} files"
-  
-  # Simulate activity on multiple files
-  Thread.new do
-    sleep 1
-    
-    10.times do |i|
-      # Randomly pick a file to write to
-      file = files_to_watch.sample
-      message = "Message #{i + 1} from #{File.basename(file)}"
-      
-      File.open(file, 'a') { |f| f.puts message }
-      puts "[Multi-Writer] → #{File.basename(file)}: #{message}"
-      
-      sleep rand(0.2..0.6)
-    end
-  end
-  
-  sleep 8
-  watchers.each(&:disconnect)
-  
-  puts "✓ Multiple file watching completed, total messages: #{all_messages.length}"
-
-  # Example 5: File Content Processing
-  puts "\n5. File Content Processing with Patterns"
-  puts "=" * 45
-  
-  pattern_file = File.join(demo_dir, 'structured.log')
-  File.write(pattern_file, "")
-  
-  # Custom processor that parses log lines
-  pattern_transport = SmartMessage::Transport::FileTransport.new(
-    file_path: pattern_file,
-    enable_subscriptions: true,
-    subscription_mode: :poll_changes,
-    poll_interval: 0.4,
-    read_from: :end,
-    line_processor: ->(line) {
-      # Parse structured log lines: "TIMESTAMP LEVEL MESSAGE"
-      if match = line.match(/^(\S+)\s+(\S+)\s+(.+)$/)
-        {
-          timestamp: match[1],
-          level: match[2],
-          message: match[3],
-          source_file: pattern_file
-        }
-      else
-        nil  # Skip malformed lines
-      end
-    }
-  )
-  
-  processed_logs = []
-  
-  pattern_transport.subscribe('LogEntry', ->(entry) {
-    processed_logs << entry
-    puts "[Pattern Processor] [#{entry.level}] #{entry.message}"
-  }, {})
-  
-  puts "✓ Started pattern-based processing: #{pattern_file}"
-  
-  # Write structured log entries
-  Thread.new do
-    sleep 1
-    
-    entries = [
-      "2024-01-15T10:00:00Z INFO Application started successfully",
-      "2024-01-15T10:00:01Z DEBUG Loading user preferences",
-      "invalid log line that will be skipped",
-      "2024-01-15T10:00:02Z WARN Database connection slow",
-      "2024-01-15T10:00:03Z ERROR Failed to process request",
-      "another invalid line",
-      "2024-01-15T10:00:04Z INFO Request processed successfully"
-    ]
-    
-    entries.each do |entry|
-      File.open(pattern_file, 'a') { |f| f.puts entry }
-      sleep 0.6
-    end
-  end
-  
-  sleep 5
-  pattern_transport.disconnect
-  
-  puts "✓ Pattern processing completed, valid entries: #{processed_logs.length}"
-
-rescue => e
-  puts "Error: #{e.message}"
-  puts e.backtrace.first(3)
-ensure
-  # Cleanup
-  FileUtils.rm_rf(demo_dir) if Dir.exist?(demo_dir)
-  FileUtils.rm_rf('messages') if Dir.exist?('messages')
-  puts "\n✓ File watching demo completed and cleaned up"
+# Two readers, standing in for two other processes.  In a real reader
+# process this is simply: LogEntry.transport(file_transport); LogEntry.subscribe
+module LiveReader
+  def self.receive(entry) = Example.inbox.add(:live, entry.sequence)
 end
+
+module ReplayReader
+  def self.receive(entry) = Example.inbox.add(:replay, entry.sequence)
+end
+
+def received?(name, sequences) = Example.wait_until { Example.inbox[name].sort == sequences }
+
+Example.title 'File watching (tailing poller)'
+writer = file_transport
+write_entries(writer, 1..3) # history, written before anyone listens
+
+Example.section 'read_from_end: true (default) sees only new lines'
+live = file_transport
+live.subscribe('LogEntry', 'LiveReader.receive')
+
+Example.section 'read_from_end: false replays the file, then tails it'
+replay = file_transport(read_from_end: false)
+replay.subscribe('LogEntry', 'ReplayReader.receive')
+
+write_entries(writer, 4..6)
+Example.check('the replaying reader received the history and the new lines') { received?(:replay, [1, 2, 3, 4, 5, 6]) }
+Example.check('the live reader received the new lines only') { received?(:live, [4, 5, 6]) }
+puts <<~SEEN
+  live:   #{Example.inbox[:live].sort}
+  replay: #{Example.inbox[:replay].sort}
+SEEN
+
+Example.section 'A transport can read its own writes'
+LogEntry.transport(writer)
+LogEntry.subscribe { |entry| Example.inbox.add(:self, entry.sequence) }
+LogEntry.new(sequence: 7, text: 'entry 7').publish
+Example.check('the writer received its own entry through the file') { received?(:self, [7]) }
+Example.check('so did both readers') { received?(:live, [4, 5, 6, 7]) && received?(:replay, (1..7).to_a) }
+
+Example.section 'A truncated file is read again from the start'
+File.truncate(LOG_PATH, 0)
+write_entries(writer, 8..8)
+Example.check('all three readers received the entry written after truncation') do
+  received?(:self, [7, 8]) && received?(:live, [4, 5, 6, 7, 8]) && received?(:replay, (1..8).to_a)
+end
+
+Example.section 'Unsubscribing the last handler stops the poller'
+live.unsubscribe!('LogEntry')
+replay.disconnect
+write_entries(writer, 9..9)
+Example.check('the writer still receives') { received?(:self, [7, 8, 9]) }
+Example.check('the stopped readers received nothing more') do
+  Example.inbox.count(:live) == 5 && Example.inbox.count(:replay) == 8
+end
+
+Example.section 'A line that is not a message goes to the dead letter queue'
+File.write(LOG_PATH, "this is not JSON\n", mode: 'a')
+dlq = SmartMessage::DeadLetterQueue.default
+Example.check('the unreadable line was stored with its error') do
+  Example.wait_until { dlq.size == 1 } && dlq.peek[:payload] == 'this is not JSON' && dlq.peek[:error].include?('DecodeError')
+end
+write_entries(writer, 10..10)
+Example.check('the poller carries on with the next line') { received?(:self, [7, 8, 9, 10]) }
+
+Example.finish

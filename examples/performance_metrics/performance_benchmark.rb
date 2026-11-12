@@ -1,344 +1,260 @@
 #!/usr/bin/env ruby
-# performance_benchmark.rb
+# examples/performance_metrics/performance_benchmark.rb
+# frozen_string_literal: true
 #
-# A comprehensive performance measurement tool to compare implementation subjects
+# Measures publish and handler throughput of the dispatcher's thread pool
+# over the in-process memory transport, for five kinds of handler work.
+#
+#   bundle exec ruby -Ilib examples/performance_metrics/performance_benchmark.rb [SUBJECT]
+#
+# SUBJECT labels the run (default "baseline"), so runs of different
+# branches or settings can be compared with compare_benchmarks.rb.
+#
+# Environment:
+#   BENCHMARK_SCALE        multiplies every scenario's message count (default 1;
+#                          1 finishes in a few seconds, 10 is a long run)
+#   BENCHMARK_MAX_THREADS  dispatcher pool size (default: SmartMessage's default)
+#   BENCHMARK_TIMEOUT      seconds to wait for one scenario's handlers (default 60)
+#   BENCHMARK_RESULTS_DIR  where the JSON result is written
+#                          (default: <tmpdir>/smart_message_benchmarks)
 
-SUBJECT = ARGV.shift || "unknown"
-
-
-require 'bundler/setup'
 require 'benchmark'
+require 'etc'
 require 'json'
 require 'fileutils'
-require_relative '../../lib/smart_message'
+require 'tmpdir'
+
+require_relative 'messages/benchmark_message'
 
 class PerformanceBenchmark
   SCENARIOS = {
-    cpu_light: { name: "CPU Light", iterations: 1000, sleep: 0 },
-    cpu_heavy: { name: "CPU Heavy", iterations: 500, computation: 10000 },
-    io_light: { name: "I/O Light", iterations: 800, sleep: 0.001 },
-    io_heavy: { name: "I/O Heavy", iterations: 200, sleep: 0.01 },
-    mixed: { name: "Mixed Load", iterations: 600, computation: 5000, sleep: 0.005 }
+    cpu_light: { name: 'CPU Light',  iterations: 1000 },
+    cpu_heavy: { name: 'CPU Heavy',  iterations: 500, computation: 10_000 },
+    io_light:  { name: 'I/O Light',  iterations: 800, sleep: 0.001 },
+    io_heavy:  { name: 'I/O Heavy',  iterations: 200, sleep: 0.01 },
+    mixed:     { name: 'Mixed Load', iterations: 600, computation: 5_000, sleep: 0.005 }
   }.freeze
 
-  def initialize
-    @results = {}
-    @start_time = nil
-    @memory_before = nil
-    @dispatcher = SmartMessage::Dispatcher.new
-    setup_test_messages
+  PROCESSED = Concurrent::AtomicFixnum.new(0)
+
+  # The handler every scenario uses.  Runs on a dispatcher thread.
+  def self.process(message)
+    work(message.computation_cycles, message.sleep_duration)
+    PROCESSED.increment
   end
 
-  def run_all_scenarios
-    puts "🚀 Starting SmartMessage Performance Benchmark"
-    puts "Ruby Version: #{RUBY_VERSION}"
-    puts "Platform: #{RUBY_PLATFORM}"
-    puts "Processor Count: #{processor_count}"
-    puts "=" * 60
+  # @return [Float] the result of +cycles+ iterations of floating point work
+  def self.work(cycles, sleep_duration)
+    result = 0.0
+    cycles.to_i.times { |i| result += Math.sqrt(i) * Math.sin(i) }
+    sleep(sleep_duration) if sleep_duration.to_f.positive?
+    result
+  end
 
-    @start_time = Time.now
-    @memory_before = memory_usage
+  # @return [String] the directory results are written to and read from
+  def self.results_dir(env = ENV)
+    env.fetch('BENCHMARK_RESULTS_DIR') { File.join(Dir.tmpdir, 'smart_message_benchmarks') }
+  end
 
-    SCENARIOS.each do |scenario_key, config|
-      puts "\n📊 Running scenario: #{config[:name]}"
-      run_scenario(scenario_key, config)
+  # @return [Hash] SCENARIOS with every message count multiplied by +scale+
+  def self.scaled_scenarios(scale)
+    SCENARIOS.transform_values do |config|
+      config.merge(iterations: [(config[:iterations] * scale).round, 1].max)
+    end
+  end
+
+  attr_reader :results
+
+  def initialize(subject: 'baseline', scale: 1.0, max_threads: nil, timeout: 60, results_dir: self.class.results_dir)
+    @subject     = subject
+    @scenarios   = self.class.scaled_scenarios(scale)
+    @timeout     = timeout
+    @results_dir = results_dir
+    @results     = {}
+    @work_dir    = Dir.mktmpdir('smart_message_benchmark_')
+
+    SmartMessage.configure do |config|
+      config.dlq_path               = File.join(@work_dir, 'dead_letters.jsonl')
+      config.dispatcher_max_threads = max_threads if max_threads
     end
 
-    generate_report
-    save_results
+    @transport = SmartMessage::Transport::MemoryTransport.new
+    BenchmarkMessage.transport(@transport)
+    BenchmarkMessage.subscribe('PerformanceBenchmark.process')
   end
 
-  private
-
-  def setup_test_messages
-    # Define test message classes for different scenarios
-
-    # CPU Light - Simple message processing
-    define_message_class(:CpuLightMessage, :process_cpu_light)
-
-    # CPU Heavy - Computation-intensive processing
-    define_message_class(:CpuHeavyMessage, :process_cpu_heavy)
-
-    # I/O Light - Short sleep simulation
-    define_message_class(:IoLightMessage, :process_io_light)
-
-    # I/O Heavy - Longer I/O simulation
-    define_message_class(:IoHeavyMessage, :process_io_heavy)
-
-    # Mixed - Both CPU and I/O
-    define_message_class(:MixedMessage, :process_mixed)
-  end
-
-  def define_message_class(class_name, processor_method)
-    message_class = Class.new(SmartMessage::Base) do
-      property :scenario_id, required: true
-      property :message_id, required: true
-      property :timestamp, required: true
-      property :computation_cycles
-      property :sleep_duration
-
-      def process
-        # This gets called by the processor methods
-      end
+  # @return [Boolean] true when every message of every scenario was processed
+  def run
+    print_banner
+    total_runtime = Benchmark.realtime do
+      @scenarios.each { |key, config| @results[key] = run_scenario(key, config) }
     end
 
-    # Set the class name first
-    Object.const_set(class_name, message_class)
-
-    # Now set the from address after the class has a name
-    message_class.from('benchmark-service')
-
-    # Configure transport and serializer - need to capture dispatcher reference
-    dispatcher = @dispatcher
-    message_class.config do
-      transport   SmartMessage::Transport::MemoryTransport.new(dispatcher: dispatcher, auto_process: true)
-      serializer  SmartMessage::Serializer::JSON.new
-    end
-
-    # Register processor with dispatcher
-    @dispatcher.add(class_name.to_s, "PerformanceBenchmark.#{processor_method}")
+    print_report(total_runtime)
+    save_results(total_runtime)
+    complete?
+  ensure
+    cleanup
   end
 
-  def run_scenario(scenario_key, config)
-    scenario_start = Time.now
-    processed_count = 0
-    errors = 0
-
-    # Setup monitoring
-    completed_before = @dispatcher.completed_task_count rescue 0
-
-    # Generate and publish messages
-    messages = generate_messages(scenario_key, config)
-
-    publish_start = Time.now
-    messages.each do |message|
-      begin
-        message.publish
-      rescue => e
-        errors += 1
-        puts "Error publishing message: #{e.message}" if errors < 5
-      end
-    end
-    publish_time = Time.now - publish_start
-
-    # Wait for processing to complete
-    target_completed = completed_before + config[:iterations] - errors
-    processing_start = Time.now
-
-    wait_for_completion(target_completed, config[:iterations])
-    processing_time = Time.now - processing_start
-
-    completed_after = @dispatcher.completed_task_count rescue target_completed
-    actually_processed = completed_after - completed_before
-
-    scenario_time = Time.now - scenario_start
-
-    # Store results
-    @results[scenario_key] = {
-      name: config[:name],
-      messages_generated: config[:iterations],
-      messages_published: config[:iterations] - errors,
-      messages_processed: actually_processed,
-      errors: errors,
-      times: {
-        total: scenario_time,
-        publish: publish_time,
-        processing: processing_time
-      },
-      throughput: {
-        messages_per_second: actually_processed / scenario_time,
-        publish_rate: (config[:iterations] - errors) / publish_time
-      },
-      dispatcher_stats: @dispatcher.status
-    }
-
-    puts "  ✅ Processed #{actually_processed}/#{config[:iterations]} messages in #{scenario_time.round(3)}s"
-    puts "  📈 Throughput: #{(actually_processed / scenario_time).round(1)} msg/sec"
-    puts "  🚀 Publish rate: #{((config[:iterations] - errors) / publish_time).round(1)} msg/sec"
-    puts "  ❌ Errors: #{errors}" if errors > 0
+  # @return [Boolean]
+  def complete?
+    @results.size == @scenarios.size &&
+      @results.values.all? { |result| result[:messages_processed] == result[:messages_generated] }
   end
 
-  def generate_messages(scenario_key, config)
-    message_class = Object.const_get(scenario_class_name(scenario_key))
+  # Publish one scenario's messages and wait for their handlers.
+  #
+  # @return [Hash] the scenario's measurements
+  def run_scenario(key, config)
+    puts "\nRunning scenario: #{config[:name]} (#{config[:iterations]} messages)"
+    messages = build_messages(key, config)
+    before   = PROCESSED.value
+    errors   = 0
+    publish_time = processing_time = 0.0
 
-    config[:iterations].times.map do |i|
-      message_class.new(
-        scenario_id: scenario_key.to_s,
-        message_id: "#{scenario_key}_#{i}",
-        timestamp: Time.now.to_f,
-        computation_cycles: config[:computation],
-        sleep_duration: config[:sleep]
+    total_time = Benchmark.realtime do
+      publish_time    = Benchmark.realtime { errors = publish_all(messages) }
+      processing_time = Benchmark.realtime { wait_for(before + messages.size - errors) }
+    end
+
+    measurements(config, messages.size, errors, PROCESSED.value - before, total_time, publish_time, processing_time)
+  end
+
+  # @return [Array<BenchmarkMessage>]
+  def build_messages(key, config)
+    Array.new(config[:iterations]) do |index|
+      BenchmarkMessage.new(
+        scenario_id:        key.to_s,
+        message_id:         "#{key}_#{index}",
+        computation_cycles: config.fetch(:computation, 0),
+        sleep_duration:     config.fetch(:sleep, 0)
       )
     end
   end
 
-  def scenario_class_name(scenario_key)
-    case scenario_key
-    when :cpu_light then :CpuLightMessage
-    when :cpu_heavy then :CpuHeavyMessage
-    when :io_light then :IoLightMessage
-    when :io_heavy then :IoHeavyMessage
-    when :mixed then :MixedMessage
+  # @return [Integer] how many messages could not be published
+  def publish_all(messages)
+    messages.count do |message|
+      message.publish
+      false
+    rescue SmartMessage::Errors::Error => e
+      warn "  publish failed: #{e.message}"
+      true
     end
   end
 
-  def wait_for_completion(target_completed, max_iterations)
-    timeout = 60 # seconds
-    start_wait = Time.now
-
-    while (Time.now - start_wait) < timeout
-      current_completed = @dispatcher.completed_task_count rescue 0
-
-      if current_completed >= target_completed
-        break
+  # Poll until the handlers have processed +target+ messages in total.
+  #
+  # @return [Boolean] false when the timeout passed first
+  def wait_for(target)
+    deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + @timeout
+    until PROCESSED.value >= target
+      if Process.clock_gettime(Process::CLOCK_MONOTONIC) >= deadline
+        warn "  timed out after #{@timeout}s waiting for handlers"
+        return false
       end
-
-      # Check if dispatcher is still running
-      unless @dispatcher.running?
-        puts "  ⚠️  Dispatcher stopped running"
-        break
-      end
-
-      sleep 0.1
+      sleep(0.005)
     end
-
-    if (Time.now - start_wait) >= timeout
-      puts "  ⚠️  Timeout waiting for message processing"
-    end
+    true
   end
 
-
-  def generate_report
-    puts "\n" + "=" * 60
-    puts "📋 PERFORMANCE BENCHMARK REPORT"
-    puts "=" * 60
-
-    total_time = Time.now - @start_time
-    memory_after = memory_usage
-    memory_used = memory_after - @memory_before
-
-    puts "\n📊 Overall Stats:"
-    puts "  Total runtime: #{total_time.round(3)}s"
-    puts "  Memory used: #{memory_used.round(2)} MB"
-    puts "  Implementation Subject: #{SUBJECT}"
-
-    puts "\n📈 Scenario Results:"
-    @results.each do |scenario_key, data|
-      puts "\n  #{data[:name]}:"
-      puts "    Messages: #{data[:messages_processed]}/#{data[:messages_generated]}"
-      puts "    Total time: #{data[:times][:total].round(3)}s"
-      puts "    Throughput: #{data[:throughput][:messages_per_second].round(1)} msg/sec"
-      puts "    Publish rate: #{data[:throughput][:publish_rate].round(1)} msg/sec"
-      puts "    Errors: #{data[:errors]}" if data[:errors] > 0
-    end
-
-    puts "\n🏆 Best Performing Scenarios:"
-    sorted_by_throughput = @results.sort_by { |k, v| -v[:throughput][:messages_per_second] }
-    sorted_by_throughput.first(3).each_with_index do |(scenario_key, data), index|
-      puts "  #{index + 1}. #{data[:name]}: #{data[:throughput][:messages_per_second].round(1)} msg/sec"
-    end
+  def measurements(config, generated, errors, processed, total_time, publish_time, processing_time)
+    result = {
+      name:               config[:name],
+      messages_generated: generated,
+      messages_published: generated - errors,
+      messages_processed: processed,
+      errors:             errors,
+      times:              { total: total_time, publish: publish_time, processing: processing_time },
+      throughput:         {
+        messages_per_second: processed / total_time,
+        publish_rate:        (generated - errors) / publish_time
+      },
+      dispatcher_stats:   @transport.dispatcher.status
+    }
+    puts "  processed #{processed}/#{generated} in #{total_time.round(3)}s " \
+         "(#{result[:throughput][:messages_per_second].round(1)} msg/sec)"
+    result
   end
 
-  def save_results
-    timestamp = Time.now.strftime("%Y%m%d_%H%M%S")
-    filename = "benchmark_results_#{SUBJECT}_#{timestamp}.json"
+  def print_banner
+    puts <<~BANNER
+      SmartMessage #{SmartMessage::VERSION} performance benchmark
+      Subject:    #{@subject}
+      Ruby:       #{RUBY_VERSION} (#{RUBY_PLATFORM})
+      Processors: #{Etc.nprocessors}
+      Pool size:  #{SmartMessage.configuration.dispatcher_max_threads} threads
+    BANNER
+  end
 
-    report_data = {
-      benchmark_info: {
-        timestamp:    Time.now.iso8601,
-        subject:      SUBJECT,
-        ruby_version: RUBY_VERSION,
-        platform:     RUBY_PLATFORM,
-        processors:   processor_count
+  def print_report(total_runtime)
+    best = @results.values.max_by { |result| result[:throughput][:messages_per_second] }
+    rows = @results.values.map do |result|
+      format('  %-11s %5d/%-5d  %8.3fs  %10.1f msg/sec  publish %10.1f msg/sec',
+             result[:name], result[:messages_processed], result[:messages_generated],
+             result[:times][:total], result[:throughput][:messages_per_second],
+             result[:throughput][:publish_rate])
+    end
+
+    puts <<~REPORT
+
+      #{'=' * 78}
+      PERFORMANCE BENCHMARK REPORT (#{@subject})
+      #{'=' * 78}
+      #{rows.join("\n")}
+
+      Total runtime:   #{total_runtime.round(3)}s
+      Memory (RSS):    #{memory_mb.round(1)} MB
+      Best throughput: #{best[:name]}
+    REPORT
+  end
+
+  # @return [String] the file the results were written to
+  def save_results(total_runtime)
+    FileUtils.mkdir_p(@results_dir)
+    path = File.join(@results_dir, "benchmark_results_#{@subject}_#{Time.now.strftime('%Y%m%d_%H%M%S')}.json")
+    File.write(path, JSON.pretty_generate(report_data(total_runtime)))
+    puts "Results saved to: #{path}"
+    path
+  end
+
+  def report_data(total_runtime)
+    {
+      benchmark_info:   {
+        timestamp:             Time.now.iso8601,
+        subject:               @subject,
+        smart_message_version: SmartMessage::VERSION,
+        ruby_version:          RUBY_VERSION,
+        platform:              RUBY_PLATFORM,
+        processors:            Etc.nprocessors
       },
-      overall_stats: {
-        total_runtime:  Time.now - @start_time,
-        memory_used_mb: memory_usage - @memory_before
-      },
+      overall_stats:    { total_runtime: total_runtime, memory_used_mb: memory_mb },
       scenario_results: @results
     }
-
-    File.write(filename, JSON.pretty_generate(report_data))
-    puts "\n💾 Results saved to: #{filename}"
   end
 
-  def memory_usage
-    `ps -o rss= -p #{Process.pid}`.to_i / 1024.0 # Convert KB to MB
-  rescue
-    0
+  # @return [Float] resident set size of this process in MB (0.0 when unknown)
+  def memory_mb
+    `ps -o rss= -p #{Process.pid}`.to_i / 1024.0
+  rescue StandardError
+    0.0
   end
 
-  def processor_count
-    case RUBY_PLATFORM
-    when /linux/
-      `nproc`.to_i
-    when /darwin/
-      `sysctl -n hw.ncpu`.to_i
-    else
-      `echo $NUMBER_OF_PROCESSORS`.to_i
-    end
-  rescue
-    4 # fallback
-  end
-
-  # Processor methods called by the dispatcher
-
-  def self.process_cpu_light(message_header, encoded_message)
-    # Simple processing - just decode
-    message_data = JSON.parse(encoded_message)
-    message_data['processed_at'] = Time.now.to_f
-  end
-
-  def self.process_cpu_heavy(message_header, encoded_message)
-    message_data = JSON.parse(encoded_message)
-
-    # CPU-intensive computation
-    cycles = message_data['computation_cycles'] || 10000
-    result = 0
-    cycles.times { |i| result += Math.sqrt(i) * Math.sin(i) }
-
-    message_data['processed_at'] = Time.now.to_f
-    message_data['computation_result'] = result
-  end
-
-  def self.process_io_light(message_header, encoded_message)
-    message_data = JSON.parse(encoded_message)
-
-    # Light I/O simulation
-    sleep_time = message_data['sleep_duration'] || 0.001
-    sleep(sleep_time)
-
-    message_data['processed_at'] = Time.now.to_f
-  end
-
-  def self.process_io_heavy(message_header, encoded_message)
-    message_data = JSON.parse(encoded_message)
-
-    # Heavy I/O simulation
-    sleep_time = message_data['sleep_duration'] || 0.01
-    sleep(sleep_time)
-
-    message_data['processed_at'] = Time.now.to_f
-  end
-
-  def self.process_mixed(message_header, encoded_message)
-    message_data = JSON.parse(encoded_message)
-
-    # Combined CPU and I/O
-    cycles = message_data['computation_cycles'] || 5000
-    sleep_time = message_data['sleep_duration'] || 0.005
-
-    result = 0
-    cycles.times { |i| result += Math.sqrt(i) }
-    sleep(sleep_time)
-
-    message_data['processed_at'] = Time.now.to_f
-    message_data['computation_result'] = result
+  def cleanup
+    BenchmarkMessage.unsubscribe!
+    SmartMessage.shutdown
+    FileUtils.remove_entry(@work_dir) if File.directory?(@work_dir)
   end
 end
 
-# Run the benchmark if called directly
-if __FILE__ == $0
-  benchmark = PerformanceBenchmark.new
-  benchmark.run_all_scenarios
+if __FILE__ == $PROGRAM_NAME
+  max_threads = ENV['BENCHMARK_MAX_THREADS']
+  benchmark   = PerformanceBenchmark.new(
+    subject:     ARGV.shift || 'baseline',
+    scale:       Float(ENV.fetch('BENCHMARK_SCALE', '1')),
+    max_threads: max_threads && Integer(max_threads),
+    timeout:     Float(ENV.fetch('BENCHMARK_TIMEOUT', '60'))
+  )
+  exit(benchmark.run ? 0 : 1)
 end

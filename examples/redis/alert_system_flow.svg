@@ -110,7 +110,7 @@
   <text x="70" y="445" class="title">Alert Processing Logic</text>
   
   <text x="70" y="470" class="text">🌡️ Temperature Alerts:</text>
-  <text x="90" y="485" class="subtitle">• Thermostat monitors temperature every 3 seconds</text>
+  <text x="90" y="485" class="subtitle">• Thermostat checks each temperature reading</text>
   <text x="90" y="500" class="subtitle">• Alert triggered when temperature > 28°C for HVAC efficiency</text>
   
   <text x="400" y="470" class="text">📹 Motion Alerts:</text>

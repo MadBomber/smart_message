@@ -1,672 +1,196 @@
 # Dead Letter Queue
 
-SmartMessage includes a comprehensive file-based Dead Letter Queue (DLQ) system for capturing, storing, and replaying failed messages. The DLQ provides production-grade reliability with automatic integration into the circuit breaker system.
+The dead letter queue (DLQ) is a file that holds messages SmartMessage could not publish or process. It uses the JSON Lines format: one JSON object per line, oldest first. Entries can be inspected, filtered and replayed.
 
-## Overview
+## Where the file is
 
-The Dead Letter Queue serves as a safety net for your messaging system:
+The default queue uses the first of these that applies:
 
-- **Automatic Capture**: Failed messages are automatically stored when circuit breakers trip
-- **Manual Capture**: Explicitly store messages that fail business logic validation
-- **Replay Capabilities**: Retry failed messages individually, in batches, or all at once
-- **Transport Override**: Replay messages through a different transport than originally configured
-- **Administrative Tools**: Filter, analyze, and export messages for debugging
-- **Thread-Safe**: All operations are protected with mutex for concurrent access
+1. `config.dlq_path`, when you set it
+2. the environment variable `SMART_MESSAGE_DLQ_PATH`
+3. `$XDG_STATE_HOME/smart_message/dead_letters.jsonl`, when `XDG_STATE_HOME` is set
+4. `~/.local/state/smart_message/dead_letters.jsonl`
 
-## File Format
+```ruby
+SmartMessage.configure do |config|
+  config.dlq_path = '/var/lib/my_app/dead_letters.jsonl'
+end
 
-The DLQ uses JSON Lines (.jsonl) format - one JSON object per line:
+SmartMessage.configuration.dlq_path    # => "/var/lib/my_app/dead_letters.jsonl"
+SmartMessage::DeadLetterQueue.default  # the queue at that path
+```
+
+The path is always stored as an absolute path, so it never depends on the working directory. The directory is created when the queue is first used. A sidecar file `<path>.lock` appears next to the queue file; it is the lock described below.
+
+`SmartMessage::DeadLetterQueue.configure_default(path)` is a shortcut that sets `config.dlq_path` and returns the queue.
+
+You can also work with any queue file directly:
+
+```ruby
+queue = SmartMessage::DeadLetterQueue.new('/tmp/payments_dlq.jsonl')
+```
+
+## What lands in it
+
+SmartMessage writes to the default queue in five situations:
+
+| Situation | `transport` field of the entry | `error` field |
+|-----------|-------------------------------|---------------|
+| A transport failed to publish the message | the transport's class name | the transport's error |
+| A received payload could not be decoded (not an envelope, unknown message class, class does not match the channel) | the transport's class name | the decode error |
+| A handler raised | `handler:<handler id>` | the handler's error |
+| A handler's circuit breaker was open, so the handler was not called | `handler:<handler id>` | `BreakerMachines::CircuitOpenError: ...` |
+| A handler was still running when the shutdown timeout expired and was killed | `handler:<handler id>` | `SmartMessage::Errors::Error: Dispatcher shut down before the handler finished` |
+
+A publish that fails on several transports writes one entry per failed transport. A message with several handlers writes one entry per failed handler.
+
+If writing to the queue itself fails, that is logged at error level and the original error is still raised or recorded.
+
+## Entry format
 
 ```json
-{"timestamp":"2025-08-19T10:30:45Z","header":{...},"payload":"...","error":"Connection timeout","retry_count":0,"transport":"Redis","stack_trace":"..."}
-{"timestamp":"2025-08-19T10:31:12Z","header":{...},"payload":"...","error":"Circuit breaker open","retry_count":1,"transport":"Redis","stack_trace":"..."}
-```
-
-Benefits of JSON Lines:
-- Append-only for efficient writes
-- Line-by-line processing for memory efficiency
-- Human-readable for debugging
-- Easy to process with standard Unix tools
-
-## Configuration
-
-### Global Default Configuration
-
-Configure a default DLQ that all components will use:
-
-```ruby
-# Set default path for all DLQ operations
-SmartMessage::DeadLetterQueue.configure_default('/var/log/app/dlq.jsonl')
-
-# Access the default instance anywhere
-dlq = SmartMessage::DeadLetterQueue.default
-```
-
-### Environment-Based Configuration
-
-Use environment variables for different deployments:
-
-```ruby
-# In your application initialization
-SmartMessage::DeadLetterQueue.configure_default(
-  ENV.fetch('SMART_MESSAGE_DLQ_PATH', 'dead_letters.jsonl')
-)
-```
-
-### Per-Environment Configuration
-
-Configure different paths for each environment:
-
-```ruby
-# config/initializers/smart_message.rb (Rails example)
-case Rails.env
-when 'production'
-  SmartMessage::DeadLetterQueue.configure_default('/var/log/smart_message/production_dlq.jsonl')
-when 'staging'
-  SmartMessage::DeadLetterQueue.configure_default('/var/log/smart_message/staging_dlq.jsonl')
-else
-  SmartMessage::DeadLetterQueue.configure_default('tmp/development_dlq.jsonl')
-end
-```
-
-### Custom Instances
-
-Create separate DLQ instances for different purposes:
-
-```ruby
-# Critical failures need special handling
-critical_dlq = SmartMessage::DeadLetterQueue.new('/var/log/critical_failures.jsonl')
-
-# Separate DLQ for payment messages
-payment_dlq = SmartMessage::DeadLetterQueue.new('/var/log/payment_failures.jsonl')
-
-# Temporary DLQ for testing
-test_dlq = SmartMessage::DeadLetterQueue.new('/tmp/test_failures.jsonl')
-```
-
-## Core Operations
-
-### FIFO Queue Operations
-
-The DLQ operates as a First-In-First-Out queue:
-
-```ruby
-dlq = SmartMessage::DeadLetterQueue.default
-
-# Add a failed message (accepts decoded message instance)
-entry = dlq.enqueue(
-  decoded_message,     # SmartMessage::Base instance
-  error: "Connection timeout",
-  retry_count: 0,
-  transport: "Redis",
-  stack_trace: exception.backtrace.join("\n")
-)
-
-# Check queue size
-puts "Messages in queue: #{dlq.size}"
-
-# Peek at the oldest message without removing it
-next_message = dlq.peek
-puts "Next for replay: #{next_message[:header][:message_class]}"
-
-# Remove and get the oldest message
-message = dlq.dequeue
-process_message(message) if message
-
-# Clear all messages
-dlq.clear
-```
-
-### Message Structure
-
-Each DLQ entry contains:
-
-```ruby
 {
-  timestamp: "2025-08-19T10:30:45Z",        # When the failure occurred
-  header: {                                 # Complete message header
-    uuid: "abc-123",
-    message_class: "OrderMessage",
-    published_at: "2025-08-19T10:30:40Z",
-    publisher_pid: 12345,
-    version: 1,
-    from: "order-service",
-    to: "payment-service",
-    reply_to: "order-service"
-  },
-  payload: '{"order_id":"123","amount":99.99}',  # Original message payload
-  payload_format: "json",                   # Serialization format
-  error: "Connection refused",              # Error message
-  retry_count: 2,                           # Number of retry attempts
-  transport: "Redis",                       # Transport that failed
-  stack_trace: "..."                        # Full stack trace (optional)
+  "id": "8a4c3c53-5d1b-4d0c-9a57-3e0b7c6f4d11",
+  "timestamp": "2026-11-11T10:15:30.123-06:00",
+  "header": { "uuid": "0b0e6f0c-...", "message_class": "OrderMessage", "published_at": "2026-11-11T10:15:30.123456-06:00", "publisher_pid": 4242, "version": 1, "from": "order-service", "serializer": "SmartMessage::Serializer::Json" },
+  "payload": "{\"_sm_header\":{...},\"order_id\":\"ORD-1\"}",
+  "payload_format": "json",
+  "error": "RuntimeError: inventory service is down",
+  "retry_count": 0,
+  "transport": "handler:OrderMessage.process",
+  "stack_trace": "..."
 }
 ```
 
-## Replay Capabilities
+| Field | Meaning |
+|-------|---------|
+| `id` | Unique id of the entry |
+| `timestamp` | When the entry was written |
+| `header` | The message header, for reading and filtering. For a payload that could not be decoded, only `message_class` (the channel it arrived for, or `"Unknown"`). Replay uses the header inside `payload`. |
+| `payload` | The serialized message, including its header |
+| `payload_format` | Serializer of the payload; `"json"` |
+| `error` | `"ErrorClass: message"` |
+| `retry_count` | Number of failed replays |
+| `transport` | Where it failed (see the table above) |
+| `stack_trace` | Backtrace, when there was one |
 
-### Individual Message Replay
+Methods that return entries return Hashes with Symbol keys.
 
-Replay the oldest message:
-
-```ruby
-result = dlq.replay_one
-if result[:success]
-  puts "Message replayed successfully"
-else
-  puts "Replay failed: #{result[:error]}"
-end
-```
-
-### Batch Replay
-
-Replay multiple messages:
-
-```ruby
-# Replay next 10 messages
-results = dlq.replay_batch(10)
-puts "Successful: #{results[:success]}"
-puts "Failed: #{results[:failed]}"
-results[:errors].each do |error|
-  puts "Error: #{error}"
-end
-```
-
-### Full Queue Replay
-
-Replay all messages:
-
-```ruby
-results = dlq.replay_all
-puts "Replayed #{results[:success]} messages"
-puts "Failed to replay #{results[:failed]} messages"
-```
-
-### Transport Override
-
-Replay through a different transport:
-
-```ruby
-# Original message used Redis, replay through RabbitMQ
-rabbit_transport = SmartMessage::Transport.create(:rabbitmq)
-
-# Replay one with override
-dlq.replay_one(rabbit_transport)
-
-# Replay batch with override
-dlq.replay_batch(10, rabbit_transport)
-
-# Replay all with override
-dlq.replay_all(rabbit_transport)
-```
-
-## Administrative Functions
-
-### Message Filtering
-
-Filter messages for analysis:
-
-```ruby
-# Find all failed OrderMessage instances
-order_failures = dlq.filter_by_class('OrderMessage')
-puts "Found #{order_failures.size} failed orders"
-
-# Find all timeout errors
-timeout_errors = dlq.filter_by_error_pattern(/timeout/i)
-timeout_errors.each do |entry|
-  puts "Timeout at #{entry[:timestamp]}: #{entry[:error]}"
-end
-
-# Find connection errors
-connection_errors = dlq.filter_by_error_pattern('Connection refused')
-```
-
-### Statistics
-
-Get queue statistics:
-
-```ruby
-stats = dlq.statistics
-puts "Total messages: #{stats[:total]}"
-
-# Breakdown by message class
-stats[:by_class].each do |klass, count|
-  puts "#{klass}: #{count} failures"
-end
-
-# Breakdown by error type
-stats[:by_error].sort_by { |_, count| -count }.first(5).each do |error, count|
-  puts "#{error}: #{count} occurrences"
-end
-```
-
-### Time-Based Export
-
-Export messages within a time range:
-
-```ruby
-# Get failures from the last hour
-one_hour_ago = Time.now - 3600
-recent_failures = dlq.export_range(one_hour_ago, Time.now)
-
-# Get failures from yesterday
-yesterday_start = Time.now - 86400
-yesterday_end = Time.now - 1
-yesterday_failures = dlq.export_range(yesterday_start, yesterday_end)
-
-# Export for analysis
-File.write('failures_export.json', recent_failures.to_json)
-```
-
-### Message Inspection
-
-Inspect messages without removing them:
-
-```ruby
-# Look at next 10 messages
-messages = dlq.inspect_messages(limit: 10)
-messages.each do |msg|
-  puts "#{msg[:timestamp]} - #{msg[:header][:message_class]}: #{msg[:error]}"
-end
-
-# Default limit is 10
-dlq.inspect_messages.each do |msg|
-  analyze_failure(msg)
-end
-```
-
-## Integration with Circuit Breakers
-
-The DLQ is automatically integrated with SmartMessage's circuit breaker system:
-
-### Automatic Capture
-
-When circuit breakers trip, messages are automatically sent to the DLQ:
-
-```ruby
-class PaymentMessage < SmartMessage::Base
-  config do
-    transport SmartMessage::Transport.create(:redis)
-    # Circuit breaker configured automatically
-  end
-end
-
-# If Redis is down, circuit breaker trips and message goes to DLQ
-message = PaymentMessage.new(amount: 100.00)
-begin
-  message.publish
-rescue => e
-  # Message is already in DLQ via circuit breaker
-  puts "Message saved to DLQ"
-end
-```
-
-### Manual Circuit Breaker Integration
-
-Configure custom circuit breakers with DLQ fallback:
-
-```ruby
-class CriticalService
-  include BreakerMachines::DSL
-  
-  circuit :external_api do
-    threshold failures: 3, within: 60.seconds
-    reset_after 30.seconds
-    
-    # Use custom DLQ for critical failures
-    custom_dlq = SmartMessage::DeadLetterQueue.new('/var/log/critical.jsonl')
-    fallback SmartMessage::CircuitBreaker::Fallbacks.dead_letter_queue(custom_dlq)
-  end
-  
-  def call_api(message)
-    circuit(:external_api).wrap do
-      # API call that might fail
-      external_api.send(message)
-    end
-  end
-end
-```
-
-## Monitoring and Alerting
-
-### Queue Size Monitoring
-
-Monitor DLQ growth:
-
-```ruby
-# Simple monitoring script
-loop do
-  dlq = SmartMessage::DeadLetterQueue.default
-  size = dlq.size
-  
-  if size > 100
-    send_alert("DLQ size critical: #{size} messages")
-  elsif size > 50
-    send_warning("DLQ size warning: #{size} messages")
-  end
-  
-  sleep 60  # Check every minute
-end
-```
-
-### Error Pattern Detection
-
-Detect systematic failures:
+## Inspecting
 
 ```ruby
 dlq = SmartMessage::DeadLetterQueue.default
-stats = dlq.statistics
 
-# Check for dominant error patterns
-top_error = stats[:by_error].max_by { |_, count| count }
-if top_error && top_error[1] > 10
-  alert("Systematic failure detected: #{top_error[0]} (#{top_error[1]} occurrences)")
-end
+dlq.size                        # number of lines in the file
+dlq.empty?
+dlq.peek                        # oldest entry, not removed
+dlq.entries                     # every valid entry, oldest first
+dlq.inspect_messages(limit: 10) # the first 10 entries
 
-# Check for specific service failures
-stats[:by_class].each do |klass, count|
-  if count > 5
-    alert("Service degradation: #{klass} has #{count} failures")
-  end
-end
+dlq.filter_by_class('OrderMessage')
+dlq.filter_by_error_pattern(/timeout/i)       # a Regexp or a String
+dlq.export_range(Time.now - 3600, Time.now)   # by entry timestamp
+
+dlq.statistics
+# => { total: 3, by_class: { "OrderMessage" => 3 }, by_error: { "RuntimeError: ..." => 3 }, corrupt: 0 }
 ```
 
-## Best Practices
+## Replaying
 
-### 1. Regular Monitoring
-
-Set up monitoring for DLQ size and growth rate:
+Replay rebuilds the message from the entry, with its original header and the same UUID, and publishes it again.
 
 ```ruby
-# Prometheus metrics example
-dlq_size = Prometheus::Client::Gauge.new(:dlq_size, 'Dead letter queue size')
-dlq_size.set(SmartMessage::DeadLetterQueue.default.size)
+dlq.replay_one                # the oldest entry
+dlq.replay_batch(10)          # the oldest 10
+dlq.replay_all                # everything in the queue right now
+
+dlq.replay_one(transport)     # each takes an optional transport to publish on instead
+dlq.replay_batch(10, transport)
+dlq.replay_all(transport)
 ```
 
-### 2. Automated Replay
+`replay_one` returns `{ success: true, message: }` or `{ success: false, error: }`. `replay_batch` and `replay_all` return `{ success: <count>, failed: <count>, errors: [...] }`.
 
-Schedule periodic replay attempts:
+Replay semantics:
+
+- **Replay publishes; it does not call a handler.** The message goes out on its class's transports (or the override) and reaches whoever is subscribed, like any published message. This is true for handler failures too: replaying an entry whose `transport` is `handler:OrderMessage.process` republishes the message, and every current subscriber of the class receives it, not only the handler that failed. Enable [deduplication](message-deduplication.md) if the other handlers must not process it again; the failed handler's reservation was released, so it will run.
+- **An entry is removed only after it has been published again.** A replay that fails leaves the entry in the queue, with `retry_count` raised by one and `error` replaced by `"Replay failed: ..."`.
+- **The message class must be loaded.** Replay needs the `SmartMessage::Base` subclass named in the entry, and that class needs a transport (or pass one).
+- **The message is validated again,** because replay calls `publish`.
+- **An undecodable payload cannot be replayed as it is.** Its replay fails for the same reason it could not be decoded, and it stays in the queue for inspection.
+- If the replay publish fails on a transport, `publish` writes a new entry for that failure as usual.
+
+`dequeue` removes and returns the oldest entry without publishing it. `clear` deletes the queue file.
+
+## Adding entries yourself
 
 ```ruby
-# Sidekiq job example
-class ReplayDLQJob
-  include Sidekiq::Worker
-  
-  def perform
-    dlq = SmartMessage::DeadLetterQueue.default
-    
-    # Only replay if queue is manageable
-    if dlq.size < 100
-      results = dlq.replay_all
-      log_results(results)
-    else
-      # Replay in smaller batches
-      results = dlq.replay_batch(10)
-      log_results(results)
-    end
-  end
-  
-  private
-  
-  def log_results(results)
-    Rails.logger.info("DLQ Replay: #{results[:success]} success, #{results[:failed]} failed")
-  end
+dlq.enqueue(message, error: 'Rejected by the fraud check', transport: 'manual')
+
+dlq.enqueue_raw(
+  message_class: 'OrderMessage',
+  payload:       raw_string,
+  error_info:    { error: 'Could not parse', transport: 'import-script' }
+)
+```
+
+`enqueue` accepts `:error`, `:retry_count`, `:transport` and `:stack_trace`. `enqueue_raw` stores a payload untouched, for bytes that could not be turned into a message; its `error_info` also accepts `:serializer`.
+
+## Concurrency and durability
+
+- Every read-modify-write runs under an exclusive lock on `<file>.lock`, so several threads and several processes can share one queue file.
+- Appends are flushed to disk (`fsync`).
+- Rewrites (after `dequeue` or a replay) go to a temporary file that is then renamed over the queue, so a crash does not leave a half-written queue.
+- A corrupt line does not stop later lines from being read. `statistics[:corrupt]` counts corrupt lines; `dequeue` drops the corrupt lines ahead of the entry it returns and logs a warning.
+
+## A complete program
+
+```ruby
+require 'smart_message'
+require 'tmpdir'
+
+SmartMessage.configure do |config|
+  config.transport = SmartMessage::Transport::MemoryTransport.new
+  config.dlq_path  = File.join(Dir.mktmpdir, 'dead_letters.jsonl')
 end
-```
 
-### 3. Archival Strategy
+# messages/payment_message.rb
+class PaymentMessage < SmartMessage::Base
+  from 'checkout'
+  property :amount, required: true
 
-Archive old messages:
+  @gateway_up = false
 
-```ruby
-# Archive messages older than 7 days
-def archive_old_messages
-  dlq = SmartMessage::DeadLetterQueue.default
-  archive_path = "/var/archive/dlq_#{Date.today}.jsonl"
-  
-  seven_days_ago = Time.now - (7 * 86400)
-  old_messages = dlq.export_range(Time.at(0), seven_days_ago)
-  
-  if old_messages.any?
-    File.write(archive_path, old_messages.map(&:to_json).join("\n"))
-    # Remove archived messages from active DLQ
-    # (Note: This would require implementing a remove_range method)
-  end
-end
-```
+  class << self
+    attr_accessor :gateway_up
 
-### 4. Error Classification
+    def process(message)
+      raise 'payment gateway is down' unless gateway_up
 
-Classify errors for better handling:
-
-```ruby
-class DLQAnalyzer
-  TRANSIENT_ERRORS = [
-    /connection refused/i,
-    /timeout/i,
-    /temporarily unavailable/i
-  ]
-  
-  PERMANENT_ERRORS = [
-    /invalid message format/i,
-    /unauthorized/i,
-    /not found/i
-  ]
-  
-  def self.classify_errors(dlq)
-    transient = []
-    permanent = []
-    
-    dlq.inspect_messages(limit: 100).each do |msg|
-      if TRANSIENT_ERRORS.any? { |pattern| msg[:error].match?(pattern) }
-        transient << msg
-      elsif PERMANENT_ERRORS.any? { |pattern| msg[:error].match?(pattern) }
-        permanent << msg
-      end
-    end
-    
-    { transient: transient, permanent: permanent }
-  end
-end
-```
-
-## Troubleshooting
-
-### Common Issues
-
-#### 1. DLQ File Growing Too Large
-
-```ruby
-# Rotate DLQ files
-def rotate_dlq
-  dlq = SmartMessage::DeadLetterQueue.default
-  timestamp = Time.now.strftime('%Y%m%d_%H%M%S')
-  
-  # Move current file
-  FileUtils.mv(dlq.file_path, "#{dlq.file_path}.#{timestamp}")
-  
-  # DLQ will create new file automatically
-end
-```
-
-#### 2. Replay Failures
-
-```ruby
-# Debug replay failures
-result = dlq.replay_one
-unless result[:success]
-  puts "Replay failed: #{result[:error]}"
-  
-  # Check if message class still exists
-  message = dlq.peek
-  begin
-    message[:header][:message_class].constantize
-  rescue NameError => e
-    puts "Message class no longer exists: #{e.message}"
-  end
-end
-```
-
-#### 3. Corrupted DLQ File
-
-```ruby
-# Recover from corrupted file
-def recover_dlq(corrupted_path)
-  recovered = []
-  
-  File.foreach(corrupted_path) do |line|
-    begin
-      entry = JSON.parse(line.strip, symbolize_names: true)
-      recovered << entry
-    rescue JSON::ParserError
-      # Skip corrupted line
-      puts "Skipping corrupted line: #{line[0..50]}..."
-    end
-  end
-  
-  # Write recovered entries to new file
-  new_dlq = SmartMessage::DeadLetterQueue.new("#{corrupted_path}.recovered")
-  recovered.each do |entry|
-    new_dlq.enqueue(
-      SmartMessage::Header.new(entry[:header]),
-      entry[:payload],
-      error: entry[:error],
-      retry_count: entry[:retry_count]
-    )
-  end
-  
-  puts "Recovered #{recovered.size} messages"
-end
-```
-
-## Performance Considerations
-
-### File I/O Optimization
-
-The DLQ uses several optimizations:
-
-1. **Append-only writes**: New messages are appended, not inserted
-2. **Immediate sync**: `file.fsync` ensures durability
-3. **Mutex protection**: Thread-safe but may create contention
-4. **Line-based processing**: Memory efficient for large files
-
-### Scaling Strategies
-
-For high-volume systems:
-
-```ruby
-# Use multiple DLQ instances by message type
-class DLQRouter
-  def self.get_dlq_for(message_class)
-    case message_class
-    when /Payment/
-      @payment_dlq ||= SmartMessage::DeadLetterQueue.new('/var/log/payment_dlq.jsonl')
-    when /Order/
-      @order_dlq ||= SmartMessage::DeadLetterQueue.new('/var/log/order_dlq.jsonl')
-    else
-      SmartMessage::DeadLetterQueue.default
+      puts "charged #{message.amount}"
     end
   end
 end
+
+PaymentMessage.subscribe
+PaymentMessage.new(amount: 25).publish
+
+dispatcher = PaymentMessage.transport.dispatcher
+sleep 0.05 until dispatcher.status[:in_flight].zero?   # wait for the handler to fail
+
+dlq   = SmartMessage::DeadLetterQueue.default
+entry = dlq.peek
+puts <<~REPORT
+  queue file: #{dlq.file_path}
+  entries:    #{dlq.size}
+  error:      #{entry[:error]}
+  failed in:  #{entry[:transport]}
+REPORT
+
+# Fix the problem, then replay
+PaymentMessage.gateway_up = true
+outcome = dlq.replay_one
+
+SmartMessage.shutdown
+puts "replayed: #{outcome[:success]}, entries left: #{dlq.size}"
 ```
-
-### Memory Usage
-
-For large DLQ files:
-
-```ruby
-# Process in chunks to avoid memory issues
-def process_large_dlq(dlq, chunk_size: 100)
-  processed = 0
-  
-  while dlq.size > 0 && processed < 1000
-    # Process only chunk_size at a time
-    chunk_size.times do
-      break if dlq.size == 0
-      
-      message = dlq.dequeue
-      process_message(message)
-      processed += 1
-    end
-    
-    # Let other operations run
-    sleep(0.1)
-  end
-  
-  processed
-end
-```
-
-## Security Considerations
-
-### File Permissions
-
-Ensure proper file permissions:
-
-```ruby
-# Set restrictive permissions on DLQ files
-def secure_dlq_file(path)
-  File.chmod(0600, path) if File.exist?(path)  # Read/write for owner only
-end
-```
-
-### Sensitive Data
-
-Be careful with sensitive data in DLQ:
-
-```ruby
-# Sanitize sensitive data before storing
-def sanitize_for_dlq(payload)
-  data = JSON.parse(payload)
-  data['credit_card'] = 'REDACTED' if data['credit_card']
-  data['password'] = 'REDACTED' if data['password']
-  data.to_json
-end
-```
-
-### Encryption
-
-For sensitive environments:
-
-```ruby
-# Example: Encrypt DLQ entries
-require 'openssl'
-
-class EncryptedDLQ < SmartMessage::DeadLetterQueue
-  def enqueue(header, payload, **options)
-    encrypted_payload = encrypt(payload)
-    super(header, encrypted_payload, **options)
-  end
-  
-  def dequeue
-    entry = super
-    return nil unless entry
-    
-    entry[:payload] = decrypt(entry[:payload])
-    entry
-  end
-  
-  private
-  
-  def encrypt(data)
-    # Implement encryption
-  end
-  
-  def decrypt(data)
-    # Implement decryption
-  end
-end
-```
-
-## Summary
-
-The SmartMessage Dead Letter Queue provides:
-
-- **Reliability**: Automatic capture of failed messages
-- **Flexibility**: Multiple configuration options
-- **Recoverability**: Comprehensive replay capabilities
-- **Observability**: Statistics and filtering for analysis
-- **Integration**: Seamless circuit breaker integration
-- **Production-Ready**: Thread-safe, performant, and scalable
-
-The DLQ ensures that no message is lost, even during system failures, and provides the tools needed to analyze, replay, and manage failed messages effectively.

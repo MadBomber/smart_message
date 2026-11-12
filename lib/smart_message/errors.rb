@@ -1,35 +1,62 @@
-# smart_message/lib/smart_message/errors.rb
+# lib/smart_message/errors.rb
 # encoding: utf-8
 # frozen_string_literal: true
 
 module SmartMessage
   module Errors
-    # A message can't be very smart if it does not know how to
-    # send and receive itself using a message transport
-    class TransportNotConfigured < RuntimeError; end
+    # Root of every error SmartMessage raises on purpose
+    class Error < RuntimeError; end
 
     # A message can't be very smart if it does not know how to
     # send and receive itself using a message transport
-    class TransportNotConfigured < RuntimeError; end
-
-    # A message can't be very smart if it does not know how to
-    # encode and decode itself using a message serializer
-    class SerializerNotConfigured < RuntimeError; end
+    class TransportNotConfigured < Error; end
 
     # The functionality has not be implemented
-    class NotImplemented < RuntimeError; end
+    class NotImplemented < Error; end
 
     # A message was received to which there is no subscription
-    class ReceivedMessageNotSubscribed < RuntimeError; end
+    class ReceivedMessageNotSubscribed < Error; end
 
-    # A received message is of an unknown class
-    class UnknownMessageClass < RuntimeError; end
+    # A received message names a class that is not a SmartMessage::Base
+    # descendant known to this process
+    class UnknownMessageClass < Error; end
 
-    # A property validation failed
-    class ValidationError < RuntimeError; end
+    # A received payload arrived on a channel that belongs to a different
+    # message class than the one named in its header
+    class MessageClassMismatch < Error; end
 
-    # Publishing failed on all configured transports
-    class PublishError < RuntimeError; end
+    # A received payload is not a SmartMessage envelope
+    class DecodeError < Error; end
 
+    # A message could not be encoded by its serializer
+    class SerializationError < Error; end
+
+    # A transport could not be reached or used
+    class TransportError < Error; end
+
+    # A property name collides with the framework
+    class ReservedPropertyName < ArgumentError; end
+
+    # One or more property, header, or version validations failed.
+    # +errors+ holds the same hashes that #validation_errors returns.
+    class ValidationError < Error
+      attr_reader :errors
+
+      def initialize(message = nil, errors: [])
+        @errors = errors
+        super(message)
+      end
+    end
+
+    # Publishing failed on every configured transport.
+    # +result+ is the SmartMessage::PublishResult describing each failure.
+    class PublishError < Error
+      attr_reader :result
+
+      def initialize(message = nil, result: nil)
+        @result = result
+        super(message)
+      end
+    end
   end
 end

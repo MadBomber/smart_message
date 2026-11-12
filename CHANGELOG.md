@@ -7,17 +7,66 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-- Docs: removed an unused polyfill script from the docs site
+## [0.1.0] 2026-11-11
+
+A reliability release. It changes the public API in several places; the
+**Breaking** list below is the upgrade guide.
+
+### Breaking
+- **Ruby**: requires Ruby 4.0 or newer
+- **No default transport**: a message class with no transport no longer falls back to a Redis connection. Set one on the class, or globally with `SmartMessage.configure { |config| config.transport = ... }`. Publishing or subscribing without one raises `SmartMessage::Errors::TransportNotConfigured`
+- **`publish` returns a `SmartMessage::PublishResult`** (`success?`, `partial?`, `failure?`, `successful`, `failed`, `errors`, `outcomes`) instead of a count. When every transport fails it raises `SmartMessage::Errors::PublishError` (the result is on `error.result`). `Transport#publish` raises the transport's own error instead of returning a fallback Hash
+- **Validation happens in one place**: `new` no longer raises for a missing required property or a missing `from`. `valid?`, `validation_errors` and `validate!` report them, and `publish` calls `validate!`. `validate!` raises `SmartMessage::Errors::ValidationError` (all failures on `error.errors`)
+- **Reserved property names**: declaring a property named `from`, `to`, `reply_to`, `uuid`, `publish`, `transport`, `transports`, `config`, `logger`, `validate!`, `valid?`, `validation_errors`, `to_h`, `to_hash`, `message_header`, or anything starting with `_sm_` raises `SmartMessage::Errors::ReservedPropertyName` when the class is defined
+- **Message hashes**: nested Hashes keep the keys they were given (no indifferent access below the top level), and `to_h` returns the header as a plain Hash under `:_sm_header`
+- **Class settings are inherited the same way everywhere**: transport, logger, version, addressing, DDQ settings, validators, and property descriptions are read from the class, else its parent; a subclass can no longer change its parent or a sibling. `description` is not inherited
+- **Logging is off unless configured**: with no `config.logger`, nothing is logged and no `log/` directory is created. Loggers share one interface (`SmartMessage::Logger::Base`); the Lumberjack JSON format nests keyword data under `data`
+- **Dead letter queue location**: the default file is `$SMART_MESSAGE_DLQ_PATH`, else `$XDG_STATE_HOME/smart_message/dead_letters.jsonl` (`~/.local/state/...`), no longer `dead_letters.jsonl` in the working directory. Set `config.dlq_path` to choose
+- **Deduplication API**: the queues belong to the dispatcher (one per handler per message class). Removed `duplicate?`, `mark_as_processed!`, `duplicate_uuid?`, and `get_ddq_instance`; `ddq_stats` returns `{ enabled:, queues: { "Class:handler" => stats } }`. DDQ backends gained atomic `reserve`/`release`. The Redis backend stores one key per UUID with a TTL (`ttl:` option) instead of a list and a set
+- **Circuit breakers**: one circuit per transport instance and one per handler per message class, each with its own in-memory state; `storage: :redis` is gone. `SmartMessage::CircuitBreaker::Fallbacks` procs take the error only. Serializers are no longer wrapped in a circuit: they raise `SerializationError` / `DecodeError`
+- **File transport**: now append-only JSON Lines with a tailing poller. Removed FIFO support, the async publish queue, file rotation, partitioned files, and their options (`file_type`, `async`, `rotate_size`, `directory`, `subscription_mode`, and the rest). `file_path:` is required
+- **Stdout transport**: no longer inherits from the file transport. Options are `output:` (an IO) and `loopback:`; it never closes the IO
+- **Memory transport**: stored entries are `{ message_class:, payload:, published_at: }`; messages are stored only when `auto_process: false` (or `store_messages: true`); `process_all` removes what it delivers
+- **Redis transport**: publishing or subscribing after `disconnect` raises `SmartMessage::Errors::TransportError` until `connect` is called; `subscribe` returns once Redis has confirmed the subscription, or raises after `subscribe_timeout` seconds
+- **`Transport.create`** raises `ArgumentError` for an unknown name instead of returning nil
+- **Removed**: `SimpleStats` (use `SmartMessage::Stats`), `SmartMessage::Base.decode`, `Errors::SerializerNotConfigured`, the `_version` accessor, and the `activesupport`, `async`, `async-redis`, and `colorize` dependencies
+- **`MessageClass.header`** takes a block only; any other call raises `ArgumentError`
 
 ### Added
-- **Test CI**: GitHub Actions workflow runs `bundle exec rake test` with a Redis service on Ruby 4.0 and 4.1.0-preview1 for pushes and pull requests to `main` and `develop`; the lockfile gains the `x86_64-linux` platform so the runners can install it. Rubies 3.x, which the gemspec still allows, are not tested: the locked bundle needs Ruby 4.0 or newer (breaker_machines 0.21.2 and chrono_machines 0.11.0)
+- **`SmartMessage::PublishResult`** with one `Outcome` per transport
+- **`SmartMessage::Envelope`**: the single codec used by every transport. Decoding only builds classes that inherit from `SmartMessage::Base`, checks the class named in the header against the channel the payload arrived on, and passes only declared properties to the message
+- **Header extensions**: header fields this version does not know are kept in `header.extensions` and survive a round trip
+- **Delivery guarantees**: a message that could not be published, a payload that could not be decoded, a handler that raised, a call rejected by an open circuit, and a handler killed at shutdown each put the message in the dead letter queue
+- **`SmartMessage.shutdown(timeout:)`** and `Dispatcher#shutdown(timeout:)` wait for running handlers; one `at_exit` hook replaces the per-dispatcher hooks
+- **Bounded dispatcher**: `config.dispatcher_max_threads` and `config.dispatcher_max_queue`; a full queue slows the publisher down instead of growing
+- **Redis namespace**: `RedisTransport.new(namespace: 'staging')` prefixes every channel. Pub/sub channels are global to a Redis server, so the `db` number does not separate environments
+- **`:file` transport** in the registry; `SmartMessage::Transport.create(:file, file_path: ...)`
+- **`SmartMessage::CircuitBreaker.with_retries`**: a bounded retry loop with exponential backoff
+- **`DeadLetterQueue#enqueue_raw`** for payloads that could not be decoded, and an `id` on every entry
+- **`config.dlq_path`**, `config.shutdown_timeout`, `SmartMessage.configuration=`
+- **Test CI**: GitHub Actions workflow runs `bundle exec rake test` with a Redis service on Ruby 4.0 and 4.1.0-preview1 for pushes and pull requests to `main` and `develop`
+- **Tests**: 443 tests, none skipped when Redis is available (was 319 with 27 skipped); every test run uses its own temporary directory and Redis namespace
+
+### Fixed
+- **Lost messages**: a failed publish was counted and reported as a success
+- **Shared class state**: setting a transport, logger, or addressing value on one message class changed other classes; versioned subclasses built messages that failed their own validation; subclasses did not enforce their parent's validators
+- **Caller data**: building a message converted the caller's nested Hashes in place and shared them with the message
+- **Dispatcher**: one failing handler opened the circuit for every handler; handlers shared one message object; an exception in a pool task was discarded; unsubscribing during delivery could raise; the thread pool and its queue were unbounded
+- **Deduplication**: two concurrent deliveries of one message could both run the handler; a failed handler left the message marked as processed; `enable_deduplication!` without `ddq_size` used a nil size
+- **Dead letter queue**: concurrent writers and a replay could corrupt or drop entries; a failed replay removed the entry, or added a second copy of it; a corrupt line stopped every later read; `inspect_messages(limit:)` returned `[]` whenever the queue held more than `limit` entries
+- **Redis transport**: changing subscriptions restarted the subscriber and dropped messages published meanwhile; a lost subscriber connection ended the subscriber thread without a trace; `subscribe` returned before Redis had confirmed
+- **Stdout transport**: `disconnect` closed `$stdout`
+- **Circuit breakers**: circuit state changes were printed to `$stdout` whatever the logger configuration; they now go to the SmartMessage logger
+- **Loggers**: the Default and Null loggers did not accept the calls the Lumberjack logger accepts; a logger was rebuilt (and its file reopened) on every use; the Default logger had no `level=`
+- **Coercion**: `coerce_key` declarations were ignored for values set after construction and for the header's `published_at`
+- **Packaging**: the gem shipped log files, editor settings, and a backup file; the gemspec listed dependencies the code never loaded and missed `concurrent-ruby`
+
+### Changed
+- **JSON encoding** no longer depends on which JSON extensions are loaded: `Time` is always ISO 8601 with microseconds, `BigDecimal` is plain decimal notation
+- Docs: removed an unused polyfill script from the docs site
 
 ### Removed
 - **Travis CI**: Deleted the unused `.travis.yml` (Ruby 2.6, bundler 1.16.5)
-
-### Fixed
-- **DeadLetterQueue#inspect_messages**: `inspect_messages(limit:)` returned `[]` whenever the queue held more than `limit` entries; it now returns the first `limit` entries
 
 ## [0.0.18] 2026-10-19
 

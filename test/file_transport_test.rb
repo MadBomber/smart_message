@@ -1,418 +1,253 @@
 # test/file_transport_test.rb
+# encoding: utf-8
+# frozen_string_literal: true
 
-require_relative "test_helper"
-require 'tempfile'
-require 'fileutils'
+require_relative 'test_helper'
+require_relative 'helpers/transport_contract'
 
+# The append-only file transport (review findings T1, T3, T4).
 class FileTransportTest < Minitest::Test
-  def setup
-    @temp_dir = Dir.mktmpdir('file_transport_test')
-    @test_file = File.join(@temp_dir, 'test_messages.log')
+  include TransportContract
+
+  FT = SmartMessage::Transport::FileTransport
+
+  def path
+    @path ||= temp_path('messages.jsonl')
   end
 
-  def teardown
-    FileUtils.rm_rf(@temp_dir)
+  def new_transport(**options)
+    FT.new(file_path: path, poll_interval: 0.01, **options)
   end
 
-  def test_initialization_with_defaults
-    transport = SmartMessage::Transport::FileTransport.new
-    
-    assert_equal 'messages.log', transport.options[:file_path]
-    assert_equal 'a', transport.options[:file_mode]
-    assert_equal :lines, transport.options[:file_format]
-    assert_equal false, transport.options[:async]
-    assert_equal :regular, transport.options[:file_type]
-    assert_equal :block, transport.options[:queue_overflow_strategy]
+  def lines(file = path)
+    File.readlines(file, chomp: true)
   end
 
-  def test_initialization_with_custom_options
-    options = {
-      file_path: @test_file,
-      file_mode: 'w',
-      async: true,
-      max_queue: 100,
-      file_type: :fifo
-    }
-    
-    transport = SmartMessage::Transport::FileTransport.new(options)
-    
-    assert_equal @test_file, transport.options[:file_path]
-    assert_equal 'w', transport.options[:file_mode]
-    assert_equal true, transport.options[:async]
-    assert_equal 100, transport.options[:max_queue]
-    assert_equal :fifo, transport.options[:file_type]
+  # ---- options -------------------------------------------------------------
+
+  def test_file_path_is_required
+    error = assert_raises(ArgumentError) { FT.new }
+
+    assert_match(/file_path/, error.message)
   end
 
-  def test_configuration_regular_file
-    transport = SmartMessage::Transport::FileTransport.new(
-      file_path: @test_file,
-      async: false
-    )
-    
-    assert File.exist?(@test_file)
-    assert transport.connected?
+  def test_removed_options_have_no_effect_on_the_defaults
+    assert_equal %i[file_path create_directories encoding poll_interval read_from_end], FT.new(file_path: path).default_options.keys
   end
 
-  def test_configuration_async_mode
-    transport = SmartMessage::Transport::FileTransport.new(
-      file_path: @test_file,
-      async: true,
-      max_queue: 10
-    )
-    
-    # Should have configured async publishing
-    assert transport.instance_variable_get(:@publish_queue)
-    assert transport.instance_variable_get(:@publish_worker_thread)
-    
+  def test_path_is_absolute
+    assert_equal File.expand_path('relative/messages.jsonl'), track(FT.new(file_path: 'relative/messages.jsonl')).path
+    refute File.exist?('relative'), 'nothing is created until something is published'
+  end
+
+  # ---- publishing ----------------------------------------------------------
+
+  def test_appends_one_line_per_message
+    transport.publish(ContractMessage.new(value: 1))
+    transport.publish(ContractMessage.new(value: 2))
+
+    assert_equal [1, 2], lines.map { |line| JSON.parse(line)['value'] }
+  end
+
+  def test_appends_to_an_existing_file
+    File.write(path, "existing line\n")
+
+    transport.publish(ContractMessage.new(value: 1))
+
+    assert_equal 2, lines.size
+    assert_equal 'existing line', lines.first
+  end
+
+  def test_creates_missing_directories
+    nested = File.join(temp_path('dir'), 'a', 'b', 'messages.jsonl')
+
+    track(FT.new(file_path: nested)).publish(ContractMessage.new(value: 1))
+
+    assert_equal 1, lines(nested).size
+  end
+
+  def test_without_create_directories_a_missing_directory_is_an_error
+    nested  = File.join(temp_path('dir'), 'missing', 'messages.jsonl')
+    careful = use(track(FT.new(file_path: nested, create_directories: false)))
+
+    error = assert_raises(SmartMessage::Errors::PublishError) { ContractMessage.new(value: 1).publish }
+
+    assert_instance_of Errno::ENOENT, error.result.errors.first
+    assert_equal 1, dlq.size
+    refute File.exist?(nested)
+    assert careful.connected?
+  end
+
+  def test_concurrent_publishers_write_whole_lines
+    Array.new(8) { |t| Thread.new { 25.times { |i| transport.publish(ContractMessage.new(value: "#{t}-#{i}", detail: 'x' * 300)) } } }.each(&:join)
+
+    assert_equal 200, lines.size
+    assert_equal 200, lines.map { |line| JSON.parse(line)['value'] }.uniq.size
+  end
+
+  def test_publishing_to_an_io
+    io        = StringIO.new
+    to_io     = track(FT.new(file_path: io))
+
+    to_io.publish(ContractMessage.new(value: 1))
+    to_io.disconnect
+
+    assert_equal 1, io.string.lines.size
+    refute io.closed?, 'an IO the transport was handed is never closed'
+    assert_nil to_io.path
+  end
+
+  def test_an_io_target_cannot_be_subscribed
+    use(track(FT.new(file_path: StringIO.new)))
+
+    error = assert_raises(SmartMessage::Errors::TransportError) { collect }
+
+    assert_match(/cannot subscribe/, error.message)
+  end
+
+  # ---- lifecycle -----------------------------------------------------------
+
+  def test_publish_after_disconnect_raises_and_connect_reopens
+    transport.publish(ContractMessage.new(value: 1))
     transport.disconnect
-  end
 
-
-  def test_do_publish_regular_file
-    transport = SmartMessage::Transport::FileTransport.new(file_path: @test_file)
-    
-    transport.do_publish('TestMessage', 'serialized test message')
-    transport.disconnect
-    
-    content = File.read(@test_file)
-    assert_equal "serialized test message\n", content
-  end
-
-  def test_do_publish_async_mode
-    transport = SmartMessage::Transport::FileTransport.new(
-      file_path: @test_file,
-      async: true
-    )
-    
-    transport.do_publish('TestMessage', 'async test message')
-    
-    # Wait for async processing
-    sleep 0.1
-    transport.disconnect
-    
-    content = File.read(@test_file)
-    assert_includes content, "async test message"
-  end
-
-  def test_do_publish_with_partitioned_files
-    transport = SmartMessage::Transport::FileTransport.new(
-      file_path: @test_file,
-      directory: @temp_dir
-    )
-    
-    transport.do_publish('ErrorMessage', 'error log entry')
-    transport.do_publish('InfoMessage', 'info log entry')
-    transport.disconnect
-    
-    error_file = File.join(@temp_dir, 'errormessage.log')
-    info_file = File.join(@temp_dir, 'infomessage.log')
-    
-    assert File.exist?(error_file)
-    assert File.exist?(info_file)
-    assert_equal "error log entry\n", File.read(error_file)
-    assert_equal "info log entry\n", File.read(info_file)
-  end
-
-  def test_do_publish_with_filename_selector
-    selector = lambda do |payload, header|
-      level = payload.include?('ERROR') ? 'error' : 'debug'
-      File.join(@temp_dir, "#{level}.log")
-    end
-    
-    transport = SmartMessage::Transport::FileTransport.new(
-      file_path: @test_file,
-      filename_selector: selector
-    )
-    
-    transport.do_publish('LogMessage', 'ERROR: Database failed')
-    transport.do_publish('LogMessage', 'DEBUG: Connection established')
-    transport.disconnect
-    
-    error_file = File.join(@temp_dir, 'error.log')
-    debug_file = File.join(@temp_dir, 'debug.log')
-    
-    assert File.exist?(error_file)
-    assert File.exist?(debug_file)
-    assert_includes File.read(error_file), 'ERROR: Database failed'
-    assert_includes File.read(debug_file), 'DEBUG: Connection established'
-  end
-
-  def test_subscribe_disabled_by_default
-    transport = SmartMessage::Transport::FileTransport.new(
-      file_path: @test_file,
-      enable_subscriptions: false
-    )
-    
-    # Should log warning and return early
-    transport.subscribe('TestMessage', :process, {})
-    
-    # No polling thread should be created
-    assert_nil transport.instance_variable_get(:@polling_thread)
-  end
-
-  def test_subscribe_file_polling
-    # Create a file with initial content
-    File.write(@test_file, "initial message\n")
-    
-    transport = SmartMessage::Transport::FileTransport.new(
-      file_path: @test_file,
-      enable_subscriptions: true,
-      poll_interval: 0.1,
-      read_from_end: false  # Read from beginning to catch all content
-    )
-    
-    received_messages = []
-    
-    # Mock the receive method to capture messages
-    transport.define_singleton_method(:receive) do |message_class, message|
-      received_messages << { message_class: message_class, message: message }
-    end
-    
-    # Subscribe with file_path option to use the same file
-    transport.subscribe('TestMessage', :process, { file_path: @test_file })
-    
-    # Add new content
-    sleep 0.05  # Let subscription start
-    File.write(@test_file, "initial message\nnew message\n")
-    
-    # Wait for polling to pick up changes
-    sleep 0.3
-    
-    transport.disconnect
-    
-    # Should have received the new message
-    assert received_messages.length >= 1
-    messages = received_messages.map { |m| m[:message] }
-    assert_includes messages, "new message"
-  end
-
-  def test_subscribe_fifo_mode
-    # Simplified FIFO test that focuses on basic functionality
-    # rather than complex message processing which is unreliable in test environments
-    
-    # Test if we can create FIFOs on this system
-    test_dir = Dir.mktmpdir('fifo_test')
-    test_fifo = File.join(test_dir, 'test.fifo')
-    
-    begin
-      # Try to create a FIFO
-      system("mkfifo #{test_fifo} 2>/dev/null")
-      
-      if File.exist?(test_fifo) && File.ftype(test_fifo) == "fifo"
-        # Test basic FIFO transport initialization
-        transport = SmartMessage::Transport::FileTransport.new(
-          file_path: test_fifo,
-          file_type: :fifo,
-          enable_subscriptions: true,
-          subscription_mode: :fifo_blocking
-        )
-        
-        # Test that transport initialization succeeds
-        assert transport.respond_to?(:subscribe), "Transport should support subscriptions"
-        
-        # Start a subscription to make transport connected
-        transport.subscribe('TestMessage', :process, {})
-        
-        # Now the transport should be connected
-        assert transport.connected?, "Transport should be connected to FIFO after subscription"
-        
-        transport.disconnect
-      else
-        skip("FIFO creation not supported on this system")
-      end
-    rescue => e
-      skip("FIFO tests not supported: #{e.message}")
-    ensure
-      File.delete(test_fifo) if File.exist?(test_fifo)
-      Dir.rmdir(test_dir) if Dir.exist?(test_dir)
-    end
-  end
-
-  def test_connected_regular_file
-    transport = SmartMessage::Transport::FileTransport.new(file_path: @test_file)
-    
-    assert transport.connected?
-    
-    transport.disconnect
-    
     refute transport.connected?
-  end
+    assert_raises(SmartMessage::Errors::TransportError) { transport.publish(ContractMessage.new(value: 2)) }
 
-  def test_connected_with_subscriptions
-    transport = SmartMessage::Transport::FileTransport.new(
-      file_path: @test_file,
-      enable_subscriptions: true
-    )
-    
-    # Should be connected even without active subscriptions
+    transport.connect
+
     assert transport.connected?
-    
-    # Start subscription
-    File.write(@test_file, "test\n")
-    transport.subscribe('TestMessage', :process, {})
-    
-    assert transport.connected?
-    
+    transport.publish(ContractMessage.new(value: 3))
+    assert_equal [1, 3], lines.map { |line| JSON.parse(line)['value'] }
+  end
+
+  def test_the_poller_runs_only_while_there_are_subscribers
+    use
+    poller = -> { Thread.list.count { |thread| thread.name == 'SmartMessage-FilePoller' && thread.alive? } }
+    before = poller.call
+
+    collect
+    collect(OtherMessage)
+    assert_equal before + 1, poller.call, 'one poller for every subscription'
+
+    ContractMessage.unsubscribe!
+    assert_equal before + 1, poller.call
+    OtherMessage.unsubscribe!
+    assert_equal before, poller.call
+  end
+
+  def test_connect_restarts_the_poller_for_existing_subscriptions
+    use
+    received = collect
     transport.disconnect
-    
-    refute transport.connected?
+
+    transport.connect
+    ContractMessage.new(value: 'after reconnect').publish
+
+    wait_until { !received.empty? }
+    assert_equal 'after reconnect', received.pop.value
   end
 
-  def test_disconnect_stops_all_operations
-    transport = SmartMessage::Transport::FileTransport.new(
-      file_path: @test_file,
-      async: true,
-      enable_subscriptions: true
-    )
-    
-    # Start various operations
-    File.write(@test_file, "test\n")
-    transport.subscribe('TestMessage', :process, {})
-    
-    worker_thread = transport.instance_variable_get(:@publish_worker_thread)
-    polling_thread = transport.instance_variable_get(:@polling_thread)
-    
-    assert worker_thread&.alive?
-    
-    transport.disconnect
-    
-    # All threads should be stopped
-    refute worker_thread&.alive?
-    refute polling_thread&.alive?
-    refute transport.connected?
+  # ---- reading -------------------------------------------------------------
+
+  def test_a_new_subscription_sees_only_new_lines_by_default
+    transport.publish(ContractMessage.new(value: 'old'))
+    use
+    received = collect
+
+    ContractMessage.new(value: 'new').publish
+
+    wait_until { !received.empty? }
+    sleep 0.05
+    assert_equal ['new'], Array.new(received.size) { received.pop.value }
   end
 
-  def test_disconnect_with_partitioned_files
-    transport = SmartMessage::Transport::FileTransport.new(
-      file_path: @test_file,
-      directory: @temp_dir
-    )
-    
-    # Create multiple partition files
-    transport.do_publish('Message1', 'content1')
-    transport.do_publish('Message2', 'content2')
-    
-    handles = transport.instance_variable_get(:@partition_handles)
-    assert handles&.length == 2
-    
-    # All handles should be open
-    handles.each { |_, handle| refute handle.closed? }
-    
-    transport.disconnect
-    
-    # All handles should be closed
-    handles.each { |_, handle| assert handle.closed? }
+  def test_read_from_end_false_replays_the_file
+    transport.publish(ContractMessage.new(value: 'old'))
+    replaying = use(track(new_transport(read_from_end: false)))
+    received  = collect
+
+    wait_until { !received.empty? }
+
+    assert_equal 'old', received.pop.value
+    assert_same replaying, ContractMessage.transport
   end
 
-  def test_inheritance_from_base_transport
-    transport = SmartMessage::Transport::FileTransport.new(file_path: @test_file)
-    
-    assert transport.is_a?(SmartMessage::Transport::Base)
+  def test_two_transports_share_one_file
+    reader = track(new_transport)
+    writer = track(new_transport)
+    ContractMessage.transport(reader)
+    received = collect
+
+    writer.publish(ContractMessage.new(value: 'from the writer'))
+
+    wait_until { !received.empty? }
+    assert_equal 'from the writer', received.pop.value
   end
 
-  def test_module_inclusion
-    transport = SmartMessage::Transport::FileTransport.new(file_path: @test_file)
-    
-    assert transport.class.include?(SmartMessage::Transport::FileOperations)
-    assert transport.class.include?(SmartMessage::Transport::FileWatching)
-    assert transport.class.include?(SmartMessage::Transport::PartitionedFiles)
-    assert transport.class.include?(SmartMessage::Transport::AsyncPublishQueue)
-    assert transport.class.include?(SmartMessage::Transport::FifoOperations)
+  def test_a_corrupt_line_is_dead_lettered_and_reading_continues
+    use
+    received = collect
+
+    File.open(path, 'a') { |file| file.puts('this is not a message') }
+    ContractMessage.new(value: 'after the bad line').publish
+
+    wait_until { !received.empty? }
+    assert_equal 'after the bad line', received.pop.value
+    wait_until { dlq.size == 1 }
+    assert_equal 'this is not a message', dlq.peek[:payload]
   end
 
-  def test_error_handling_in_publish
-    # Mock write_to_file to raise an error
-    transport = SmartMessage::Transport::FileTransport.new(file_path: @test_file)
-    
-    transport.define_singleton_method(:write_to_file) do |message|
-      raise "Mock write error"
-    end
-    
-    # Should handle the error gracefully (not crash the test)
-    assert_raises(RuntimeError) do
-      transport.do_publish('TestMessage', 'error message')
-    end
+  def test_a_line_for_a_class_this_process_has_not_loaded_is_skipped
+    use
+    received = collect
+    foreign  = transport.encode_message(ContractMessage.new(value: 1)).sub('TransportContract::ContractMessage', 'Another::Programs::Message')
+
+    File.open(path, 'a') { |file| file.puts(foreign) }
+    ContractMessage.new(value: 'ours').publish
+
+    wait_until { !received.empty? }
+    assert_equal 'ours', received.pop.value
+    assert dlq.empty?, 'the other program will handle its own message'
   end
 
-  def test_thread_safety_with_concurrent_publishes
-    transport = SmartMessage::Transport::FileTransport.new(file_path: @test_file)
-    
-    threads = []
-    messages = []
-    
-    # Create multiple threads publishing simultaneously
-    10.times do |i|
-      threads << Thread.new do
-        msg = "message_#{i}_#{Thread.current.object_id}"
-        messages << msg
-        transport.do_publish('TestMessage', msg)
-      end
-    end
-    
-    threads.each(&:join)
-    transport.disconnect
-    
-    content = File.read(@test_file)
-    
-    # Verify all messages were written
-    messages.each do |msg|
-      assert_includes content, msg
-    end
+  def test_a_truncated_file_is_read_from_the_start
+    use
+    received = collect
+    ContractMessage.new(value: 'before', detail: 'x' * 200).publish
+    wait_until { received.size == 1 }
+
+    line = transport.encode_message(ContractMessage.new(value: 'after truncation'))
+    File.write(path, "#{line}\n") # shorter than what was already read
+
+    wait_until { received.size == 2 }
+    assert_equal ['before', 'after truncation'], [received.pop.value, received.pop.value]
   end
 
-  def test_large_message_handling
-    transport = SmartMessage::Transport::FileTransport.new(file_path: @test_file)
-    
-    # Create a large message
-    large_message = "x" * 10000  # 10KB message
-    
-    transport.do_publish('TestMessage', large_message)
-    transport.disconnect
-    
-    content = File.read(@test_file)
-    assert_includes content, large_message
+  def test_read_complete_lines_holds_back_a_partial_line
+    File.write(path, "one\ntwo\npart")
+
+    found, position = FT.read_complete_lines(path, 0)
+    assert_equal %w[one two], found
+    assert_equal 8, position
+
+    assert_equal [[], 8], FT.read_complete_lines(path, position), 'the partial line is not delivered'
+
+    File.open(path, 'a') { |file| file.write("ial\n\n  \nthree\n") }
+    found, position = FT.read_complete_lines(path, position)
+    assert_equal %w[partial three], found, 'blank lines are skipped'
+    assert_equal File.size(path), position
   end
 
-  def test_unicode_message_handling
-    transport = SmartMessage::Transport::FileTransport.new(
-      file_path: @test_file,
-      encoding: 'UTF-8'
-    )
-    
-    unicode_message = "Hello 世界! 🚀 Café naïve"
-    
-    transport.do_publish('TestMessage', unicode_message)
-    transport.disconnect
-    
-    content = File.read(@test_file, encoding: 'UTF-8')
-    assert_includes content, unicode_message
-  end
+  def test_read_complete_lines_edge_cases
+    assert_equal [[], 0], FT.read_complete_lines(temp_path('missing'), 10)
 
-  def test_configuration_mode_precedence
-    # Test that async takes precedence over fifo
-    transport = SmartMessage::Transport::FileTransport.new(
-      file_path: @test_file,
-      async: true,
-      file_type: :fifo
-    )
-    
-    # Should have configured async, not FIFO
-    assert transport.instance_variable_get(:@publish_queue)
-    assert transport.instance_variable_get(:@publish_worker_thread)
-    
-    transport.disconnect
-  end
+    File.write(path, "short\n")
+    assert_equal [['short'], 6], FT.read_complete_lines(path, 500), 'a position past the end means the file was replaced'
 
-  def test_default_options_immutability
-    transport1 = SmartMessage::Transport::FileTransport.new(file_path: 'file1.log')
-    transport2 = SmartMessage::Transport::FileTransport.new(file_path: 'file2.log')
-    
-    # Options should be independent
-    refute_same transport1.options, transport2.options
-    assert_equal 'file1.log', transport1.options[:file_path]
-    assert_equal 'file2.log', transport2.options[:file_path]
-    
-    transport1.disconnect
-    transport2.disconnect
+    File.write(path, "café\n")
+    found, = FT.read_complete_lines(path, 0, encoding: 'UTF-8')
+    assert_equal ["café"], found
+    assert_equal Encoding::UTF_8, found.first.encoding
   end
 end

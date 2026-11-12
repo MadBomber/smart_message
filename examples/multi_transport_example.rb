@@ -1,114 +1,84 @@
 #!/usr/bin/env ruby
-# encoding: utf-8
+# examples/multi_transport_example.rb
 # frozen_string_literal: true
+#
+# Publishing one message on several transports
+#
+# transport accepts one transport or an Array.  publish tries every
+# transport independently and returns a SmartMessage::PublishResult:
+#
+#   result.success?   every transport accepted the message
+#   result.partial?   some did, some did not
+#   result.failed     the outcomes that failed (outcome.transport, outcome.error)
+#
+# A transport that fails gets the message written to the dead letter queue
+# under its name.  When every transport fails, publish raises
+# SmartMessage::Errors::PublishError; the result is on error.result.
 
-# Example demonstrating multi-transport functionality in SmartMessage
-# This example shows how to configure and use multiple transports for a single message
+require 'stringio'
+require_relative 'support/example_helper'
+require_relative 'support/failing_transport'
+require_relative 'messages/multi_transport_message'
 
-require_relative '../lib/smart_message'
+def names(outcomes) = outcomes.map(&:transport_name)
 
-# Define a simple message class for demonstration
-class MultiTransportMessage < SmartMessage::Base
-  property :content, required: true
-  property :priority, default: 'normal'
-  
-  # Configure multiple transports for this message
-  transport [
-    SmartMessage::Transport::StdoutTransport.new(format: :pretty),
-    SmartMessage::Transport::MemoryTransport.new(auto_process: false)
-  ]
+Example.title 'Multiple transports'
+console = StringIO.new
+stdout  = SmartMessage::Transport::StdoutTransport.new(output: console)
+memory  = SmartMessage::Transport::MemoryTransport.new
+dlq     = SmartMessage::DeadLetterQueue.default
+
+Example.section 'One transport'
+MultiTransportMessage.transport(memory)
+Example.check('the class reports a single transport') do
+  MultiTransportMessage.single_transport? && MultiTransportMessage.transport.equal?(memory)
 end
 
-# Example 1: Single transport (backward compatibility)
-class SingleTransportMessage < SmartMessage::Base
-  property :data, required: true
-  
-  # Single transport works exactly as before
-  transport SmartMessage::Transport::StdoutTransport.new
+Example.section 'Two transports: every publish goes to both'
+MultiTransportMessage.transport([stdout, memory])
+MultiTransportMessage.subscribe { |message| Example.inbox.add(:received, message.content) }
+result = MultiTransportMessage.new(content: 'to both', priority: 'high').publish
+Example.wait_for_idle(memory, stdout)
+puts "  #{result.to_h}"
+Example.check('the result has one successful outcome per transport') do
+  result.success? && names(result.outcomes) == %w[StdoutTransport MemoryTransport]
+end
+Example.check('the stdout transport wrote the message') { console.string.include?('"content":"to both"') }
+Example.check('the memory transport delivered it to the subscriber') { Example.inbox[:received] == ['to both'] }
+
+Example.section 'Instance-level override: this message goes to one transport only'
+archive  = SmartMessage::Transport::MemoryTransport.new(auto_process: false)
+override = MultiTransportMessage.new(content: 'archived only')
+override.transport(archive)
+override.publish
+Example.check('only the override transport received it') do
+  archive.message_count == 1 && !console.string.include?('archived only') && override.single_transport?
 end
 
-puts "=== SmartMessage Multi-Transport Demo ==="
-puts
-
-# Test single transport (backward compatibility)
-puts "1. Single Transport Example:"
-single_msg = SingleTransportMessage.new(data: "Hello from single transport", from: "demo_app")
-puts "   Transport count: #{single_msg.transports.length}"
-puts "   Is single transport? #{single_msg.single_transport?}"
-single_msg.publish
-puts
-
-# Test multiple transports
-puts "2. Multiple Transport Example:"
-multi_msg = MultiTransportMessage.new(
-  content: "Hello from multiple transports!",
-  priority: "high",
-  from: "demo_app"
-)
-puts "   Transport count: #{multi_msg.transports.length}"
-puts "   Is multiple transports? #{multi_msg.multiple_transports?}"
-puts "   Transport classes: #{multi_msg.transports.map { |t| t.class.name.split('::').last }.join(', ')}"
-puts "   Primary transport (backward compat): #{multi_msg.transport.class.name.split('::').last}"
-multi_msg.publish
-puts
-
-# Test instance-level transport override
-puts "3. Instance-level Transport Override:"
-override_msg = MultiTransportMessage.new(content: "Override example", from: "demo_app")
-override_msg.transport(SmartMessage::Transport::StdoutTransport.new(format: :json))
-puts "   Override transport count: #{override_msg.transports.length}"
-puts "   Override is single? #{override_msg.single_transport?}"
-override_msg.publish
-puts
-
-# Test transport failure resilience
-puts "4. Transport Failure Resilience:"
-class FailingTransport < SmartMessage::Transport::Base
-  def publish(message)
-    raise StandardError, "Simulated transport failure"
-  end
+Example.section 'Partial failure: one transport is down'
+MultiTransportMessage.transport([FailingTransport.new, memory])
+partial = MultiTransportMessage.new(content: 'survives an outage').publish
+Example.wait_for_idle(memory)
+Example.check('publish did not raise; the result is partial') do
+  partial.partial? && !partial.success? && names(partial.failed) == ['FailingTransport']
+end
+Example.check('the error is available on the failed outcome') { partial.errors.map(&:message) == ['simulated outage'] }
+Example.check('the working transport still delivered the message') { Example.inbox[:received].include?('survives an outage') }
+Example.check('the failed copy is in the dead letter queue') do
+  dlq.size == 1 && dlq.peek[:transport] == 'FailingTransport'
 end
 
-class ResilientMessage < SmartMessage::Base
-  property :message, required: true
-  
-  transport [
-    FailingTransport.new,
-    SmartMessage::Transport::StdoutTransport.new(format: :compact)
-  ]
-end
-
-resilient_msg = ResilientMessage.new(message: "Testing failure resilience", from: "demo_app")
-puts "   Publishing with one failing transport..."
-begin
-  resilient_msg.publish
-  puts "   ✓ Message published successfully despite transport failure"
-rescue => e
-  puts "   ✗ Unexpected error: #{e.message}"
-end
-puts
-
-# Test all transports failing
-puts "5. All Transports Failing:"
-class AllFailingMessage < SmartMessage::Base
-  property :data
-  
-  transport [
-    FailingTransport.new,
-    FailingTransport.new
-  ]
-end
-
-failing_msg = AllFailingMessage.new(data: "This will fail", from: "demo_app")
-puts "   Publishing with all transports failing..."
-begin
-  failing_msg.publish
-  puts "   ✗ Expected failure did not occur"
+Example.section 'Total failure: every transport is down'
+MultiTransportMessage.transport([FailingTransport.new, FailingTransport.new])
+error = begin
+  MultiTransportMessage.new(content: 'goes nowhere').publish
 rescue SmartMessage::Errors::PublishError => e
-  puts "   ✓ Correctly caught PublishError: #{e.message.split(':').first}"
-rescue => e
-  puts "   ✗ Unexpected error type: #{e.class} - #{e.message}"
+  e
 end
-puts
+puts "  #{error.class}: #{error.message}"
+Example.check('publish raised PublishError with both failures on error.result') do
+  error.is_a?(SmartMessage::Errors::PublishError) && error.result.failure? && error.result.failed.size == 2
+end
+Example.check('one dead letter was written per failed transport') { dlq.size == 3 }
 
-puts "=== Demo Complete ==="
+Example.finish

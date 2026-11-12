@@ -1,5 +1,5 @@
 site_name: SmartMessage Documentation
-site_description: "Intelligent messages that know what to do and how to do it"
+site_description: "A Ruby messaging framework that separates messages from their transports"
 site_author: "madbomber"
 site_url: "https://madbomber.github.io/smart_message/"
 
@@ -12,8 +12,8 @@ theme:
   language: en
 
   # Logo and favicon
-  logo: assets/smart_message.jpg
-  favicon: assets/smart_message.jpg
+  logo: assets/images/smart_message.jpg
+  favicon: assets/images/smart_message.jpg
 
   # Color palette
   palette:
@@ -134,7 +134,7 @@ extra_javascript:
 # Extra content
 extra:
   # Version string
-  version: 0.1.11
+  version: 0.1.0
 
   # Social media links
   social:
@@ -145,38 +145,37 @@ extra:
   # Generator notice
   generator: false
 
-# Navigation with icons
+# Navigation
 nav:
   - Home: index.md
-  - 🚀 Getting Started:
+  - Getting Started:
       - Quick Start: getting-started/quick-start.md
       - Examples: getting-started/examples.md
-  - 📖 Core Concepts:
+      - Upgrading from 0.0.x: getting-started/upgrading.md
+  - Core Concepts:
       - Architecture: core-concepts/architecture.md
-      - Properties: core-concepts/properties.md
+      - Properties and Validation: core-concepts/properties.md
       - Addressing: core-concepts/addressing.md
-      - Dispatcher: core-concepts/dispatcher.md
       - Message Filtering: core-concepts/message-filtering.md
-      - Message Processing: core-concepts/message-processing.md
-  - 🔌 Reference:
-      - Transports: reference/transports.md
+      - Handlers: core-concepts/message-processing.md
+      - Dispatcher: core-concepts/dispatcher.md
+      - Configuration: core-concepts/configuration.md
+  - Transports:
+      - Overview and Delivery Semantics: reference/transports.md
+      - Memory Transport: transports/memory-transport.md
+      - Stdout Transport: transports/stdout-transport.md
+      - File Transport: transports/file-transport.md
+      - Redis Transport: transports/redis-transport.md
+  - Reference:
+      - Publishing: reference/publishing.md
       - Serializers: reference/serializers.md
       - Logging: reference/logging.md
       - Dead Letter Queue: reference/dead-letter-queue.md
       - Message Deduplication: reference/message-deduplication.md
-      - Proc Handlers: reference/proc-handlers.md
-  - 🚚 Transports:
-      - Memory Transport: transports/memory-transport.md
-      - Redis Transport: transports/redis-transport.md
-      - STDOUT Transport: transports/stdout-transport.md
-      - File Transport: transports/file-transport.md
-      - Multi-Transport Publishing: transports/multi-transport.md
-      - Redis Transport Comparison: transports/redis-transport-comparison.md
-  - 📚 Guides:
-      - Transport Selection: guides/transport-selection.md
-  - ⚙️ Development:
+      - Circuit Breakers: reference/circuit-breakers.md
+  - Development:
       - Troubleshooting: development/troubleshooting.md
-      - Ideas & Roadmap: development/ideas.md
+      - Ideas: development/ideas.md
 
 # Copyright
 copyright: Copyright &copy; 2025 madbomber

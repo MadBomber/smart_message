@@ -7,60 +7,50 @@
 </td>
 <td width="70%" valign="top">
 
-<string>SmartMessage</strong> is a powerful Ruby framework that transforms ordinary messages into intelligent, self-aware entities capable of routing themselves, validating their contents, and executing business logic. By abstracting away the complexities of transport mechanisms (Redis, RabbitMQ, Kafka) and serialization formats (JSON, MessagePack), SmartMessage lets you focus on what matters: your business logic.
+SmartMessage is a Ruby messaging framework that separates a message from the transport that carries it. A message class declares its properties, validations, addressing and handlers; a transport moves the serialized message.
 <br/><br/>
-Think of SmartMessage as ActiveRecord for messaging - just as ActiveRecord frees you from database-specific SQL, SmartMessage liberates your messages from transport-specific implementations. Each message knows how to validate itself, where it came from, where it's going, and what to do when it arrives. With built-in support for filtering, versioning, deduplication, and concurrent processing, SmartMessage provides enterprise-grade messaging capabilities with the simplicity Ruby developers love.
+The comparison the project uses is ActiveRecord: ActiveRecord keeps a model independent of the database behind it, SmartMessage keeps a message independent of the transport behind it.
 
 </td>
 </tr>
 </table>
 
-## Table of Contents
+This documentation describes SmartMessage 0.1.0, which requires Ruby 4.0 or newer. If you are coming from an earlier version, read [Upgrading from 0.0.x](getting-started/upgrading.md) first.
 
-### Getting Started
-- [Quick Start](getting-started/quick-start.md)
-- [Basic Usage Examples](getting-started/examples.md)
+## Getting Started
 
-### Core Concepts
-- [Architecture Overview](core-concepts/architecture.md)
-- [Property System](core-concepts/properties.md)
-- [Entity Addressing](core-concepts/addressing.md)
-- [Message Filtering](core-concepts/message-filtering.md)
-- [Message Processing](core-concepts/message-processing.md)
-- [Dispatcher & Routing](core-concepts/dispatcher.md)
+- [Quick Start](getting-started/quick-start.md): a complete program, then each piece in turn
+- [Examples](getting-started/examples.md): where the runnable example programs are
+- [Upgrading from 0.0.x](getting-started/upgrading.md): every breaking change with before and after
 
-### Transports
-- [Transport Layer](reference/transports.md)
-- [Multi-Transport Publishing](transports/multi-transport.md)
-- [Redis Transport](transports/redis-transport.md)
-- [Redis Transport Comparison](transports/redis-transport-comparison.md)
+## Core Concepts
+
+- [Architecture](core-concepts/architecture.md): how a message travels from `publish` to a handler
+- [Properties and Validation](core-concepts/properties.md): declaring properties, validation, reserved names, versions
+- [Addressing](core-concepts/addressing.md): `from`, `to` and `reply_to`
+- [Message Filtering](core-concepts/message-filtering.md): subscribing to a subset of messages
+- [Handlers](core-concepts/message-processing.md): class methods, blocks, procs and lambdas
+- [Dispatcher](core-concepts/dispatcher.md): the thread pool, message copies, shutdown
+- [Configuration](core-concepts/configuration.md): setting precedence and the global configuration
+
+## Transports
+
+- [Transports](reference/transports.md): delivery semantics of each transport, choosing one, writing your own
 - [Memory Transport](transports/memory-transport.md)
+- [Stdout Transport](transports/stdout-transport.md)
+- [File Transport](transports/file-transport.md)
+- [Redis Transport](transports/redis-transport.md)
 
-### Guides
-- [Examples & Use Cases](getting-started/examples.md)
-- [Architecture Overview](core-concepts/architecture.md)
-- [Transport Configuration](reference/transports.md)
+## Reference
 
-### Reference
-- [Serializers](reference/serializers.md)
-- [Logging System](reference/logging.md)
+- [Publishing](reference/publishing.md): `PublishResult`, `PublishError`, several transports at once
+- [Serializers](reference/serializers.md): JSON, type changes on a round trip, `coerce_key`
+- [Logging](reference/logging.md)
 - [Dead Letter Queue](reference/dead-letter-queue.md)
 - [Message Deduplication](reference/message-deduplication.md)
-- [Proc Handlers](reference/proc-handlers.md)
+- [Circuit Breakers](reference/circuit-breakers.md)
 
-### Development
+## Development
+
 - [Troubleshooting](development/troubleshooting.md)
-- [Ideas & Roadmap](development/ideas.md)
-
-## Quick Navigation
-
-- **New to SmartMessage?** Start with [Quick Start](getting-started/quick-start.md)
-- **Need examples?** Check out [Examples](getting-started/examples.md)
-- **Understanding the architecture?** Read [Architecture Overview](core-concepts/architecture.md)
-- **Having issues?** Visit [Troubleshooting](development/troubleshooting.md)
-
-## Version
-
-This documentation is for SmartMessage v0.0.8.
-
-For older versions, please check the git tags and corresponding documentation.
+- [Ideas](development/ideas.md): possible future directions, none of them implemented

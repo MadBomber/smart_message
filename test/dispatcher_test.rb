@@ -51,10 +51,10 @@ module DispatcherTest
       assert_equal 'DispatcherTest::MyMessage', @dispatcher.subscribers.keys.first
 
       @dispatcher.drop('DispatcherTest::MyMessage', 'DispatcherTest::Test.processer_two')
-
-      assert_equal 1, @dispatcher.subscribers.size
-      assert_equal 'DispatcherTest::MyMessage', @dispatcher.subscribers.keys.first
-
+      
+      # A class with no handlers left is no longer listed
+      assert_equal 0, @dispatcher.subscribers.size
+      
       assert_equal 0, @dispatcher.subscribers['DispatcherTest::MyMessage'].size
       assert          @dispatcher.subscribers['DispatcherTest::MyMessage'].empty?
 

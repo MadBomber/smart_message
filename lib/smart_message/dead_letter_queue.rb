@@ -4,185 +4,173 @@
 
 require 'json'
 require 'fileutils'
+require 'securerandom'
+require 'time'
 
 module SmartMessage
-  # File-based Dead Letter Queue implementation using JSON Lines format
-  # Provides FIFO queue operations with replay capabilities for failed messages
+  # File-based Dead Letter Queue using the JSON Lines format.
+  #
+  # Messages that could not be published or processed are appended here, one
+  # JSON object per line, oldest first.  They can be inspected, filtered,
+  # and replayed.
+  #
+  # Every read-modify-write runs under an exclusive lock on a sidecar
+  # "<file>.lock", so several threads and several processes can share one
+  # queue file.  Rewrites go to a temporary file that is then renamed over
+  # the queue, so a crash never leaves a half-written queue.
+  #
+  # Replay never removes an entry before it has been published again: a
+  # failed replay leaves the entry in the queue with its retry count raised.
   class DeadLetterQueue
     attr_reader :file_path
 
-    # Default singleton instance
-    @@default_instance = nil
+    @default_mutex = Mutex.new
 
-    def self.default
-      @@default_instance ||= new
-    end
-
-    def self.configure_default(file_path)
-      @@default_instance = new(file_path)
-    end
-
-    def initialize(file_path = 'dead_letters.jsonl')
-      @file_path = File.expand_path(file_path)
-      @mutex = Mutex.new
-      ensure_directory_exists
-      
-      logger.debug { "[SmartMessage::DeadLetterQueue] Initialized with file path: #{@file_path}" }
-    rescue => e
-      logger&.error { "[SmartMessage] Error in dead letter queue initialization: #{e.class.name} - #{e.message}" }
-      raise
-    end
-    
-    private
-    
-    def logger
-      @logger ||= SmartMessage::Logger.default
-    end
-    
-    public
-
-    # Core FIFO queue operations
-
-    # Add a failed message to the dead letter queue
-    # @param message [SmartMessage::Base] The message instance
-    # @param error_info [Hash] Error details including :error, :retry_count, :transport, etc.
-    def enqueue(message, error_info = {})
-      message_header = message._sm_header
-      message_payload = JSON.generate(message.to_hash)
-
-      entry = {
-        timestamp: Time.now.iso8601,
-        header: message_header.to_hash,
-        payload: message_payload,
-        payload_format: error_info[:serializer] || 'json',
-        error: error_info[:error] || 'Unknown error',
-        retry_count: error_info[:retry_count] || 0,
-        transport: error_info[:transport],
-        stack_trace: error_info[:stack_trace]
-      }
-
-      @mutex.synchronize do
-        File.open(@file_path, 'a') do |file|
-          file.puts entry.to_json
-          file.fsync  # Ensure immediate write to disk
+    class << self
+      # The queue at SmartMessage.configuration.dlq_path.
+      def default
+        @default_mutex.synchronize do
+          path = File.expand_path(SmartMessage.configuration.dlq_path)
+          @default_instance = new(path) unless @default_instance&.file_path == path
+          @default_instance
         end
       end
 
-      entry
+      # Point the default queue at another file.
+      # @return [SmartMessage::DeadLetterQueue]
+      def configure_default(file_path)
+        SmartMessage.configuration.dlq_path = file_path
+        default
+      end
+
+      # Forget the memoized default queue (the file is left alone).
+      def reset_default!
+        @default_mutex.synchronize { @default_instance = nil }
+      end
     end
 
-    # Remove and return the oldest message from the queue
+    # @param file_path [String] the queue file; defaults to configuration.dlq_path
+    def initialize(file_path = nil)
+      @file_path = File.expand_path(file_path || SmartMessage.configuration.dlq_path)
+      @lock_path = "#{@file_path}.lock"
+      @mutex     = Mutex.new
+      FileUtils.mkdir_p(File.dirname(@file_path))
+    end
+
+    #########################################################
+    ## Core FIFO queue operations
+
+    # Add a failed message to the dead letter queue.
+    #
+    # @param message [SmartMessage::Base] The message instance
+    # @param error_info [Hash] :error, :retry_count, :transport, :stack_trace
+    # @return [Hash] the stored entry
+    def enqueue(message, error_info = {})
+      header = message._sm_header.to_wire
+      append(build_entry(
+        header:         header,
+        payload:        JSON.generate(Serializer::Json.jsonify(message.to_h.merge(_sm_header: header))),
+        payload_format: 'json',
+        error_info:     error_info
+      ))
+    end
+
+    # Add a serialized payload that could not be turned into a message
+    # (for example, one that failed to decode on receive).
+    #
+    # @param message_class [String] the class or channel it arrived for
+    # @param payload [String] the serialized bytes, stored untouched
+    # @param error_info [Hash] :error, :retry_count, :transport,
+    #   :stack_trace, :serializer (payload format; default 'json')
+    # @return [Hash] the stored entry
+    def enqueue_raw(message_class:, payload:, error_info: {})
+      append(build_entry(
+        header:         { message_class: message_class.to_s },
+        payload:        payload.to_s,
+        payload_format: (error_info[:serializer] || 'json').to_s,
+        error_info:     error_info
+      ))
+    end
+
+    # Remove and return the oldest message from the queue.
+    # Corrupt lines ahead of it are dropped and reported.
     # @return [Hash, nil] The oldest DLQ entry or nil if queue is empty
     def dequeue
-      @mutex.synchronize do
-        return nil unless File.exist?(@file_path)
+      with_lock do
+        lines = read_lines
+        index   = lines.index { |line| parse_line(line) }
+        corrupt = index || lines.size
+        report_corrupt(corrupt) if corrupt.positive?
 
-        lines = File.readlines(@file_path)
-        return nil if lines.empty?
-
-        # Get first line (oldest)
-        oldest_line = lines.shift
-        oldest_entry = JSON.parse(oldest_line.strip, symbolize_names: true)
-
-        # Rewrite file without the first line
-        File.open(@file_path, 'w') do |file|
-          lines.each { |line| file.write(line) }
+        if index.nil?
+          rewrite([]) if lines.any?
+          next nil
         end
 
-        oldest_entry
+        entry = parse_line(lines[index])
+        rewrite(lines[(index + 1)..])
+        entry
       end
-    rescue JSON::ParserError => e
-      logger.warn { "[SmartMessage] Warning: Corrupted DLQ entry skipped: #{e.message}" }
-      nil
     end
 
     # Look at the oldest message without removing it
     # @return [Hash, nil] The oldest DLQ entry or nil if queue is empty
     def peek
-      return nil unless File.exist?(@file_path)
-
-      File.open(@file_path, 'r') do |file|
-        first_line = file.readline
-        return nil if first_line.nil? || first_line.strip.empty?
-        JSON.parse(first_line.strip, symbolize_names: true)
-      end
-    rescue EOFError, JSON::ParserError
-      nil
+      entries.first
     end
 
-    # Get the number of messages in the queue
-    # @return [Integer] Number of messages in the DLQ
+    # Get the number of lines in the queue file (corrupt lines included)
+    # @return [Integer]
     def size
-      return 0 unless File.exist?(@file_path)
-      File.readlines(@file_path).size
+      with_lock { read_lines.size }
+    end
+
+    def empty?
+      size.zero?
     end
 
     # Clear all messages from the queue
     def clear
-      @mutex.synchronize do
-        File.delete(@file_path) if File.exist?(@file_path)
-      end
+      with_lock { File.delete(@file_path) if File.exist?(@file_path) }
+      nil
     end
 
-    # Replay capabilities
+    #########################################################
+    ## Replay
 
-    # Replay all messages in the queue
+    # Replay every message that is in the queue right now.
     # @param transport [SmartMessage::Transport::Base] Optional transport override
-    # @return [Hash] Results summary
+    # @return [Hash] { success:, failed:, errors: }
     def replay_all(transport = nil)
-      results = { success: 0, failed: 0, errors: [] }
-
-      while (entry = dequeue)
-        result = replay_entry(entry, transport)
-        if result[:success]
-          results[:success] += 1
-        else
-          results[:failed] += 1
-          results[:errors] << result[:error]
-          # Re-enqueue failed replay attempts
-          header = SmartMessage::Header.new(entry[:header])
-          enqueue(header, entry[:payload],
-            error: "Replay failed: #{result[:error]}",
-            retry_count: (entry[:retry_count] || 0) + 1)
-        end
-      end
-
-      results
+      replay_entries(entries, transport)
     end
 
-    # Replay the oldest message
+    # Replay the oldest message.
     # @param transport [SmartMessage::Transport::Base] Optional transport override
-    # @return [Hash] Result of replay attempt
+    # @return [Hash] { success: true, message: } or { success: false, error: }
     def replay_one(transport = nil)
-      entry = dequeue
+      entry = peek
       return { success: false, error: 'Queue is empty' } unless entry
 
-      replay_entry(entry, transport)
+      replay_and_settle(entry, transport)
     end
 
-    # Replay a batch of messages
+    # Replay the oldest +count+ messages.
     # @param count [Integer] Number of messages to replay
     # @param transport [SmartMessage::Transport::Base] Optional transport override
-    # @return [Hash] Results summary
+    # @return [Hash] { success:, failed:, errors: }
     def replay_batch(count = 10, transport = nil)
-      results = { success: 0, failed: 0, errors: [] }
-
-      count.times do
-        break if size == 0
-
-        result = replay_one(transport)
-        if result[:success]
-          results[:success] += 1
-        else
-          results[:failed] += 1
-          results[:errors] << result[:error]
-        end
-      end
-
-      results
+      replay_entries(entries.first(count), transport)
     end
 
-    # Administrative utilities
+    #########################################################
+    ## Administrative utilities
+
+    # Every valid entry in the queue, oldest first.
+    # @return [Array<Hash>]
+    def entries
+      with_lock { read_lines }.filter_map { |line| parse_line(line) }
+    end
 
     # Inspect messages in the queue without removing them
     # @param limit [Integer] Maximum number of messages to show
@@ -190,16 +178,14 @@ module SmartMessage
     def inspect_messages(limit: 10)
       return [] unless limit.positive?
 
-      read_entries_with_filter.first(limit)
+      entries.first(limit)
     end
 
     # Filter messages by message class
     # @param message_class [String] The message class name to filter by
     # @return [Array<Hash>] Filtered DLQ entries
     def filter_by_class(message_class)
-      read_entries_with_filter do |entry|
-        entry if entry.dig(:header, :message_class) == message_class
-      end
+      entries.select { |entry| entry.dig(:header, :message_class) == message_class.to_s }
     end
 
     # Filter messages by error pattern
@@ -207,32 +193,21 @@ module SmartMessage
     # @return [Array<Hash>] Filtered DLQ entries
     def filter_by_error_pattern(pattern)
       pattern = Regexp.new(pattern) if pattern.is_a?(String)
-      
-      read_entries_with_filter do |entry|
-        entry if pattern.match?(entry[:error].to_s)
-      end
+      entries.select { |entry| pattern.match?(entry[:error].to_s) }
     end
 
     # Get statistics about the dead letter queue
-    # @return [Hash] Statistics summary
+    # @return [Hash] { total:, by_class:, by_error:, corrupt: }
     def statistics
-      stats = { total: 0, by_class: Hash.new(0), by_error: Hash.new(0) }
-      
-      read_entries_with_filter do |entry|
-        stats[:total] += 1
-        
-        full_class_name = entry.dig(:header, :message_class) || 'Unknown'
-        # Extract short class name (everything after the last ::)
-        short_class_name = full_class_name.split('::').last || full_class_name
-        stats[:by_class][short_class_name] += 1
-        
-        error = entry[:error] || 'Unknown error'
-        stats[:by_error][error] += 1
-        
-        nil  # Don't collect entries, just process for side effects
-      end
-      
-      stats
+      lines = with_lock { read_lines }
+      valid = lines.filter_map { |line| parse_line(line) }
+
+      {
+        total:    valid.size,
+        by_class: valid.map { |entry| (entry.dig(:header, :message_class) || 'Unknown').split('::').last }.tally,
+        by_error: valid.map { |entry| entry[:error] || 'Unknown error' }.tally,
+        corrupt:  lines.size - valid.size
+      }
     end
 
     # Export messages within a time range
@@ -240,121 +215,186 @@ module SmartMessage
     # @param end_time [Time] End of time range
     # @return [Array<Hash>] DLQ entries within the time range
     def export_range(start_time, end_time)
-      read_entries_with_filter do |entry|
-        begin
-          timestamp = Time.parse(entry[:timestamp])
-          entry if timestamp >= start_time && timestamp <= end_time
-        rescue ArgumentError
-          # Skip entries with invalid timestamps
-          nil
-        end
+      entries.select do |entry|
+        Time.parse(entry[:timestamp].to_s).between?(start_time, end_time)
+      rescue ArgumentError
+        false # an entry with an unreadable timestamp is in no range
       end
     end
 
     private
 
-    # Replay a single DLQ entry by recreating the message instance
-    # @param entry [Hash] The DLQ entry to replay
-    # @param transport_override [SmartMessage::Transport::Base] Optional transport override
-    # @return [Hash] Result of replay attempt
-    def replay_entry(entry, transport_override = nil)
-      message_class_name = entry.dig(:header, :message_class)
-      return { success: false, error: 'Missing message class' } unless message_class_name
-
-      # Get the message class
-      message_class = message_class_name.constantize
-
-      # Deserialize the payload using the appropriate format
-      payload_data = deserialize_payload(entry[:payload], entry[:payload_format] || 'json')
-      return { success: false, error: 'Failed to deserialize payload' } unless payload_data
-
-      # Remove the header from payload data (it's stored separately in DLQ)
-      payload_data.delete(:_sm_header)
-
-      # Create new message instance with original data
-      message = message_class.new(**payload_data)
-
-      # Restore complete header information
-      restore_header_fields(message, entry[:header])
-
-      # Override transport if provided - this must be done before publishing
-      if transport_override
-        message.transport(transport_override)
-      end
-
-      # Attempt to publish the message
-      message.publish
-
-      { success: true, message: message }
-    rescue => e
-      { success: false, error: "#{e.class.name}: #{e.message}" }
+    def logger
+      SmartMessage::Logger.default
     end
 
-    # Deserialize payload based on format
-    # @param payload [String] The serialized payload
-    # @param format [String] The serialization format (json, etc.)
-    # @return [Hash, nil] Deserialized data or nil if failed
-    def deserialize_payload(payload, format)
-      case format.to_s.downcase
-      when 'json'
-        JSON.parse(payload, symbolize_names: true)
-      else
-        # For unknown formats, assume JSON as fallback but log warning
-        logger.warn { "[SmartMessage] Warning: Unknown payload format '#{format}', attempting JSON" }
-        JSON.parse(payload, symbolize_names: true)
+    def build_entry(header:, payload:, payload_format:, error_info:)
+      {
+        id:             SecureRandom.uuid,
+        timestamp:      Time.now.iso8601(3),
+        header:         header.transform_values { |value| Serializer::Json.jsonify(value) },
+        payload:        payload,
+        payload_format: payload_format,
+        error:          error_info[:error] || 'Unknown error',
+        retry_count:    error_info[:retry_count] || 0,
+        transport:      error_info[:transport],
+        stack_trace:    error_info[:stack_trace]
+      }
+    end
+
+    # Append one entry as one line, flushed to disk.
+    def append(entry)
+      line = "#{JSON.generate(entry)}\n"
+      with_lock do
+        File.open(@file_path, 'a') do |file|
+          file.write(line)
+          file.fsync
+        end
       end
-    rescue JSON::ParserError => e
-      logger.error { "[SmartMessage] Error in payload deserialization: #{e.class.name} - #{e.message}" }
+      entry
+    end
+
+    # Run a block while holding the queue's lock, against other threads of
+    # this process and against other processes.
+    def with_lock
+      @mutex.synchronize do
+        File.open(@lock_path, File::RDWR | File::CREAT, 0o644) do |lock|
+          lock.flock(File::LOCK_EX)
+          yield
+        end
+      end
+    end
+
+    # @return [Array<String>] non-blank lines, without newlines
+    def read_lines
+      return [] unless File.exist?(@file_path)
+
+      File.readlines(@file_path, chomp: true).reject { |line| line.strip.empty? }
+    end
+
+    # @return [Hash, nil] the entry, or nil for a corrupt line
+    def parse_line(line)
+      entry = JSON.parse(line, symbolize_names: true)
+      entry.is_a?(Hash) ? entry : nil
+    rescue JSON::ParserError
       nil
     end
 
-    # Restore all header fields from DLQ entry
-    # @param message [SmartMessage::Base] The message instance
-    # @param header_data [Hash] The stored header data
-    def restore_header_fields(message, header_data)
-      return unless header_data
-      
-      # Restore all available header fields
-      message._sm_header.uuid = header_data[:uuid] if header_data[:uuid]
-      message._sm_header.message_class = header_data[:message_class] if header_data[:message_class]
-      message._sm_header.published_at = Time.parse(header_data[:published_at]) if header_data[:published_at]
-      message._sm_header.publisher_pid = header_data[:publisher_pid] if header_data[:publisher_pid]
-      message._sm_header.version = header_data[:version] if header_data[:version]
-      message._sm_header.from = header_data[:from] if header_data[:from]
-      message._sm_header.to = header_data[:to] if header_data[:to]
-      message._sm_header.reply_to = header_data[:reply_to] if header_data[:reply_to]
-    rescue => e
-      logger.warn { "[SmartMessage] Warning: Failed to restore some header fields: #{e.message}" }
+    # Replace the queue's contents atomically.  Call inside with_lock.
+    def rewrite(lines)
+      temp_path = "#{@file_path}.#{Process.pid}.#{Thread.current.object_id}.tmp"
+      File.open(temp_path, 'w') do |file|
+        lines.each { |line| file.write("#{line}\n") }
+        file.fsync
+      end
+      File.rename(temp_path, @file_path)
+    ensure
+      File.delete(temp_path) if temp_path && File.exist?(temp_path)
     end
 
-    # Generic file reading iterator with error handling
-    # @param block [Proc] Block to execute for each valid entry
-    # @return [Array] Results from the block, or an Enumerator of entries when no block is given
-    def read_entries_with_filter(&block)
-      return enum_for(__method__) unless block
+    def report_corrupt(count)
+      logger.warn { "[SmartMessage::DeadLetterQueue] Dropped #{count} corrupt line(s) from #{@file_path}" }
+    end
 
-      return [] unless File.exist?(@file_path)
-      
-      results = []
-      File.open(@file_path, 'r') do |file|
-        file.each_line do |line|
-          begin
-            entry = JSON.parse(line.strip, symbolize_names: true)
-            result = block.call(entry)
-            results << result if result
-          rescue JSON::ParserError
-            # Skip corrupted lines
-          end
+    def replay_entries(batch, transport)
+      results = { success: 0, failed: 0, errors: [] }
+
+      batch.each do |entry|
+        outcome = replay_and_settle(entry, transport)
+        if outcome[:success]
+          results[:success] += 1
+        else
+          results[:failed] += 1
+          results[:errors] << outcome[:error]
         end
       end
-      
+
       results
     end
 
-    # Ensure the directory for the DLQ file exists
-    def ensure_directory_exists
-      directory = File.dirname(@file_path)
-      FileUtils.mkdir_p(directory) unless Dir.exist?(directory)
+    # Replay one entry, then remove it on success or mark it on failure.
+    def replay_and_settle(entry, transport)
+      outcome = replay_entry(entry, transport)
+
+      if outcome[:success]
+        remove_entry(entry)
+      else
+        mark_failed_replay(entry, outcome[:error])
+      end
+
+      outcome
+    end
+
+    # Does a stored line hold this entry?  Entries carry an id; entries
+    # written by older versions are matched on their content.
+    def same_entry?(line, entry)
+      stored = parse_line(line)
+      return false unless stored
+
+      entry[:id] ? stored[:id] == entry[:id] : stored == entry
+    end
+
+    # Remove one entry (the first match) from the queue.
+    def remove_entry(entry)
+      with_lock do
+        lines = read_lines
+        index = lines.index { |line| same_entry?(line, entry) }
+        next unless index
+
+        lines.delete_at(index)
+        rewrite(lines)
+      end
+    end
+
+    # Record a failed replay on the entry, in place.
+    def mark_failed_replay(entry, error)
+      with_lock do
+        lines = read_lines
+        index = lines.index { |line| same_entry?(line, entry) }
+        next unless index
+
+        updated = entry.merge(
+          error:       "Replay failed: #{error}",
+          retry_count: (entry[:retry_count] || 0) + 1
+        )
+        lines[index] = JSON.generate(updated)
+        rewrite(lines)
+      end
+    end
+
+    # Rebuild the message from a DLQ entry and publish it.
+    #
+    # The message goes straight to the transports, not through
+    # Message#publish: a failed publish there dead-letters the message,
+    # which would add a second copy of an entry that is already queued.
+    #
+    # @param entry [Hash] The DLQ entry to replay
+    # @param transport_override [SmartMessage::Transport::Base] Optional transport override
+    # @return [Hash] { success: true, message: } or { success: false, error: }
+    def replay_entry(entry, transport_override = nil)
+      message = rebuild_message(entry)
+      targets = transport_override ? [transport_override] : message.transports
+      if targets.empty?
+        raise Errors::TransportNotConfigured, "#{message.class.name} has no transport configured"
+      end
+
+      message.validate!
+      targets.each { |target| target.publish(message) }
+
+      { success: true, message: message }
+    rescue StandardError => e
+      { success: false, error: "#{e.class.name}: #{e.message}" }
+    end
+
+    # @return [SmartMessage::Base] the message stored in an entry, with its
+    #   original header (same UUID)
+    def rebuild_message(entry)
+      serializer = Serializer.for(entry[:payload_format]) || Serializer::Json
+      Envelope.decode(
+        entry[:payload],
+        serializer:      serializer.new,
+        fallback_header: entry[:header]
+      )
     end
   end
 end

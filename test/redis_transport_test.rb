@@ -1,310 +1,244 @@
 # test/redis_transport_test.rb
+# encoding: utf-8
+# frozen_string_literal: true
 
-require_relative "test_helper"
+require_relative 'test_helper'
+require_relative 'helpers/transport_contract'
 
-require 'smart_message/transport'
+# The Redis pub/sub transport, against a real server (review findings T5,
+# T9, R13).  Skipped only when no server answers; every test uses its own
+# namespace, so runs on a shared server cannot see each other.
+class RedisTransportTest < Minitest::Test
+  include TransportContract
 
-module RedisTransportTest
-  # A simple example message model for testing
-  class TestMessage < SmartMessage::Base
-    from 'test-service'
-    
-    property :content
-    property :timestamp
+  RT = SmartMessage::Transport::RedisTransport
 
-    class << self
-      def process(message)
-        SS.add(whoami, 'process')
-        return 'processed'
-      end
-    end
+  def setup
+    require_redis!
   end
 
-  class AnotherTestMessage < SmartMessage::Base
-    from 'test-service'
-    
-    property :data
-
-    class << self
-      def process(message)
-        SS.add(whoami, 'process')
-        return 'processed_another'
-      end
-    end
+  def namespace
+    @namespace ||= redis_namespace
   end
 
-  class Test < Minitest::Test
-    def setup
-      SS.reset
-      skip "Redis not available" unless redis_available?
-      setup_test_redis
-    rescue => e
-      skip "Redis transport test setup failed: #{e.message}"
-    end
+  def new_transport(**options)
+    RT.new(url: REDIS_TEST_URL, namespace: namespace, subscribe_timeout: 3, **options)
+  end
 
-    def teardown
-      cleanup_redis if redis_available?
-    end
+  # @return [Array<String>] ids of the pub/sub connections on the server
+  def pubsub_client_ids(admin)
+    admin.call('CLIENT', 'LIST', 'TYPE', 'pubsub').scan(/^id=(\d+)/).flatten
+  end
 
-    ##################################################################
-    def test_0010_redis_transport_creation_and_configuration
+  def subscriber_threads
+    Thread.list.count { |thread| thread.name == 'SmartMessage-RedisSubscriber' && thread.alive? }
+  end
 
-      transport = SmartMessage::Transport::RedisTransport.new(
-        url: 'redis://localhost:6379',
-        db: 15, # Use test database
-        auto_subscribe: false
-      )
+  # ---- channels ------------------------------------------------------------
 
-      assert_instance_of SmartMessage::Transport::RedisTransport, transport
-      assert_equal 'redis://localhost:6379', transport.options[:url]
-      assert_equal 15, transport.options[:db]
-      assert_equal false, transport.options[:auto_subscribe]
-      assert transport.connected?
+  def test_channel_names_carry_the_namespace
+    assert_equal "#{namespace}:Order", transport.channel_for('Order')
+    assert_equal 'Order', transport.message_class_for("#{namespace}:Order")
 
-      transport.disconnect
-    end
+    bare = track(RT.new(url: REDIS_TEST_URL))
+    assert_equal 'Order', bare.channel_for('Order')
+    assert_equal 'Order', bare.message_class_for('Order')
+  end
 
-    ##################################################################
-    def test_0020_redis_transport_registry_registration
+  def test_namespaces_do_not_see_each_other
+    mine   = track(new_transport)
+    theirs = track(RT.new(url: REDIS_TEST_URL, namespace: redis_namespace))
+    ContractMessage.transport(mine)
+    received = collect
 
-      assert SmartMessage::Transport.registry.registered?(:redis)
-      assert_equal SmartMessage::Transport::RedisTransport, SmartMessage::Transport.get(:redis)
+    theirs.publish(ContractMessage.new(value: 'theirs'))
+    mine.publish(ContractMessage.new(value: 'mine'))
 
-      redis_transport = SmartMessage::Transport.create(:redis, 
-        url: 'redis://localhost:6379',
-        db: 15,
-        auto_subscribe: false
-      )
+    wait_until { !received.empty? }
+    sleep 0.1
+    assert_equal ['mine'], Array.new(received.size) { received.pop.value }
+  end
 
-      assert_instance_of SmartMessage::Transport::RedisTransport, redis_transport
-      redis_transport.disconnect
-    end
+  # ---- subscriptions -------------------------------------------------------
 
-    ##################################################################
-    def test_0030_redis_transport_publish_functionality
+  def test_no_connection_thread_until_something_subscribes
+    before = subscriber_threads
 
-      RedisTransportTest::TestMessage.config do
-        reset_transport
-        reset_logger
-        
-        transport SmartMessage::Transport::RedisTransport.new(
-          url: 'redis://localhost:6379',
-          db: 15,
-          auto_subscribe: false
-        )
+    idle = track(new_transport)
+    idle.publish(ContractMessage.new(value: 1))
+
+    assert_equal before, subscriber_threads
+    assert_nil idle.subscriber_thread
+    assert_empty idle.subscribed_channels
+  end
+
+  def test_subscribe_returns_once_redis_has_confirmed
+    use
+    collect
+
+    assert_equal ["#{namespace}:TransportContract::ContractMessage"], transport.subscribed_channels
+  end
+
+  def test_a_message_published_right_after_subscribe_is_not_missed
+    publisher = track(new_transport)
+    ContractMessage.transport(transport)
+    received = collect
+
+    publisher.publish(ContractMessage.new(value: 'immediately')) # no sleep
+
+    wait_until { !received.empty? }
+    assert_equal 'immediately', received.pop.value
+  end
+
+  def test_adding_a_channel_keeps_the_existing_subscription_alive
+    use
+    first  = collect(ContractMessage)
+    thread = transport.subscriber_thread
+
+    stop      = false
+    publisher = Thread.new do
+      count = 0
+      until stop
+        ContractMessage.new(value: count += 1).publish
+        sleep 0.002
       end
+      count
+    end
+    sleep 0.05
+    second = collect(OtherMessage) # changes the subscription under load
+    sleep 0.05
+    stop = true
+    sent = publisher.value
 
-      message = RedisTransportTest::TestMessage.new(
-        content: 'test message',
-        timestamp: Time.now.to_s
-      )
+    wait_until(message: 'messages were lost while a channel was added') { first.size == sent }
+    assert_same thread, transport.subscriber_thread, 'the subscriber was not restarted'
+    assert_equal 2, transport.subscribed_channels.size
 
-      # Should not raise an error
-      assert message.publish
+    OtherMessage.new(value: 'other').publish
+    wait_until { !second.empty? }
+  end
 
-      assert_equal 1, SS.get('RedisTransportTest::TestMessage', 'publish')
+  def test_unsubscribing_removes_the_channel
+    use
+    collect(ContractMessage)
+    collect(OtherMessage)
 
-      RedisTransportTest::TestMessage.transport.disconnect
+    ContractMessage.unsubscribe!
+
+    assert_equal ["#{namespace}:TransportContract::OtherMessage"], transport.subscribed_channels
+  end
+
+  def test_a_channel_stays_while_one_handler_remains
+    use
+    first = ContractMessage.subscribe { |_message| nil }
+    kept  = collect
+
+    ContractMessage.unsubscribe(first)
+    assert_equal 1, transport.subscribed_channels.size
+
+    ContractMessage.new(value: 'still delivered').publish
+    wait_until { !kept.empty? }
+  end
+
+  def test_an_undecodable_payload_is_dead_lettered_and_the_subscription_survives
+    use
+    received = collect
+    raw      = Redis.new(url: REDIS_TEST_URL)
+
+    raw.publish(transport.channel_for('TransportContract::ContractMessage'), 'not a message')
+    wait_until(message: 'the bad payload was not dead-lettered') { dlq.size == 1 }
+    ContractMessage.new(value: 'after the bad payload').publish
+
+    wait_until { !received.empty? }
+    assert_equal 'after the bad payload', received.pop.value
+    assert_equal 'not a message', dlq.peek[:payload]
+  ensure
+    raw&.close
+  end
+
+  def test_a_message_for_another_class_on_the_channel_is_rejected
+    use
+    received = collect
+    raw      = Redis.new(url: REDIS_TEST_URL)
+    forged   = transport.encode_message(OtherMessage.new(value: 'forged'))
+
+    raw.publish(transport.channel_for('TransportContract::ContractMessage'), forged)
+
+    wait_until { dlq.size == 1 }
+    assert received.empty?
+    assert_match(/MessageClassMismatch/, dlq.peek[:error])
+  ensure
+    raw&.close
+  end
+
+  # ---- lifecycle -----------------------------------------------------------
+
+  def test_disconnect_stops_the_subscriber_thread
+    use
+    collect
+    before = subscriber_threads
+    thread = transport.subscriber_thread
+
+    transport.disconnect
+
+    refute thread.alive?
+    assert_equal before - 1, subscriber_threads
+    refute transport.connected?
+    assert_empty transport.subscribed_channels
+  end
+
+  def test_publish_after_disconnect_fails_loudly
+    use
+    transport.disconnect
+
+    error = assert_raises(SmartMessage::Errors::PublishError) { ContractMessage.new(value: 1).publish }
+
+    assert_instance_of SmartMessage::Errors::TransportError, error.result.errors.first
+    assert_equal 1, dlq.size
+    assert_raises(SmartMessage::Errors::TransportError) { collect }
+  end
+
+  def test_connect_resumes_publishing_and_subscriptions
+    use
+    received = collect
+    transport.disconnect
+
+    transport.connect
+
+    assert transport.connected?
+    assert_equal 1, transport.subscribed_channels.size
+    ContractMessage.new(value: 'after reconnect').publish
+    wait_until { !received.empty? }
+    assert_equal 'after reconnect', received.pop.value
+  end
+
+  def test_an_unreachable_server_fails_the_publish
+    dead = use(track(RT.new(url: 'redis://127.0.0.1:1', reconnect_attempts: 0)))
+
+    refute dead.connected?
+    error = assert_raises(SmartMessage::Errors::PublishError) { ContractMessage.new(value: 1).publish }
+    assert_kind_of Redis::BaseError, error.result.errors.first
+    assert_equal 1, dlq.size
+  end
+
+  def test_the_subscriber_reconnects_after_its_connection_is_killed
+    use(track(new_transport(reconnect_delay: 0.05)))
+    admin    = Redis.new(url: REDIS_TEST_URL)
+    before   = pubsub_client_ids(admin)
+    received = collect
+    ours     = pubsub_client_ids(admin) - before
+
+    # Kill only the connection this test opened; the server may be shared.
+    refute_empty ours
+    ours.each { |id| admin.call('CLIENT', 'KILL', 'ID', id) }
+    wait_until(message: 'the subscriber did not come back') do
+      ContractMessage.new(value: 'ping').publish
+      sleep 0.05
+      !received.empty?
     end
 
-    ##################################################################
-    def test_0040_redis_transport_subscribe_and_process
-
-      RedisTransportTest::TestMessage.config do
-        reset_transport
-        reset_logger
-        
-        transport SmartMessage::Transport::RedisTransport.new(
-          url: 'redis://localhost:6379',
-          db: 15,
-          auto_subscribe: true,
-          debug: false
-        )
-      end
-
-      # Clear subscription database
-      RedisTransportTest::TestMessage.transport.dispatcher.drop_all!
-
-      # Subscribe to the message
-      RedisTransportTest::TestMessage.subscribe
-
-      # Give subscriber thread time to start
-      sleep(0.1)
-
-      # Publish a message
-      message = RedisTransportTest::TestMessage.new(
-        content: 'subscription test',
-        timestamp: Time.now.to_s
-      )
-
-      message.publish
-
-      # Wait for message processing with timeout
-      timeout = 2.0  # 2 second timeout
-      start_time = Time.now
-      
-      while SS.get('RedisTransportTest::TestMessage', 'process') == 0
-        sleep(0.05)  # Check every 50ms
-        break if Time.now - start_time > timeout
-      end
-
-      # Debug output
-      publish_count = SS.get('RedisTransportTest::TestMessage', 'publish')
-      process_count = SS.get('RedisTransportTest::TestMessage', 'process')
-      puts "DEBUG: Published #{publish_count}, Processed #{process_count}"
-      
-      # Skip the test if processing didn't work (likely environmental issue)
-      if process_count == 0
-        skip "Redis transport processing not working - likely environmental issue"
-      end
-
-      # Check that the message was processed
-      assert_equal 1, publish_count
-      assert_equal 1, process_count
-
-      RedisTransportTest::TestMessage.transport.disconnect
-    end
-
-    ##################################################################
-    def test_0050_redis_transport_multiple_message_types
-
-      # Create shared transport instance
-      shared_transport = SmartMessage::Transport::RedisTransport.new(
-        url: 'redis://localhost:6379',
-        db: 15,
-        auto_subscribe: true,
-        debug: false
-      )
-
-      # Configure TestMessage
-      RedisTransportTest::TestMessage.config do
-        reset_transport
-        reset_logger
-        
-        transport shared_transport
-      end
-
-      # Configure AnotherTestMessage with same transport
-      RedisTransportTest::AnotherTestMessage.config do
-        reset_transport
-        reset_logger
-        
-        transport shared_transport
-      end
-
-      # Clear subscription database
-      shared_transport.dispatcher.drop_all!
-
-      # Subscribe both message types
-      RedisTransportTest::TestMessage.subscribe
-      RedisTransportTest::AnotherTestMessage.subscribe
-
-      # Give subscriber thread time to restart with new subscriptions
-      sleep(0.1)
-
-      # Publish messages of both types
-      test_message = RedisTransportTest::TestMessage.new(
-        content: 'first type',
-        timestamp: Time.now.to_s
-      )
-
-      another_message = RedisTransportTest::AnotherTestMessage.new(
-        data: 'second type'
-      )
-
-      test_message.publish
-      another_message.publish
-
-      # Wait for message processing with timeout
-      timeout = 2.0  # 2 second timeout
-      start_time = Time.now
-      
-      # Wait for both message types to be processed
-      while (SS.get('RedisTransportTest::TestMessage', 'process') == 0 || 
-             SS.get('RedisTransportTest::AnotherTestMessage', 'process') == 0)
-        sleep(0.05)  # Check every 50ms
-        break if Time.now - start_time > timeout
-      end
-
-      # Debug output
-      test_publish = SS.get('RedisTransportTest::TestMessage', 'publish')
-      test_process = SS.get('RedisTransportTest::TestMessage', 'process')
-      another_publish = SS.get('RedisTransportTest::AnotherTestMessage', 'publish')
-      another_process = SS.get('RedisTransportTest::AnotherTestMessage', 'process')
-      puts "DEBUG: TestMessage - Published #{test_publish}, Processed #{test_process}"
-      puts "DEBUG: AnotherTestMessage - Published #{another_publish}, Processed #{another_process}"
-      
-      # Skip the test if processing didn't work (likely environmental issue)
-      if test_process == 0 || another_process == 0
-        skip "Redis transport processing not working - likely environmental issue"
-      end
-
-      # Check that both message types were processed
-      assert_equal 1, test_publish
-      assert_equal 1, test_process
-      assert_equal 1, another_publish
-      assert_equal 1, another_process
-
-      shared_transport.disconnect
-    end
-
-    ##################################################################
-    def test_0060_redis_transport_unsubscribe_functionality
-
-      RedisTransportTest::TestMessage.config do
-        reset_transport
-        reset_logger
-        
-        transport SmartMessage::Transport::RedisTransport.new(
-          url: 'redis://localhost:6379',
-          db: 15,
-          auto_subscribe: true,
-          debug: false
-        )
-      end
-
-      # Clear subscription database
-      RedisTransportTest::TestMessage.transport.dispatcher.drop_all!
-
-      # Subscribe and then unsubscribe
-      RedisTransportTest::TestMessage.subscribe
-      sleep(0.1)
-
-      RedisTransportTest::TestMessage.unsubscribe!
-      sleep(0.1)
-
-      # Publish a message - should not be processed
-      message = RedisTransportTest::TestMessage.new(
-        content: 'should not be processed',
-        timestamp: Time.now.to_s
-      )
-
-      message.publish
-      sleep(0.2)
-
-      # Message should be published but not processed
-      assert_equal 1, SS.get('RedisTransportTest::TestMessage', 'publish')
-      assert_equal 0, SS.get('RedisTransportTest::TestMessage', 'process')
-
-      RedisTransportTest::TestMessage.transport.disconnect
-    end
-
-    private
-
-    def redis_available?
-      Redis.new(url: 'redis://localhost:6379', db: 15).ping == 'PONG'
-    rescue
-      false
-    end
-
-    def setup_test_redis
-      @redis = Redis.new(url: 'redis://localhost:6379', db: 15)
-      @redis.flushdb # Clear test database
-    end
-
-    def cleanup_redis
-      @redis&.flushdb # Clear test database
-      @redis&.quit
-    end
+    assert ContractMessage.transport.subscriber_thread.alive?
+  ensure
+    admin&.close
   end
 end

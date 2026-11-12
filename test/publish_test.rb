@@ -45,7 +45,7 @@ module PublishTest
   class Test < Minitest::Test
     def setup
       PublishTest::CommonMessageConfig.config do
-        transport   SmartMessage::Transport::StdoutTransport.new
+        transport   SmartMessage::Transport::StdoutTransport.new(output: StringIO.new)
       end
 
       # Uses the publish method defined by the message
@@ -91,9 +91,11 @@ module PublishTest
 
       how_many.times do |message_id|
         @my_transport_message.id = message_id
-        # NOTE: message_id is zero-based but the count of published messages
-        # is being returned.
-        assert_equal message_id+1, @my_transport_message.publish
+        result = @my_transport_message.publish
+        
+        assert_instance_of SmartMessage::PublishResult, result
+        assert result.success?
+        assert_equal message_id + 1, SS.get('PublishTest::MyTransportMessage', 'publish')
       end
 
       assert_equal how_many, SS.get('PublishTest::MyTransportMessage', 'publish')

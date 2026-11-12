@@ -58,7 +58,7 @@ module BaseTest
       assert_equal "Added description for MyMessage", BaseTest::MyMessage.description
       
       # Reset it back to nil for other tests
-      BaseTest::MyMessage.instance_variable_set(:@description, nil)
+      BaseTest::MyMessage.clear_setting(:description)
       assert_equal "BaseTest::MyMessage is a SmartMessage", BaseTest::MyMessage.description
     end
 
@@ -70,7 +70,8 @@ module BaseTest
       assert_equal 'one', hash[:foo]
       assert_equal 'two', hash[:bar]
       assert_nil   hash[:baz]
-      assert_same  message._sm_header, hash[:_sm_header]
+      assert_equal message._sm_header.to_h, hash[:_sm_header]
+      assert_instance_of Hash, hash[:_sm_header]
     end
 
     def test_to_hash_matches_to_h

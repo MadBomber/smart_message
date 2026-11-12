@@ -1,468 +1,123 @@
-# Entity Addressing
+# Addressing
 
-SmartMessage supports entity-to-entity addressing through built-in FROM/TO/REPLY_TO fields in message headers. This enables sophisticated messaging patterns including point-to-point communication, broadcast messaging, and request-reply workflows.
+Every message header has three addressing fields. Their values are entity ids: Strings your application chooses, such as service names.
 
-## Overview
+| Field | Required | Meaning |
+|-------|----------|---------|
+| `from` | yes | The entity sending the message |
+| `to` | no | The intended recipient. `nil` means a broadcast. |
+| `reply_to` | no | Where a reply should be sent |
 
-Entity addressing in SmartMessage provides:
+Addressing does not change where a transport delivers a message: every subscriber of the message class on that transport receives it. Addressing is what [subscription filters](message-filtering.md) match on, and what handlers read.
 
-- **Sender Identification**: Required `from` field identifies the sending entity
-- **Recipient Targeting**: Optional `to` field for point-to-point messaging  
-- **Response Routing**: Optional `reply_to` field for request-reply patterns
-- **Broadcast Support**: Omitting `to` field enables broadcast to all subscribers
-- **Dual-Level Configuration**: Class and instance-level addressing configuration
+`from`, `to` and `reply_to` are reserved names. They live in the header and cannot be declared as properties.
 
-## Address Fields
-
-### FROM (Required)
-The `from` field identifies the entity sending the message. This is required for all messages.
+## Class defaults
 
 ```ruby
-class MyMessage < SmartMessage::Base
-  from 'order-service'  # Required sender identity
-  
-  property :data
-end
-```
-
-### TO (Optional)
-The `to` field specifies the intended recipient entity. When present, creates point-to-point messaging. When `nil`, the message is broadcast to all subscribers.
-
-```ruby
-# Point-to-point messaging
-class DirectMessage < SmartMessage::Base
-  from 'sender-service'
-  to 'recipient-service'  # Specific target
-  
-  property :content
-end
-
-# Broadcast messaging
-class AnnouncementMessage < SmartMessage::Base
-  from 'admin-service'
-  # No 'to' field = broadcast to all subscribers
-  
-  property :announcement
-end
-```
-
-### REPLY_TO (Optional)
-The `reply_to` field specifies where responses should be sent. Defaults to the `from` entity if not specified.
-
-```ruby
-class RequestMessage < SmartMessage::Base
-  from 'client-service'
-  to 'api-service'
-  reply_to 'client-callback-service'  # Responses go here
-  
-  property :request_data
-end
-```
-
-## Configuration Patterns
-
-### Class-Level Configuration
-
-Set default addressing for all instances of a message class using three different approaches:
-
-#### Method 1: Direct Class Methods
-```ruby
-class PaymentMessage < SmartMessage::Base
-  version 1
-  
-  # Class-level addressing using direct methods
-  from 'payment-service'
-  to 'bank-gateway'
-  reply_to 'payment-service'
-  
-  property :amount, required: true
-  property :account_id, required: true
-end
-```
-
-#### Method 2: Header Block DSL
-```ruby
-class PaymentMessage < SmartMessage::Base
-  version 1
-  
-  # Class-level addressing using header block
-  header do
-    from 'payment-service'
-    to 'bank-gateway'
-    reply_to 'payment-service'
-  end
-  
-  property :amount, required: true
-  property :account_id, required: true
-end
-```
-
-#### Method 3: Mixed Approach
-```ruby
-class PaymentMessage < SmartMessage::Base
-  version 1
-  
-  # You can mix approaches if needed
-  header do
-    from 'payment-service'
-    to 'bank-gateway'
-  end
-  
-  # Additional addressing outside the block
-  reply_to 'payment-service'
-  
-  property :amount, required: true
-  property :account_id, required: true
-end
-
-# All instances inherit class addressing
-payment = PaymentMessage.new(amount: 100.00, account_id: "ACCT-123")
-puts payment._sm_header.from     # => 'payment-service'
-puts payment._sm_header.to       # => 'bank-gateway'
-puts payment._sm_header.reply_to # => 'payment-service'
-```
-
-### Instance-Level Overrides
-
-Override addressing for specific message instances using multiple approaches:
-
-#### Method Chaining
-```ruby
-class FlexibleMessage < SmartMessage::Base
-  header do
-    from 'service-a'
-    to 'service-b'
-  end
-  
-  property :data
-end
-
-# Override addressing using method chaining
-message = FlexibleMessage.new(data: "test")
-message.from('different-sender')
-       .to('different-recipient')
-       .reply_to('different-reply-service')
-
-puts message.from     # => 'different-sender'
-puts message.to       # => 'different-recipient' 
-puts message.reply_to # => 'different-reply-service'
-```
-
-#### Setter Methods
-```ruby
-# Override addressing using setter syntax
-message = FlexibleMessage.new(data: "test")
-message.from = 'different-sender'
-message.to = 'different-recipient'
-message.reply_to = 'different-reply-service'
-```
-
-#### Accessing Addressing Values
-```ruby
-# Three ways to access addressing values
-
-# 1. Direct shortcut methods
-puts message.from      # => 'different-sender'
-puts message.to        # => 'different-recipient'
-puts message.reply_to  # => 'different-reply-service'
-
-# 2. Via header object
-puts message._sm_header.from      # => 'different-sender'
-puts message._sm_header.to        # => 'different-recipient'
-puts message._sm_header.reply_to  # => 'different-reply-service'
-
-# 3. Class defaults remain unchanged
-puts FlexibleMessage.from # => 'service-a'
-puts FlexibleMessage.to   # => 'service-b'
-```
-
-## Messaging Patterns
-
-### Point-to-Point Messaging
-
-Direct communication between two specific entities:
-
-```ruby
-class OrderProcessingMessage < SmartMessage::Base
-  from 'order-service'
-  to 'inventory-service'  # Direct target
-  reply_to 'order-service'
-  
-  property :order_id, required: true
-  property :items, required: true
-end
-
-# Message goes directly to inventory-service
-order = OrderProcessingMessage.new(
-  order_id: "ORD-123", 
-  items: ["widget-1", "widget-2"]
-)
-order.publish  # Only inventory-service receives this
-```
-
-### Broadcast Messaging
-
-Send message to all subscribers by omitting the `to` field:
-
-```ruby
-class SystemMaintenanceMessage < SmartMessage::Base
-  from 'admin-service'
-  # No 'to' field = broadcast
-  
-  property :message, required: true
-  property :scheduled_time, required: true
-end
-
-# Message goes to all subscribers
-maintenance = SystemMaintenanceMessage.new(
-  message: "System maintenance tonight at 2 AM",
-  scheduled_time: Time.parse("2024-01-15 02:00:00")
-)
-maintenance.publish  # All subscribers receive this
-```
-
-### Request-Reply Pattern
-
-Structured request-response communication:
-
-```ruby
-# Request message
-class UserLookupRequest < SmartMessage::Base
-  from 'web-service'
-  to 'user-service'
-  reply_to 'web-service'  # Responses come back here
-  
-  property :user_id, required: true
-  property :request_id, required: true  # For correlation
-end
-
-# Response message  
-class UserLookupResponse < SmartMessage::Base
-  from 'user-service'
-  # 'to' will be set to the original 'reply_to' value
-  
-  property :user_id, required: true
-  property :request_id, required: true  # Correlation ID
-  property :user_data
-  property :success, default: true
-end
-
-# Send request
-request = UserLookupRequest.new(
-  user_id: "USER-123",
-  request_id: SecureRandom.uuid
-)
-request.publish
-
-# In user-service handler:
-class UserLookupRequest
-  def self.process(decoded_message)
-    # Process lookup...
-    user_data = UserService.find(decoded_message.user_id)
-    
-    # Send response back to reply_to address
-    response = UserLookupResponse.new(
-      user_id: decoded_message.user_id,
-      request_id: decoded_message.request_id,
-      user_data: user_data
-    )
-    response.to(decoded_message._sm_header.reply_to)  # Send to original reply_to
-    response.publish
-  end
-end
-```
-
-### Gateway Pattern
-
-Forward messages between different transports/formats:
-
-```ruby
-class GatewayMessage < SmartMessage::Base
-  from 'gateway-service'
-  
-  property :original_message
-  property :source_format
-  property :target_format
-end
-
-# Receive from one transport/format
-incoming = SomeMessage.new(data: "from system A")
-
-# Forward to different system with different addressing
-gateway_msg = GatewayMessage.new(
-  original_message: incoming.to_h,
-  source_format: 'json',
-  target_format: 'xml'
-)
-
-# Override transport and addressing for forwarding
-gateway_msg.config do
-  transport DifferentTransport.new
-  serializer DifferentSerializer.new
-end
-gateway_msg.to('system-b')
-gateway_msg.publish
-```
-
-## Address Validation
-
-The `from` field is required and validated automatically:
-
-```ruby
-class InvalidMessage < SmartMessage::Base
-  # No 'from' specified - will fail validation
-  property :data
-end
-
-message = InvalidMessage.new(data: "test")
-message.publish  # Raises SmartMessage::Errors::ValidationError
-# => "The property 'from' From entity ID is required for message routing and replies"
-```
-
-### Checking Address Configuration
-```ruby
-class ValidatedMessage < SmartMessage::Base
-  header do
-    from 'my-service'
-    to 'target-service'
-  end
-  
-  property :data
-end
-
-# Class-level checks
-puts ValidatedMessage.from_configured?     # => true
-puts ValidatedMessage.to_configured?       # => true
-puts ValidatedMessage.reply_to_configured? # => false
-puts ValidatedMessage.reply_to_missing?    # => true
-
-# Instance-level checks
-message = ValidatedMessage.new(data: "test")
-puts message.from_configured?     # => true
-puts message.to_missing?          # => false
-
-# Reset addressing
-message.reset_from
-puts message.from_configured?     # => false
-puts message.from                 # => nil
-```
-
-## Header Access
-
-Access addressing information from message headers:
-
-```ruby
-class SampleMessage < SmartMessage::Base
-  # Using header block for configuration
-  header do
-    from 'sample-service'
-    to 'target-service'
-    reply_to 'callback-service'
-  end
-  
-  property :content
-end
-
-message = SampleMessage.new(content: "Hello")
-
-# Access via shortcut methods (recommended)
-puts message.from      # => 'sample-service'
-puts message.to        # => 'target-service'  
-puts message.reply_to  # => 'callback-service'
-
-# Access via header object
-header = message._sm_header
-puts header.from      # => 'sample-service'
-puts header.to        # => 'target-service'  
-puts header.reply_to  # => 'callback-service'
-puts header.uuid      # => Generated UUID
-puts header.message_class  # => 'SampleMessage'
-
-# Headers automatically sync with instance changes
-message.to = 'new-target'
-puts message.to           # => 'new-target'
-puts header.to            # => 'new-target' (automatically updated)
-```
-
-## Integration with Dispatcher
-
-The dispatcher can use addressing metadata for advanced routing logic:
-
-```ruby
-# Future enhancement: Dispatcher filtering by recipient
-# dispatcher.route(message_header, payload) do |header|
-#   if header.to.nil?
-#     # Broadcast to all subscribers
-#     route_to_all_subscribers(header.message_class)
-#   else
-#     # Route only to specific recipient
-#     route_to_entity(header.to, header.message_class)
-#   end
-# end
-```
-
-## Best Practices
-
-### Entity Naming
-Use consistent, descriptive entity identifiers:
-
-```ruby
-# Good: Descriptive service names
-from 'order-management-service'
-to 'inventory-tracking-service'
-reply_to 'order-status-service'
-
-# Avoid: Generic or unclear names
-from 'service1'
-to 'app'
-```
-
-### Address Consistency
-Maintain consistent addressing patterns across your application:
-
-```ruby
-# Consistent pattern for microservices
+# messages/order_message.rb
 class OrderMessage < SmartMessage::Base
-  from 'order-service'
-  to 'fulfillment-service'
+  from     'order-service'
+  to       'fulfillment-service'
   reply_to 'order-service'
-end
 
-class PaymentMessage < SmartMessage::Base  
-  from 'payment-service'
-  to 'billing-service'
-  reply_to 'payment-service'
+  property :order_id, required: true
 end
 ```
 
-### Gateway Configuration
-For gateway patterns, use instance-level overrides:
+The same thing with the header block:
 
 ```ruby
-# Class defines default routing
-class APIMessage < SmartMessage::Base
-  from 'api-gateway'
-  to 'internal-service'
-end
+class OrderMessage < SmartMessage::Base
+  header do
+    from     'order-service'
+    to       'fulfillment-service'
+    reply_to 'order-service'
+  end
 
-# Override for external routing
-message = APIMessage.new(data: "external request")
-message.to('external-partner-service')
-message.config do
-  transport ExternalTransport.new
-  serializer SecureSerializer.new
+  property :order_id, required: true
 end
-message.publish
 ```
 
-## Future Enhancements
+`header` at class level takes a block and nothing else; any other call raises `ArgumentError`.
 
-The addressing system provides the foundation for advanced features:
+Class defaults are inherited by subclasses. A subclass that sets its own value does not change its parent.
 
-- **Dispatcher Filtering**: Route messages based on recipient targeting
-- **Security Integration**: Entity-based authentication and authorization
-- **Audit Trails**: Track message flow between entities
-- **Load Balancing**: Distribute messages across entity instances
-- **Circuit Breakers**: Per-entity failure handling
+```ruby
+OrderMessage.from                # => "order-service"
+OrderMessage.to_configured?      # => true
+OrderMessage.reply_to_missing?   # => false
+OrderMessage.reset_to            # forget this class's own value
+```
 
-Entity addressing enables sophisticated messaging architectures while maintaining the simplicity and flexibility that makes SmartMessage powerful.
+## Per message
+
+Pass addressing to `new`, or set it afterwards. An instance keeps its addressing in its header.
+
+```ruby
+order = OrderMessage.new(order_id: 'ORD-1', to: 'express-fulfillment')
+
+order.from                      # => "order-service"        (class default)
+order.to                        # => "express-fulfillment"  (given to new)
+
+order.to = 'backup-fulfillment'           # setter
+order.to('fulfillment-eu').reply_to('eu') # with an argument: sets and returns the message
+
+order._sm_header.to             # => "fulfillment-eu"
+order.reset_to                  # back to the class default
+order.to                        # => "fulfillment-service"
+```
+
+A message with no `from` (none on the class, none given) fails validation:
+
+```ruby
+class PingMessage < SmartMessage::Base
+  property :text
+end
+
+ping = PingMessage.new(text: 'hello')
+ping.valid?                     # => false
+ping.validation_errors.first    # => { property: :from, value: nil, message: "From entity ID is required ...", source: "header" }
+ping.from('console').valid?     # => true
+```
+
+## Patterns
+
+### Point to point
+
+Set `to`. Receivers subscribe with a `to:` filter so that each one handles only its own messages.
+
+```ruby
+OrderMessage.subscribe(to: 'fulfillment-service')
+
+OrderMessage.new(order_id: 'ORD-1', to: 'fulfillment-service').publish
+```
+
+### Broadcast
+
+Leave `to` unset. Subscribers that want only broadcasts use `broadcast: true`.
+
+```ruby
+class MaintenanceNotice < SmartMessage::Base
+  from 'ops'
+  property :text, required: true
+end
+
+MaintenanceNotice.subscribe(broadcast: true)
+```
+
+### Request and reply
+
+The requester sets `reply_to`; the responder addresses its reply to it.
+
+```ruby
+class PriceRequest < SmartMessage::Base
+  property :sku, required: true
+
+  def self.process(message)
+    PriceReply.new(sku: message.sku, cents: 1299, from: 'pricing', to: message.reply_to).publish
+  end
+end
+```
+
+A complete version of this pattern is in [Examples](../getting-started/examples.md).

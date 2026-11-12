@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" width="900" height="560" role="img" aria-labelledby="mf-title mf-desc">
+  <title id="mf-title">SmartMessage message flow</title>
+  <desc id="mf-desc">A message is validated, encoded by the envelope codec, moved by a transport, decoded, and routed by the dispatcher to handlers. Failures at each stage go to the dead letter queue.</desc>
+  <defs>
+    <style>
+      .box   { stroke-width: 2; }
+      .msg   { fill: #0d2538; stroke: #58a6ff; }
+      .codec { fill: #251a3d; stroke: #bc8cff; }
+      .tx    { fill: #0f2d1c; stroke: #3fb950; }
+      .disp  { fill: #33230c; stroke: #d29922; }
+      .hand  { fill: #0c2f33; stroke: #39c5cf; }
+      .dlq   { fill: #3a1418; stroke: #f85149; }
+      .head  { font: bold 15px sans-serif; fill: #e6edf3; text-anchor: middle; }
+      .body  { font: 12px sans-serif; fill: #c9d1d9; text-anchor: middle; }
+      .note  { font: 11px sans-serif; fill: #8b949e; text-anchor: middle; }
+      .flow  { stroke: #8b949e; stroke-width: 2; fill: none; marker-end: url(#arrow); }
+      .fail  { stroke: #f85149; stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; marker-end: url(#arrow-fail); }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#8b949e"/>
+    </marker>
+    <marker id="arrow-fail" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#f85149"/>
+    </marker>
+  </defs>
+
+  <!-- publishing side -->
+  <rect rx="8" class="box msg" x="20" y="20" width="250" height="100"/>
+  <text class="head" x="145" y="46">Message instance</text>
+  <text class="body" x="145" y="68">properties + header (uuid, from, to,</text>
+  <text class="body" x="145" y="84">reply_to, version, published_at)</text>
+  <text class="body" x="145" y="104">publish calls validate!</text>
+
+  <rect rx="8" class="box codec" x="325" y="20" width="250" height="100"/>
+  <text class="head" x="450" y="46">Envelope + serializer</text>
+  <text class="body" x="450" y="68">one flat JSON object:</text>
+  <text class="body" x="450" y="84">properties plus _sm_header</text>
+  <text class="body" x="450" y="104">SerializationError on failure</text>
+
+  <rect rx="8" class="box tx" x="630" y="20" width="250" height="100"/>
+  <text class="head" x="755" y="46">Transport#publish</text>
+  <text class="body" x="755" y="68">one circuit breaker per</text>
+  <text class="body" x="755" y="84">transport instance</text>
+  <text class="body" x="755" y="104">memory | stdout | file | redis</text>
+
+  <path class="flow" d="M270,70 L323,70"/>
+  <path class="flow" d="M575,70 L628,70"/>
+
+  <!-- the wire -->
+  <rect rx="8" class="box tx" x="630" y="170" width="250" height="70"/>
+  <text class="head" x="755" y="198">Medium</text>
+  <text class="body" x="755" y="220">process memory, an IO, a file, Redis pub/sub</text>
+  <path class="flow" d="M755,120 L755,168"/>
+
+  <!-- receiving side -->
+  <rect rx="8" class="box tx" x="630" y="290" width="250" height="90"/>
+  <text class="head" x="755" y="316">Transport#receive</text>
+  <text class="body" x="755" y="338">payload arrives for a message class</text>
+  <text class="body" x="755" y="356">(channel), or with none</text>
+  <path class="flow" d="M755,240 L755,288"/>
+
+  <rect rx="8" class="box codec" x="325" y="290" width="250" height="90"/>
+  <text class="head" x="450" y="316">Envelope.decode</text>
+  <text class="body" x="450" y="338">class must be a loaded Base subclass</text>
+  <text class="body" x="450" y="356">and match the channel</text>
+  <path class="flow" d="M630,335 L577,335"/>
+
+  <rect rx="8" class="box disp" x="20" y="290" width="250" height="90"/>
+  <text class="head" x="145" y="316">Dispatcher</text>
+  <text class="body" x="145" y="338">filters, deduplication reserve,</text>
+  <text class="body" x="145" y="356">bounded thread pool</text>
+  <path class="flow" d="M325,335 L272,335"/>
+
+  <rect rx="8" class="box hand" x="20" y="440" width="250" height="100"/>
+  <text class="head" x="145" y="466">Handlers</text>
+  <text class="body" x="145" y="488">each gets its own copy of the message</text>
+  <text class="body" x="145" y="504">and its own circuit breaker</text>
+  <text class="body" x="145" y="524">class method, block, proc, lambda</text>
+  <path class="flow" d="M145,380 L145,438"/>
+
+  <!-- dead letter queue -->
+  <rect rx="8" class="box dlq" x="405" y="440" width="475" height="100"/>
+  <text class="head" x="642" y="466">Dead letter queue (JSON Lines file)</text>
+  <text class="body" x="642" y="488">failed publish | undecodable payload | failed handler</text>
+  <text class="body" x="642" y="504">open circuit | handler killed at shutdown</text>
+  <text class="body" x="642" y="524">inspect, filter, replay</text>
+
+  <path class="fail" d="M840,120 C895,200 895,360 850,438"/>
+  <path class="fail" d="M450,380 L520,438"/>
+  <path class="fail" d="M270,490 L403,490"/>
+
+  <text class="note" x="337" y="482">raised, rejected,</text>
+  <text class="note" x="337" y="508">or killed</text>
+  <text class="note" x="405" y="416">cannot decode</text>
+</svg>

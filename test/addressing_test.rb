@@ -229,23 +229,36 @@ module AddressingTest
     # =======================================================================
 
     def test_from_field_is_required
-      # Attempt to create message without 'from' should fail
-      assert_raises ArgumentError do
-        Class.new(SmartMessage::Base) do
-          # No 'from' specified
-          property :data
-        end.new(data: "test")
-      end
+      # A message without 'from' can be built, but it is not valid
+      message = Class.new(SmartMessage::Base) do
+        # No 'from' specified
+        property :data
+      end.new(data: "test")
+    
+      refute message.valid?
+      assert_equal [:from], message.validation_errors.map { |error| error[:property] }
     end
-
+    
     def test_from_field_validation_error_message
-      error = assert_raises ArgumentError do
-        Class.new(SmartMessage::Base) do
-          property :data
-        end.new(data: "test")
-      end
-      
+      message = Class.new(SmartMessage::Base) do
+        property :data
+      end.new(data: "test")
+    
+      error = assert_raises(SmartMessage::Errors::ValidationError) { message.validate! }
+    
       assert_includes error.message, "From entity ID is required"
+      assert_equal 'header', error.errors.first[:source]
+    end
+    
+    def test_missing_from_can_be_repaired
+      message = Class.new(SmartMessage::Base) do
+        property :data
+      end.new(data: "test")
+    
+      message.from = 'late-service'
+    
+      assert message.valid?
+      assert_equal 'late-service', message._sm_header.from
     end
 
     def test_to_and_reply_to_fields_are_optional

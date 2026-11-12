@@ -5,8 +5,9 @@
 
 DEMO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-echo "Removing old log files..."
-rm -f $DEMO_DIR/log/*.log
+# Every program logs to $CITY_LOG_DIR (default: a directory under the system
+# temp dir), never into the repository.  Uncomment to choose a directory:
+# export CITY_LOG_DIR="$HOME/city_scenario_logs"
 
 # Check if iTerm2 is available
 if ! ls /Applications/iTerm.app &>/dev/null; then
@@ -31,7 +32,7 @@ tell application "iTerm2"
         write text "cd '$DEMO_DIR'"
         write text "clear"
         write text "echo 'Starting Health Department...'"
-        write text "ruby health_department.rb; exit"
+        write text "bundle exec ruby health_department.rb; exit"
     end tell
 
     -- Tab 2: Police Department
@@ -42,7 +43,7 @@ tell application "iTerm2"
             write text "cd '$DEMO_DIR'"
             write text "clear"
             write text "echo 'Starting Police Department...'"
-            write text "ruby police_department.rb; exit"
+            write text "bundle exec ruby police_department.rb; exit"
         end tell
     end tell
 
@@ -54,7 +55,7 @@ tell application "iTerm2"
             write text "cd '$DEMO_DIR'"
             write text "clear"
             write text "echo 'Starting Fire Department...'"
-            write text "ruby fire_department.rb; exit"
+            write text "bundle exec ruby fire_department.rb; exit"
         end tell
     end tell
 
@@ -66,7 +67,7 @@ tell application "iTerm2"
             write text "cd '$DEMO_DIR'"
             write text "clear"
             write text "echo 'Starting Local Bank...'"
-            write text "ruby local_bank.rb; exit"
+            write text "bundle exec ruby local_bank.rb; exit"
         end tell
     end tell
 
@@ -78,7 +79,7 @@ tell application "iTerm2"
             write text "cd '$DEMO_DIR'"
             write text "clear"
             write text "echo 'Starting House #1...'"
-            write text "ruby house.rb '456 Oak Street'; exit"
+            write text "bundle exec ruby house.rb '456 Oak Street'; exit"
         end tell
     end tell
 
@@ -90,7 +91,7 @@ tell application "iTerm2"
             write text "cd '$DEMO_DIR'"
             write text "clear"
             write text "echo 'Starting House #2...'"
-            write text "ruby house.rb '789 Pine Lane'; exit"
+            write text "bundle exec ruby house.rb '789 Pine Lane'; exit"
         end tell
     end tell
 
@@ -102,7 +103,7 @@ tell application "iTerm2"
             write text "cd '$DEMO_DIR'"
             write text "clear"
             write text "echo 'Starting Emergency Dispatch Center (911)...'"
-            write text "ruby emergency_dispatch_center.rb; exit"
+            write text "bundle exec ruby emergency_dispatch_center.rb; exit"
         end tell
     end tell
 
@@ -114,7 +115,7 @@ tell application "iTerm2"
             write text "cd '$DEMO_DIR'"
             write text "clear"
             write text "echo 'Starting Citizen 911 Caller...'"
-            write text "sleep 3; ruby citizen.rb auto; exit"
+            write text "sleep 3; bundle exec ruby citizen.rb auto; exit"
         end tell
     end tell
 
@@ -126,7 +127,7 @@ tell application "iTerm2"
             write text "cd '$DEMO_DIR'"
             write text "clear"
             write text "echo 'Starting Redis Message Monitor...'"
-            write text "ruby redis_monitor.rb; exit"
+            write text "bundle exec ruby redis_monitor.rb; exit"
         end tell
     end tell
 
@@ -138,7 +139,7 @@ tell application "iTerm2"
             write text "cd '$DEMO_DIR'"
             write text "clear"
             write text "echo 'Starting Redis Statistics Dashboard...'"
-            write text "ruby redis_stats.rb; exit"
+            write text "bundle exec ruby redis_stats.rb; exit"
         end tell
     end tell
 
@@ -177,7 +178,7 @@ MESSAGE FLOWS:
   Bank Alarms:   Bank -> Police (silent alarm system)
   House Fires:   Houses -> Fire Dept (emergency response)
   911 Calls:     Citizen -> 911 Dispatch -> Police/Fire
-  Emergencies:   All -> Health Dept (incident resolution)
+  Resolutions:   Police/Fire -> Health Dept (incident resolution)
 
 WHAT TO WATCH:
   Tab 1: Health status with GREEN/YELLOW/ORANGE/RED colors
