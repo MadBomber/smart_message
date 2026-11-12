@@ -455,6 +455,7 @@ class DeadLetterQueueTest < Minitest::Test
     end
     File.write(@test_dlq_file, "#{JSON.generate(entry.except(:header))}\n")
     assert @dlq.replay_one(SmartMessage::Transport::MemoryTransport.new(auto_process: false))[:success]
+    assert @dlq.empty?
   end
 
   def test_default_path_is_absolute_and_not_in_the_working_directory
