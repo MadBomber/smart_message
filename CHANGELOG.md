@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **Dead letter queue**: replay fails, and leaves the entry queued, when the payload names a different message class than the entry was stored for
+- **Transports**: `MemoryTransport` raises `ArgumentError` unless `max_messages` is a positive Integer, and `FileTransport` unless `poll_interval` is a positive number, instead of hanging or stalling delivery (#34)
 
 ### Tests
 - `test_dispatcher_routing` now asserts that both processors receive the routed message, and the dispatcher and subscribe tests no longer print debug output (#14)
