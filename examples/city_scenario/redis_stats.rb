@@ -211,7 +211,7 @@ class RedisStats
       "│    • Active Redis pub/sub channels            │",
       "│    • Real-time performance metrics            │",
       "│    • SmartMessage activity breakdown          │",
-      "│    • Connection and memory statistics         │",
+      "│    • Connection statistics                    │",
       "│                                                │",
       "│         Press any key to continue...          │",
       "└────────────────────────────────────────────────┘"
