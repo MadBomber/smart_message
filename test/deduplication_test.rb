@@ -219,4 +219,38 @@ class DeduplicationTest < Minitest::Test
   ensure
     self.class.send(:remove_const, :Unreachable)
   end
+
+  # ---- Redis key prefix (#53) ---------------------------------------------
+
+  def test_ddq_options_root_the_handler_key_under_the_callers_prefix
+    dispatcher = SmartMessage::Dispatcher.new
+
+    assert_equal({ key_prefix: 'staging:ddq:Evt:Evt.process', ttl: 5 },
+                 dispatcher.send(:ddq_options, { key_prefix: 'staging:ddq', ttl: 5 }, 'Evt:Evt.process'))
+    assert_equal({ key_prefix: 'smart_message:ddq:Evt:Evt.process' },
+                 dispatcher.send(:ddq_options, {}, 'Evt:Evt.process'))
+  ensure
+    dispatcher&.shutdown(timeout: 1)
+  end
+
+  def test_redis_ddq_writes_its_keys_under_the_configured_key_prefix
+    require_redis!
+    redis  = Redis.new(url: REDIS_TEST_URL)
+    prefix = "#{redis_namespace}:ddq"
+    klass  = Class.new(SmartMessage::Base) do
+      from 'dedup-test'
+      ddq_storage :redis, redis: redis, key_prefix: prefix
+      enable_deduplication!
+    end
+    dispatcher = SmartMessage::Dispatcher.new
+
+    ddq = dispatcher.ddq_for('Evt', 'Evt.process', klass)
+    ddq.reserve('uuid-1')
+
+    assert_equal ["#{prefix}:Evt:Evt.process:uuid-1"], redis.scan_each(match: "#{prefix}*").to_a
+  ensure
+    ddq&.clear
+    dispatcher&.shutdown(timeout: 1)
+    redis&.close
+  end
 end

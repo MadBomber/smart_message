@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Errors**: the missing-`from` validation error names the message class and says how to set `from`; `TransportNotConfigured` says how to set a transport in the class or globally (#31)
 
 ### Fixed
+- **Deduplication**: the `key_prefix:` given to `ddq_storage :redis` is the root of the Redis key names instead of being overwritten with `smart_message:ddq`, so environments sharing a Redis server can keep their records apart (#53)
 - **Unsubscribe**: `unsubscribe` raises `ArgumentError` when given the handler lambda/proc itself instead of the id `subscribe` returned, instead of logging success and leaving the handler subscribed (#59)
 - **Validation**: a `required:` lambda that takes the message (`->(m) { m.kind == 'physical' }`) is given it, instead of raising `ArgumentError` and making the property always required (#58)
 - **Validation**: a Module (`Enumerable`, `Comparable`) given as `validate:` is a type check and a Set is a list of allowed values, instead of rejecting every value (#57)

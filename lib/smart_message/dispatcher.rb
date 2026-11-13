@@ -283,7 +283,7 @@ module SmartMessage
       key = subscriber_key(message_class, subscriber_id)
       @subscriber_ddqs.compute_if_absent(key) do
         config = message_class_obj.ddq_config
-        SmartMessage::DDQ.create(config[:storage], config[:size], config[:options].merge(key_prefix: "smart_message:ddq:#{key}"))
+        SmartMessage::DDQ.create(config[:storage], config[:size], ddq_options(config[:options], key))
       end
     end
 
@@ -319,6 +319,12 @@ module SmartMessage
 
     def subscriber_key(message_class, subscriber_id)
       "#{message_class}:#{subscriber_id}"
+    end
+
+    # The storage options for one handler's queue: its keys go under the
+    # caller's +key_prefix:+ (default 'smart_message:ddq'), then the handler key.
+    def ddq_options(options, key)
+      options.merge(key_prefix: "#{options[:key_prefix] || 'smart_message:ddq'}:#{key}")
     end
 
     # @return [Class, nil] the loaded message class with that name
