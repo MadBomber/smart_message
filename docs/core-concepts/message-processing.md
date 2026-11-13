@@ -22,11 +22,11 @@ end
 OrderMessage.subscribe   # handler id "OrderMessage.process"
 ```
 
-A class that subscribes this way must define `self.process`. The inherited one raises `SmartMessage::Errors::NotImplemented`, which sends the message to the dead letter queue like any other handler failure.
+A class that subscribes this way must define `self.process` (a class method). If it does not, `subscribe` raises `ArgumentError`.
 
 ### A named class method
 
-Pass `"ClassName.method_name"`. The method is looked up when a message arrives, so the class can be defined after the subscription.
+Pass `"ClassName.method_name"`. The method is looked up when a message arrives, so the class can be defined after the subscription. If the class is already defined, `subscribe` checks that it has that class method and raises `ArgumentError` if not. A handler that is not a `"Class.method"` String, a Proc or a block (a Symbol, for example) also raises `ArgumentError`.
 
 ```ruby
 class OrderAudit

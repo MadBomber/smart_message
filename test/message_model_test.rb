@@ -239,4 +239,13 @@ class MessageModelTest < Minitest::Test
     assert_match(/order-service/, out.string)
     assert_match(/42/, out.string)
   end
+
+  def test_pretty_print_keeps_hash_keys_that_are_not_strings_or_symbols
+    out = StringIO.new
+    Order.new(order_id: 1, amount: 3, meta: { 1 => 'a', nil => 'b', 'k' => 'c' }).pretty_print(out: out)
+
+    assert_match(/"a"/, out.string)
+    assert_match(/"b"/, out.string)
+    assert_match(/k/, out.string)
+  end
 end

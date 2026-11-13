@@ -316,10 +316,14 @@ module SmartMessage
 
       def handle_message(channel, payload)
         receive(message_class_for(channel), payload)
-      rescue StandardError => e
+      rescue SmartMessage::Errors::Error => e
         # Already logged (and dead-lettered when undecodable) by #receive;
         # keep the subscription alive for the next message.
         logger.debug { "[#{self.class.name}] Skipped a message on #{channel}: #{e.class.name}" }
+      rescue StandardError => e
+        # Not seen by #receive's rescue; log it so the message is not lost
+        # without a trace, and keep the subscription alive.
+        logger.error { "[#{self.class.name}] Skipped a message on #{channel}: #{e.class.name} - #{e.message}" }
       end
     end
   end

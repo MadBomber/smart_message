@@ -250,6 +250,17 @@ module AddressingTest
       assert_equal 'header', error.errors.first[:source]
     end
     
+    class NoSender < SmartMessage::Base
+      property :data
+    end
+
+    def test_missing_from_error_names_the_class_and_the_fix
+      error = assert_raises(SmartMessage::Errors::ValidationError) { NoSender.new(data: 1).validate! }
+
+      assert_includes error.message, "AddressingTest::Test::NoSender#from: From entity ID is required"
+      assert_includes error.message, "pass from: to new"
+    end
+
     def test_missing_from_can_be_repaired
       message = Class.new(SmartMessage::Base) do
         property :data

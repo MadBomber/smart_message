@@ -26,7 +26,7 @@ SmartMessage::Transport.create(:memory, auto_process: false)
 |--------|---------|---------|
 | `auto_process` | `true` | Deliver to subscribers as part of `publish` |
 | `store_messages` | `nil` | Keep published messages for `all_messages` and `process_all`. `nil` means "only when `auto_process` is false". |
-| `max_messages` | `1000` | Upper bound on stored messages |
+| `max_messages` | `1000` | Upper bound on stored messages; must be a positive Integer |
 | `serialize` | `true` | Encode to JSON on publish and decode on delivery, as a real transport does. With `false`, handlers receive copies of the published object, and type changes caused by serialization go unnoticed. |
 
 Leave `serialize` on in tests: it makes the memory transport behave like the others, so a property that does not survive JSON (a `Time`, a Symbol) shows up in the test and not in production.

@@ -107,6 +107,15 @@ class TransportBaseTest < Minitest::Test
     assert_equal 'TransportBaseTest::Inbound', entry[:transport]
   end
 
+  def test_a_payload_with_a_bad_timestamp_is_dead_lettered_and_raised
+    transport = Inbound.new
+    payload   = transport.encode_message(Sample.new(value: 1)).sub(/"published_at":"[^"]*"/, '"published_at":"yesterday-ish"')
+
+    assert_raises(SmartMessage::Errors::DecodeError) { transport.deliver('TransportBaseTest::Sample', payload) }
+    assert_equal 1, dlq.size
+    assert_equal payload, dlq.peek[:payload]
+  end
+
   def test_a_payload_for_the_wrong_channel_is_dead_lettered_and_raised
     transport = Inbound.new
     payload   = transport.encode_message(Sample.new(value: 1))
@@ -135,6 +144,13 @@ class MemoryTransportTest < Minitest::Test
     assert new_transport(auto_process: false).store_messages?
     assert new_transport(store_messages: true).store_messages?
     refute new_transport(auto_process: false, store_messages: false).store_messages?
+  end
+
+  def test_max_messages_must_be_a_positive_integer
+    [0, -1, nil, '5', 2.5].each do |bad|
+      error = assert_raises(ArgumentError, "max_messages: #{bad.inspect}") { new_transport(max_messages: bad) }
+      assert_match(/max_messages/, error.message)
+    end
   end
 
   def test_auto_processing_does_not_grow_the_store
