@@ -23,10 +23,14 @@ module SmartMessage
       end
     end
 
-    # Recursively convert all Hash keys to Symbols in nested hashes and arrays
+    # Recursively convert Hash keys to Symbols in nested hashes and arrays.
+    # Keys that cannot become Symbols (Integers, nil, ...) are kept as they are.
     def self.deep_symbolize_keys(object)
       case object
-      when Hash  then object.to_h { |key, value| [key.to_sym, deep_symbolize_keys(value)] }
+      when Hash
+        object.to_h do |key, value|
+          [key.respond_to?(:to_sym) ? key.to_sym : key, deep_symbolize_keys(value)]
+        end
       when Array then object.map { |item| deep_symbolize_keys(item) }
       else            object
       end

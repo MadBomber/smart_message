@@ -266,6 +266,21 @@ class MultiTransportTest < Minitest::Test
     assert_same double, klass.transport
   end
 
+  class Unrouted < SmartMessage::Base
+    from 'test_app'
+    property :content
+  end
+
+  def test_transport_not_configured_names_the_class_and_the_fix
+    [-> { Unrouted.new(content: 'x').publish }, -> { Unrouted.subscribe { |_m| nil } }].each do |action|
+      error = assert_raises(SmartMessage::Errors::TransportNotConfigured) { action.call }
+
+      assert_includes error.message, "MultiTransportTest::Unrouted has no transport configured"
+      assert_includes error.message, "transport SmartMessage::Transport.create(:memory)"
+      assert_includes error.message, "config.transport ="
+    end
+  end
+
   # Test transport utility methods
   def test_transport_utility_methods
     # Single transport

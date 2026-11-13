@@ -23,7 +23,7 @@ module SmartMessage
     #   error.result holds the outcomes
     def publish
       validate!
-      raise Errors::TransportNotConfigured, "#{self.class.name} has no transport configured" if transport_missing?
+      raise Errors::TransportNotConfigured.for(self.class.name) if transport_missing?
 
       _sm_header.published_at  = Time.now
       _sm_header.publisher_pid = Process.pid

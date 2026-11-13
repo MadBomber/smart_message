@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'etc'
+require 'pathname'
 
 module SmartMessage
   # Global configuration for the SmartMessage framework.
@@ -23,9 +24,11 @@ module SmartMessage
   #
   #   nil                 no logging (the default)
   #   :default            the Lumberjack logger writing to log/smart_message.log
-  #   a String path       the Lumberjack logger writing to that file
+  #   a String/Pathname   the Lumberjack logger writing to that file
   #   STDOUT / STDERR     the Lumberjack logger writing to the console
   #   any logger object   used as it is (Rails.logger, Logger.new(...), ...)
+  #
+  # Anything else raises ArgumentError when it is assigned.
   #
   # The log_* settings shape the Lumberjack logger:
   #
@@ -60,6 +63,7 @@ module SmartMessage
   #   config.shutdown_timeout       = 5      # seconds SmartMessage.shutdown waits
   class Configuration
     LOG_SETTINGS = %i[log_level log_format log_include_source log_structured_data log_colorize log_options].freeze
+    LOG_FORMATS  = %i[text json].freeze
 
     DEFAULT_DISPATCHER_MAX_THREADS = [Etc.nprocessors * 2, 4].max
     DEFAULT_DISPATCHER_MAX_QUEUE   = 1_000
@@ -110,21 +114,57 @@ module SmartMessage
       @transport = value
     end
 
+    # @raise [ArgumentError] for a value that is neither a log target nor
+    #   an object with the logger level methods
     def logger=(value)
+      unless log_target?(value) || SmartMessage::Logger::LEVELS.all? { |level| value.respond_to?(level) }
+        raise ArgumentError,
+              "config.logger must be nil, :default, a String or Pathname path, STDOUT, STDERR, " \
+              "or a logger object responding to #{SmartMessage::Logger::LEVELS.join(', ')}; got #{value.inspect}"
+      end
+
       @logger       = value
       @built_logger = nil
     end
 
-    LOG_SETTINGS.each do |name|
+    (LOG_SETTINGS - %i[log_level log_format]).each do |name|
       define_method(:"#{name}=") do |value|
         instance_variable_set(:"@#{name}", value)
         @built_logger = nil
       end
     end
 
-    # @param path [String] stored as an absolute path
+    # @param value [Symbol, String, Integer, nil] one of Logger::LEVELS (or
+    #   its index); nil uses the logger's default
+    # @raise [ArgumentError] for an unknown level
+    def log_level=(value)
+      unless value.nil?
+        SmartMessage::Logger.severity(value)
+        value = value.to_s.downcase.to_sym if value.is_a?(String)
+      end
+      @log_level    = value
+      @built_logger = nil
+    end
+
+    # @param value [Symbol, String, nil] :text or :json; nil uses :text
+    # @raise [ArgumentError] for any other format
+    def log_format=(value)
+      unless value.nil?
+        format = value.to_s.downcase.to_sym if value.is_a?(String) || value.is_a?(Symbol)
+        unless LOG_FORMATS.include?(format)
+          raise ArgumentError, "Unknown log format: #{value.inspect}. Use one of #{LOG_FORMATS.inspect}"
+        end
+
+        value = format
+      end
+      @log_format   = value
+      @built_logger = nil
+    end
+
+    # @param path [String, Pathname, nil] stored as an absolute path; nil or
+    #   blank restores the default, as an empty $SMART_MESSAGE_DLQ_PATH does
     def dlq_path=(path)
-      @dlq_path = File.expand_path(path.to_s)
+      @dlq_path = path.to_s.strip.empty? ? self.class.default_dlq_path : File.expand_path(path.to_s)
     end
 
     # Was a logger configured?
@@ -158,11 +198,16 @@ module SmartMessage
         SmartMessage::Logger::Null.new
       when :default
         SmartMessage::Logger::Lumberjack.new(**logger_options)
-      when String, STDOUT, STDERR
+      when String, Pathname, STDOUT, STDERR
         SmartMessage::Logger::Lumberjack.new(**logger_options.merge(log_file: @logger))
       else
         @logger
       end
+    end
+
+    def log_target?(value)
+      value.nil? || value == :default || value.is_a?(String) || value.is_a?(Pathname) ||
+        value.equal?(STDOUT) || value.equal?(STDERR)
     end
 
     # Build logger options from configuration
