@@ -32,7 +32,7 @@ end
 
 | Option | Meaning |
 |--------|---------|
-| `required: true` | The property must not be `nil` when the message is validated. May also be a proc, evaluated on the instance, that returns true when the property is required. |
+| `required: true` | The property must not be `nil` when the message is validated. May also be a proc, evaluated on the instance, that returns true when the property is required: `-> { kind == 'physical' }`, or `->(message) { message.kind == 'physical' }` to receive the message. |
 | `message:` | Error text when a required property is missing |
 | `default:` | Value used when none is given. A proc is called to produce it. |
 | `validate:` | A validator (see below) |

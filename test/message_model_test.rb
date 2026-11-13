@@ -225,6 +225,29 @@ class MessageModelTest < Minitest::Test
     assert klass.new(kind: 'refund', reason: 'damaged').valid?
   end
 
+  def test_conditionally_required_property_with_a_lambda_that_takes_the_message
+    klass = Class.new(SmartMessage::Base) do
+      from 'svc'
+      property :kind
+      property :addr, required: ->(message) { message.kind == 'physical' }
+    end
+
+    assert klass.new(kind: 'digital').valid?
+    refute klass.new(kind: 'physical').valid?
+    assert klass.new(kind: 'physical', addr: 'Dock 4').valid?
+  end
+
+  def test_required_now_passes_the_message_only_to_a_condition_that_takes_it
+    message = Order.new(order_id: 1)
+
+    assert message.send(:required_now?, -> { order_id == 1 })
+    assert message.send(:required_now?, ->(m) { m.equal?(message) })
+    assert message.send(:required_now?, proc { |m| m.equal?(message) })
+    refute message.send(:required_now?, ->(m) { m.order_id == 2 })
+    assert message.send(:required_now?, true)
+    refute message.send(:required_now?, false)
+  end
+
   # ---- addressing lives in the header only (K7) ----------------------------
 
   def test_addressing_reads_and_writes_the_header
