@@ -63,8 +63,6 @@ class PerformanceBenchmark
     end
   end
 
-  attr_reader :results
-
   def initialize(subject: 'baseline', scale: 1.0, max_threads: nil, timeout: 60, results_dir: self.class.results_dir)
     @subject     = subject
     @scenarios   = self.class.scaled_scenarios(scale)
