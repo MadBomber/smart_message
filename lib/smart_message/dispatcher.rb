@@ -67,6 +67,10 @@ module SmartMessage
       }
     end
 
+    # @return [Integer] the most handler threads this dispatcher runs at once
+    def max_threads          = @router_pool.max_length
+    # @return [Integer] the most handler calls that may wait for a thread
+    def max_queue            = @router_pool.max_queue
     def scheduled_task_count = @router_pool.scheduled_task_count
     def completed_task_count = @router_pool.completed_task_count
     def queue_length         = @router_pool.queue_length
