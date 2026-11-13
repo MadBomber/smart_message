@@ -249,6 +249,38 @@ class MultiTransportTest < Minitest::Test
     assert_raises(SmartMessage::Errors::TransportNotConfigured) { unconfigured.publish }
   end
 
+  class SubscribeFailsTransport < SmartMessage::Transport::MemoryTransport
+    def subscribe(*) = raise(SmartMessage::Errors::TransportError, 'down')
+  end
+
+  class RollbackMessage < SmartMessage::Base
+    property :content
+    def self.process(_message) = nil
+  end
+
+  def test_a_subscribe_that_fails_partway_is_rolled_back
+    good  = SmartMessage::Transport::MemoryTransport.new
+    klass = RollbackMessage
+    name  = klass.name
+    handler_ids = -> { good.subscribers[name].map { |subscription| subscription[:subscriber_id] } }
+
+    klass.transport(good)
+    klass.subscribe
+    assert_equal ["#{name}.process"], handler_ids.call
+
+    klass.transport([good, SubscribeFailsTransport.new])
+    assert_raises(SmartMessage::Errors::TransportError) { klass.subscribe }
+    assert_raises(SmartMessage::Errors::TransportError) { klass.subscribe('Other.handle') }
+    assert_raises(SmartMessage::Errors::TransportError) { klass.subscribe { |_message| nil } }
+
+    assert_equal ["#{name}.process"], handler_ids.call, 'only the earlier subscription is left'
+    assert_empty SmartMessage::Subscription::PROC_HANDLERS.keys.grep(/\A#{Regexp.escape(name)}\./)
+  ensure
+    RollbackMessage.unsubscribe!
+    RollbackMessage.reset_transport
+    good&.dispatcher&.shutdown(timeout: 1)
+  end
+
   def test_a_value_that_is_not_a_transport_is_rejected_when_set
     klass = Class.new(SmartMessage::Base) { property :content }
 

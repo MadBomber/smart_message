@@ -133,9 +133,16 @@ module SmartMessage
         handler_id   = handler ? register_proc_handler(message_class, handler) : (process_method || "#{message_class}.process")
         check_named_handler!(handler_id) unless handler
 
+        attempted = []
         begin
-          transports.each { |transport_instance| transport_instance.subscribe(message_class, handler_id, filter_options) }
+          transports.each do |transport_instance|
+            # A String handler may already be subscribed (subscribe is
+            # idempotent); only a subscription this call adds is rolled back.
+            attempted << [transport_instance, !handler && already_subscribed?(transport_instance, message_class, handler_id)]
+            transport_instance.subscribe(message_class, handler_id, filter_options)
+          end
         rescue StandardError => e
+          roll_back_subscription(attempted, message_class, handler_id)
           unregister_proc_handler(handler_id) if handler
           logger.error { "[SmartMessage] Error in message subscription: #{e.class.name} - #{e.message}" }
           raise
@@ -207,6 +214,32 @@ module SmartMessage
 
         logger.info { "[SmartMessage] Unsubscribed all handlers: #{message_class}" }
       end
+
+      private
+
+      # Has this handler a subscription on the transport already?  A
+      # transport that cannot say is treated as having one, so nothing that
+      # may predate this call is removed.
+      def already_subscribed?(transport_instance, message_class, handler_id)
+        return true unless transport_instance.respond_to?(:subscribers)
+
+        transport_instance.subscribers[message_class].any? { |subscription| subscription[:subscriber_id] == handler_id }
+      rescue StandardError
+        true
+      end
+
+      # Undo a subscribe that failed partway, on every transport it reached.
+      def roll_back_subscription(attempted, message_class, handler_id)
+        attempted.each do |transport_instance, preexisting|
+          next if preexisting
+
+          transport_instance.unsubscribe(message_class, handler_id)
+        rescue StandardError => e
+          logger.warn { "[SmartMessage] Could not roll back #{handler_id} on #{transport_instance.class.name}: #{e.message}" }
+        end
+      end
+
+      public
 
       ###################################################
       ## Business Logic resides in the #process method.
