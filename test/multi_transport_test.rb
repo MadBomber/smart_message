@@ -249,6 +249,23 @@ class MultiTransportTest < Minitest::Test
     assert_raises(SmartMessage::Errors::TransportNotConfigured) { unconfigured.publish }
   end
 
+  def test_a_value_that_is_not_a_transport_is_rejected_when_set
+    klass = Class.new(SmartMessage::Base) { property :content }
+
+    error = assert_raises(ArgumentError) { klass.transport(:memory) }
+    assert_match(/Transport\.create\(:memory\)/, error.message)
+    assert_raises(ArgumentError) { klass.transport([SmartMessage::Transport::MemoryTransport.new, 'redis']) }
+    assert_raises(ArgumentError) { klass.new(content: 'x', from: 'test_app').transport(Object.new) }
+    assert_raises(ArgumentError) { SmartMessage.configuration.transport = :memory }
+    assert klass.transport_missing?
+
+    double = Object.new
+    def double.publish(*) = nil
+    def double.subscribe(*) = nil
+    klass.transport(double)
+    assert_same double, klass.transport
+  end
+
   class Unrouted < SmartMessage::Base
     from 'test_app'
     property :content

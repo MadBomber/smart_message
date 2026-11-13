@@ -35,6 +35,22 @@ module SmartMessage
       []
     end
 
+    # Check that each value can be used as a transport.  Duck typed, so
+    # test doubles that are not Transport::Base subclasses still work.
+    #
+    # @param value [Object, Array] one transport or an Array of them
+    # @raise [ArgumentError] when one of them is not a transport
+    def self.check_transports!(value)
+      Array(value).each do |candidate|
+        next if candidate.respond_to?(:publish) && candidate.respond_to?(:subscribe)
+
+        name = candidate.is_a?(Symbol) || candidate.is_a?(String) ? candidate.to_sym : :memory
+        raise ArgumentError, "#{candidate.inspect} is not a transport (it must respond to publish and subscribe); " \
+                             "build one with SmartMessage::Transport.create(#{name.inspect})"
+      end
+      value
+    end
+
     #########################################################
     ## instance-level configuration
 
@@ -46,6 +62,7 @@ module SmartMessage
     def transport(klass_or_instance = nil)
       return transports.first if klass_or_instance.nil?
 
+      Plugins.check_transports!(klass_or_instance)
       @transport = Array(klass_or_instance)
       klass_or_instance
     end
@@ -79,6 +96,7 @@ module SmartMessage
       def transport(klass_or_instance = nil)
         return transports.first if klass_or_instance.nil?
 
+        Plugins.check_transports!(klass_or_instance)
         set_setting(:transport, Array(klass_or_instance))
         klass_or_instance
       end

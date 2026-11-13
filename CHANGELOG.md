@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **Dead letter queue**: replay fails, and leaves the entry queued, when the payload names a different message class than the entry was stored for
+- **Transport setters**: `transport` (class and instance) and `config.transport=` raise `ArgumentError` for a value that is not a transport, such as `transport :memory`, instead of failing at subscribe/publish and dead-lettering the message (#26)
 - **Configuration**: `log_level` and `log_format` raise `ArgumentError` when set to an unknown value, instead of breaking every later `new` (bad level) or being ignored (bad format); Strings are accepted (#30)
 - **Gemspec links**: `homepage` points at the docs site and `documentation_uri` at its quick start, so rubygems.org shows distinct Homepage, Documentation and Source links (#32)
 - **Redis**: when the subscriber gives up after `reconnect_attempts`, `connected?` returns `false` while channels still have handlers; new `subscriber_alive?` reports it, and `connect` restarts the subscriber (#18)

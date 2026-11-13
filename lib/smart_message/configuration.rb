@@ -68,8 +68,8 @@ module SmartMessage
     DEFAULT_DISPATCHER_MAX_THREADS = [Etc.nprocessors * 2, 4].max
     DEFAULT_DISPATCHER_MAX_QUEUE   = 1_000
 
-    attr_accessor :transport, :dispatcher_max_threads, :dispatcher_max_queue, :shutdown_timeout
-    attr_reader   :logger, :dlq_path, *LOG_SETTINGS
+    attr_accessor :dispatcher_max_threads, :dispatcher_max_queue, :shutdown_timeout
+    attr_reader   :transport, :logger, :dlq_path, *LOG_SETTINGS
 
     # The file the default dead letter queue uses when none is configured.
     #
@@ -104,6 +104,14 @@ module SmartMessage
       @shutdown_timeout       = SmartMessage::DEFAULT_SHUTDOWN_TIMEOUT
       @built_logger           = nil
       self
+    end
+
+    # @param value [Transport::Base, Array, nil] the transport(s) every
+    #   message class uses unless it sets its own
+    # @raise [ArgumentError] for a value that is not a transport, such as :memory
+    def transport=(value)
+      SmartMessage::Plugins.check_transports!(value)
+      @transport = value
     end
 
     # @raise [ArgumentError] for a value that is neither a log target nor
