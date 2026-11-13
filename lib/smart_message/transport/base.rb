@@ -204,10 +204,21 @@ module SmartMessage
         SmartMessage::DeadLetterQueue.default.enqueue_raw(
           message_class: message_class,
           payload:       serialized_message,
-          error_info:    { error: "#{error.class.name}: #{error.message}", transport: self.class.name }
+          error_info:    { error: "#{error.class.name}: #{error.message}", transport: self.class.name,
+                           serializer: dlq_payload_format }
         )
       rescue StandardError => e
         logger.error { "[#{self.class.name}] Could not store undecodable payload in DLQ: #{e.class.name} - #{e.message}" }
+      end
+
+      # How a dead-lettered payload is stored so replay can decode it again:
+      # 'json' for the JSON serializer, else the serializer's class name.  An
+      # anonymous serializer class cannot be found by name, so it is 'json'.
+      def dlq_payload_format
+        name = @serializer.class.name
+        return 'json' if name.nil? || @serializer.instance_of?(SmartMessage::Serializer::Json)
+
+        name
       end
     end
   end
