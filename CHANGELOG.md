@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Errors**: the missing-`from` validation error names the message class and says how to set `from`; `TransportNotConfigured` says how to set a transport in the class or globally (#31)
 
 ### Fixed
+- **Unsubscribe**: `unsubscribe` raises `ArgumentError` when given the handler lambda/proc itself instead of the id `subscribe` returned, instead of logging success and leaving the handler subscribed (#59)
 - **Validation**: a `required:` lambda that takes the message (`->(m) { m.kind == 'physical' }`) is given it, instead of raising `ArgumentError` and making the property always required (#58)
 - **Validation**: a Module (`Enumerable`, `Comparable`) given as `validate:` is a type check and a Set is a list of allowed values, instead of rejecting every value (#57)
 - **Dead letter queue**: replay fails, and leaves the entry queued, when the payload names a different message class than the entry was stored for
