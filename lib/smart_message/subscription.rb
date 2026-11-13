@@ -194,7 +194,10 @@ module SmartMessage
       # @param process_method [String, nil] The processing method identifier to remove
       #   - String: Method name like "MyService.handle_message" or proc handler ID
       #   - nil: Uses default "MessageClass.process" method
+      # @raise [ArgumentError] when given the handler itself (a Proc, lambda
+      #   or Method) instead of the id subscribe returned
       def unsubscribe(process_method = nil)
+        reject_callable_unsubscribe!(process_method)
         message_class    = whoami
         process_method ||= "#{message_class}.process"
 
@@ -216,6 +219,16 @@ module SmartMessage
       end
 
       private
+
+      # A block/proc/lambda handler is identified by the id subscribe
+      # returned; passing the callable itself would match nothing and
+      # silently leave it subscribed.
+      def reject_callable_unsubscribe!(process_method)
+        return unless process_method.respond_to?(:call)
+
+        raise ArgumentError, "unsubscribe takes the id subscribe returned for a block/proc/lambda handler, " \
+                             "not the handler itself; got #{process_method.inspect}"
+      end
 
       # Has this handler a subscription on the transport already?  A
       # transport that cannot say is treated as having one, so nothing that
