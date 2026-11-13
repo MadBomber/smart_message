@@ -247,6 +247,18 @@ class LumberjackLoggerTest < Minitest::Test
     refute logger.console_output?
   end
 
+  def test_a_pathname_creates_its_directory
+    file   = Pathname(temp_path('nested/dir/pathname.log'))
+    logger = LJ.new(log_file: file)
+    logger.warn('hello')
+    logger.logger.flush
+
+    assert_equal file.to_s, logger.log_file
+    assert_match(/hello/, file.read)
+  ensure
+    logger&.close
+  end
+
   def test_text_format
     logger = new_logger(level: :info)
 

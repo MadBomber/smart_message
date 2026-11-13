@@ -106,6 +106,7 @@ module SmartMessage
       # @param block [Proc] Alternative way to pass a processing block
       # @return [String] The identifier used for this subscription
       # @raise [SmartMessage::Errors::TransportNotConfigured] no transport
+      # @raise [ArgumentError] when a named handler cannot be called
       #
       # @example Using default handler
       #   MyMessage.subscribe
@@ -126,10 +127,11 @@ module SmartMessage
           from:      Subscription.normalize_filter_value(from)
         }
 
-        raise Errors::TransportNotConfigured, "#{message_class} has no transport configured" if transport_missing?
+        raise Errors::TransportNotConfigured.for(message_class) if transport_missing?
 
         handler      = block || (process_method if process_method.respond_to?(:call))
         handler_id   = handler ? register_proc_handler(message_class, handler) : (process_method || "#{message_class}.process")
+        check_named_handler!(handler_id) unless handler
 
         attempted = []
         begin
@@ -148,6 +150,42 @@ module SmartMessage
 
         logger.info { "[SmartMessage] Subscribed: #{message_class}#{' with block/proc handler' if handler}" }
         logger.debug { "[SmartMessage::Subscription] Subscribed #{message_class} with filters: #{filter_options}" }
+
+        handler_id
+      end
+
+      # Reject a handler given by name that can never be called, so the
+      # mistake fails the subscribe instead of dead-lettering every message.
+      # A class that is not defined yet is accepted: it is looked up when a
+      # message arrives, so it may be defined after the subscription.
+      #
+      # @param handler_id [String] "Class.method"
+      # @raise [ArgumentError] when it is not a "Class.method" String, or the
+      #   class is defined without that class method
+      def check_named_handler!(handler_id)
+        unless handler_id.is_a?(String)
+          raise ArgumentError, "A handler must be a \"Class.method\" String, a Proc, or a block; got #{handler_id.inspect}"
+        end
+
+        target_name, method_name = handler_id.split('.', 2)
+        if method_name.to_s.empty?
+          raise ArgumentError, "Handler #{handler_id.inspect} must name a class method as \"Class.method\""
+        end
+
+        target = begin
+          Object.const_get(target_name)
+        rescue NameError
+          return handler_id
+        end
+
+        unless target.respond_to?(method_name)
+          raise ArgumentError, "Handler #{handler_id.inspect}: #{target_name} has no class method #{method_name}"
+        end
+
+        if method_name == 'process' && target.method(:process).owner == Subscription::ClassMethods
+          raise ArgumentError, "Handler #{handler_id.inspect} is not implemented: define `def self.process(message)` " \
+                               "in #{target_name}, or subscribe with a block or another handler"
+        end
 
         handler_id
       end

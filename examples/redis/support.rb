@@ -82,11 +82,6 @@ module RedisExample
     passed ? true : false
   end
 
-  # @return [Array<String>] descriptions of the checks that failed
-  def failures
-    @failures.dup
-  end
-
   # Disconnect every transport, stop the dispatchers, remove the work
   # directory, and exit non-zero when any check failed.
   def finish!
