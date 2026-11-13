@@ -47,6 +47,11 @@ class PackagingTest < Minitest::Test
     assert_equal Dir.chdir(ROOT) { Dir['lib/**/*.rb'].sort }, files.grep(%r{\Alib/}).sort
   end
 
+  def test_the_gem_declares_and_ships_its_license
+    assert_equal ['MIT'], spec.licenses
+    assert_includes spec.files, 'LICENSE.txt'
+  end
+
   def test_the_built_gem_contains_exactly_the_listed_files
     gem_file = temp_path('smart_message.gem')
 
