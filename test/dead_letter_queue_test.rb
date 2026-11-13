@@ -240,16 +240,6 @@ class DeadLetterQueueTest < Minitest::Test
   
   private
   
-  def create_header(uuid, message_class, **extra_attrs)
-    SmartMessage::Header.new({
-      uuid: uuid,
-      message_class: message_class,
-      published_at: Time.now,
-      publisher_pid: Process.pid,
-      from: 'test-service'
-    }.merge(extra_attrs))
-  end
-  
   def create_test_message(data, **extra_attrs)
     attrs = {
       test_data: data,
