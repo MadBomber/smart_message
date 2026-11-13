@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **Dead letter queue**: replay fails, and leaves the entry queued, when the payload names a different message class than the entry was stored for
+- **Transport setters**: `transport` (class and instance) and `config.transport=` raise `ArgumentError` for a value that is not a transport, such as `transport :memory`, instead of failing at subscribe/publish and dead-lettering the message (#26)
 
 ### Tests
 - `test_dispatcher_routing` now asserts that both processors receive the routed message, and the dispatcher and subscribe tests no longer print debug output (#14)
