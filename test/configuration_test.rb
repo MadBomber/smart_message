@@ -57,6 +57,25 @@ class ConfigurationTest < Minitest::Test
     assert_instance_of SmartMessage::Logger::Null, SmartMessage::Logger.default
   end
 
+  def test_log_level_and_log_format_are_checked_when_set
+    assert_raises(ArgumentError) { config.log_level = :verbose }
+    assert_raises(ArgumentError) { config.log_level = 9 }
+    assert_raises(ArgumentError) { config.log_format = :yaml }
+    assert_raises(ArgumentError) { config.log_format = 1 }
+    assert_nil config.log_level
+    assert_nil config.log_format
+
+    config.log_level  = 'WARN'
+    config.log_format = 'json'
+    assert_equal :warn, config.log_level
+    assert_equal :json, config.log_format
+
+    config.log_level  = 1
+    config.log_format = nil
+    assert_equal 1, config.log_level
+    assert_nil config.log_format
+  end
+
   def test_log_settings_shape_the_lumberjack_logger
     file = temp_path('settings.log')
     SmartMessage.configure do |c|
