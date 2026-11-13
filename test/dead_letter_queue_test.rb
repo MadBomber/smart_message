@@ -470,6 +470,54 @@ class DeadLetterQueueTest < Minitest::Test
     assert_same SmartMessage::DeadLetterQueue.default, SmartMessage::DeadLetterQueue.default
   end
 
+
+  def test_replay_batch_replays_only_the_oldest_count_entries
+    stored = Array.new(3) { |i| @dlq.enqueue(create_test_message("data #{i}"), error: "error #{i}") }
+    transport = SmartMessage::Transport::MemoryTransport.new(auto_process: false)
+
+    results = @dlq.replay_batch(2, transport)
+
+    assert_equal({ success: 2, failed: 0, errors: [] }, results)
+    assert_equal 2, transport.message_count
+    assert_equal [stored.last[:id]], @dlq.entries.map { |entry| entry[:id] }, 'the newest entry is left'
+  end
+
+
+  def test_replay_batch_counts_failures_and_keeps_the_failed_entries
+    3.times { @dlq.enqueue(@message, error: 'original failure') }
+
+    results = @dlq.replay_batch(2, FailingTransport.new)
+
+    assert_equal({ success: 0, failed: 2, errors: ['IOError: transport is down'] * 2 }, results)
+    assert_equal([1, 1, 0], @dlq.entries.map { |entry| entry[:retry_count] })
+  end
+
+
+  def test_replay_batch_defaults_to_ten_entries_on_the_class_transport
+    transport = SmartMessage::Transport::MemoryTransport.new(auto_process: false)
+    TestMessage.transport(transport)
+    12.times { @dlq.enqueue(@message, error: 'original failure') }
+
+    results = @dlq.replay_batch
+
+    assert_equal 10, results[:success]
+    assert_equal 10, transport.message_count
+    assert_equal 2, @dlq.size
+  ensure
+    TestMessage.reset_transport
+  end
+
+
+  def test_configure_default_sets_the_path_and_returns_the_default_queue
+    path = temp_path('configured_default.jsonl')
+
+    queue = SmartMessage::DeadLetterQueue.configure_default(path)
+
+    assert_equal path, SmartMessage.configuration.dlq_path
+    assert_equal path, queue.file_path
+    assert_same SmartMessage::DeadLetterQueue.default, queue
+  end
+
   # A transport whose publish always fails
   class FailingTransport < SmartMessage::Transport::Base
     def do_publish(_message_class, _serialized_message)
