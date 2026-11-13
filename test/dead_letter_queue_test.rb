@@ -342,14 +342,15 @@ class DeadLetterQueueTest < Minitest::Test
 
 
   def test_replay_batch_replays_only_the_oldest_count_entries
-    stored = Array.new(3) { |i| @dlq.enqueue(create_test_message("data #{i}"), error: "error #{i}") }
+    3.times { |i| @dlq.enqueue(create_test_message("data #{i}"), error: "error #{i}") }
     transport = SmartMessage::Transport::MemoryTransport.new(auto_process: false)
 
     results = @dlq.replay_batch(2, transport)
 
     assert_equal({ success: 2, failed: 0, errors: [] }, results)
-    assert_equal 2, transport.message_count
-    assert_equal [stored.last[:id]], @dlq.entries.map { |entry| entry[:id] }, 'the newest entry is left'
+    assert_equal(['data 0', 'data 1'],
+                 transport.all_messages.map { |sent| transport.decode_message(sent[:payload]).test_data })
+    assert_equal ['error 2'], @dlq.entries.map { |entry| entry[:error] }, 'the newest entry is left'
   end
 
 
@@ -514,6 +515,7 @@ class DeadLetterQueueTest < Minitest::Test
     queue = SmartMessage::DeadLetterQueue.configure_default(path)
 
     assert_equal path, SmartMessage.configuration.dlq_path
+    assert_equal path, queue.file_path
     assert_same SmartMessage::DeadLetterQueue.default, queue
   end
 
