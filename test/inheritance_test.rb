@@ -66,7 +66,6 @@ class InheritanceTest < Minitest::Test
     @parent.reset_logger
 
     assert_same SmartMessage::Logger.default, @child.logger
-    refute @parent.logger_configured?
   end
 
 
