@@ -3,6 +3,7 @@
 # frozen_string_literal: true
 
 require 'etc'
+require 'pathname'
 
 module SmartMessage
   # Global configuration for the SmartMessage framework.
@@ -23,9 +24,11 @@ module SmartMessage
   #
   #   nil                 no logging (the default)
   #   :default            the Lumberjack logger writing to log/smart_message.log
-  #   a String path       the Lumberjack logger writing to that file
+  #   a String/Pathname   the Lumberjack logger writing to that file
   #   STDOUT / STDERR     the Lumberjack logger writing to the console
   #   any logger object   used as it is (Rails.logger, Logger.new(...), ...)
+  #
+  # Anything else raises ArgumentError when it is assigned.
   #
   # The log_* settings shape the Lumberjack logger:
   #
@@ -102,7 +105,15 @@ module SmartMessage
       self
     end
 
+    # @raise [ArgumentError] for a value that is neither a log target nor
+    #   an object with the logger level methods
     def logger=(value)
+      unless log_target?(value) || SmartMessage::Logger::LEVELS.all? { |level| value.respond_to?(level) }
+        raise ArgumentError,
+              "config.logger must be nil, :default, a String or Pathname path, STDOUT, STDERR, " \
+              "or a logger object responding to #{SmartMessage::Logger::LEVELS.join(', ')}; got #{value.inspect}"
+      end
+
       @logger       = value
       @built_logger = nil
     end
@@ -114,9 +125,10 @@ module SmartMessage
       end
     end
 
-    # @param path [String] stored as an absolute path
+    # @param path [String, Pathname, nil] stored as an absolute path; nil or
+    #   blank restores the default, as an empty $SMART_MESSAGE_DLQ_PATH does
     def dlq_path=(path)
-      @dlq_path = File.expand_path(path.to_s)
+      @dlq_path = path.to_s.strip.empty? ? self.class.default_dlq_path : File.expand_path(path.to_s)
     end
 
     # Was a logger configured?
@@ -150,11 +162,16 @@ module SmartMessage
         SmartMessage::Logger::Null.new
       when :default
         SmartMessage::Logger::Lumberjack.new(**logger_options)
-      when String, STDOUT, STDERR
+      when String, Pathname, STDOUT, STDERR
         SmartMessage::Logger::Lumberjack.new(**logger_options.merge(log_file: @logger))
       else
         @logger
       end
+    end
+
+    def log_target?(value)
+      value.nil? || value == :default || value.is_a?(String) || value.is_a?(Pathname) ||
+        value.equal?(STDOUT) || value.equal?(STDERR)
     end
 
     # Build logger options from configuration

@@ -146,6 +146,13 @@ class MemoryTransportTest < Minitest::Test
     refute new_transport(auto_process: false, store_messages: false).store_messages?
   end
 
+  def test_max_messages_must_be_a_positive_integer
+    [0, -1, nil, '5', 2.5].each do |bad|
+      error = assert_raises(ArgumentError, "max_messages: #{bad.inspect}") { new_transport(max_messages: bad) }
+      assert_match(/max_messages/, error.message)
+    end
+  end
+
   def test_auto_processing_does_not_grow_the_store
     use
     collect

@@ -43,6 +43,11 @@ module SmartMessage
         target = @options[:file_path]
         raise ArgumentError, "#{self.class.name} requires a file_path: option" if target.nil?
 
+        interval = @options[:poll_interval]
+        unless interval.is_a?(Numeric) && interval.positive?
+          raise ArgumentError, "poll_interval must be a positive number of seconds, got: #{interval.inspect}"
+        end
+
         @io_target   = target.respond_to?(:write)
         @path        = @io_target ? nil : File.expand_path(target.to_s)
         @handle      = @io_target ? target : nil

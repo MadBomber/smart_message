@@ -7,6 +7,7 @@ Gem::Specification.new do |spec|
   spec.version       = SmartMessage::VERSION
   spec.authors       = ['Dewayne VanHoozer']
   spec.email         = ['dvanhoozer@gmail.com']
+  spec.license       = 'MIT'
 
   spec.homepage      = "https://github.com/MadBomber/smart_message"
   spec.summary       = %q{An abstraction to protect message content from the backend delivery transport.}
