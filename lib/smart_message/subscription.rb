@@ -126,7 +126,7 @@ module SmartMessage
           from:      Subscription.normalize_filter_value(from)
         }
 
-        raise Errors::TransportNotConfigured, "#{message_class} has no transport configured" if transport_missing?
+        raise Errors::TransportNotConfigured.for(message_class) if transport_missing?
 
         handler      = block || (process_method if process_method.respond_to?(:call))
         handler_id   = handler ? register_proc_handler(message_class, handler) : (process_method || "#{message_class}.process")

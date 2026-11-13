@@ -381,7 +381,7 @@ module SmartMessage
       message = rebuild_message(entry)
       targets = transport_override ? [transport_override] : message.transports
       if targets.empty?
-        raise Errors::TransportNotConfigured, "#{message.class.name} has no transport configured"
+        raise Errors::TransportNotConfigured.for(message.class.name)
       end
 
       message.validate!

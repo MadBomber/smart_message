@@ -54,6 +54,21 @@ class InheritanceTest < Minitest::Test
     assert_inheritable(->(k) { k.logger }, ->(k, v) { k.logger(v) }, parent_value: one, child_value: two)
   end
 
+
+  def test_logger_reset_reveals_the_parent_value_then_the_global_logger
+    @parent.logger(parent_logger = SmartMessage::Logger::Null.new)
+    @child.logger(SmartMessage::Logger::Null.new)
+
+    @child.reset_logger
+
+    assert_same parent_logger, @child.logger
+
+    @parent.reset_logger
+
+    assert_same SmartMessage::Logger.default, @child.logger
+  end
+
+
   def test_version
     assert_inheritable(->(k) { k.version }, ->(k, v) { k.version(v) }, parent_value: 2, child_value: 3)
 
