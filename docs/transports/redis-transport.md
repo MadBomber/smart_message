@@ -65,13 +65,14 @@ The transport uses two connections. One publishes. A second, long-lived connecti
 
 `subscribe` returns once Redis has confirmed the subscription. If Redis does not confirm within `subscribe_timeout` seconds it raises `SmartMessage::Errors::TransportError`. A message published after `subscribe` returns is therefore seen by that subscriber.
 
-When the subscriber connection is lost, the transport logs it, waits `reconnect_delay` seconds and reconnects, resubscribing every channel, up to `reconnect_attempts` times. Messages published while it was disconnected are missed. After the last attempt the subscriber stops and the failure is logged; configure a [logger](../reference/logging.md) so that you can see it.
+When the subscriber connection is lost, the transport logs it, waits `reconnect_delay` seconds and reconnects, resubscribing every channel, up to `reconnect_attempts` times. Messages published while it was disconnected are missed. After the last attempt the subscriber stops and the failure is logged; configure a [logger](../reference/logging.md) so that you can see it. From then on `connected?` and `subscriber_alive?` return `false`, and `connect` starts the subscriber again.
 
 ```ruby
-transport.connected?            # => true when the publishing connection answers PING
+transport.connected?            # => true when the publishing connection answers PING and the subscriber is running
+transport.subscriber_alive?     # => false when the subscriber gave up while channels still have handlers
 transport.subscribed_channels   # => ["staging:OrderMessage"]  channels Redis has confirmed
 transport.disconnect            # stop the subscriber and close both connections
-transport.connect               # reopen, and resubscribe channels that still have handlers
+transport.connect               # reopen (or restart a stopped subscriber), and resubscribe channels that still have handlers
 ```
 
 After `disconnect`, publishing or subscribing raises `SmartMessage::Errors::TransportError` until `connect` is called. `disconnect` is safe to call more than once.

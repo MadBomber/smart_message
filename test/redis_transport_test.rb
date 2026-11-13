@@ -241,4 +241,31 @@ class RedisTransportTest < Minitest::Test
   ensure
     admin&.close
   end
+
+  def test_a_subscriber_that_gives_up_is_reported_and_connect_restarts_it
+    transport = use(track(new_transport(reconnect_attempts: 0, reconnect_delay: 0.05)))
+    admin     = Redis.new(url: REDIS_TEST_URL)
+    before    = pubsub_client_ids(admin)
+    received  = collect
+    ours      = pubsub_client_ids(admin) - before
+
+    assert transport.subscriber_alive?
+    assert transport.connected?
+
+    refute_empty ours
+    ours.each { |id| admin.call('CLIENT', 'KILL', 'ID', id) }
+    wait_until(message: 'the subscriber did not give up') { !transport.subscriber_alive? }
+
+    refute transport.connected?, 'a deaf subscriber is not a healthy connection'
+
+    transport.connect
+
+    assert transport.subscriber_alive?
+    assert transport.connected?
+    ContractMessage.new(value: 'back').publish
+    wait_until { !received.empty? }
+    assert_equal 'back', received.pop.value
+  ensure
+    admin&.close
+  end
 end

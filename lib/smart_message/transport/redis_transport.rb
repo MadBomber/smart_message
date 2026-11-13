@@ -109,16 +109,32 @@ module SmartMessage
         @mutex.synchronize { @live_channels.to_a - [@control_channel] }
       end
 
+      # @return [Boolean] false when the transport is closed, the publish
+      #   connection does not answer, or the subscriber has stopped while
+      #   channels still have handlers (see #subscriber_alive?)
       def connected?
         return false if @closed
+        return false unless subscriber_alive?
 
         @redis_pub.ping == 'PONG'
       rescue StandardError
         false
       end
 
-      # Reopen after a disconnect and resubscribe the channels that still
-      # have handlers.
+      # The subscriber thread gives up after reconnect_attempts failed
+      # reconnects.  The subscribed channels then receive nothing until
+      # #connect starts it again.
+      #
+      # @return [Boolean] true when nothing is subscribed or the subscriber
+      #   thread is running
+      def subscriber_alive?
+        @mutex.synchronize do
+          @wanted_channels.empty? || (@running && @subscriber_thread&.alive?) || false
+        end
+      end
+
+      # Reopen after a disconnect, or after the subscriber gave up, and
+      # resubscribe the channels that still have handlers.
       def connect
         channels = @mutex.synchronize do
           if @closed
