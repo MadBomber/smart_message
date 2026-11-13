@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **Dead letter queue**: replay fails, and leaves the entry queued, when the payload names a different message class than the entry was stored for
+- **Subscribe**: a named handler that can never be called (a Symbol, a String without `Class.method`, a defined class without that class method, or a default `process` that is not implemented) raises `ArgumentError` at `subscribe` instead of dead-lettering every message (#20)
 
 ### Tests
 - `test_dispatcher_routing` now asserts that both processors receive the routed message, and the dispatcher and subscribe tests no longer print debug output (#14)
