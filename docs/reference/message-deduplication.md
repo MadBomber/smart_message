@@ -65,10 +65,11 @@ Each UUID is one Redis key written with `SET NX EX`, which makes the reservation
 |--------|---------|---------|
 | `redis:` | `Redis.new` | A Redis client |
 | `ttl:` | `3600` | Seconds a UUID is remembered |
+| `key_prefix:` | `smart_message:ddq` | Root of the key names; give environments that share a Redis server different prefixes |
 
 Storage is bounded by time, not by count: `ddq_size` is accepted but does not limit the Redis backend.
 
-Keys are named `smart_message:ddq:<MessageClass>:<handler id>:<uuid>`. Two processes share a record when they run the same named handler for the same message class. Block, proc and lambda handlers get a generated id per `subscribe` call, so they do not share a record across processes; use a named class method for handlers that must deduplicate across processes.
+Keys are named `<key_prefix>:<MessageClass>:<handler id>:<uuid>`, by default `smart_message:ddq:<MessageClass>:<handler id>:<uuid>`. Two processes share a record when they run the same named handler for the same message class. Block, proc and lambda handlers get a generated id per `subscribe` call, so they do not share a record across processes; use a named class method for handlers that must deduplicate across processes.
 
 The Redis backend fails open. If Redis cannot be reached when the queue is created, `subscribe` raises `SmartMessage::Errors::TransportError`. If Redis fails later, the error is logged and the message is processed.
 

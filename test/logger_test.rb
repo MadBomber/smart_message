@@ -15,7 +15,7 @@ module LoggerContract
     logger = new_logger(level: :debug)
 
     LEVELS.each do |level|
-      assert_nil logger.public_send(level, "#{level} as a string").then { nil }
+      logger.public_send(level, "#{level} as a string")
       logger.public_send(level) { "#{level} as a block" }
       logger.public_send(level, "#{level} with data", order_id: 42, tags: %w[a b])
     end
@@ -24,11 +24,14 @@ module LoggerContract
   def test_contract_level_accepts_symbols_strings_and_integers
     logger = new_logger(level: :debug)
 
-    { warn: 2, 'error' => 3, 'INFO' => 1, 0 => 0, fatal: 4 }.each do |given, expected|
+    { warn: 2, 'error' => 3, 'INFO' => 1, 0 => 0, fatal: 4 }.each do |given, severity|
       logger.level = given
-      assert_equal expected, SmartMessage::Logger.severity(given)
+      assert_equal level_after_setting(severity), logger.level, "level = #{given.inspect}"
     end
   end
+
+  # The level a logger reports after +level=+ is given +severity+.
+  def level_after_setting(severity) = severity
 
   def test_contract_unknown_levels_are_rejected
     logger = new_logger(level: :info)
@@ -45,16 +48,12 @@ module LoggerContract
     LEVELS.each { |level| assert_includes [true, false], logger.public_send(:"#{level}?") }
   end
 
-  def test_contract_add_logs_at_the_given_level
-    logger = new_logger(level: :debug)
-
-    logger.add(:warn, 'added by symbol')
-    logger.add(3, 'added by number', key: 'value')
-    logger.add('info') { 'added by block' }
-  end
-
   def test_contract_close_can_be_called
-    new_logger(level: :info).close
+    logger = new_logger(level: :info)
+
+    logger.close
+
+    assert_kind_of Integer, logger.level, 'a closed logger still answers its level'
   end
 
   def test_contract_works_as_the_framework_logger
@@ -75,6 +74,35 @@ end
 # Loggers that write somewhere also share these.
 module WritingLoggerContract
   include LoggerContract
+
+  def test_every_level_writes_a_string_a_block_and_keyword_data
+    logger = new_logger(level: :debug)
+
+    LEVELS.each do |level|
+      logger.public_send(level, "#{level} as a string")
+      logger.public_send(level) { "#{level} as a block" }
+      logger.public_send(level, "#{level} with data", order_id: 42)
+    end
+
+    LEVELS.each do |level|
+      label = level.to_s.upcase
+      assert_match(/#{label}.*#{level} as a string/, output)
+      assert_match(/#{label}.*#{level} as a block/, output)
+      assert_match(/#{label}.*#{level} with data.*order_id.*42/, output)
+    end
+  end
+
+  def test_add_logs_at_the_given_level
+    logger = new_logger(level: :debug)
+
+    logger.add(:warn, 'added by symbol')
+    logger.add(3, 'added by number', key: 'value')
+    logger.add('info') { 'added by block' }
+
+    assert_match(/WARN.*added by symbol/, output)
+    assert_match(/ERROR.*added by number.*key.*value/, output)
+    assert_match(/INFO.*added by block/, output)
+  end
 
   def test_writes_messages_at_or_above_the_level_only
     logger = new_logger(level: :warn)
@@ -158,6 +186,9 @@ class NullLoggerTest < Minitest::Test
   def new_logger(level: nil)
     SmartMessage::Logger::Null.new
   end
+
+  # A null logger ignores level changes and stays silent
+  def level_after_setting(_severity) = SmartMessage::Logger::Null::SILENT
 
   def test_nothing_is_enabled_and_blocks_are_never_evaluated
     logger = new_logger

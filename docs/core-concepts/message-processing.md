@@ -108,7 +108,7 @@ OrderMessage.unsubscribe(handler_id)           # a block/proc/lambda, by the id 
 OrderMessage.unsubscribe!                      # every handler of this class
 ```
 
-A message already handed to the thread pool still runs its handler after an unsubscribe.
+Passing the block/proc/lambda itself instead of its id raises `ArgumentError`. A message already handed to the thread pool still runs its handler after an unsubscribe.
 
 ## A complete program
 

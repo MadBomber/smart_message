@@ -247,6 +247,23 @@ class ProcHandlerTest < Minitest::Test
     refute TestMessage.proc_handler?(handler_id)
   end
 
+  def test_unsubscribe_with_the_handler_itself_raises_and_keeps_the_subscription
+    TestMessage.transport @transport
+    handler    = ->(_message) {}
+    handler_id = TestMessage.subscribe(handler)
+
+    error = assert_raises(ArgumentError) { TestMessage.unsubscribe(handler) }
+    assert_match(/id .*subscribe returned/, error.message)
+    assert TestMessage.proc_handler?(handler_id), 'nothing is unsubscribed'
+
+    TestMessage.unsubscribe(handler_id)
+    refute TestMessage.proc_handler?(handler_id)
+  end
+
+  def test_unsubscribe_with_a_method_object_raises
+    assert_raises(ArgumentError) { TestMessage.unsubscribe(Service.method(:handle)) }
+  end
+
   def test_proc_handler_with_message_header
     TestMessage.transport @transport
 
