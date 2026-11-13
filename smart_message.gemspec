@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.email         = ['dvanhoozer@gmail.com']
   spec.license       = 'MIT'
 
-  spec.homepage      = "https://github.com/MadBomber/smart_message"
+  spec.homepage      = "https://madbomber.github.io/smart_message/"
   spec.summary       = %q{An abstraction to protect message content from the backend delivery transport.}
   spec.description   = <<~DESCRIPTION
     Much like ActiveRecord abstracts the model as an ORM from the
@@ -22,7 +22,7 @@ Gem::Specification.new do |spec|
     "source_code_uri"   => "https://github.com/MadBomber/smart_message",
     "changelog_uri"     => "https://github.com/MadBomber/smart_message/blob/main/CHANGELOG.md",
     "bug_tracker_uri"   => "https://github.com/MadBomber/smart_message/issues",
-    "documentation_uri" => "https://github.com/MadBomber/smart_message/blob/main/README.md"
+    "documentation_uri" => "https://madbomber.github.io/smart_message/getting-started/quick-start/"
   }
 
   # Only the library and its top-level documents are packaged.  The paths
