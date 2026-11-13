@@ -31,6 +31,13 @@ class FileTransportTest < Minitest::Test
     assert_match(/file_path/, error.message)
   end
 
+  def test_poll_interval_must_be_a_positive_number
+    [nil, 0, -0.5, '1'].each do |bad|
+      error = assert_raises(ArgumentError, "poll_interval: #{bad.inspect}") { FT.new(file_path: path, poll_interval: bad) }
+      assert_match(/poll_interval/, error.message)
+    end
+  end
+
   def test_removed_options_have_no_effect_on_the_defaults
     assert_equal %i[file_path create_directories encoding poll_interval read_from_end], FT.new(file_path: path).default_options.keys
   end

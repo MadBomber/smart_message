@@ -203,7 +203,7 @@ SmartMessage::DeadLetterQueue.default.inspect_messages(limit: 5)
 }
 ```
 
-`redis_stats.rb` is a full-screen dashboard of the Redis server: pub/sub channels and subscribers, command rates, latency, connections and memory. Keys: `q` quit, `r` refresh, `+`/`-` refresh rate, `h` help.
+`redis_stats.rb` is a full-screen dashboard of the Redis server: pub/sub channels and subscribers, command rates, latency, network traffic and connections. Keys: `q` quit, `r` refresh, `+`/`-` refresh rate, `h` help.
 
 ## Adding to the city
 

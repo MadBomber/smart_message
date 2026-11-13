@@ -162,6 +162,40 @@ class DeduplicationTest < Minitest::Test
     assert_equal 2, @seen.size, 'after clear_ddq! the message is new again'
   end
 
+  class Outer < SmartMessage::Base
+    from 'dedup-test'
+    property :value
+    enable_deduplication!
+
+    class Inner < SmartMessage::Base
+      from 'dedup-test'
+      property :value
+      enable_deduplication!
+    end
+  end
+
+  def test_stats_and_clear_leave_a_nested_class_alone
+    [Outer, Outer::Inner].each { |klass| klass.transport(@transport) }
+    Outer.subscribe { |message| @seen << [:outer, message.value] }
+    Outer::Inner.subscribe { |message| @seen << [:inner, message.value] }
+    inner = Outer::Inner.new(value: 1)
+    redeliver(inner)
+
+    keys = Outer.ddq_stats[:queues].keys
+    refute_empty keys
+    assert(keys.all? { |key| key.start_with?("#{Outer}:") && !key.start_with?("#{Outer}::") }, keys.inspect)
+
+    Outer.clear_ddq!
+    redeliver(inner)
+
+    assert_equal 1, @seen.size, "clearing #{Outer} must not clear #{Outer::Inner}'s queue"
+  ensure
+    [Outer, Outer::Inner].each do |klass|
+      klass.unsubscribe!
+      klass.reset_transport
+    end
+  end
+
   def test_unsubscribing_drops_the_handlers_queue
     handler = Deduped.subscribe { |message| @seen << message.value }
     redeliver(Deduped.new(value: 1))

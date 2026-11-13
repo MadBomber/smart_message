@@ -125,9 +125,10 @@ module SmartMessage
       end
     end
 
-    # @param path [String] stored as an absolute path
+    # @param path [String, Pathname, nil] stored as an absolute path; nil or
+    #   blank restores the default, as an empty $SMART_MESSAGE_DLQ_PATH does
     def dlq_path=(path)
-      @dlq_path = File.expand_path(path.to_s)
+      @dlq_path = path.to_s.strip.empty? ? self.class.default_dlq_path : File.expand_path(path.to_s)
     end
 
     # Was a logger configured?

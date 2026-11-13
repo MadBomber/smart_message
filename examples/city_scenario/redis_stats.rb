@@ -17,7 +17,6 @@ class RedisStats
     @start_time = Time.now
     @message_counts = Hash.new(0)
     @channel_stats = Hash.new { |h, k| h[k] = { last_count: 0, rate: 0, total_messages: 0 } }
-    @previous_stats = {}
     @previous_command_stats = {}
     @max_publish_rate = 0.0  # Track maximum publish rate seen
     @max_rates = Hash.new(0.0)  # Track max rates for each command
@@ -202,19 +201,19 @@ class RedisStats
       "┌─ HELP ─────────────────────────────────────────┐",
       "│                                                │",
       "│  Controls:                                     │",
-      "│    q/Q/Esc : Quit                             │",
-      "│    r/R     : Refresh immediately              │",
-      "│    +       : Increase refresh rate            │",
-      "│    -       : Decrease refresh rate            │",
-      "│    h/H/?   : Show this help                   │",
+      "│    q/Q/Esc : Quit                              │",
+      "│    r/R     : Refresh immediately               │",
+      "│    +       : Increase refresh rate             │",
+      "│    -       : Decrease refresh rate             │",
+      "│    h/H/?   : Show this help                    │",
       "│                                                │",
       "│  Dashboard shows:                              │",
-      "│    • Active Redis pub/sub channels            │",
-      "│    • Real-time performance metrics            │",
-      "│    • SmartMessage activity breakdown          │",
-      "│    • Connection and memory statistics         │",
+      "│    • Pub/sub overview and channel analytics    │",
+      "│    • Command statistics and latency            │",
+      "│    • Network traffic                           │",
+      "│    • Connection info                           │",
       "│                                                │",
-      "│         Press any key to continue...          │",
+      "│         Press any key to continue...           │",
       "└────────────────────────────────────────────────┘"
     ]
     
@@ -438,66 +437,6 @@ class RedisStats
     lines
   end
 
-  def build_performance_stats
-    lines = []
-    lines << "⚡ PERFORMANCE METRICS:"
-    lines << "-" * 40
-
-    info = @redis.info("stats")
-    current_stats = {
-      total_commands: info["total_commands_processed"]&.to_i || 0,
-      total_connections: info["total_connections_received"]&.to_i || 0,
-      ops_per_sec: info["instantaneous_ops_per_sec"]&.to_i || 0,
-      input_kbps: info["instantaneous_input_kbps"]&.to_f || 0.0,
-      output_kbps: info["instantaneous_output_kbps"]&.to_f || 0.0
-    }
-
-    # Calculate deltas since last check
-    if @previous_stats.any?
-      commands_delta = current_stats[:total_commands] - @previous_stats[:total_commands]
-      connections_delta = current_stats[:total_connections] - @previous_stats[:total_connections]
-      
-      lines << "   📈 Commands Processed: #{format_number(current_stats[:total_commands])} (+#{commands_delta})"
-      lines << "   🔗 Total Connections: #{format_number(current_stats[:total_connections])} (+#{connections_delta})"
-    else
-      lines << "   📈 Commands Processed: #{format_number(current_stats[:total_commands])}"
-      lines << "   🔗 Total Connections: #{format_number(current_stats[:total_connections])}"
-    end
-
-    lines << "   ⚡ Operations/sec: #{current_stats[:ops_per_sec]}"
-    lines << "   📥 Input: #{current_stats[:input_kbps].round(2)} KB/s"
-    lines << "   📤 Output: #{current_stats[:output_kbps].round(2)} KB/s"
-
-    @previous_stats = current_stats
-    lines
-  end
-
-  def build_message_breakdown
-    lines = []
-    lines << "📨 SMARTMESSAGE BREAKDOWN:"
-    lines << "-" * 40
-
-    message_types = [
-      { name: "HealthCheck", desc: "Health monitoring broadcasts" },
-      { name: "HealthStatus", desc: "Service status responses" },
-      { name: "FireEmergency", desc: "House fire alerts" },
-      { name: "FireDispatch", desc: "Fire truck dispatches" },
-      { name: "SilentAlarm", desc: "Bank security alerts" },
-      { name: "PoliceDispatch", desc: "Police unit dispatches" },
-      { name: "EmergencyResolved", desc: "Incident resolutions" }
-    ]
-
-    message_types.each do |msg|
-      channel = Common::City.channel_for("Messages::#{msg[:name]}Message")
-      subscribers = @redis.pubsub("numsub", channel)[1] || 0
-      
-      status_icon = subscribers > 0 ? "🟢" : "🔴"
-      lines << "   #{status_icon} #{msg[:name].ljust(15)} #{subscribers} subs | #{msg[:desc]}"
-    end
-    
-    lines
-  end
-
   def build_connection_stats
     lines = []
     lines << "🔌 CONNECTION INFO:"
@@ -528,23 +467,6 @@ class RedisStats
     rescue => e
       lines << "   📋 Connection details unavailable: #{e.message}"
     end
-    
-    lines
-  end
-
-  def build_memory_stats
-    lines = []
-    lines << "💾 MEMORY USAGE:"
-    lines << "-" * 40
-
-    info = @redis.info("memory")
-    used_memory = info["used_memory"]&.to_i || 0
-    used_memory_peak = info["used_memory_peak"]&.to_i || 0
-    used_memory_rss = info["used_memory_rss"]&.to_i || 0
-
-    lines << "   💾 Used Memory: #{format_bytes(used_memory)}"
-    lines << "   📈 Peak Memory: #{format_bytes(used_memory_peak)}"
-    lines << "   🖥️  RSS Memory: #{format_bytes(used_memory_rss)}"
     
     lines
   end

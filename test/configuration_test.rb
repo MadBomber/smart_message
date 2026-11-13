@@ -149,6 +149,15 @@ class ConfigurationTest < Minitest::Test
     assert_equal File.expand_path('relative/dlq.jsonl'), config.dlq_path
   end
 
+  def test_a_nil_or_blank_dlq_path_restores_the_default
+    [nil, '', '  '].each do |blank|
+      config.dlq_path = temp_path('configured_dlq.jsonl')
+      config.dlq_path = blank
+
+      assert_equal SmartMessage::Configuration.default_dlq_path, config.dlq_path, "dlq_path = #{blank.inspect}"
+    end
+  end
+
   # ---- transport and dispatcher --------------------------------------------
 
   def test_transport_setting
