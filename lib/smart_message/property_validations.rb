@@ -140,8 +140,8 @@ module SmartMessage
                when Proc    then instance_exec(value, &validator)
                when Symbol  then send(validator, value)
                when Regexp  then validator.match?(value.to_s)
-               when Class   then value.is_a?(validator)
-               when Array   then validator.include?(value)
+               when Module  then value.is_a?(validator)
+               when Array, Set then validator.include?(value)
                when Range   then validator.cover?(value)
                else              value == validator
                end

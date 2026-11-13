@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Errors**: the missing-`from` validation error names the message class and says how to set `from`; `TransportNotConfigured` says how to set a transport in the class or globally (#31)
 
 ### Fixed
+- **Validation**: a Module (`Enumerable`, `Comparable`) given as `validate:` is a type check and a Set is a list of allowed values, instead of rejecting every value (#57)
 - **Dead letter queue**: replay fails, and leaves the entry queued, when the payload names a different message class than the entry was stored for
 - **Subscribe**: when one transport's `subscribe` raises, the transports already subscribed by that call are unsubscribed again, so a failed `subscribe` leaves no live or orphaned subscription behind (#27)
 - **Transport setters**: `transport` (class and instance) and `config.transport=` raise `ArgumentError` for a value that is not a transport, such as `transport :memory`, instead of failing at subscribe/publish and dead-lettering the message (#26)
