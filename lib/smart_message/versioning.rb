@@ -55,7 +55,9 @@ module SmartMessage
     def format_validation_error(error)
       case error[:source]
       when 'header'
-        "#{SmartMessage::Header.name}##{error[:property]}: #{error[:message]}"
+        text = "#{self.class.name || SmartMessage::Header.name}##{error[:property]}: #{error[:message]}"
+        text += " (declare from 'service-name' in the class or pass from: to new)" if error[:property] == :from
+        text
       when 'version_mismatch'
         "#{self.class.name} expects version #{self.class.version}, but header has version #{error[:value]}"
       else
