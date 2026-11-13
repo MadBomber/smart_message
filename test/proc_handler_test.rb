@@ -34,6 +34,40 @@ class ProcHandlerTest < Minitest::Test
     end
   end
 
+  module Service
+    def self.handle(_message) = nil
+  end
+
+  class Unimplemented < SmartMessage::Base
+    from 'test-service'
+    property :content
+
+    def process(_message) = nil # an instance method: never called
+  end
+
+  def test_a_named_handler_that_cannot_be_called_fails_the_subscribe
+    TestMessage.transport @transport
+    Unimplemented.transport @transport
+
+    {
+      'ProcHandlerTest::Service.missing'  => /has no class method missing/,
+      'ProcHandlerTest::Service'          => /Class\.method/,
+      :process                            => /must be a "Class\.method" String/
+    }.each do |handler, message|
+      error = assert_raises(ArgumentError, handler.inspect) { TestMessage.subscribe(handler) }
+      assert_match message, error.message
+    end
+
+    error = assert_raises(ArgumentError) { Unimplemented.subscribe }
+    assert_match(/not implemented.*def self\.process/, error.message)
+    assert_empty @transport.subscribers
+
+    # a class that is not defined yet may be defined after the subscription
+    assert_equal 'ProcHandlerTest::DefinedLater.handle', TestMessage.subscribe('ProcHandlerTest::DefinedLater.handle')
+  ensure
+    Unimplemented.reset_transport
+  end
+
   def test_default_subscribe_still_works
     TestMessage.transport @transport
 
@@ -323,8 +357,8 @@ class ProcHandlerTest < Minitest::Test
     default_id = TestMessage.subscribe
     assert_equal "ProcHandlerTest::TestMessage.process", default_id
 
-    method_id = TestMessage.subscribe("SomeClass.some_method")
-    assert_equal "SomeClass.some_method", method_id
+    method_id = TestMessage.subscribe("ProcHandlerTest::Service.handle")
+    assert_equal "ProcHandlerTest::Service.handle", method_id
 
     block_id = TestMessage.subscribe { |message| }
     assert block_id.start_with?("ProcHandlerTest::TestMessage.proc_")

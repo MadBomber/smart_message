@@ -27,6 +27,11 @@ module SmartMessage
       end
 
       def configure
+        max = @options[:max_messages]
+        unless max.is_a?(Integer) && max.positive?
+          raise ArgumentError, "max_messages must be a positive Integer, got: #{max.inspect}"
+        end
+
         @messages      = []
         @message_mutex = Mutex.new
       end

@@ -87,6 +87,11 @@ OrderMessage.multiple_transports?  # => true
 
 ```ruby
 SmartMessage.configure do |config|
+  # Dispatcher: set these before creating the transport, which reads them
+  config.dispatcher_max_threads = 10
+  config.dispatcher_max_queue   = 1_000
+  config.shutdown_timeout       = 5
+
   # Transport: none by default
   config.transport = SmartMessage::Transport.create(:redis, namespace: 'production')
 
@@ -96,20 +101,17 @@ SmartMessage.configure do |config|
 
   # Dead letter queue file
   config.dlq_path = '/var/lib/my_app/dead_letters.jsonl'
-
-  # Dispatcher
-  config.dispatcher_max_threads = 10
-  config.dispatcher_max_queue   = 1_000
-  config.shutdown_timeout       = 5
 end
 ```
+
+A transport's dispatcher reads `dispatcher_max_threads` and `dispatcher_max_queue` when the transport is created, so a transport created before they are set keeps the defaults. `transport.dispatcher.max_threads` and `max_queue` show the limits in effect.
 
 | Setting | Default | Meaning |
 |---------|---------|---------|
 | `transport` | `nil` | A transport instance, or an Array of them, for classes that do not set their own |
 | `logger` | `nil` | See [Logging](../reference/logging.md) |
 | `log_level`, `log_format`, `log_include_source`, `log_structured_data`, `log_colorize`, `log_options` | unset | Shape the built-in Lumberjack logger; see [Logging](../reference/logging.md) |
-| `dlq_path` | `$SMART_MESSAGE_DLQ_PATH`, else `$XDG_STATE_HOME/smart_message/dead_letters.jsonl`, else `~/.local/state/smart_message/dead_letters.jsonl` | File of the default [dead letter queue](../reference/dead-letter-queue.md); stored as an absolute path |
+| `dlq_path` | `$SMART_MESSAGE_DLQ_PATH`, else `$XDG_STATE_HOME/smart_message/dead_letters.jsonl`, else `~/.local/state/smart_message/dead_letters.jsonl` | File of the default [dead letter queue](../reference/dead-letter-queue.md); stored as an absolute path. `nil` or blank restores the default |
 | `dispatcher_max_threads` | `[CPU count * 2, 4].max` | Handler threads per [dispatcher](dispatcher.md) |
 | `dispatcher_max_queue` | `1000` | Handler calls that may wait for a thread |
 | `shutdown_timeout` | `5` | Seconds `SmartMessage.shutdown` waits when called without `timeout:` |

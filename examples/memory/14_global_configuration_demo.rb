@@ -28,16 +28,23 @@ Example.check('publishing without any transport raises TransportNotConfigured') 
 Example.check('no logger is configured') { !SmartMessage.configuration.logger_configured? }
 
 Example.section 'SmartMessage.configure'
-log_path         = Example.tmp_path('log', 'application.log')
-global_transport = SmartMessage::Transport::MemoryTransport.new
+log_path = Example.tmp_path('log', 'application.log')
 
 SmartMessage.configure do |config|
-  config.transport              = global_transport
+  # A transport's dispatcher reads its limits when the transport is created,
+  # so set them first
+  config.dispatcher_max_threads = 4
+  config.dispatcher_max_queue   = 50
+  config.shutdown_timeout       = 2
+  config.transport              = SmartMessage::Transport::MemoryTransport.new
   config.logger                 = log_path # a path, STDOUT/STDERR, :default, or a logger object
   config.log_level              = :info
   config.dlq_path               = Example.tmp_path('app_dead_letters.jsonl')
-  config.dispatcher_max_threads = 4
-  config.shutdown_timeout       = 2
+end
+global_transport = SmartMessage.configuration.transport
+
+Example.check('the global transport uses the configured dispatcher limits') do
+  global_transport.dispatcher.max_threads == 4 && global_transport.dispatcher.max_queue == 50
 end
 
 OrderStatusMessage.subscribe

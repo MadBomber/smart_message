@@ -14,9 +14,9 @@ end
 |-------|--------|
 | `nil` | No logging. This is the default. |
 | `:default` | The built-in Lumberjack logger writing to `log/smart_message.log` (under `Rails.root` in a Rails application) |
-| a String path | The built-in Lumberjack logger writing to that file. The directory is created. |
+| a String or `Pathname` path | The built-in Lumberjack logger writing to that file. The directory is created. |
 | `STDOUT` or `STDERR` | The built-in Lumberjack logger writing to the console |
-| any other object | Used as it is: `Rails.logger`, `Logger.new(...)`, a `SmartMessage::Logger::Default`, or your own |
+| a logger object | Used as it is: `Rails.logger`, `Logger.new(...)`, a `SmartMessage::Logger::Default`, or your own. It must respond to `debug`, `info`, `warn`, `error` and `fatal`; anything else raises `ArgumentError` when assigned |
 
 Any object with the standard Ruby `Logger` interface works. The framework only calls `debug`, `info`, `warn`, `error` and `fatal`, each with a block.
 
