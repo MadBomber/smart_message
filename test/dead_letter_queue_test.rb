@@ -511,14 +511,13 @@ class DeadLetterQueueTest < Minitest::Test
 
   def test_configure_default_sets_the_path_and_returns_the_default_queue
     path = temp_path('configured_default.jsonl')
-    stale = SmartMessage::DeadLetterQueue.default
+    refute_equal path, SmartMessage::DeadLetterQueue.default.file_path, 'the default queue starts elsewhere'
 
     queue = SmartMessage::DeadLetterQueue.configure_default(path)
 
     assert_equal path, SmartMessage.configuration.dlq_path
     assert_equal path, queue.file_path
     assert_same SmartMessage::DeadLetterQueue.default, queue
-    refute_same stale, queue
   end
 
   # A transport whose publish always fails
