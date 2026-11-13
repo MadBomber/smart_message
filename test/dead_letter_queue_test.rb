@@ -486,6 +486,46 @@ class DeadLetterQueueTest < Minitest::Test
     assert @dlq.empty?
   end
 
+  # A serializer whose payloads are not JSON (JSON wrapped in base64)
+  class PackedSerializer < SmartMessage::Serializer::Base
+    private
+
+    def do_encode(hash) = [SmartMessage::Serializer::Json.new.encode(hash)].pack('m0')
+    def do_decode(payload) = SmartMessage::Serializer::Json.new.decode(payload.unpack1('m0'))
+  end
+
+  def test_a_payload_a_non_json_transport_could_not_receive_can_be_replayed
+    previous_path = SmartMessage.configuration.dlq_path
+    SmartMessage.configuration.dlq_path = @test_dlq_file
+    serializer = PackedSerializer.new
+    late_name  = "#{self.class}::LateOrder"
+    hash       = serializer.decode(SmartMessage::Envelope.encode(create_order_message('ORD-1'), serializer))
+    hash[:_sm_header][:message_class] = late_name
+    payload    = serializer.encode(hash)
+    receiver   = SmartMessage::Transport::MemoryTransport.new(serializer: serializer, auto_process: false)
+
+    assert_raises(SmartMessage::Errors::UnknownMessageClass) { receiver.send(:receive, late_name, payload) }
+    assert_equal PackedSerializer.name, @dlq.peek[:payload_format]
+
+    self.class.const_set(:LateOrder, Class.new(SmartMessage::Base) { property :order_id; property :amount })
+    result = @dlq.replay_one(SmartMessage::Transport::MemoryTransport.new(auto_process: false))
+
+    assert result[:success], result[:error]
+    assert_equal 'ORD-1', result[:message].order_id
+    assert @dlq.empty?
+  ensure
+    self.class.send(:remove_const, :LateOrder) if self.class.const_defined?(:LateOrder, false)
+    SmartMessage.configuration.dlq_path = previous_path
+  end
+
+  def test_dlq_payload_format_names_the_transports_serializer
+    format_for = ->(serializer) { SmartMessage::Transport::MemoryTransport.new(serializer: serializer).send(:dlq_payload_format) }
+
+    assert_equal 'json', format_for.call(SmartMessage::Serializer::Json.new)
+    assert_equal PackedSerializer.name, format_for.call(PackedSerializer.new)
+    assert_equal 'json', format_for.call(Class.new(PackedSerializer).new), 'an anonymous serializer cannot be found again by name'
+  end
+
   def test_default_path_is_absolute_and_not_in_the_working_directory
     path = SmartMessage::Configuration.default_dlq_path({})
 
