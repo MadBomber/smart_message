@@ -33,6 +33,8 @@ These shape the built-in Lumberjack logger, that is, when `config.logger` is `:d
 | `config.log_colorize` | `true` / `false`: colour lines by level; console output only | `false` |
 | `config.log_options` | a Hash of rotation options (below) | `{}` |
 
+`log_level` and `log_format` also accept Strings (`'warn'`, `'json'`). Any other value raises `ArgumentError` when it is assigned.
+
 Rotation options for `config.log_options`:
 
 | Key | Meaning |

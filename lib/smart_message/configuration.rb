@@ -63,6 +63,7 @@ module SmartMessage
   #   config.shutdown_timeout       = 5      # seconds SmartMessage.shutdown waits
   class Configuration
     LOG_SETTINGS = %i[log_level log_format log_include_source log_structured_data log_colorize log_options].freeze
+    LOG_FORMATS  = %i[text json].freeze
 
     DEFAULT_DISPATCHER_MAX_THREADS = [Etc.nprocessors * 2, 4].max
     DEFAULT_DISPATCHER_MAX_QUEUE   = 1_000
@@ -118,11 +119,38 @@ module SmartMessage
       @built_logger = nil
     end
 
-    LOG_SETTINGS.each do |name|
+    (LOG_SETTINGS - %i[log_level log_format]).each do |name|
       define_method(:"#{name}=") do |value|
         instance_variable_set(:"@#{name}", value)
         @built_logger = nil
       end
+    end
+
+    # @param value [Symbol, String, Integer, nil] one of Logger::LEVELS (or
+    #   its index); nil uses the logger's default
+    # @raise [ArgumentError] for an unknown level
+    def log_level=(value)
+      unless value.nil?
+        SmartMessage::Logger.severity(value)
+        value = value.to_s.downcase.to_sym if value.is_a?(String)
+      end
+      @log_level    = value
+      @built_logger = nil
+    end
+
+    # @param value [Symbol, String, nil] :text or :json; nil uses :text
+    # @raise [ArgumentError] for any other format
+    def log_format=(value)
+      unless value.nil?
+        format = value.to_s.downcase.to_sym if value.is_a?(String) || value.is_a?(Symbol)
+        unless LOG_FORMATS.include?(format)
+          raise ArgumentError, "Unknown log format: #{value.inspect}. Use one of #{LOG_FORMATS.inspect}"
+        end
+
+        value = format
+      end
+      @log_format   = value
+      @built_logger = nil
     end
 
     # @param path [String, Pathname, nil] stored as an absolute path; nil or

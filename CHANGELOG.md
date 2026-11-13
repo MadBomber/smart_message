@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **Dead letter queue**: replay fails, and leaves the entry queued, when the payload names a different message class than the entry was stored for
+- **Configuration**: `log_level` and `log_format` raise `ArgumentError` when set to an unknown value, instead of breaking every later `new` (bad level) or being ignored (bad format); Strings are accepted (#30)
 - **Gemspec links**: `homepage` points at the docs site and `documentation_uri` at its quick start, so rubygems.org shows distinct Homepage, Documentation and Source links (#32)
 - **Redis**: when the subscriber gives up after `reconnect_attempts`, `connected?` returns `false` while channels still have handlers; new `subscriber_alive?` reports it, and `connect` restarts the subscriber (#18)
 - **Docs/examples**: the global configuration page and example 14 set `dispatcher_max_threads`/`dispatcher_max_queue` before creating the transport, so the limits take effect; `Dispatcher#max_threads` and `#max_queue` report the limits in effect (#28)
