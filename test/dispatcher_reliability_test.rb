@@ -241,10 +241,10 @@ class DispatcherReliabilityTest < Minitest::Test
       config.dispatcher_max_queue   = 7
     end
 
-    pool = SmartMessage::Dispatcher.new.instance_variable_get(:@router_pool)
+    pooled = SmartMessage::Dispatcher.new
 
-    assert_equal 3, pool.max_length
-    assert_equal 7, pool.max_queue
+    assert_equal 3, pooled.max_threads
+    assert_equal 7, pooled.max_queue
   end
 
   # ---- shutdown ------------------------------------------------------------

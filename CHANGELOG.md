@@ -7,9 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **License**: `LICENSE.txt` with the MIT license and `spec.license = 'MIT'` in the gemspec, matching the README (#19)
+### Changed
+- **Errors**: the missing-`from` validation error names the message class and says how to set `from`; `TransportNotConfigured` says how to set a transport in the class or globally (#31)
+
 ### Fixed
 - **Dead letter queue**: replay fails, and leaves the entry queued, when the payload names a different message class than the entry was stored for
 - **Configuration**: `log_level` and `log_format` raise `ArgumentError` when set to an unknown value, instead of breaking every later `new` (bad level) or being ignored (bad format); Strings are accepted (#30)
+- **Gemspec links**: `homepage` points at the docs site and `documentation_uri` at its quick start, so rubygems.org shows distinct Homepage, Documentation and Source links (#32)
+- **Redis**: when the subscriber gives up after `reconnect_attempts`, `connected?` returns `false` while channels still have handlers; new `subscriber_alive?` reports it, and `connect` restarts the subscriber (#18)
+- **Docs/examples**: the global configuration page and example 14 set `dispatcher_max_threads`/`dispatcher_max_queue` before creating the transport, so the limits take effect; `Dispatcher#max_threads` and `#max_queue` report the limits in effect (#28)
+- **Receiving**: a payload whose message cannot be built (a bad `published_at`, a `coerce_key` that raises) is now a `DecodeError` and goes to the dead letter queue instead of being dropped; `RedisTransport` logs any other skipped message at `error` (#24)
+- **Subscribe**: a named handler that can never be called (a Symbol, a String without `Class.method`, a defined class without that class method, or a default `process` that is not implemented) raises `ArgumentError` at `subscribe` instead of dead-lettering every message (#20)
+- **Configuration**: `config.logger` accepts a `Pathname` as a log file (as does `Logger::Lumberjack`, which now creates its directory), and raises `ArgumentError` at assignment for values such as `:stdout` that are not a log target or logger (#25)
+- **Configuration**: `config.dlq_path = nil` (or blank) restores the default dead letter file instead of pointing the queue at the working directory (#29)
+- **Deduplication**: `clear_ddq!` and `ddq_stats` act only on the class's own handlers, no longer on a nested class such as `Order::Shipped` (#33)
+- **Transports**: `MemoryTransport` raises `ArgumentError` unless `max_messages` is a positive Integer, and `FileTransport` unless `poll_interval` is a positive number, instead of hanging or stalling delivery (#34)
+- **`pretty_print`**: no longer raises `NoMethodError` for a Hash property with Integer or `nil` keys (#35)
 
 ### Tests
 - `test_dispatcher_routing` now asserts that both processors receive the routed message, and the dispatcher and subscribe tests no longer print debug output (#14)

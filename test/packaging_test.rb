@@ -47,6 +47,21 @@ class PackagingTest < Minitest::Test
     assert_equal Dir.chdir(ROOT) { Dir['lib/**/*.rb'].sort }, files.grep(%r{\Alib/}).sort
   end
 
+  def test_the_gem_links_to_the_docs_site_and_the_source_separately
+    docs = 'https://madbomber.github.io/smart_message/'
+
+    assert_equal docs, spec.homepage
+    assert_equal "#{docs}getting-started/quick-start/", spec.metadata['documentation_uri']
+    assert_equal 'https://github.com/MadBomber/smart_message', spec.metadata['source_code_uri']
+    uris = spec.metadata.select { |key, _| key.end_with?('_uri') }.values
+    assert_equal uris.uniq, uris, 'rubygems.org shows only the first of duplicate links'
+  end
+
+  def test_the_gem_declares_and_ships_its_license
+    assert_equal ['MIT'], spec.licenses
+    assert_includes spec.files, 'LICENSE.txt'
+  end
+
   def test_the_built_gem_contains_exactly_the_listed_files
     gem_file = temp_path('smart_message.gem')
 

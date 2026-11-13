@@ -33,7 +33,7 @@ SmartMessage::Transport.create(:file, file_path: 'log/messages.jsonl')
 | `file_path` | none, **required** | The file, as a String or Pathname; or an IO to write to. Omitting it raises `ArgumentError`. |
 | `create_directories` | `true` | Create the file's directory when the file is first written |
 | `encoding` | `nil` | File encoding; `nil` means Ruby's default |
-| `poll_interval` | `0.5` | Seconds between checks for new lines |
+| `poll_interval` | `0.5` | Seconds between checks for new lines; must be a positive number |
 | `read_from_end` | `true` | A new subscription sees only lines written after it started; `false` reads the whole file first |
 
 When `file_path` is an IO, the transport can publish to it but not subscribe from it (`subscribe` raises `SmartMessage::Errors::TransportError`), and it never closes it.

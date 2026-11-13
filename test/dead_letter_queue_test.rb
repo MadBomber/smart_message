@@ -240,16 +240,6 @@ class DeadLetterQueueTest < Minitest::Test
   
   private
   
-  def create_header(uuid, message_class, **extra_attrs)
-    SmartMessage::Header.new({
-      uuid: uuid,
-      message_class: message_class,
-      published_at: Time.now,
-      publisher_pid: Process.pid,
-      from: 'test-service'
-    }.merge(extra_attrs))
-  end
-  
   def create_test_message(data, **extra_attrs)
     attrs = {
       test_data: data,
@@ -349,6 +339,44 @@ class DeadLetterQueueTest < Minitest::Test
     assert_equal 3, @dlq.size
     assert_equal [1, 1, 1], @dlq.entries.map { |entry| entry[:retry_count] }
   end
+
+
+  def test_replay_batch_replays_only_the_oldest_count_entries
+    3.times { |i| @dlq.enqueue(create_test_message("data #{i}"), error: "error #{i}") }
+    transport = SmartMessage::Transport::MemoryTransport.new(auto_process: false)
+
+    results = @dlq.replay_batch(2, transport)
+
+    assert_equal({ success: 2, failed: 0, errors: [] }, results)
+    assert_equal(['data 0', 'data 1'],
+                 transport.all_messages.map { |sent| transport.decode_message(sent[:payload]).test_data })
+    assert_equal ['error 2'], @dlq.entries.map { |entry| entry[:error] }, 'the newest entry is left'
+  end
+
+
+  def test_replay_batch_counts_failures_and_keeps_the_failed_entries
+    3.times { @dlq.enqueue(@message, error: 'original failure') }
+
+    results = @dlq.replay_batch(2, FailingTransport.new)
+
+    assert_equal({ success: 0, failed: 2, errors: ['IOError: transport is down'] * 2 }, results)
+    assert_equal([1, 1, 0], @dlq.entries.map { |entry| entry[:retry_count] })
+  end
+
+
+  def test_replay_batch_defaults_to_ten_entries_on_the_class_transport
+    transport = SmartMessage::Transport::MemoryTransport.new(auto_process: false)
+    TestMessage.transport(transport)
+    11.times { @dlq.enqueue(@message, error: 'original failure') }
+
+    results = @dlq.replay_batch
+
+    assert_equal({ success: 10, failed: 0, errors: [] }, results)
+    assert_equal 1, @dlq.size
+  ensure
+    TestMessage.reset_transport
+  end
+
 
   def test_failed_replay_from_the_default_queue_does_not_add_a_copy
     dlq.enqueue(@message, error: "original failure")
@@ -478,6 +506,18 @@ class DeadLetterQueueTest < Minitest::Test
 
     assert_equal path, SmartMessage::DeadLetterQueue.default.file_path
     assert_same SmartMessage::DeadLetterQueue.default, SmartMessage::DeadLetterQueue.default
+  end
+
+
+  def test_configure_default_sets_the_path_and_returns_the_default_queue
+    path = temp_path('configured_default.jsonl')
+    refute_equal path, SmartMessage::DeadLetterQueue.default.file_path, 'the default queue starts elsewhere'
+
+    queue = SmartMessage::DeadLetterQueue.configure_default(path)
+
+    assert_equal path, SmartMessage.configuration.dlq_path
+    assert_equal path, queue.file_path
+    assert_same SmartMessage::DeadLetterQueue.default, queue
   end
 
   # A transport whose publish always fails

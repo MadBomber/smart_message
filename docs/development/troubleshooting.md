@@ -20,7 +20,7 @@ dlq.inspect_messages(limit: 5)
 
 ## `TransportNotConfigured`
 
-`SmartMessage::Errors::TransportNotConfigured: OrderMessage has no transport configured`
+`SmartMessage::Errors::TransportNotConfigured: OrderMessage has no transport configured. Set one in the class (transport SmartMessage::Transport.create(:memory)) or globally (SmartMessage.configure { |config| config.transport = ... })`
 
 There is no default transport. Set one on the class (`transport ...`), on a parent class, or globally (`config.transport = ...`). See [Configuration](../core-concepts/configuration.md).
 
@@ -36,6 +36,12 @@ message.validation_errors   # each has :property, :value, :message, :source
 ```
 
 A `source` of `"header"` with `property: :from` means the message has no sender: set `from` on the class or pass `from:` to `new`.
+
+The error message itself says so:
+
+```
+OrderMessage#from: From entity ID is required for message routing and replies (declare from 'service-name' in the class or pass from: to new)
+```
 
 ## `ReservedPropertyName` when a class is loaded
 
