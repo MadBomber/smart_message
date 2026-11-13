@@ -9,7 +9,15 @@ module SmartMessage
 
     # A message can't be very smart if it does not know how to
     # send and receive itself using a message transport
-    class TransportNotConfigured < Error; end
+    class TransportNotConfigured < Error
+      # @param class_name [String, #to_s] the message class with no transport
+      # @return [TransportNotConfigured] an error naming the class and the fix
+      def self.for(class_name)
+        new("#{class_name} has no transport configured. Set one in the class " \
+            "(transport SmartMessage::Transport.create(:memory)) or globally " \
+            "(SmartMessage.configure { |config| config.transport = ... })")
+      end
+    end
 
     # The functionality has not be implemented
     class NotImplemented < Error; end
