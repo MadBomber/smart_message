@@ -87,6 +87,11 @@ OrderMessage.multiple_transports?  # => true
 
 ```ruby
 SmartMessage.configure do |config|
+  # Dispatcher: set these before creating the transport, which reads them
+  config.dispatcher_max_threads = 10
+  config.dispatcher_max_queue   = 1_000
+  config.shutdown_timeout       = 5
+
   # Transport: none by default
   config.transport = SmartMessage::Transport.create(:redis, namespace: 'production')
 
@@ -96,13 +101,10 @@ SmartMessage.configure do |config|
 
   # Dead letter queue file
   config.dlq_path = '/var/lib/my_app/dead_letters.jsonl'
-
-  # Dispatcher
-  config.dispatcher_max_threads = 10
-  config.dispatcher_max_queue   = 1_000
-  config.shutdown_timeout       = 5
 end
 ```
+
+A transport's dispatcher reads `dispatcher_max_threads` and `dispatcher_max_queue` when the transport is created, so a transport created before they are set keeps the defaults. `transport.dispatcher.max_threads` and `max_queue` show the limits in effect.
 
 | Setting | Default | Meaning |
 |---------|---------|---------|

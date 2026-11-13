@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **Dead letter queue**: replay fails, and leaves the entry queued, when the payload names a different message class than the entry was stored for
+- **Docs/examples**: the global configuration page and example 14 set `dispatcher_max_threads`/`dispatcher_max_queue` before creating the transport, so the limits take effect; `Dispatcher#max_threads` and `#max_queue` report the limits in effect (#28)
 
 ### Tests
 - `test_dispatcher_routing` now asserts that both processors receive the routed message, and the dispatcher and subscribe tests no longer print debug output (#14)
