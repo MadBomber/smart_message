@@ -345,12 +345,21 @@ module SmartMessage
       @circuits.delete(key)
     end
 
+    # The queues of one message class's own handlers.  Looked up through
+    # its subscriptions rather than by key prefix, because "Order:" is also
+    # a prefix of a nested class's keys ("Order::Shipped:...").
     def ddqs_of(message_class)
-      pairs = @subscriber_ddqs.each_pair.to_a
-      return pairs if message_class.nil?
+      return @subscriber_ddqs.each_pair.to_a if message_class.nil?
 
-      prefix = "#{message_class}:"
-      pairs.select { |key, _ddq| key.start_with?(prefix) }
+      klass = String(message_class)
+      keys  = @subscribers.fetch(klass, NO_SUBSCRIPTIONS).map do |subscription|
+        subscriber_key(klass, subscription[:subscriber_id])
+      end
+
+      keys.uniq.filter_map do |key|
+        ddq = @subscriber_ddqs[key]
+        [key, ddq] if ddq
+      end
     end
 
     # Decide whether one subscription gets this message, and if so hand it
