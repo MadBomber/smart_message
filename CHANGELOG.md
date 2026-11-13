@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **License**: `LICENSE.txt` with the MIT license and `spec.license = 'MIT'` in the gemspec, matching the README (#19)
 ### Changed
 - **Errors**: the missing-`from` validation error names the message class and says how to set `from`; `TransportNotConfigured` says how to set a transport in the class or globally (#31)
 
