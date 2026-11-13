@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **Dead letter queue**: replay fails, and leaves the entry queued, when the payload names a different message class than the entry was stored for
+- **Receiving**: a payload whose message cannot be built (a bad `published_at`, a `coerce_key` that raises) is now a `DecodeError` and goes to the dead letter queue instead of being dropped; `RedisTransport` logs any other skipped message at `error` (#24)
 
 ### Tests
 - `test_dispatcher_routing` now asserts that both processors receive the routed message, and the dispatcher and subscribe tests no longer print debug output (#14)

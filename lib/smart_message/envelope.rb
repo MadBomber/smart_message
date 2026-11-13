@@ -38,7 +38,9 @@ module SmartMessage
     # @param fallback_header [Hash, nil] header to use when the payload
     #   carries none (dead letter queue entries store it separately)
     # @return [SmartMessage::Base]
-    # @raise [SmartMessage::Errors::DecodeError] not an envelope
+    # @raise [SmartMessage::Errors::DecodeError] not an envelope, or the
+    #   message could not be built from it (a bad published_at, a coerce_key
+    #   that raised, ...); the original error is the cause
     # @raise [SmartMessage::Errors::UnknownMessageClass]
     # @raise [SmartMessage::Errors::MessageClassMismatch]
     def decode(payload, serializer:, channel: nil, fallback_header: nil)
@@ -52,6 +54,10 @@ module SmartMessage
       properties    = data.slice(*message_class.fields)
 
       message_class.new(properties.merge(HEADER_KEY => header))
+    rescue Errors::Error
+      raise
+    rescue StandardError => e
+      raise Errors::DecodeError, "could not build #{class_name || 'the message'} from the payload: #{e.class.name} - #{e.message}"
     end
 
     # Find a message class by name.

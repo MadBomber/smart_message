@@ -107,6 +107,15 @@ class TransportBaseTest < Minitest::Test
     assert_equal 'TransportBaseTest::Inbound', entry[:transport]
   end
 
+  def test_a_payload_with_a_bad_timestamp_is_dead_lettered_and_raised
+    transport = Inbound.new
+    payload   = transport.encode_message(Sample.new(value: 1)).sub(/"published_at":"[^"]*"/, '"published_at":"yesterday-ish"')
+
+    assert_raises(SmartMessage::Errors::DecodeError) { transport.deliver('TransportBaseTest::Sample', payload) }
+    assert_equal 1, dlq.size
+    assert_equal payload, dlq.peek[:payload]
+  end
+
   def test_a_payload_for_the_wrong_channel_is_dead_lettered_and_raised
     transport = Inbound.new
     payload   = transport.encode_message(Sample.new(value: 1))

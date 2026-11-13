@@ -141,6 +141,19 @@ class EnvelopeTest < Minitest::Test
     end
   end
 
+  def test_a_message_that_cannot_be_built_is_a_decode_error
+    good = encode(Reading.new(value: 1, taken_at: '2026-01-01T00:00:00Z'))
+
+    [
+      good.sub(/"published_at":"[^"]*"/, '"published_at":"yesterday-ish"'),
+      good.sub(/"taken_at":"[^"]*"/, '"taken_at":"not a time"')
+    ].each do |payload|
+      error = assert_raises(SmartMessage::Errors::DecodeError, payload) { decode(payload) }
+      assert_kind_of ArgumentError, error.cause
+      assert_match(/EnvelopeTest::Reading/, error.message)
+    end
+  end
+
   def test_unknown_header_fields_survive_a_round_trip
     payload = encode(Reading.new(value: 1)).sub('"_sm_header":{', '"_sm_header":{"trace_id":"t-9",')
 
