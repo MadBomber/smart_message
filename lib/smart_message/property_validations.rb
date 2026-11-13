@@ -122,9 +122,15 @@ module SmartMessage
       end
     end
 
-    # Is a required rule in force for this instance?
+    # Is a required rule in force for this instance?  A callable condition
+    # is evaluated on the instance, and is also given the message when it
+    # takes an argument (+->(message) { ... }+).
     def required_now?(condition)
-      return !!instance_exec(&condition) if condition.respond_to?(:call)
+      if condition.respond_to?(:call)
+        return !!instance_exec(&condition) if condition.arity.zero?
+
+        return !!instance_exec(self, &condition)
+      end
 
       !!condition
     rescue StandardError
@@ -140,8 +146,8 @@ module SmartMessage
                when Proc    then instance_exec(value, &validator)
                when Symbol  then send(validator, value)
                when Regexp  then validator.match?(value.to_s)
-               when Class   then value.is_a?(validator)
-               when Array   then validator.include?(value)
+               when Module  then value.is_a?(validator)
+               when Array, Set then validator.include?(value)
                when Range   then validator.cover?(value)
                else              value == validator
                end
