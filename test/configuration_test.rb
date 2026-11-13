@@ -90,6 +90,23 @@ class ConfigurationTest < Minitest::Test
     assert_match(/MemoryTransport.*Initialized/, io.string)
   end
 
+  def test_a_pathname_logger_is_a_log_file
+    file = Pathname(temp_path('pathname.log'))
+    config.logger = file
+
+    logger = SmartMessage::Logger.default
+    assert_instance_of SmartMessage::Logger::Lumberjack, logger
+    assert_equal file.to_s, logger.log_file
+  end
+
+  def test_a_value_that_is_not_a_logger_is_rejected_when_set
+    [:stdout, 42, Object.new].each do |bad|
+      error = assert_raises(ArgumentError, "logger = #{bad.inspect}") { config.logger = bad }
+      assert_match(/config\.logger must be/, error.message)
+    end
+    assert_nil config.logger
+  end
+
   def test_a_class_level_logger_overrides_the_global_one
     global = SmartMessage::Logger::Null.new
     own    = SmartMessage::Logger::Null.new

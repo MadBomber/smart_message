@@ -4,6 +4,7 @@
 
 require 'lumberjack'
 require 'fileutils'
+require 'pathname'
 require 'json'
 
 module SmartMessage
@@ -19,7 +20,7 @@ module SmartMessage
     #
     # Usage:
     #   SmartMessage::Logger::Lumberjack.new(
-    #     log_file: 'custom/smart_message.log',   # path, STDOUT, or STDERR
+    #     log_file: 'custom/smart_message.log',   # path (String or Pathname), STDOUT, or STDERR
     #     level: :debug,
     #     format: :json,                          # :text or :json
     #     include_source: true,                   # Include source location
@@ -53,7 +54,7 @@ module SmartMessage
       attr_reader :logger, :log_file, :format, :include_source, :structured_data, :colorize
 
       def initialize(log_file: nil, level: nil, format: :text, include_source: true, structured_data: true, colorize: false, **options)
-        @log_file        = log_file || default_log_file
+        @log_file        = log_file.is_a?(Pathname) ? log_file.to_s : (log_file || default_log_file)
         @format          = format
         @include_source  = include_source
         @structured_data = structured_data
