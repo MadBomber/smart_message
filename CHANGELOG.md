@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **Dead letter queue**: replay fails, and leaves the entry queued, when the payload names a different message class than the entry was stored for
+- **Receiving**: a payload whose message cannot be built (a bad `published_at`, a `coerce_key` that raises) is now a `DecodeError` and goes to the dead letter queue instead of being dropped; `RedisTransport` logs any other skipped message at `error` (#24)
 - **Subscribe**: a named handler that can never be called (a Symbol, a String without `Class.method`, a defined class without that class method, or a default `process` that is not implemented) raises `ArgumentError` at `subscribe` instead of dead-lettering every message (#20)
 - **Configuration**: `config.logger` accepts a `Pathname` as a log file (as does `Logger::Lumberjack`, which now creates its directory), and raises `ArgumentError` at assignment for values such as `:stdout` that are not a log target or logger (#25)
 - **Configuration**: `config.dlq_path = nil` (or blank) restores the default dead letter file instead of pointing the queue at the working directory (#29)
