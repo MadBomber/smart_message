@@ -187,6 +187,32 @@ class MessageModelTest < Minitest::Test
     refute run.call(->(_v) { raise 'boom' }, 1)
   end
 
+  def test_run_validator_treats_a_module_as_a_type_check
+    message = Order.new(order_id: 1)
+
+    assert message.send(:run_validator, Enumerable, [1])
+    assert message.send(:run_validator, Comparable, 1)
+    refute message.send(:run_validator, Enumerable, 1)
+  end
+
+  def test_run_validator_treats_a_set_as_allowed_values
+    message = Order.new(order_id: 1)
+
+    assert message.send(:run_validator, Set[:a, :b], :a)
+    refute message.send(:run_validator, Set[:a, :b], :c)
+  end
+
+  def test_module_and_set_validators_accept_valid_messages
+    klass = Class.new(SmartMessage::Base) do
+      from 'svc'
+      property :items, validate: Enumerable
+      property :tags,  validate: Set[:a, :b]
+    end
+
+    assert_empty klass.new(items: [1], tags: :a).validation_errors
+    assert_equal %i[items tags], klass.new(items: 1, tags: :c).validation_errors.map { |error| error[:property] }
+  end
+
   def test_conditionally_required_property
     klass = Class.new(SmartMessage::Base) do
       from 'svc'

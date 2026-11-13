@@ -105,8 +105,8 @@ A message that arrives from a transport is not validated before the handler is c
 | Proc or lambda | it returns a truthy value; it is evaluated on the message instance, so it can read other properties |
 | Symbol | the instance method with that name returns a truthy value for the value |
 | Regexp | it matches `value.to_s` |
-| Class | `value.is_a?(TheClass)` |
-| Array | it includes the value |
+| Class or Module | `value.is_a?(TheClassOrModule)`, so `Enumerable` or `Comparable` work too |
+| Array or Set | it includes the value |
 | Range | it covers the value |
 | anything else | it equals the value |
 
