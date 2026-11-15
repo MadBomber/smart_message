@@ -14,6 +14,8 @@ module DispatcherTest
   end # class MyMessage < SmartMessage::Base
 
 
+  NOT_A_MODULE = 'a String, not a namespace'
+
   class Test < Minitest::Test
     RECEIVED = Queue.new
 
@@ -72,6 +74,12 @@ module DispatcherTest
 
     end
 
+
+    def test_adding_a_class_name_through_a_constant_that_is_not_a_module
+      @dispatcher.add('DispatcherTest::NOT_A_MODULE::X', 'DispatcherTest::Test.processer_one')
+
+      assert_equal ['DispatcherTest::NOT_A_MODULE::X'], @dispatcher.subscribers.keys
+    end
 
     def test_dispatcher_routing
       # One message class with two subscribed processors

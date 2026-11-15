@@ -83,7 +83,7 @@ module SmartMessage
       return nil unless class_name.match?(/\A(::)?[A-Z]\w*(::[A-Z]\w*)*\z/)
 
       Object.const_get(class_name)
-    rescue NameError
+    rescue NameError, TypeError
       nil
     end
 

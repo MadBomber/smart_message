@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Deduplication**: `clear_ddq!` and `ddq_stats` act only on the class's own handlers, no longer on a nested class such as `Order::Shipped` (#33)
 - **Transports**: `MemoryTransport` raises `ArgumentError` unless `max_messages` is a positive Integer, and `FileTransport` unless `poll_interval` is a positive number, instead of hanging or stalling delivery (#34)
 - **`pretty_print`**: no longer raises `NoMethodError` for a Hash property with Integer or `nil` keys (#35)
+- **Message class lookup**: a class name through a constant that is not a class or module (`SmartMessage::VERSION::X`) is an `UnknownMessageClass` like any other unknown name, instead of a `TypeError` from `subscribe` or a `DecodeError` from `Envelope.decode` (#70)
 
 ### Tests
 - `test_dispatcher_routing` now asserts that both processors receive the routed message, and the dispatcher and subscribe tests no longer print debug output (#14)
