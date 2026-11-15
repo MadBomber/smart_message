@@ -205,6 +205,19 @@ class FileTransportTest < Minitest::Test
     assert_equal 'this is not a message', dlq.peek[:payload]
   end
 
+  def test_an_undecodable_line_is_logged_once_at_error
+    log = StringIO.new
+    SmartMessage.configure { |config| config.logger = SmartMessage::Logger::Default.new(log_file: log, level: :error) }
+    use
+    received = collect
+
+    File.open(path, 'a') { |file| file.puts('this is not a message') }
+    ContractMessage.new(value: 'after the bad line').publish
+
+    wait_until { !received.empty? }
+    assert_equal 1, log.string.lines.grep(/ERROR/).size, log.string
+  end
+
   def test_a_line_for_a_class_this_process_has_not_loaded_is_skipped
     use
     received = collect
