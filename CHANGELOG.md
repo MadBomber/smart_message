@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Deduplication**: the `key_prefix:` given to `ddq_storage :redis` is the root of the Redis key names instead of being overwritten with `smart_message:ddq`, so environments sharing a Redis server can keep their records apart (#53)
 - **Unsubscribe**: `unsubscribe` raises `ArgumentError` when given the handler lambda/proc itself instead of the id `subscribe` returned, instead of logging success and leaving the handler subscribed (#59)
 - **Validation**: a `required:` lambda that takes the message (`->(m) { m.kind == 'physical' }`) is given it, instead of raising `ArgumentError` and making the property always required (#58)
+- **Validation**: a `required:` callable object (one with `call(message)`) or a proc with an optional parameter (`proc { |m = nil| m.kind == 'physical' }`) is called with the message, instead of raising and making the property always required
 - **Validation**: a Module (`Enumerable`, `Comparable`) given as `validate:` is a type check and a Set is a list of allowed values, instead of rejecting every value (#57)
 - **Dead letter queue**: replay fails, and leaves the entry queued, when the payload names a different message class than the entry was stored for
 - **Subscribe**: when one transport's `subscribe` raises, the transports already subscribed by that call are unsubscribed again, so a failed `subscribe` leaves no live or orphaned subscription behind (#27)

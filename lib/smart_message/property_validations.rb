@@ -18,8 +18,8 @@ module SmartMessage
     end
 
     module ClassMethods
-      # @option options [Boolean, Proc] :required  true, or a callable evaluated
-      #   on the instance that returns true when the property is required
+      # @option options [Boolean, Proc, #call] :required  true, or a callable
+      #   (see #required_now?) that returns true when the property is required
       # @option options [String] :message  error text for a missing required property
       # @option options [Proc, Symbol, Regexp, Class, Array, Range, Object] :validate
       # @option options [String] :validation_message  error text for a failed validator
@@ -122,19 +122,31 @@ module SmartMessage
       end
     end
 
-    # Is a required rule in force for this instance?  A callable condition
-    # is evaluated on the instance, and is also given the message when it
-    # takes an argument (+->(message) { ... }+).
+    # Is a required rule in force for this instance?  A proc is evaluated
+    # on the instance and is also given the message, unless it is a lambda
+    # that takes no argument (+-> { ... }+).  Any other callable (a Method,
+    # an object with +call+) is called with the message, or with nothing
+    # when its arity is zero.
     def required_now?(condition)
-      if condition.respond_to?(:call)
-        return !!instance_exec(&condition) if condition.arity.zero?
+      case condition
+      when Proc
+        return !!instance_exec(&condition) if condition.lambda? && condition.arity.zero?
 
-        return !!instance_exec(self, &condition)
+        !!instance_exec(self, &condition)
+      else
+        return !!condition unless condition.respond_to?(:call)
+        return !!condition.call if call_arity(condition).zero?
+
+        !!condition.call(self)
       end
-
-      !!condition
     rescue StandardError
       true
+    end
+
+    # The arity of a non-Proc callable's +call+: a Method reports its own,
+    # any other object the arity of its public +call+ method.
+    def call_arity(callable)
+      callable.is_a?(Method) ? callable.arity : callable.public_method(:call).arity
     end
 
     # Apply one validator to one value.  A validator that raises is a

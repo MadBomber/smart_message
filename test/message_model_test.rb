@@ -243,9 +243,59 @@ class MessageModelTest < Minitest::Test
     assert message.send(:required_now?, -> { order_id == 1 })
     assert message.send(:required_now?, ->(m) { m.equal?(message) })
     assert message.send(:required_now?, proc { |m| m.equal?(message) })
+    assert message.send(:required_now?, proc { |m = nil| m.equal?(message) })
+    refute message.send(:required_now?, proc { |m = nil| m.order_id == 2 })
+    assert message.send(:required_now?, proc { order_id == 1 }), 'a proc that ignores the argument still runs on the instance'
+    refute message.send(:required_now?, proc { order_id == 2 })
     refute message.send(:required_now?, ->(m) { m.order_id == 2 })
     assert message.send(:required_now?, true)
     refute message.send(:required_now?, false)
+  end
+
+  def test_required_now_calls_a_callable_object_or_method_with_the_message_when_it_takes_one
+    message  = Order.new(order_id: 1)
+    callable = Object.new
+    def callable.call(m) = m.order_id == 2
+    flag = Object.new
+    def flag.off? = false
+    def flag.on?  = true
+    def flag.second?(m) = m.order_id == 2
+
+    refute message.send(:required_now?, callable)
+    refute message.send(:required_now?, flag.method(:off?))
+    assert message.send(:required_now?, flag.method(:on?))
+    refute message.send(:required_now?, flag.method(:second?))
+
+    no_arg = Object.new
+    def no_arg.call = false
+    refute message.send(:required_now?, no_arg)
+  end
+
+  def test_call_arity_reads_a_method_or_call_object
+    message = Order.new(order_id: 1)
+    one = Object.new
+    def one.call(m) = m
+
+    assert_equal 0, message.send(:call_arity, message.method(:valid?))
+    assert_equal 1, message.send(:call_arity, one)
+    assert_equal 1, message.send(:call_arity, one.method(:call))
+    assert_equal 1, message.send(:call_arity, Struct.new(:arity) { def call(m) = m }.new(0)), 'an arity reader is not the arity of call'
+    assert_equal 1, message.send(:call_arity, Struct.new(:method) { def call(m) = m }.new('GET')), 'a #method override is not used'
+  end
+
+  def test_conditionally_required_property_with_a_callable_object
+    condition = Object.new
+    def condition.call(message) = message.kind == 'physical'
+
+    klass = Class.new(SmartMessage::Base) do
+      from 'svc'
+      property :kind
+      property :addr, required: condition
+    end
+
+    assert klass.new(kind: 'digital').valid?
+    refute klass.new(kind: 'physical').valid?
+    assert klass.new(kind: 'physical', addr: 'Dock 4').valid?
   end
 
   # ---- addressing lives in the header only (K7) ----------------------------
