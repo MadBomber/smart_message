@@ -25,6 +25,7 @@ class EnvelopeTest < Minitest::Test
   end
 
   class NotAMessage; end
+  NOT_A_MODULE = 'a String, not a namespace'
 
   def setup
     @serializer = SmartMessage::Serializer::Json.new
@@ -133,6 +134,14 @@ class EnvelopeTest < Minitest::Test
     assert_same Reading, resolve.call('EnvelopeTest::Reading')
     assert_same anonymous, resolve.call(anonymous.to_s)
     assert_raises(SmartMessage::Errors::UnknownMessageClass) { resolve.call('String') }
+  end
+
+  def test_a_name_through_a_constant_that_is_not_a_module_is_an_unknown_class
+    name    = 'EnvelopeTest::NOT_A_MODULE::X'
+    payload = JSON.generate(_sm_header: { uuid: 'u', message_class: name, from: 'x' }, value: 1)
+
+    assert_raises(SmartMessage::Errors::UnknownMessageClass) { SmartMessage::Envelope.resolve_message_class(name) }
+    assert_raises(SmartMessage::Errors::UnknownMessageClass) { decode(payload) }
   end
 
   def test_payloads_that_are_not_envelopes_are_rejected
