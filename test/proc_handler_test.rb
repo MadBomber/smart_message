@@ -52,7 +52,10 @@ class ProcHandlerTest < Minitest::Test
     {
       'ProcHandlerTest::Service.missing'  => /has no class method missing/,
       'ProcHandlerTest::Service'          => /Class\.method/,
-      :process                            => /must be a "Class\.method" String/
+      :process                            => /must be a "Class\.method" String/,
+      '.process'                          => /"" is not a class name/,
+      'lower.handle'                      => /"lower" is not a class name/,
+      'Float::INFINITY::X.handle'         => /does not name a class or module/
     }.each do |handler, message|
       error = assert_raises(ArgumentError, handler.inspect) { TestMessage.subscribe(handler) }
       assert_match message, error.message
@@ -64,6 +67,8 @@ class ProcHandlerTest < Minitest::Test
 
     # a class that is not defined yet may be defined after the subscription
     assert_equal 'ProcHandlerTest::DefinedLater.handle', TestMessage.subscribe('ProcHandlerTest::DefinedLater.handle')
+    assert_equal '::ProcHandlerTest::AlsoLater.handle', TestMessage.subscribe('::ProcHandlerTest::AlsoLater.handle')
+    refute TestMessage.respond_to?(:check_named_handler!), 'an internal helper, not public API'
   ensure
     Unimplemented.reset_transport
   end

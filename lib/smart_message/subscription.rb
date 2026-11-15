@@ -47,6 +47,9 @@ module SmartMessage
     end
 
     module ClassMethods
+      CONSTANT_PATH = /\A(::)?[A-Z]\w*(::[A-Z]\w*)*\z/
+      private_constant :CONSTANT_PATH
+
       #########################################################
       ## proc handler management
 
@@ -156,42 +159,6 @@ module SmartMessage
         handler_id
       end
 
-      # Reject a handler given by name that can never be called, so the
-      # mistake fails the subscribe instead of dead-lettering every message.
-      # A class that is not defined yet is accepted: it is looked up when a
-      # message arrives, so it may be defined after the subscription.
-      #
-      # @param handler_id [String] "Class.method"
-      # @raise [ArgumentError] when it is not a "Class.method" String, or the
-      #   class is defined without that class method
-      def check_named_handler!(handler_id)
-        unless handler_id.is_a?(String)
-          raise ArgumentError, "A handler must be a \"Class.method\" String, a Proc, or a block; got #{handler_id.inspect}"
-        end
-
-        target_name, method_name = handler_id.split('.', 2)
-        if method_name.to_s.empty?
-          raise ArgumentError, "Handler #{handler_id.inspect} must name a class method as \"Class.method\""
-        end
-
-        target = begin
-          Object.const_get(target_name)
-        rescue NameError
-          return handler_id
-        end
-
-        unless target.respond_to?(method_name)
-          raise ArgumentError, "Handler #{handler_id.inspect}: #{target_name} has no class method #{method_name}"
-        end
-
-        if method_name == 'process' && target.method(:process).owner == Subscription::ClassMethods
-          raise ArgumentError, "Handler #{handler_id.inspect} is not implemented: define `def self.process(message)` " \
-                               "in #{target_name}, or subscribe with a block or another handler"
-        end
-
-        handler_id
-      end
-
       # Remove one handler for this message class from every transport.
       # @param process_method [String, nil] The processing method identifier to remove
       #   - String: Method name like "MyService.handle_message" or proc handler ID
@@ -221,6 +188,50 @@ module SmartMessage
       end
 
       private
+
+      # Reject a handler given by name that can never be called, so the
+      # mistake fails the subscribe instead of dead-lettering every message.
+      # A class that is not defined yet is accepted: it is looked up when a
+      # message arrives, so it may be defined after the subscription.
+      #
+      # @param handler_id [String] "Class.method"
+      # @raise [ArgumentError] when it is not a "Class.method" String, the
+      #   class part is not a constant path ("lower", "", or through a
+      #   constant that is not a module), or the class is defined without
+      #   that class method
+      def check_named_handler!(handler_id)
+        unless handler_id.is_a?(String)
+          raise ArgumentError, "A handler must be a \"Class.method\" String, a Proc, or a block; got #{handler_id.inspect}"
+        end
+
+        target_name, method_name = handler_id.split('.', 2)
+        if method_name.to_s.empty?
+          raise ArgumentError, "Handler #{handler_id.inspect} must name a class method as \"Class.method\""
+        end
+
+        unless target_name.match?(CONSTANT_PATH)
+          raise ArgumentError, "Handler #{handler_id.inspect}: #{target_name.inspect} is not a class name"
+        end
+
+        target = begin
+          Object.const_get(target_name)
+        rescue TypeError
+          raise ArgumentError, "Handler #{handler_id.inspect}: #{target_name} does not name a class or module"
+        rescue NameError
+          return handler_id
+        end
+
+        unless target.respond_to?(method_name)
+          raise ArgumentError, "Handler #{handler_id.inspect}: #{target_name} has no class method #{method_name}"
+        end
+
+        if method_name == 'process' && target.method(:process).owner == Subscription::ClassMethods
+          raise ArgumentError, "Handler #{handler_id.inspect} is not implemented: define `def self.process(message)` " \
+                               "in #{target_name}, or subscribe with a block or another handler"
+        end
+
+        handler_id
+      end
 
       # A block/proc/lambda handler is identified by the id subscribe
       # returned; passing the callable itself would match nothing and
