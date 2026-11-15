@@ -116,6 +116,8 @@ A transport's dispatcher reads `dispatcher_max_threads` and `dispatcher_max_queu
 | `dispatcher_max_queue` | `1000` | Handler calls that may wait for a thread |
 | `shutdown_timeout` | `5` | Seconds `SmartMessage.shutdown` waits when called without `timeout:` |
 
+The two dispatcher limits must be positive Integers and `shutdown_timeout` a positive number; any other value raises `ArgumentError` when it is assigned.
+
 The dispatcher settings are read when a dispatcher is created (that is, when a transport is created), so configure them first.
 
 Other entry points:

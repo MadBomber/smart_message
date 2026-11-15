@@ -61,6 +61,9 @@ module SmartMessage
   #   config.dispatcher_max_threads = 10     # handler threads per dispatcher
   #   config.dispatcher_max_queue   = 1_000  # messages that may wait for a thread
   #   config.shutdown_timeout       = 5      # seconds SmartMessage.shutdown waits
+  #
+  # The two dispatcher limits must be positive Integers and the timeout a
+  # positive number; anything else raises ArgumentError when it is assigned.
   class Configuration
     LOG_SETTINGS = %i[log_level log_format log_include_source log_structured_data log_colorize log_options].freeze
     LOG_FORMATS  = %i[text json].freeze
@@ -68,7 +71,7 @@ module SmartMessage
     DEFAULT_DISPATCHER_MAX_THREADS = [Etc.nprocessors * 2, 4].max
     DEFAULT_DISPATCHER_MAX_QUEUE   = 1_000
 
-    attr_accessor :dispatcher_max_threads, :dispatcher_max_queue, :shutdown_timeout
+    attr_reader   :dispatcher_max_threads, :dispatcher_max_queue, :shutdown_timeout
     attr_reader   :transport, :logger, :dlq_path, *LOG_SETTINGS
 
     # The file the default dead letter queue uses when none is configured.
@@ -161,6 +164,30 @@ module SmartMessage
       @built_logger = nil
     end
 
+    # @param value [Integer] handler threads per dispatcher
+    # @raise [ArgumentError] unless a positive Integer (0 or nil would never
+    #   run a handler)
+    def dispatcher_max_threads=(value)
+      @dispatcher_max_threads = positive_integer!(:dispatcher_max_threads, value)
+    end
+
+    # @param value [Integer] handler calls that may wait for a thread
+    # @raise [ArgumentError] unless a positive Integer (the thread pool
+    #   reads 0 as "no limit")
+    def dispatcher_max_queue=(value)
+      @dispatcher_max_queue = positive_integer!(:dispatcher_max_queue, value)
+    end
+
+    # @param value [Numeric] seconds SmartMessage.shutdown waits
+    # @raise [ArgumentError] unless a positive number
+    def shutdown_timeout=(value)
+      unless value.is_a?(Numeric) && value.positive?
+        raise ArgumentError, "config.shutdown_timeout must be a positive number of seconds, got: #{value.inspect}"
+      end
+
+      @shutdown_timeout = value
+    end
+
     # @param path [String, Pathname, nil] stored as an absolute path; nil or
     #   blank restores the default, as an empty $SMART_MESSAGE_DLQ_PATH does
     def dlq_path=(path)
@@ -203,6 +230,12 @@ module SmartMessage
       else
         @logger
       end
+    end
+
+    def positive_integer!(name, value)
+      return value if value.is_a?(Integer) && value.positive?
+
+      raise ArgumentError, "config.#{name} must be a positive Integer, got: #{value.inspect}"
     end
 
     def log_target?(value)

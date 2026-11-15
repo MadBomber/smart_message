@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Transports**: `MemoryTransport` raises `ArgumentError` unless `max_messages` is a positive Integer, and `FileTransport` unless `poll_interval` is a positive number, instead of hanging or stalling delivery (#34)
 - **`pretty_print`**: no longer raises `NoMethodError` for a Hash property with Integer or `nil` keys (#35)
 - **Message class lookup**: a class name through a constant that is not a class or module (`SmartMessage::VERSION::X`) is an `UnknownMessageClass` like any other unknown name, instead of a `TypeError` from `subscribe` or a `DecodeError` from `Envelope.decode` (#70)
+- **Configuration**: `dispatcher_max_threads` and `dispatcher_max_queue` raise `ArgumentError` unless a positive Integer, and `shutdown_timeout` unless a positive number, instead of silently never running handlers (`max_threads` 0/nil), making the queue unbounded (`max_queue` 0) or breaking `SmartMessage.shutdown` with a `TypeError` (#66)
 
 ### Tests
 - `test_dispatcher_routing` now asserts that both processors receive the routed message, and the dispatcher and subscribe tests no longer print debug output (#14)
