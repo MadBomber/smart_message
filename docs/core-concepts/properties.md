@@ -32,7 +32,7 @@ end
 
 | Option | Meaning |
 |--------|---------|
-| `required: true` | The property must not be `nil` when the message is validated. May also be a proc, evaluated on the instance, that returns true when the property is required: `-> { kind == 'physical' }`, or `->(message) { message.kind == 'physical' }` to receive the message. |
+| `required: true` | The property must not be `nil` when the message is validated. May also be a proc, evaluated on the instance, that returns true when the property is required: `-> { kind == 'physical' }`, or `->(message) { message.kind == 'physical' }` to receive the message. A plain `proc` is always given the message as well, so `proc { |m = nil| m.kind == 'physical' }` works. Any other object that responds to `call` (a `Method`, a service object) runs in its own context and is called with the message, or with nothing when its `call` takes no argument. A condition that raises makes the property required. |
 | `message:` | Error text when a required property is missing |
 | `default:` | Value used when none is given. A proc is called to produce it. |
 | `validate:` | A validator (see below) |
