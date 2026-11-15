@@ -68,6 +68,18 @@ class ProcHandlerTest < Minitest::Test
     Unimplemented.reset_transport
   end
 
+  def test_a_handler_and_a_block_together_fail_the_subscribe
+    TestMessage.transport @transport
+    before = SmartMessage::Subscription::PROC_HANDLERS.size
+
+    ['ProcHandlerTest::Service.handle', ->(_message) {}].each do |handler|
+      error = assert_raises(ArgumentError, handler.inspect) { TestMessage.subscribe(handler) { |_message| } }
+      assert_match(/a handler or a block, not both/, error.message)
+    end
+    assert_empty @transport.subscribers
+    assert_equal before, SmartMessage::Subscription::PROC_HANDLERS.size, 'no proc handler is registered'
+  end
+
   def test_default_subscribe_still_works
     TestMessage.transport @transport
 

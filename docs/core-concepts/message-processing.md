@@ -56,6 +56,8 @@ handler_id = OrderMessage.subscribe(notify)
 
 Blocks, procs and lambdas are kept in a process-wide registry under a generated id. Each `subscribe` call registers a new handler, even when you pass the same proc twice.
 
+Give `subscribe` one handler: a handler argument together with a block raises `ArgumentError`.
+
 All forms accept the [filters](message-filtering.md) `from:`, `to:` and `broadcast:`.
 
 ## What a handler receives

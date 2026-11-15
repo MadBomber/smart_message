@@ -106,7 +106,8 @@ module SmartMessage
       # @param block [Proc] Alternative way to pass a processing block
       # @return [String] The identifier used for this subscription
       # @raise [SmartMessage::Errors::TransportNotConfigured] no transport
-      # @raise [ArgumentError] when a named handler cannot be called
+      # @raise [ArgumentError] when a named handler cannot be called, or
+      #   when both a handler and a block are given
       #
       # @example Using default handler
       #   MyMessage.subscribe
@@ -119,6 +120,7 @@ module SmartMessage
       #     handle(message)
       #   end
       def subscribe(process_method = nil, broadcast: nil, to: nil, from: nil, &block)
+        reject_handler_with_block!(process_method, block)
         message_class = whoami
 
         filter_options = {
@@ -228,6 +230,14 @@ module SmartMessage
 
         raise ArgumentError, "unsubscribe takes the id subscribe returned for a block/proc/lambda handler, " \
                              "not the handler itself; got #{process_method.inspect}"
+      end
+
+      # subscribe runs one handler: a handler argument given with a block
+      # would be silently ignored, so reject the pair.
+      def reject_handler_with_block!(process_method, block)
+        return unless process_method && block
+
+        raise ArgumentError, "subscribe takes a handler or a block, not both; got #{process_method.inspect} and a block"
       end
 
       # Has this handler a subscription on the transport already?  A
