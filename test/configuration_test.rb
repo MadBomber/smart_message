@@ -198,6 +198,27 @@ class ConfigurationTest < Minitest::Test
     assert_equal SmartMessage::DEFAULT_SHUTDOWN_TIMEOUT, fresh.shutdown_timeout
   end
 
+  def test_dispatcher_settings_are_checked_when_set
+    {
+      dispatcher_max_threads: [0, -1, nil, 2.5, '4'],
+      dispatcher_max_queue:   [0, -1, nil, 2.5, '4'],
+      shutdown_timeout:       [0, -1, nil, '5', Float::NAN]
+    }.each do |name, values|
+      values.each do |value|
+        error = assert_raises(ArgumentError, "#{name} = #{value.inspect}") { config.public_send(:"#{name}=", value) }
+        assert_match(/config\.#{name} must be a positive/, error.message)
+      end
+    end
+    assert_equal SmartMessage::Configuration::DEFAULT_DISPATCHER_MAX_THREADS, config.dispatcher_max_threads
+    assert_equal SmartMessage::Configuration::DEFAULT_DISPATCHER_MAX_QUEUE, config.dispatcher_max_queue
+    assert_equal SmartMessage::DEFAULT_SHUTDOWN_TIMEOUT, config.shutdown_timeout
+
+    config.dispatcher_max_threads = 1
+    config.dispatcher_max_queue   = 1
+    config.shutdown_timeout       = 0.5
+    assert_equal [1, 1, 0.5], [config.dispatcher_max_threads, config.dispatcher_max_queue, config.shutdown_timeout]
+  end
+
   # ---- configure / reset ---------------------------------------------------
 
   def test_configure_yields_the_configuration_and_returns_it

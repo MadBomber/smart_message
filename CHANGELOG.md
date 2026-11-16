@@ -37,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Message class lookup**: a class name through a constant that is not a class or module (`SmartMessage::VERSION::X`) is an `UnknownMessageClass` like any other unknown name, instead of a `TypeError` from `subscribe` or a `DecodeError` from `Envelope.decode` (#70)
 - **FileTransport**: a line that cannot be received is logged once at `error` (by `receive`) instead of twice; the poller logs it again only at `debug`, as `RedisTransport` does (#67)
 - **Subscribe**: a named handler whose class part can never name a class (`'lower.handle'`, `'.process'`) raises `ArgumentError` instead of being accepted as "defined later", one through a constant that is not a module (`'Float::INFINITY::X.handle'`) raises `ArgumentError` instead of `TypeError`, and `check_named_handler!` is no longer a public class method (#68)
+- **Configuration**: `dispatcher_max_threads` and `dispatcher_max_queue` raise `ArgumentError` unless a positive Integer, and `shutdown_timeout` unless a positive number, instead of silently never running handlers (`max_threads` 0/nil), making the queue unbounded (`max_queue` 0) or breaking `SmartMessage.shutdown` with a `TypeError` (#66)
 
 ### Tests
 - `test_dispatcher_routing` now asserts that both processors receive the routed message, and the dispatcher and subscribe tests no longer print debug output (#14)

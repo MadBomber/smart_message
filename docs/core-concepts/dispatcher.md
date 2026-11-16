@@ -27,7 +27,7 @@ SmartMessage.configure do |config|
 end
 ```
 
-A dispatcher reads these when it is created, so set them before you create transports. `transport.dispatcher.max_threads` and `transport.dispatcher.max_queue` report the limits in effect.
+Both must be positive Integers; assigning anything else (`0`, `nil`, a String) raises `ArgumentError`. A dispatcher reads these when it is created, so set them before you create transports. `transport.dispatcher.max_threads` and `transport.dispatcher.max_queue` report the limits in effect.
 
 When all threads are busy and the queue is full, the thread that is delivering the message (the publisher with the memory transport, the subscriber thread with Redis, the poller with the file transport) runs the handler itself. That slows the source down instead of letting the queue grow without limit. No message is dropped.
 
