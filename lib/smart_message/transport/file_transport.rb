@@ -190,8 +190,9 @@ module SmartMessage
 
         lines.each do |line|
           receive(nil, line)
-        rescue SmartMessage::Errors::UnknownMessageClass => e
-          logger.debug { "[#{self.class.name}] Skipped a line: #{e.message}" }
+        rescue SmartMessage::Errors::Error => e
+          # Already logged (and dead-lettered when undecodable) by #receive.
+          logger.debug { "[#{self.class.name}] Skipped a line: #{e.class.name} - #{e.message}" }
         rescue StandardError => e
           logger.error { "[#{self.class.name}] Could not process a line of #{@path}: #{e.class.name} - #{e.message}" }
         end
