@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **`pretty_print`**: no longer raises `NoMethodError` for a Hash property with Integer or `nil` keys (#35)
 - **Message class lookup**: a class name through a constant that is not a class or module (`SmartMessage::VERSION::X`) is an `UnknownMessageClass` like any other unknown name, instead of a `TypeError` from `subscribe` or a `DecodeError` from `Envelope.decode` (#70)
 - **FileTransport**: a line that cannot be received is logged once at `error` (by `receive`) instead of twice; the poller logs it again only at `debug`, as `RedisTransport` does (#67)
+- **Subscribe**: a named handler whose class part can never name a class (`'lower.handle'`, `'.process'`) raises `ArgumentError` instead of being accepted as "defined later", one through a constant that is not a module (`'Float::INFINITY::X.handle'`) raises `ArgumentError` instead of `TypeError`, and `check_named_handler!` is no longer a public class method (#68)
 
 ### Tests
 - `test_dispatcher_routing` now asserts that both processors receive the routed message, and the dispatcher and subscribe tests no longer print debug output (#14)
