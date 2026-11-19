@@ -1,17 +1,15 @@
 # smart_message.gemspec
 
-lib = File.expand_path('lib', __dir__)
-$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-
-require 'smart_message/version'
+require_relative 'lib/smart_message/version'
 
 Gem::Specification.new do |spec|
   spec.name          = 'smart_message'
   spec.version       = SmartMessage::VERSION
   spec.authors       = ['Dewayne VanHoozer']
   spec.email         = ['dvanhoozer@gmail.com']
+  spec.license       = 'MIT'
 
-  spec.homepage      = "https://github.com/MadBomber/smart_message"
+  spec.homepage      = "https://madbomber.github.io/smart_message/"
   spec.summary       = %q{An abstraction to protect message content from the backend delivery transport.}
   spec.description   = <<~DESCRIPTION
     Much like ActiveRecord abstracts the model as an ORM from the
@@ -22,30 +20,28 @@ Gem::Specification.new do |spec|
   spec.metadata = {
     "homepage_uri"      => spec.homepage,
     "source_code_uri"   => "https://github.com/MadBomber/smart_message",
-    "changelog_uri"     => "https://github.com/MadBomber/smart_message/blob/master/CHANGELOG.md",
+    "changelog_uri"     => "https://github.com/MadBomber/smart_message/blob/main/CHANGELOG.md",
     "bug_tracker_uri"   => "https://github.com/MadBomber/smart_message/issues",
-    "documentation_uri" => "https://github.com/MadBomber/smart_message/blob/master/README.md"
+    "documentation_uri" => "https://madbomber.github.io/smart_message/getting-started/quick-start/"
   }
 
-  # Specify which files should be added to the gem when it is released.
-  # The `git ls-files -z` loads the files in the RubyGem that have been added into git.
-  spec.files         = Dir.chdir(File.expand_path(__dir__, __FILE__)) do
-    `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
+  # Only the library and its top-level documents are packaged.  The paths
+  # are resolved from this file's directory, so the gem builds the same way
+  # from any working directory.
+  spec.files = Dir.chdir(__dir__) do
+    Dir['lib/**/*.rb', 'README.md', 'CHANGELOG.md', 'LICENSE*']
   end
   spec.require_paths = ['lib']
 
-  spec.required_ruby_version = '>= 3.0.0'
+  # breaker_machines 0.21 requires Ruby 4.0
+  spec.required_ruby_version = '>= 4.0'
 
-  spec.add_dependency 'hashie'
-  spec.add_dependency 'activesupport'
-  spec.add_dependency 'concurrent-ruby'
-  spec.add_dependency 'redis'
-  spec.add_dependency 'breaker_machines'
-  spec.add_dependency 'zeitwerk'
-  spec.add_dependency 'lumberjack'
-  spec.add_dependency 'colorize'
-  spec.add_dependency 'async'
-  spec.add_dependency 'async-redis'
+  spec.add_dependency 'breaker_machines', '~> 0.21'
+  spec.add_dependency 'concurrent-ruby',  '~> 1.3'
+  spec.add_dependency 'hashie',           '~> 5.0'
+  spec.add_dependency 'lumberjack',       '~> 2.0'
+  spec.add_dependency 'redis',            '>= 5.0', '< 7'
+  spec.add_dependency 'zeitwerk',         '~> 2.6'
 
   spec.add_development_dependency 'bundler'
   spec.add_development_dependency 'rake'
@@ -53,8 +49,9 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'mutex_m'
   spec.add_development_dependency 'shoulda'
   spec.add_development_dependency 'minitest-power_assert'
+  spec.add_development_dependency 'minitest-mock'  # Minitest::Mock moved out of minitest 6
 
   spec.add_development_dependency 'amazing_print'
+  spec.add_development_dependency 'benchmark'      # a bundled gem since Ruby 3.5; used by the examples
   spec.add_development_dependency 'debug_me'
-
 end

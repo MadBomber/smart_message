@@ -2,177 +2,257 @@
 # encoding: utf-8
 # frozen_string_literal: true
 
+require 'etc'
+require 'pathname'
+
 module SmartMessage
-  # Global configuration class for SmartMessage framework
+  # Global configuration for the SmartMessage framework.
   #
-  # This class provides a centralized way for applications to configure
-  # default behavior for all SmartMessage classes. Applications can set
-  # global defaults for logger, transport, and serializer, which will be
-  # used by all message classes unless explicitly overridden.
+  # Message classes use these values unless they set their own.
   #
-  # IMPORTANT: No configuration = NO LOGGING
-  # Applications must explicitly configure logging if they want it.
-  #
-  # Usage:
-  #   # No configuration block = NO LOGGING (default behavior)
-  #   
-  #   # Use framework default logger (Lumberjack) with custom log file:
   #   SmartMessage.configure do |config|
-  #     config.logger = "log/my_app.log"              # String path = Lumberjack logger
-  #   end
-  #   
-  #   # Use framework default logger with STDOUT/STDERR:
-  #   SmartMessage.configure do |config|
-  #     config.logger = STDOUT                        # Log to STDOUT
-  #     config.logger = STDERR                        # Log to STDERR
-  #   end
-  #   
-  #   # Use framework default logger with default file (log/smart_message.log):
-  #   SmartMessage.configure do |config|
-  #     config.logger = :default                      # Framework default
+  #     config.transport = SmartMessage::Transport::MemoryTransport.new
+  #     config.logger    = 'log/my_app.log'
+  #     config.log_level = :debug
+  #     config.dlq_path  = '/var/lib/my_app/dead_letters.jsonl'
   #   end
   #
-  #   # Configure Lumberjack logger options:
-  #   SmartMessage.configure do |config|
-  #     config.logger = :default                      # Use framework default
-  #     config.log_level = :debug                     # :debug, :info, :warn, :error, :fatal
-  #     config.log_format = :json                     # :text or :json
-  #     config.log_include_source = true              # Include file:line source info
-  #     config.log_structured_data = true             # Include structured message data
-  #     config.log_colorize = true                    # Enable colorized output (console only)
-  #     config.log_options = {                        # Additional Lumberjack options
-  #       roll_by_date: true,                         # Enable date-based log rolling
-  #       date_pattern: '%Y-%m-%d',                   # Date pattern for rolling
-  #       roll_by_size: true,                         # Enable size-based log rolling
-  #       max_file_size: 50 * 1024 * 1024,            # Max file size before rolling (50 MB)
-  #       keep_files: 10                              # Number of rolled files to keep
-  #     }
-  #   end
+  # == Logging
   #
-  #   # Use custom logger:
-  #   SmartMessage.configure do |config|
-  #     config.logger = MyApp::Logger.new             # Custom logger object
-  #     config.transport = MyApp::Transport.new
-  #   end
+  # No configuration means NO LOGGING: nothing is written and no file is
+  # created.  +logger+ accepts:
   #
-  #   # Explicitly disable logging:
-  #   SmartMessage.configure do |config|
-  #     config.logger = nil                           # Explicit no logging
-  #   end
+  #   nil                 no logging (the default)
+  #   :default            the Lumberjack logger writing to log/smart_message.log
+  #   a String/Pathname   the Lumberjack logger writing to that file
+  #   STDOUT / STDERR     the Lumberjack logger writing to the console
+  #   any logger object   used as it is (Rails.logger, Logger.new(...), ...)
   #
-  #   # Individual message classes use these defaults automatically
-  #   class OrderMessage < SmartMessage::Base
-  #     property :order_id
-  #     # No config block needed - uses global defaults
-  #   end
+  # Anything else raises ArgumentError when it is assigned.
   #
-  #   # Override global defaults when needed
-  #   class SpecialMessage < SmartMessage::Base
-  #     config do
-  #       logger MyApp::SpecialLogger.new  # Override just the logger
-  #       # transport still uses global defaults
-  #     end
-  #   end
+  # The log_* settings shape the Lumberjack logger:
+  #
+  #   config.log_level           = :debug     # :debug, :info, :warn, :error, :fatal
+  #   config.log_format          = :json      # :text or :json
+  #   config.log_include_source  = true       # add file:line of the caller
+  #   config.log_structured_data = true       # keep keyword data on log calls
+  #   config.log_colorize        = true       # colour console output
+  #   config.log_options         = {          # rotation
+  #     roll_by_size: true, max_file_size: 50 * 1024 * 1024, keep_files: 10
+  #   }
+  #
+  # The logger is built once, when it is first needed, and rebuilt only
+  # after one of these settings changes.
+  #
+  # == Transport
+  #
+  # There is no default transport.  Set one here, or on each message class.
+  #
+  # == Dead letter queue
+  #
+  # +dlq_path+ is the file the default DeadLetterQueue writes to.  It
+  # defaults to $SMART_MESSAGE_DLQ_PATH, else
+  # $XDG_STATE_HOME/smart_message/dead_letters.jsonl
+  # (~/.local/state/smart_message/dead_letters.jsonl), and is always
+  # absolute: it never depends on the working directory.
+  #
+  # == Dispatcher
+  #
+  #   config.dispatcher_max_threads = 10     # handler threads per dispatcher
+  #   config.dispatcher_max_queue   = 1_000  # messages that may wait for a thread
+  #   config.shutdown_timeout       = 5      # seconds SmartMessage.shutdown waits
+  #
+  # The two dispatcher limits must be positive Integers and the timeout a
+  # positive number; anything else raises ArgumentError when it is assigned.
   class Configuration
-    attr_accessor :transport, :log_level, :log_format, :log_include_source, :log_structured_data, :log_colorize, :log_options
-    attr_reader :logger
-    
+    LOG_SETTINGS = %i[log_level log_format log_include_source log_structured_data log_colorize log_options].freeze
+    LOG_FORMATS  = %i[text json].freeze
+
+    DEFAULT_DISPATCHER_MAX_THREADS = [Etc.nprocessors * 2, 4].max
+    DEFAULT_DISPATCHER_MAX_QUEUE   = 1_000
+
+    attr_reader   :dispatcher_max_threads, :dispatcher_max_queue, :shutdown_timeout
+    attr_reader   :transport, :logger, :dlq_path, *LOG_SETTINGS
+
+    # The file the default dead letter queue uses when none is configured.
+    #
+    # @param env [Hash] the environment to read (injectable for tests)
+    # @return [String] an absolute path
+    def self.default_dlq_path(env = ENV)
+      explicit = env['SMART_MESSAGE_DLQ_PATH']
+      return File.expand_path(explicit) unless explicit.to_s.empty?
+
+      state_home = env['XDG_STATE_HOME']
+      state_home = File.join(Dir.home, '.local', 'state') if state_home.to_s.empty?
+      File.join(File.expand_path(state_home), 'smart_message', 'dead_letters.jsonl')
+    end
+
     def initialize
-      @logger = nil
-      @transport = nil
-      @logger_explicitly_set_to_nil = false
-      @log_level = nil
-      @log_format = nil
-      @log_include_source = nil
-      @log_structured_data = nil
-      @log_colorize = nil
-      @log_options = {}
+      reset!
     end
-    
-    # Custom logger setter to track explicit nil assignment
-    def logger=(value)
-      @logger = value
-      @logger_explicitly_set_to_nil = value.nil?
-    end
-    
+
     # Reset configuration to defaults
     def reset!
-      @logger = nil
-      @transport = nil
-      @logger_explicitly_set_to_nil = false
-      @log_level = nil
-      @log_format = nil
-      @log_include_source = nil
-      @log_structured_data = nil
-      @log_colorize = nil
-      @log_options = {}
+      @logger                 = nil
+      @transport              = nil
+      @log_level              = nil
+      @log_format             = nil
+      @log_include_source     = nil
+      @log_structured_data    = nil
+      @log_colorize           = nil
+      @log_options            = {}
+      @dlq_path               = self.class.default_dlq_path
+      @dispatcher_max_threads = DEFAULT_DISPATCHER_MAX_THREADS
+      @dispatcher_max_queue   = DEFAULT_DISPATCHER_MAX_QUEUE
+      @shutdown_timeout       = SmartMessage::DEFAULT_SHUTDOWN_TIMEOUT
+      @built_logger           = nil
+      self
     end
-    
-    # Check if logger is configured (including explicit nil for no logging)
+
+    # @param value [Transport::Base, Array, nil] the transport(s) every
+    #   message class uses unless it sets its own
+    # @raise [ArgumentError] for a value that is not a transport, such as :memory
+    def transport=(value)
+      SmartMessage::Plugins.check_transports!(value)
+      @transport = value
+    end
+
+    # @raise [ArgumentError] for a value that is neither a log target nor
+    #   an object with the logger level methods
+    def logger=(value)
+      unless log_target?(value) || SmartMessage::Logger::LEVELS.all? { |level| value.respond_to?(level) }
+        raise ArgumentError,
+              "config.logger must be nil, :default, a String or Pathname path, STDOUT, STDERR, " \
+              "or a logger object responding to #{SmartMessage::Logger::LEVELS.join(', ')}; got #{value.inspect}"
+      end
+
+      @logger       = value
+      @built_logger = nil
+    end
+
+    (LOG_SETTINGS - %i[log_level log_format]).each do |name|
+      define_method(:"#{name}=") do |value|
+        instance_variable_set(:"@#{name}", value)
+        @built_logger = nil
+      end
+    end
+
+    # @param value [Symbol, String, Integer, nil] one of Logger::LEVELS (or
+    #   its index); nil uses the logger's default
+    # @raise [ArgumentError] for an unknown level
+    def log_level=(value)
+      unless value.nil?
+        SmartMessage::Logger.severity(value)
+        value = value.to_s.downcase.to_sym if value.is_a?(String)
+      end
+      @log_level    = value
+      @built_logger = nil
+    end
+
+    # @param value [Symbol, String, nil] :text or :json; nil uses :text
+    # @raise [ArgumentError] for any other format
+    def log_format=(value)
+      unless value.nil?
+        format = value.to_s.downcase.to_sym if value.is_a?(String) || value.is_a?(Symbol)
+        unless LOG_FORMATS.include?(format)
+          raise ArgumentError, "Unknown log format: #{value.inspect}. Use one of #{LOG_FORMATS.inspect}"
+        end
+
+        value = format
+      end
+      @log_format   = value
+      @built_logger = nil
+    end
+
+    # @param value [Integer] handler threads per dispatcher
+    # @raise [ArgumentError] unless a positive Integer (0 or nil would never
+    #   run a handler)
+    def dispatcher_max_threads=(value)
+      @dispatcher_max_threads = positive_integer!(:dispatcher_max_threads, value)
+    end
+
+    # @param value [Integer] handler calls that may wait for a thread
+    # @raise [ArgumentError] unless a positive Integer (the thread pool
+    #   reads 0 as "no limit")
+    def dispatcher_max_queue=(value)
+      @dispatcher_max_queue = positive_integer!(:dispatcher_max_queue, value)
+    end
+
+    # @param value [Numeric] seconds SmartMessage.shutdown waits
+    # @raise [ArgumentError] unless a positive number
+    def shutdown_timeout=(value)
+      unless value.is_a?(Numeric) && value.positive?
+        raise ArgumentError, "config.shutdown_timeout must be a positive number of seconds, got: #{value.inspect}"
+      end
+
+      @shutdown_timeout = value
+    end
+
+    # @param path [String, Pathname, nil] stored as an absolute path; nil or
+    #   blank restores the default, as an empty $SMART_MESSAGE_DLQ_PATH does
+    def dlq_path=(path)
+      @dlq_path = path.to_s.strip.empty? ? self.class.default_dlq_path : File.expand_path(path.to_s)
+    end
+
+    # Was a logger configured?
     def logger_configured?
-      !@logger.nil? || @logger_explicitly_set_to_nil || @logger == :default || @logger.is_a?(String) || @logger == STDOUT || @logger == STDERR
+      !@logger.nil?
     end
-    
+
     # Check if transport is configured
     def transport_configured?
       !@transport.nil?
     end
-    
-    # Get the configured logger or no logging
+
+    # The logger every SmartMessage component uses unless a message class
+    # sets its own.  Built once and reused.
+    #
+    # @return [#debug, #info, #warn, #error, #fatal]
     def default_logger
+      @built_logger ||= build_logger
+    end
+
+    # The globally configured transport, or nil.
+    def default_transport
+      @transport
+    end
+
+    private
+
+    def build_logger
       case @logger
       when nil
-        # If explicitly set to nil, use null logger (no logging)
-        if @logger_explicitly_set_to_nil
-          SmartMessage::Logger::Null.new
-        else
-          # Not configured, NO LOGGING
-          SmartMessage::Logger::Null.new
-        end
+        SmartMessage::Logger::Null.new
       when :default
-        # Explicitly requested framework default
-        framework_default_logger
-      when String
-        # String path means use Lumberjack logger with that file path
-        SmartMessage::Logger::Lumberjack.new(**logger_options.merge(log_file: @logger))
-      when STDOUT, STDERR
-        # STDOUT/STDERR constants mean use Lumberjack logger with that output
+        SmartMessage::Logger::Lumberjack.new(**logger_options)
+      when String, Pathname, STDOUT, STDERR
         SmartMessage::Logger::Lumberjack.new(**logger_options.merge(log_file: @logger))
       else
         @logger
       end
     end
-    
-    # Get the configured transport or framework default
-    def default_transport
-      @transport || framework_default_transport
+
+    def positive_integer!(name, value)
+      return value if value.is_a?(Integer) && value.positive?
+
+      raise ArgumentError, "config.#{name} must be a positive Integer, got: #{value.inspect}"
     end
-    
-    private
-    
-    # Framework's built-in default logger (Lumberjack)
-    def framework_default_logger
-      SmartMessage::Logger::Lumberjack.new(**logger_options)
+
+    def log_target?(value)
+      value.nil? || value == :default || value.is_a?(String) || value.is_a?(Pathname) ||
+        value.equal?(STDOUT) || value.equal?(STDERR)
     end
-    
+
     # Build logger options from configuration
     def logger_options
       options = {}
-      options[:level] = @log_level if @log_level
-      options[:format] = @log_format if @log_format
-      options[:include_source] = @log_include_source unless @log_include_source.nil?
+      options[:level]           = @log_level  if @log_level
+      options[:format]          = @log_format if @log_format
+      options[:include_source]  = @log_include_source  unless @log_include_source.nil?
       options[:structured_data] = @log_structured_data unless @log_structured_data.nil?
-      options[:colorize] = @log_colorize unless @log_colorize.nil?
-      
-      # Merge in log_options (for roll_by_date, roll_by_size, max_file_size, etc.)
-      options.merge!(@log_options) if @log_options && @log_options.is_a?(Hash)
-      
+      options[:colorize]        = @log_colorize        unless @log_colorize.nil?
+      options.merge!(@log_options) if @log_options.is_a?(Hash)
       options
-    end
-    
-    # Framework's built-in default transport (Redis)
-    def framework_default_transport
-      SmartMessage::Transport::RedisTransport.new
     end
   end
 end

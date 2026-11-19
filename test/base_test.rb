@@ -58,8 +58,37 @@ module BaseTest
       assert_equal "Added description for MyMessage", BaseTest::MyMessage.description
       
       # Reset it back to nil for other tests
-      BaseTest::MyMessage.instance_variable_set(:@description, nil)
+      BaseTest::MyMessage.clear_setting(:description)
       assert_equal "BaseTest::MyMessage is a SmartMessage", BaseTest::MyMessage.description
+    end
+
+    def test_to_h_has_one_symbol_key_per_property
+      message = BaseTest::MyMessage.new(foo: 'one', bar: 'two')
+      hash    = message.to_h
+
+      assert_equal %i[_sm_header foo bar baz], hash.keys
+      assert_equal 'one', hash[:foo]
+      assert_equal 'two', hash[:bar]
+      assert_nil   hash[:baz]
+      assert_equal message._sm_header.to_h, hash[:_sm_header]
+      assert_instance_of Hash, hash[:_sm_header]
+    end
+
+    def test_to_hash_matches_to_h
+      message = BaseTest::MyMessage.new(foo: 'one')
+
+      assert_equal message.to_h, message.to_hash
+    end
+
+    def test_json_serializer_encodes_and_round_trips_a_message
+      message = BaseTest::MyMessage.new(foo: 'one', bar: 'two', baz: 'three')
+      encoded = SmartMessage::Serializer::Json.new.encode(message)
+
+      assert_kind_of String, encoded
+      decoded = JSON.parse(encoded)
+      assert_equal %w[_sm_header foo bar baz], decoded.keys
+      assert_equal 'three', decoded['baz']
+      assert_equal 'BaseTest::MyMessage', decoded['_sm_header']['message_class']
     end
 
   end # class BaseTest < Minitest::Test

@@ -1,29 +1,19 @@
-#!/usr/bin/env ruby
-# examples/multi_program_demo/common/logger.rb
+# examples/city_scenario/common/logger.rb
+# frozen_string_literal: true
+
+require_relative 'city'
 
 module Common
+  # Gives a program a logger that writes to $CITY_LOG_DIR/<name>.log.
+  # SmartMessage's own log lines go to the same file.
   module Logger
-    def setup_logger(options = {})
-      # Auto-detect program name from filename if not provided
-      program_name = options.delete(:name) || File.basename($0, '.rb')
-
-      # Build options with defaults
-      opts = {
-        log_file: "log/#{program_name}.log",
-        level: ::Logger::INFO
-      }.merge(options)
-
-      # Configure SmartMessage with the logger
-      SmartMessage.configure do |config|
-        config.logger = SmartMessage::Logger::Default.new(**opts)
-      end
-
-      # Store and return the logger instance
-      @logger = SmartMessage::Logger.default
+    # @param name [String, nil] log file name; defaults to the program's file name
+    # @return [SmartMessage::Logger::Base]
+    def setup_logger(name: nil)
+      @logger = Common::City.setup!(name || File.basename($PROGRAM_NAME, '.rb'))
     end
 
     def logger
-      # Return existing logger or create with defaults
       @logger ||= setup_logger
     end
   end

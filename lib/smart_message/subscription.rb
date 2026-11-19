@@ -2,21 +2,54 @@
 # encoding: utf-8
 # frozen_string_literal: true
 
-require 'securerandom'   # STDLIB
+require 'securerandom' # STDLIB
 
 module SmartMessage
   # Subscription management module for SmartMessage::Base
   # Handles subscribe/unsubscribe operations and proc handler management
   module Subscription
+    # Every registered block/proc handler, keyed by handler id.  One
+    # registry for the whole process, because the dispatcher looks handlers
+    # up by id alone.
+    PROC_HANDLERS = Concurrent::Map.new
+
+    # Handler ids for procs look like "MessageClass.proc_0123456789abcdef"
+    PROC_HANDLER_ID = /\.proc_\h{16}\z/
+
     def self.included(base)
       base.extend(ClassMethods)
-      base.class_eval do
-        # Registry for proc-based message handlers
-        class_variable_set(:@@proc_handlers, {}) unless class_variable_defined?(:@@proc_handlers)
+    end
+
+    # @return [Boolean] true when +handler_id+ has the shape of a proc
+    #   handler id, whether or not it is still registered
+    def self.proc_handler_id?(handler_id)
+      PROC_HANDLER_ID.match?(handler_id.to_s)
+    end
+
+    # Normalize a subscription filter: nil stays nil, a String or Regexp
+    # becomes a one-element Array, an Array is checked and returned.
+    #
+    # @raise [ArgumentError] for any other type
+    def self.normalize_filter_value(value)
+      case value
+      when nil            then nil
+      when String, Regexp then [value]
+      when Array
+        value.each do |item|
+          next if item.is_a?(String) || item.is_a?(Regexp)
+
+          raise ArgumentError, "Array filter values must be Strings or Regexps, got: #{item.class}"
+        end
+        value
+      else
+        raise ArgumentError, "Filter value must be a String, Regexp, Array, or nil, got: #{value.class}"
       end
     end
 
     module ClassMethods
+      CONSTANT_PATH = /\A(::)?[A-Z]\w*(::[A-Z]\w*)*\z/
+      private_constant :CONSTANT_PATH
+
       #########################################################
       ## proc handler management
 
@@ -26,48 +59,58 @@ module SmartMessage
       # @return [String] Unique identifier for this handler
       def register_proc_handler(message_class, handler_proc)
         handler_id = "#{message_class}.proc_#{SecureRandom.hex(8)}"
-        class_variable_get(:@@proc_handlers)[handler_id] = handler_proc
+        PROC_HANDLERS[handler_id] = handler_proc
         handler_id
+      end
+
+      # @return [Proc, nil] the registered proc for a handler id
+      def proc_handler(handler_id)
+        PROC_HANDLERS[handler_id]
       end
 
       # Call a registered proc handler
       # @param handler_id [String] The handler identifier
       def call_proc_handler(handler_id, message)
-        handler_proc = class_variable_get(:@@proc_handlers)[handler_id]
-        return unless handler_proc
-
-        handler_proc.call(message)
+        proc_handler(handler_id)&.call(message)
       end
 
       # Remove a proc handler from the registry
       # @param handler_id [String] The handler identifier to remove
       def unregister_proc_handler(handler_id)
-        class_variable_get(:@@proc_handlers).delete(handler_id)
+        PROC_HANDLERS.delete(handler_id)
       end
 
-      # Check if a handler ID refers to a proc handler
+      # Remove every proc handler registered for a message class
+      # @param message_class [String] The message class name
+      def unregister_proc_handlers_for(message_class)
+        prefix = "#{message_class}.proc_"
+        PROC_HANDLERS.keys.each { |handler_id| PROC_HANDLERS.delete(handler_id) if handler_id.start_with?(prefix) }
+      end
+
+      # Check if a handler ID refers to a registered proc handler
       # @param handler_id [String] The handler identifier
       # @return [Boolean] True if this is a proc handler
       def proc_handler?(handler_id)
-        class_variable_get(:@@proc_handlers).key?(handler_id)
+        PROC_HANDLERS.key?(handler_id)
       end
 
       #########################################################
       ## class-level subscription management via the transport
 
-      # Add this message class to the transport's catalog of
-      # subscribed messages.  If the transport is missing, raise
-      # an exception.
+      # Subscribe this message class on every configured transport.
       #
       # @param process_method [String, Proc, nil] The processing method:
       #   - String: Method name like "MyService.handle_message"
       #   - Proc: A proc/lambda that accepts (message)
       #   - nil: Uses default "MessageClass.process" method
       # @param broadcast [Boolean, nil] Filter for broadcast messages (to: nil)
-      # @param to [String, Array, nil] Filter for messages directed to specific entities
-      # @param from [String, Array, nil] Filter for messages from specific entities
+      # @param to [String, Regexp, Array, nil] Filter for messages directed to specific entities
+      # @param from [String, Regexp, Array, nil] Filter for messages from specific entities
       # @param block [Proc] Alternative way to pass a processing block
       # @return [String] The identifier used for this subscription
+      # @raise [SmartMessage::Errors::TransportNotConfigured] no transport
+      # @raise [ArgumentError] when a named handler cannot be called, or
+      #   when both a handler and a block are given
       #
       # @example Using default handler
       #   MyMessage.subscribe
@@ -77,117 +120,174 @@ module SmartMessage
       #
       # @example Using a block with broadcast filtering
       #   MyMessage.subscribe(broadcast: true) do |message|
-      #     puts "Received broadcast: #{message.content}"
+      #     handle(message)
       #   end
-      #
-      # @example Entity-specific filtering (receives only messages from payment service)
-      #   MyMessage.subscribe("OrderService.process", from: ['payment'])
-      #
-      # @example Explicit to filter
-      #   MyMessage.subscribe("AdminService.handle", to: 'admin', broadcast: false)
       def subscribe(process_method = nil, broadcast: nil, to: nil, from: nil, &block)
+        reject_handler_with_block!(process_method, block)
         message_class = whoami
 
-        # Handle different parameter types
-        if block_given?
-          # Block was passed - use it as the handler
-          handler_proc = block
-          process_method = register_proc_handler(message_class, handler_proc)
-        elsif process_method.respond_to?(:call)
-          # Proc/lambda was passed as first parameter
-          handler_proc = process_method
-          process_method = register_proc_handler(message_class, handler_proc)
-        elsif process_method.nil?
-          # Use default handler
-          process_method = message_class + '.process'
-        end
-        # If process_method is a String, use it as-is
-
-        # Subscriber identity is derived from the process method (handler)
-        # This ensures each handler gets its own DDQ scope per message class
-
-        # Normalize string filters to arrays
-        to_filter = normalize_filter_value(to)
-        from_filter = normalize_filter_value(from)
-
-        # Create filter options (no explicit subscriber identity needed)
         filter_options = {
           broadcast: broadcast,
-          to: to_filter,
-          from: from_filter
+          to:        Subscription.normalize_filter_value(to),
+          from:      Subscription.normalize_filter_value(from)
         }
 
-        # Add proper logging
-        logger = SmartMessage::Logger.default
+        raise Errors::TransportNotConfigured.for(message_class) if transport_missing?
 
+        handler      = block || (process_method if process_method.respond_to?(:call))
+        handler_id   = handler ? register_proc_handler(message_class, handler) : (process_method || "#{message_class}.process")
+        check_named_handler!(handler_id) unless handler
+
+        attempted = []
         begin
-          raise Errors::TransportNotConfigured if transport_missing?
-          transport.subscribe(message_class, process_method, filter_options)
-
-          # Log successful subscription
-          handler_desc = block_given? || process_method.respond_to?(:call) ? " with block/proc handler" : ""
-          logger.info { "[SmartMessage] Subscribed: #{self.name}#{handler_desc}" }
-          logger.debug { "[SmartMessage::Subscription] Subscribed #{message_class} with filters: #{filter_options}" }
-
-          process_method
-        rescue => e
+          transports.each do |transport_instance|
+            # A String handler may already be subscribed (subscribe is
+            # idempotent); only a subscription this call adds is rolled back.
+            attempted << [transport_instance, !handler && already_subscribed?(transport_instance, message_class, handler_id)]
+            transport_instance.subscribe(message_class, handler_id, filter_options)
+          end
+        rescue StandardError => e
+          roll_back_subscription(attempted, message_class, handler_id)
+          unregister_proc_handler(handler_id) if handler
           logger.error { "[SmartMessage] Error in message subscription: #{e.class.name} - #{e.message}" }
           raise
         end
+
+        logger.info { "[SmartMessage] Subscribed: #{message_class}#{' with block/proc handler' if handler}" }
+        logger.debug { "[SmartMessage::Subscription] Subscribed #{message_class} with filters: #{filter_options}" }
+
+        handler_id
       end
 
-      # Remove this process_method for this message class from the
-      # subscribers list.
+      # Remove one handler for this message class from every transport.
       # @param process_method [String, nil] The processing method identifier to remove
       #   - String: Method name like "MyService.handle_message" or proc handler ID
       #   - nil: Uses default "MessageClass.process" method
+      # @raise [ArgumentError] when given the handler itself (a Proc, lambda
+      #   or Method) instead of the id subscribe returned
       def unsubscribe(process_method = nil)
-        message_class   = whoami
-        process_method  = message_class + '.process' if process_method.nil?
-        # Add proper logging
-        logger = SmartMessage::Logger.default
+        reject_callable_unsubscribe!(process_method)
+        message_class    = whoami
+        process_method ||= "#{message_class}.process"
 
-        begin
-          if transport_configured?
-            transport.unsubscribe(message_class, process_method)
+        transports.each { |transport_instance| transport_instance.unsubscribe(message_class, process_method) }
+        unregister_proc_handler(process_method)
 
-            # If this was a proc handler, clean it up from the registry
-            if proc_handler?(process_method)
-              unregister_proc_handler(process_method)
-            end
-
-            # Log successful unsubscription
-            logger.info { "[SmartMessage] Unsubscribed: #{self.name}" }
-            logger.debug { "[SmartMessage::Subscription] Unsubscribed #{message_class} from #{process_method}" }
-          end
-        rescue => e
-          logger.error { "[SmartMessage] Error in message unsubscription: #{e.class.name} - #{e.message}" }
-          raise
-        end
+        logger.info { "[SmartMessage] Unsubscribed: #{message_class} from #{process_method}" }
       end
 
       # Remove this message class and all of its processing methods
-      # from the subscribers list.
+      # from every transport.
       def unsubscribe!
-        message_class   = whoami
+        message_class = whoami
 
-        # TODO: Add proper logging here
+        transports.each { |transport_instance| transport_instance.unsubscribe!(message_class) }
+        unregister_proc_handlers_for(message_class)
 
-        transport.unsubscribe!(message_class) if transport_configured?
+        logger.info { "[SmartMessage] Unsubscribed all handlers: #{message_class}" }
       end
+
+      private
+
+      # Reject a handler given by name that can never be called, so the
+      # mistake fails the subscribe instead of dead-lettering every message.
+      # A class that is not defined yet is accepted: it is looked up when a
+      # message arrives, so it may be defined after the subscription.
+      #
+      # @param handler_id [String] "Class.method"
+      # @raise [ArgumentError] when it is not a "Class.method" String, the
+      #   class part is not a constant path ("lower", "", or through a
+      #   constant that is not a module), or the class is defined without
+      #   that class method
+      def check_named_handler!(handler_id)
+        unless handler_id.is_a?(String)
+          raise ArgumentError, "A handler must be a \"Class.method\" String, a Proc, or a block; got #{handler_id.inspect}"
+        end
+
+        target_name, method_name = handler_id.split('.', 2)
+        if method_name.to_s.empty?
+          raise ArgumentError, "Handler #{handler_id.inspect} must name a class method as \"Class.method\""
+        end
+
+        unless target_name.match?(CONSTANT_PATH)
+          raise ArgumentError, "Handler #{handler_id.inspect}: #{target_name.inspect} is not a class name"
+        end
+
+        target = begin
+          Object.const_get(target_name)
+        rescue TypeError
+          raise ArgumentError, "Handler #{handler_id.inspect}: #{target_name} does not name a class or module"
+        rescue NameError
+          return handler_id
+        end
+
+        unless target.respond_to?(method_name)
+          raise ArgumentError, "Handler #{handler_id.inspect}: #{target_name} has no class method #{method_name}"
+        end
+
+        if method_name == 'process' && target.method(:process).owner == Subscription::ClassMethods
+          raise ArgumentError, "Handler #{handler_id.inspect} is not implemented: define `def self.process(message)` " \
+                               "in #{target_name}, or subscribe with a block or another handler"
+        end
+
+        handler_id
+      end
+
+      # A block/proc/lambda handler is identified by the id subscribe
+      # returned; passing the callable itself would match nothing and
+      # silently leave it subscribed.
+      def reject_callable_unsubscribe!(process_method)
+        return unless process_method.respond_to?(:call)
+
+        raise ArgumentError, "unsubscribe takes the id subscribe returned for a block/proc/lambda handler, " \
+                             "not the handler itself; got #{process_method.inspect}"
+      end
+
+      # subscribe runs one handler: a handler argument given with a block
+      # would be silently ignored, so reject the pair.
+      def reject_handler_with_block!(process_method, block)
+        return unless process_method && block
+
+        raise ArgumentError, "subscribe takes a handler or a block, not both; got #{process_method.inspect} and a block"
+      end
+
+      # Has this handler a subscription on the transport already?  A
+      # transport that cannot say is treated as having one, so nothing that
+      # may predate this call is removed.
+      def already_subscribed?(transport_instance, message_class, handler_id)
+        return true unless transport_instance.respond_to?(:subscribers)
+
+        transport_instance.subscribers[message_class].any? { |subscription| subscription[:subscriber_id] == handler_id }
+      rescue StandardError
+        true
+      end
+
+      # Undo a subscribe that failed partway, on every transport it reached.
+      def roll_back_subscription(attempted, message_class, handler_id)
+        attempted.each do |transport_instance, preexisting|
+          next if preexisting
+
+          transport_instance.unsubscribe(message_class, handler_id)
+        rescue StandardError => e
+          logger.warn { "[SmartMessage] Could not roll back #{handler_id} on #{transport_instance.class.name}: #{e.message}" }
+        end
+      end
+
+      public
 
       ###################################################
       ## Business Logic resides in the #process method.
 
-      # When a transport receives a subscribed to message it
-      # creates an instance of the message and then calls
-      # the process method on that instance.
+      # The default handler.  A message class that subscribes without
+      # naming a handler must define its own class-level process method:
       #
-      # It is expected that SmartMessage classes over ride
-      # the SmartMessage::Base#process method with appropriate
-      # business logic to handle the received message content.
-      def process(message_instance)
-        raise Errors::NotImplemented
+      #   class OrderMessage < SmartMessage::Base
+      #     def self.process(message)
+      #       # business logic
+      #     end
+      #   end
+      def process(_message_instance)
+        raise Errors::NotImplemented, "#{name}.process is not implemented"
       end
     end
   end

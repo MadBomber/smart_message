@@ -22,9 +22,8 @@ module MessageFilteringTest
       SS.reset
       
       # Configure transport for testing - use Memory transport for local processing
-      FilterTestMessage.config do
-        transport SmartMessage::Transport::MemoryTransport.new
-      end
+      @transport = SmartMessage::Transport::MemoryTransport.new
+      FilterTestMessage.transport @transport
       
       # Clear any existing subscriptions
       FilterTestMessage.unsubscribe!
@@ -44,8 +43,7 @@ module MessageFilteringTest
       directed_msg.to('target-service')
       directed_msg.publish
       
-      # Give time for processing
-      sleep(0.3)
+      wait_for_dispatch(@transport)
       
       # Should have processed both messages
       assert_equal 2, SS.get('MessageFilteringTest::FilterTestMessage', 'process')
@@ -65,8 +63,7 @@ module MessageFilteringTest
       directed_msg.to('target-service')
       directed_msg.publish
       
-      # Give time for processing
-      sleep(0.3)
+      wait_for_dispatch(@transport)
       
       # Should have processed only the broadcast message
       assert_equal 1, SS.get('MessageFilteringTest::FilterTestMessage', 'process')
@@ -91,8 +88,7 @@ module MessageFilteringTest
       broadcast_msg.to(nil)
       broadcast_msg.publish
       
-      # Give time for processing
-      sleep(0.3)
+      wait_for_dispatch(@transport)
       
       # Should have processed only the order-service message
       assert_equal 1, SS.get('MessageFilteringTest::FilterTestMessage', 'process')
@@ -112,8 +108,7 @@ module MessageFilteringTest
       other_msg.from('user-service')
       other_msg.publish
       
-      # Give time for processing
-      sleep(0.3)
+      wait_for_dispatch(@transport)
       
       # Should have processed only the payment-service message
       assert_equal 1, SS.get('MessageFilteringTest::FilterTestMessage', 'process')
@@ -138,8 +133,7 @@ module MessageFilteringTest
       other_msg.to('other-service')
       other_msg.publish
       
-      # Give time for processing
-      sleep(0.3)
+      wait_for_dispatch(@transport)
       
       # Should have processed broadcast + my-service messages (2 total)
       assert_equal 2, SS.get('MessageFilteringTest::FilterTestMessage', 'process')
@@ -167,8 +161,7 @@ module MessageFilteringTest
       other_to_me.to('my-service')
       other_to_me.publish
       
-      # Give time for processing
-      sleep(0.3)
+      wait_for_dispatch(@transport)
       
       # Should have processed only the admin->my-service message
       assert_equal 1, SS.get('MessageFilteringTest::FilterTestMessage', 'process')
@@ -193,8 +186,7 @@ module MessageFilteringTest
       user_msg.from('user')
       user_msg.publish
       
-      # Give time for processing
-      sleep(0.3)
+      wait_for_dispatch(@transport)
       
       # Should have processed admin + system messages (2 total)
       assert_equal 2, SS.get('MessageFilteringTest::FilterTestMessage', 'process')
@@ -219,8 +211,7 @@ module MessageFilteringTest
       user_msg.from('user-service')
       user_msg.publish
       
-      # Give time for processing
-      sleep(0.3)
+      wait_for_dispatch(@transport)
       
       # Should have processed payment-service + payment-gateway messages (2 total)
       assert_equal 2, SS.get('MessageFilteringTest::FilterTestMessage', 'process')
@@ -245,8 +236,7 @@ module MessageFilteringTest
       prod_msg.to('prod-service')
       prod_msg.publish
       
-      # Give time for processing
-      sleep(0.3)
+      wait_for_dispatch(@transport)
       
       # Should have processed dev + staging messages (2 total)
       assert_equal 2, SS.get('MessageFilteringTest::FilterTestMessage', 'process')
@@ -276,8 +266,7 @@ module MessageFilteringTest
       user_msg.from('user-service')
       user_msg.publish
       
-      # Give time for processing
-      sleep(0.3)
+      wait_for_dispatch(@transport)
       
       # Should have processed admin + system-worker + monitoring messages (3 total)
       assert_equal 3, SS.get('MessageFilteringTest::FilterTestMessage', 'process')
@@ -305,8 +294,7 @@ module MessageFilteringTest
       no_match_from.to('prod-api')
       no_match_from.publish
       
-      # Give time for processing
-      sleep(0.3)
+      wait_for_dispatch(@transport)
       
       # Should have processed only the admin->prod message (1 total)
       assert_equal 1, SS.get('MessageFilteringTest::FilterTestMessage', 'process')

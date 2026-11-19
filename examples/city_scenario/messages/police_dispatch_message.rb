@@ -15,8 +15,6 @@ module Messages
       for crimes, alarms, and public safety threats
     DESC
 
-    transport  SmartMessage::Transport::RedisTransport.new
-
     VALID_PRIORITY = %w[low medium high emergency]
 
     property :dispatch_id, required: true,

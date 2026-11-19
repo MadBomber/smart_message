@@ -89,8 +89,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
 
     message.publish
 
-    # Give time for processing
-    sleep(0.3)
+    wait_for_dispatch(IntegrationTestMessage.transport)
 
     # Check that proc handler received the message
     assert_equal 1, received_messages.length
@@ -135,8 +134,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
 
     message.publish
 
-    # Give time for processing
-    sleep(0.3)
+    wait_for_dispatch(IntegrationTestMessage.transport)
 
     # Both handlers should have received the message
     assert_equal ["H1:MULTI-001"], handler1_messages
@@ -173,12 +171,13 @@ class ProcHandlerIntegrationTest < Minitest::Test
     # This should not raise an exception at the top level
     begin
       message.publish
-      sleep(0.3)  # Give time for processing
       # If we get here, no exception was raised at the top level
       assert true, "System handled proc handler error gracefully"
     rescue => e
       flunk "System crashed due to proc handler error: #{e.message}"
     end
+
+    wait_for_dispatch(IntegrationTestMessage.transport)
 
     # Both handlers should have been called
     assert error_handler_called, "Error handler should have been called"
@@ -204,7 +203,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
       timestamp: Time.now.iso8601
     ).publish
 
-    sleep(0.3)
+    wait_for_dispatch(IntegrationTestMessage.transport)
     assert_equal 1, call_count
 
     # Unsubscribe the proc handler
@@ -220,7 +219,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
       timestamp: Time.now.iso8601
     ).publish
 
-    sleep(0.3)
+    wait_for_dispatch(IntegrationTestMessage.transport)
 
     # Call count should still be 1 (handler was unsubscribed)
     assert_equal 1, call_count
@@ -262,7 +261,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
       timestamp: Time.now.iso8601
     ).publish
 
-    sleep(0.3)
+    wait_for_dispatch(IntegrationTestMessage.transport)
 
     # All handlers should have processed the message
     assert_includes IntegrationTestMessage.default_processed, "MIXED-001"
@@ -307,7 +306,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
       timestamp: Time.now.iso8601
     ).publish
 
-    sleep(0.3)
+    wait_for_dispatch(IntegrationTestMessage.transport)
 
     # Both should have been called
     assert_equal ["PROC_CALLED"], proc_calls
@@ -344,8 +343,7 @@ class ProcHandlerIntegrationTest < Minitest::Test
       timestamp: Time.now.iso8601
     ).publish
 
-    # Wait for both to complete
-    sleep(0.3)
+    wait_for_dispatch(IntegrationTestMessage.transport)
 
     # Both should have started and completed
     assert_includes processing_order, "FAST_START"

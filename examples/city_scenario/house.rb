@@ -1,244 +1,168 @@
 #!/usr/bin/env ruby
-# examples/multi_program_demo/house.rb
+# examples/city_scenario/house.rb
+# frozen_string_literal: true
+#
+# A house whose monitoring system occasionally reports a fire to the Fire
+# Department and waits for the fire dispatch that answers it.
+#
+#   ruby house.rb ['456 Oak Street']
+#
+#   CITY_FIRE_CHANCE   percent chance of a fire per activity (default 6)
 
-require_relative '../../lib/smart_message'
+require_relative 'common/service'
+require_relative 'common/health_monitor'
 require_relative 'messages/fire_emergency_message'
 require_relative 'messages/fire_dispatch_message'
 
-require_relative 'common/health_monitor'
-require_relative 'common/logger'
-
 class House
+  include Common::Service
   include Common::HealthMonitor
-  include Common::Logger
+
+  FIRE_DEPARTMENT       = 'fire_department'
+  FIRE_CHANCE           = Integer(ENV.fetch('CITY_FIRE_CHANCE', '6')) # percent
+  SECONDS_BETWEEN_FIRES = 600
+  STREET_NAMES          = [
+    'Oak Street', 'Maple Avenue', 'Pine Lane', 'Cedar Drive', 'Elm Court',
+    'Birch Road', 'Willow Way', 'Ash Boulevard', 'Cherry Street', 'Poplar Lane'
+  ].freeze
+  ACTIVITIES            = [
+    'Security system armed', 'Temperature adjusted', 'Motion detected - normal activity',
+    'Smoke detector test completed', 'Door/window sensor check', 'All systems operational'
+  ].freeze
+  SPREAD_RISKS          = { 'small' => 'low', 'medium' => 'medium', 'large' => 'high', 'out_of_control' => 'high' }.freeze
+
+  # @return [String] the service name of the house at +address+
+  def self.service_name_for(address)
+    "house-#{address.gsub(/\s+/, '-').downcase}"
+  end
 
   def initialize(address = nil)
-    @address = address || generate_random_address
-    @service_name = "house-#{@address.gsub(/\s+/, '-').downcase}"
-    @status = 'healthy'
-    @start_time = Time.now
-    @fire_active = false
-    @last_fire_time = nil
-    @occupants = rand(1..4)
+    @address = address || "#{rand(100..999)} #{STREET_NAMES.sample}"
+    setup_service(self.class.service_name_for(@address))
+    @fire_active     = false
+    @last_fire_time  = nil
+    @occupants       = rand(1..4)
     @occupant_status = 'safe'
 
     setup_messaging
-    setup_signal_handlers
     setup_health_monitor
   end
 
-  # def setup_logging
-  #   # Create log file name based on address (sanitized)
-  #   address_slug = @address.gsub(/\s+/, '_').gsub(/[^\w\-_]/, '').downcase
-  #   log_file = File.join(__dir__, "house_#{address_slug}.log")
-  #   logger = Logger.new(log_file)
-  #   logger.level = Logger::INFO
-  #   logger.formatter = proc do |severity, datetime, progname, msg|
-  #     "#{datetime.strftime('%Y-%m-%d %H:%M:%S')} [#{severity}] #{msg}\n"
-  #   end
-  #   logger.info("House at #{@address} logging started")
-  # end
-
   def setup_messaging
-    Messages::FireEmergencyMessage.from = @service_name
-
-    # Subscribe to fire dispatch responses
-    Messages::FireDispatchMessage.subscribe(to: @service_name) do |message|
-      handle_fire_response(message)
+    Messages::FireDispatchMessage.subscribe(to: service_name) do |dispatch|
+      handling('fire dispatch') { handle_fire_response(dispatch) }
     end
 
-    address_slug = @address.gsub(/\s+/, '_').gsub(/[^\w\-_]/, '').downcase
-    puts "🏠 House at #{@address} monitoring systems active"
-    puts "   Occupants: #{@occupants}"
-    puts "   Status: #{@occupant_status}"
-    puts "   Press Ctrl+C to shutdown monitoring\n\n"
+    puts <<~BANNER
+      🏠 House at #{@address} monitoring systems active
+         Occupants: #{@occupants}
+         Status: #{@occupant_status}
+         Press Ctrl+C to shutdown monitoring
+
+    BANNER
     logger.info("House monitoring started: #{@occupants} occupants, status: #{@occupant_status}")
   end
 
-  def setup_signal_handlers
-    %w[INT TERM].each do |signal|
-      Signal.trap(signal) do
-        puts "\n🏠 #{@address} monitoring system shutting down..."
-        logger.info("House monitoring system shutting down")
-        exit(0)
-      end
-    end
-  end
-
-
   def start_monitoring
-    loop do
-      simulate_house_activity
-      sleep(rand(15..45))  # Random events every 15-45 seconds
-    end
-  rescue => e
-    puts "🏠 Error in house monitoring: #{e.message}"
-    logger.error("Error in house monitoring: #{e.message}")
-    retry
+    reason = run_service(-> { rand(15..45) }) { synchronize { simulate_house_activity } }
+    shutdown_service(reason, "#{@address} monitoring system shutting down...")
   end
 
-  private
-
-  def service_emoji
-    "🏠"
-  end
-
-  def generate_random_address
-    street_numbers = (100..999).to_a
-    street_names = [
-      'Oak Street', 'Maple Avenue', 'Pine Lane', 'Cedar Drive', 'Elm Court',
-      'Birch Road', 'Willow Way', 'Ash Boulevard', 'Cherry Street', 'Poplar Lane'
-    ]
-    "#{street_numbers.sample} #{street_names.sample}"
-  end
-
+  # @return [Array(String, String)] status and details for a health check
   def get_status_details
-    # Status depends on fire situation and occupant safety
-    @status = if @fire_active
-               'critical'
-             elsif @occupant_status.include?('trapped') || @occupant_status.include?('rescued')
-               'warning'
-             else
-               'healthy'
-             end
+    if @fire_active
+      ['critical', "FIRE DETECTED - #{@occupants} occupants status: #{@occupant_status}"]
+    elsif @occupant_status != 'safe'
+      ['warning', "Emergency response active, #{@occupants} occupants #{@occupant_status}"]
+    else
+      ['healthy', "All systems normal, #{@occupants} occupants #{@occupant_status}"]
+    end
+  end
 
-    details = case @status
-             when 'healthy' then "All systems normal, #{@occupants} occupants #{@occupant_status}"
-             when 'warning' then "Emergency response active, #{@occupants} occupants #{@occupant_status}"
-             when 'critical' then "FIRE DETECTED - #{@occupants} occupants status: #{@occupant_status}"
-             when 'failed' then "Power outage, backup systems failed"
-             end
-
-    [@status, details]
+  # @return [Boolean] true when a new fire may start now
+  def fire_allowed?(now = Time.now)
+    !@fire_active && (@last_fire_time.nil? || now - @last_fire_time >= SECONDS_BETWEEN_FIRES)
   end
 
   def simulate_house_activity
-    # Only start fires occasionally and not too frequently
-    return if @fire_active
-    return if @last_fire_time && (Time.now - @last_fire_time) < 600  # 10 minutes minimum between fires
+    return unless fire_allowed?
+    return start_fire if rand(100) < FIRE_CHANCE
 
-    # 6% chance of fire
-    if rand(100) < 6
-      start_fire
-    else
-      # Normal house activities
-      activities = [
-        'Security system armed',
-        'Temperature adjusted',
-        'Motion detected - normal activity',
-        'Smoke detector test completed',
-        'Door/window sensor check',
-        'All systems operational'
-      ]
-      activity = activities.sample
-      puts "🏠 #{activity}"
-      logger.info("Normal activity: #{activity}")
-    end
+    activity = ACTIVITIES.sample
+    puts "🏠 #{activity}"
+    logger.info("Normal activity: #{activity}")
   end
 
-  def start_fire
-    @fire_active = true
-    @last_fire_time = Time.now
-
-    fire_types = ['kitchen', 'electrical', 'basement', 'garage']
-    severities = ['small', 'medium', 'large']
-
-    # Garage fires tend to be more severe
-    fire_type = fire_types.sample
-    severity = if fire_type == 'garage'
-                ['medium', 'large', 'out_of_control'].sample
-              else
-                severities.sample
-              end
-
-    # Determine occupant status based on fire severity and time of day
-    hour = Time.now.hour
-    if severity == 'out_of_control' || (hour >= 22 || hour <= 6)  # Night time
-      @occupant_status = ['safe - evacuated', 'trapped - need rescue'].sample
-    else
-      @occupant_status = 'safe - evacuated'
-    end
-
-    # Determine spread risk
-    spread_risk = case severity
-                 when 'small' then 'Low risk to neighboring structures'
-                 when 'medium' then 'Moderate risk if not contained quickly'
-                 when 'large' then 'High risk to adjacent buildings'
-                 when 'out_of_control' then 'EXTREME RISK - evacuate neighbors'
-                 end
+  # @return [Messages::FireEmergencyMessage] the published emergency
+  def start_fire(fire_type = %w[kitchen electrical basement garage].sample)
+    severity         = (fire_type == 'garage' ? %w[medium large out_of_control] : %w[small medium large]).sample
+    occupants_status = occupants_status_for(severity)
 
     emergency = Messages::FireEmergencyMessage.new(
-      house_address: @address,
-      fire_type: fire_type,
-      severity: severity,
-      timestamp: Time.now.strftime('%Y-%m-%d %H:%M:%S'),
-      occupants_status: @occupant_status,
-      spread_risk: spread_risk,
+      house_address:    @address,
+      fire_type:        fire_type,
+      severity:         severity,
+      timestamp:        Time.now.strftime('%Y-%m-%d %H:%M:%S'),
+      occupants_status: occupants_status,
+      spread_risk:      SPREAD_RISKS.fetch(severity),
+      from:             service_name,
+      to:               FIRE_DEPARTMENT
     )
     emergency.publish
 
-    puts "🏠 🔥 FIRE EMERGENCY 🔥"
-    puts "   Address: #{@address}"
-    puts "   Type: #{fire_type.upcase}"
-    puts "   Severity: #{severity.upcase}"
-    puts "   Occupants: #{@occupant_status}"
-    puts "   Spread Risk: #{spread_risk}"
-    logger.warn("FIRE EMERGENCY: #{fire_type} fire (#{severity}) - Occupants: #{@occupant_status}")
-  rescue => e
-    puts "🏠 Error starting fire emergency: #{e.message}"
-    logger.error("Error starting fire emergency: #{e.message}")
+    @fire_active     = true
+    @last_fire_time  = Time.now
+    @occupant_status = occupants_status
+
+    puts <<~FIRE
+      🏠 🔥 FIRE EMERGENCY 🔥
+         Address: #{@address}
+         Type: #{fire_type.upcase}
+         Severity: #{severity.upcase}
+         Occupants: #{occupants_status}
+    FIRE
+    logger.warn("FIRE EMERGENCY: #{fire_type} fire (#{severity}) - Occupants: #{occupants_status}")
+    emergency
+  end
+
+  # At night, or when the fire is out of control, people may be trapped.
+  # @return [String] one of FireEmergencyMessage::VALID_OCCUPANTS_STATUS
+  def occupants_status_for(severity, hour = Time.now.hour)
+    night = hour >= 22 || hour <= 6
+    severity == 'out_of_control' || night ? %w[evacuated trapped].sample : 'evacuated'
   end
 
   def handle_fire_response(dispatch)
-    # Process fire dispatch message
-    puts "🚒 \e[31mFIRE DISPATCH\e[0m ##{dispatch.dispatch_id}"
-    puts "   Engines: #{dispatch.engines_assigned.join(', ')}"
-    puts "   Location: #{dispatch.location}"
-    puts "   Fire Type: #{dispatch.fire_type}"
-    puts "   Equipment: #{dispatch.equipment_needed}" if dispatch.equipment_needed
-    puts "   ETA: #{dispatch.estimated_arrival}" if dispatch.estimated_arrival
-    puts "   Dispatched: #{dispatch.timestamp}"
-
-    puts "🏠 Fire department response received"
-    puts "   #{dispatch.engines_assigned.size} engines dispatched"
-    puts "   ETA: #{dispatch.estimated_arrival}"
-    puts "   Equipment: #{dispatch.equipment_needed}"
+    puts <<~DISPATCH
+      🚒 \e[31mFIRE DISPATCH\e[0m ##{dispatch.dispatch_id}
+         Engines: #{dispatch.engines_assigned.join(', ')}
+         Fire Type: #{dispatch.fire_type}
+         Equipment: #{dispatch.equipment_needed}
+         ETA: #{dispatch.estimated_arrival}
+    DISPATCH
     logger.info("Fire department response: #{dispatch.engines_assigned.join(', ')} dispatched, ETA #{dispatch.estimated_arrival}")
 
-    # If occupants were trapped, fire department rescues them
-    if @occupant_status.include?('trapped')
-      @occupant_status = 'rescued by fire department'
-      puts "🏠 🚒 Occupants successfully rescued!"
-      logger.info("Occupants rescued by fire department")
+    if @occupant_status == 'trapped'
+      @occupant_status = 'rescued'
+      puts '🏠 🚒 Occupants successfully rescued!'
+      logger.info('Occupants rescued by fire department')
     end
 
-    # Simulate fire resolution when fire department arrives
+    # The fire is out a few minutes after the engines arrive.
     Thread.new do
-      sleep(rand(300..900))  # 5-15 minutes for fire suppression
-      extinguish_fire
+      sleep(rand(300..900))
+      synchronize { extinguish_fire }
     end
-  rescue => e
-    puts "🏠 Error handling fire response: #{e.message}"
-    logger.error("Error handling fire response: #{e.message}")
   end
 
   def extinguish_fire
-    @fire_active = false
+    @fire_active     = false
     @occupant_status = 'safe'
-
-    puts "🏠 ✅ Fire extinguished by fire department"
-    puts "   All occupants accounted for and safe"
-    puts "   House systems returning to normal"
-    logger.info("Fire extinguished, all occupants safe, returning to normal")
-  rescue => e
-    puts "🏠 Error extinguishing fire: #{e.message}"
-    logger.error("Error extinguishing fire: #{e.message}")
+    puts '🏠 ✅ Fire extinguished, all occupants safe'
+    logger.info('Fire extinguished, all occupants safe, returning to normal')
   end
+
+  def service_emoji = '🏠'
 end
 
-if __FILE__ == $0
-  # Allow specifying address as command line argument
-  address = ARGV[0]
-  house = House.new(address)
-  house.start_monitoring
-end
+House.new(ARGV[0]).start_monitoring if __FILE__ == $PROGRAM_NAME

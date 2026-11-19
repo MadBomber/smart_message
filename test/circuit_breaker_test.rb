@@ -2,282 +2,268 @@
 # encoding: utf-8
 # frozen_string_literal: true
 
-require 'test_helper'
+require_relative 'test_helper'
 
+# Circuit construction and helpers (review findings R6, R7, R10).
 class CircuitBreakerTest < Minitest::Test
-  include SmartMessage
-  
-  class TestMessage < SmartMessage::Base
-    property :test_data
-    property :status
+  CB = SmartMessage::CircuitBreaker
+
+  class Sample < SmartMessage::Base
+    from 'sample'
+    property :value
   end
 
-  def setup
-    # Initialize components - circuit breakers will be configured automatically
-    begin
-      @dispatcher = SmartMessage::Dispatcher.new
-      @transport = SmartMessage::Transport::MemoryTransport.new
-      # Configure TestMessage
-      TestMessage.config do
-        # Using default transport serialization
-      end
-      
-      @test_message = TestMessage.new(
-        test_data: 'test_value',
-        status: 'active',
-        from: 'test_sender'
-      )
-    rescue => e
-      puts "Setup error: #{e.message}"
-      puts e.backtrace
-      raise
-    end
+  def fast_config(failures: 2)
+    { threshold: { failures: failures, within: 60 }, reset_after: 30 }
   end
 
-  def teardown
-    # Reset any circuit breakers
-    @dispatcher.reset_circuit_breakers! rescue nil
-    @transport.reset_transport_circuits! rescue nil
+  def fail_circuit(circuit, times)
+    times.times { assert_raises(RuntimeError) { circuit.wrap { raise 'boom' } } }
   end
 
-  context "Circuit Breaker Configuration" do
-    should "configure default circuit breakers for dispatcher" do
-      assert_respond_to @dispatcher, :circuit
-      assert_respond_to @dispatcher, :circuit_breaker_stats
-      assert_respond_to @dispatcher, :reset_circuit_breakers!
-    end
+  # ---- build ---------------------------------------------------------------
 
-    should "configure circuit breakers for transport" do
-      assert_respond_to @transport, :circuit
-      assert_respond_to @transport, :transport_circuit_stats
-      assert_respond_to @transport, :reset_transport_circuits!
-    end
+  def test_a_closed_circuit_returns_the_block_value
+    circuit = CB.build('ok', fast_config)
 
-    # Serializer circuit breaker tests removed - now handled by transport
+    assert_equal 42, circuit.wrap { 42 }
+    assert circuit.closed?
   end
 
-  context "Message Processor Circuit Breaker" do
-    should "allow normal message processing when circuit is closed" do
-      # SKIPPED: This test has timing/concurrency issues that make it unreliable
-      # 
-      # BACKGROUND:
-      # This test attempts to verify that the circuit breaker opens after 3 consecutive failures
-      # in message processing. However, due to the asynchronous nature of the message dispatcher's
-      # thread pool processing, this test has proven to be flaky and timing-dependent.
-      # 
-      # TECHNICAL DETAILS:
-      # 1. The dispatcher processes messages asynchronously via Concurrent::CachedThreadPool
-      # 2. The circuit breaker configuration requires 3 failures within 60 seconds to open
-      # 3. The test routes 3 messages with sleep intervals, expecting failures to accumulate
-      # 4. Due to async processing, the exact timing of when failures are registered by the
-      #    circuit breaker is non-deterministic
-      # 5. Thread scheduling, system load, and Ruby GC can all affect the timing
-      # 
-      # EVIDENCE OF CIRCUIT BREAKER FUNCTIONALITY:
-      # - Circuit breaker activation logs appear in other tests showing it works correctly
-      # - Circuit breaker statistics are properly collected and reported
-      # - The fallback mechanisms (Dead Letter Queue) function as expected
-      # - All other circuit breaker tests pass consistently
-      # 
-      # IMPACT:
-      # - This is the only remaining test failure (reduced from 27 to 1)
-      # - The core circuit breaker functionality is verified to work in production
-      # - The single-tier serialization implementation is complete and functional
-      # - All critical messaging, transport, and DLQ features work correctly
-      # 
-      # FUTURE CONSIDERATIONS:
-      # - Could be reimplemented with deterministic synchronous testing approach
-      # - May require mocking the thread pool to control timing precisely
-      # - Alternative: Test circuit breaker behavior through integration tests
-      #   with more realistic failure scenarios and longer observation periods
-      #
-      skip "Circuit breaker timing test is flaky due to async processing - see comments above"
-      
-      # Original test implementation (preserved for reference):
-      # Set up a failing processor
-      failing_processor = proc do |message|
-        raise StandardError, "Processing failed"
-      end
+  def test_a_failing_call_raises_its_own_error_and_opens_at_the_threshold
+    circuit = CB.build('failing', fast_config(failures: 2))
 
-      handler_id = SmartMessage::Base.register_proc_handler('test_failing_processor', failing_processor)
-      @dispatcher.add('TestMessage', handler_id)
+    fail_circuit(circuit, 1)
+    assert circuit.closed?, 'one failure is below the threshold'
 
-      # First few failures should still attempt processing
-      3.times do
-        @dispatcher.route(@test_message)
-        sleep 0.5 # Allow async processing
-      end
+    fail_circuit(circuit, 1)
+    assert circuit.open?
 
-      # Wait additional time for all async processing to complete
-      sleep 1.0
-      
-      stats = @dispatcher.circuit_breaker_stats
-      assert stats[:message_processor], "Expected message_processor stats to be present"
-      assert stats[:message_processor][:open], "Expected circuit to be open after failures"
-    end
-
-    should "provide circuit breaker statistics" do
-      stats = @dispatcher.circuit_breaker_stats
-      assert_kind_of Hash, stats
-      # Circuit might not be present if it hasn't been used
-      if stats[:message_processor]
-        assert_kind_of Hash, stats[:message_processor]
-        assert stats[:message_processor].key?(:status)
-      end
-    end
-
-    should "reset circuit breakers when requested" do
-      # Trigger circuit breaker by causing failures
-      failing_processor = proc { |message| raise "Test failure" }
-      handler_id = SmartMessage::Base.register_proc_handler('test_reset_processor', failing_processor)
-      @dispatcher.add('TestMessage', handler_id)
-
-      # Cause some failures
-      5.times do
-        @dispatcher.route(@test_message)
-        sleep 0.1
-      end
-
-      # Reset and verify
-      @dispatcher.reset_circuit_breakers!
-      stats = @dispatcher.circuit_breaker_stats
-      # Circuit should be closed after reset
-      if stats[:message_processor]
-        assert stats[:message_processor][:closed] || stats[:message_processor][:half_open], 
-               "Expected circuit to be closed or half-open after reset"
-      end
-    end
+    ran = false
+    assert_raises(BreakerMachines::CircuitOpenError) { circuit.wrap { ran = true } }
+    refute ran, 'an open circuit does not run the block'
   end
 
-  context "Transport Circuit Breaker" do
-    should "protect publish operations" do
-      # Mock a failing transport
-      def @transport.do_publish(header, payload)
-        raise Redis::ConnectionError, "Connection failed"
-      end
+  def test_circuits_do_not_share_state
+    one = CB.build('one', fast_config(failures: 1))
+    two = CB.build('one', fast_config(failures: 1)) # same name on purpose
 
-      # Create a test message instance to trigger the circuit breaker
-      test_message = TestMessage.new(test_data: 'test_value', status: 'active', from: 'test_sender')
-      result = @transport.publish(test_message)
-      
-      # Should receive a circuit breaker fallback response
-      if result.is_a?(Hash) && result[:circuit_breaker]
-        assert_equal 'open', result[:circuit_breaker][:state]
-        assert_equal :transport_publish, result[:circuit_breaker][:circuit]
-      end
-    end
+    fail_circuit(one, 1)
 
-    should "provide transport circuit statistics" do
-      stats = @transport.transport_circuit_stats
-      assert_kind_of Hash, stats
-      assert stats.key?(:transport_publish)
-      assert stats.key?(:transport_subscribe)
-    end
-
-    should "reset transport circuits when requested" do
-      @transport.reset_transport_circuits!
-      # Should not raise any errors
-      assert true
-    end
+    assert one.open?
+    assert two.closed?
+    assert_equal :ok, two.wrap { :ok }
   end
 
-  # Serializer circuit breaker tests removed - serialization now handled by transport
+  def test_reset_closes_a_circuit
+    circuit = CB.build('reset', fast_config(failures: 1))
+    fail_circuit(circuit, 1)
 
-  context "Circuit Breaker Integration" do
-    should "handle multiple circuit breaker layers" do
-      # Create a message class with circuit breaker protection
-      _test_message_class = Class.new(SmartMessage::Base) do
-        property :content
+    CB.reset!(circuit)
 
-        def self.name
-          'TestCircuitMessage'
-        end
-
-        def self.process(message)
-          # This processor will be protected by the dispatcher circuit breaker
-          message
-        end
-      end
-
-      # Register the processor
-      @dispatcher.add('TestCircuitMessage', 'TestCircuitMessage.process')
-
-      # Test with transport circuit breakers
-      header = SmartMessage::Header.new(
-        message_class: 'TestCircuitMessage',
-        from: 'test_sender',
-        uuid: SecureRandom.uuid,
-        published_at: Time.now,
-        publisher_pid: Process.pid
-      )
-
-      # Create a test message instance
-      test_message = Class.new(SmartMessage::Base) do
-        property :content
-        def self.name; 'TestCircuitMessage'; end
-      end.new(_sm_header: header, content: "test message")
-      
-      # This should work through all circuit breaker layers
-      @transport.publish(test_message)
-      
-      # Allow time for async processing
-      sleep 0.2
-
-      # Verify message was processed
-      assert_equal 1, @transport.message_count
-    end
-
-    should "provide fallback mechanisms" do
-      # Test circuit breaker fallbacks
-      fallback_handler = SmartMessage::CircuitBreaker::Fallbacks.dead_letter_queue
-      assert_respond_to fallback_handler, :call
-
-      graceful_fallback = SmartMessage::CircuitBreaker::Fallbacks.graceful_degradation({status: "degraded"})
-      assert_respond_to graceful_fallback, :call
-
-      retry_fallback = SmartMessage::CircuitBreaker::Fallbacks.retry_with_backoff
-      assert_respond_to retry_fallback, :call
-    end
+    assert circuit.closed?
+    assert_equal 1, circuit.wrap { 1 }
   end
 
-  context "Circuit Breaker Configuration Module" do
-    should "provide default configurations" do
-      configs = SmartMessage::CircuitBreaker::DEFAULT_CONFIGS
-      assert_kind_of Hash, configs
-      assert configs.key?(:message_processor)
-      assert configs.key?(:transport_publish)
-      assert configs.key?(:transport_subscribe)
-      # Serializer configs now part of transport
-    end
+  def test_stats_and_available
+    circuit = CB.build('stats', fast_config(failures: 1))
 
-    should "configure circuit breakers for classes" do
-      test_class = Class.new do
-        include BreakerMachines::DSL
-      end
+    assert CB.available?(circuit)
+    assert_equal({ name: 'stats', state: :closed, failure_count: 0, last_error: nil },
+                 CB.stats(circuit).slice(:name, :state, :failure_count, :last_error))
 
-      SmartMessage::CircuitBreaker.configure_for(test_class)
-      
-      instance = test_class.new
-      assert_respond_to instance, :circuit
-    end
+    fail_circuit(circuit, 1)
 
-    should "provide utility methods" do
-      assert_respond_to SmartMessage::CircuitBreaker, :stats
-      assert_respond_to SmartMessage::CircuitBreaker, :available?
-      assert_respond_to SmartMessage::CircuitBreaker, :reset!
-    end
+    refute CB.available?(circuit)
+    stats = CB.stats(circuit)
+    assert_equal :open, stats[:state]
+    assert_equal 1, stats[:failure_count]
+    assert_equal 'boom', stats[:last_error]
+    assert_instance_of RuntimeError, CB.last_error_of(circuit)
   end
 
-  private
+  # ---- configuration -------------------------------------------------------
 
-  # Helper method to create a test message
-  def create_test_message(content = "test")
-    Class.new(SmartMessage::Base) do
-      property :content
-      
-      def self.name
-        'TestMessage'
+  def test_config_for_merges_overrides_into_the_defaults
+    defaults = CB::DEFAULT_CONFIGS[:transport_publish]
+
+    assert_equal defaults, CB.config_for(:transport_publish)
+    assert_equal defaults, CB.config_for(:transport_publish, {})
+    assert_equal({ threshold: { failures: 9, within: 30 }, reset_after: 15 },
+                 CB.config_for(:transport_publish, threshold: { failures: 9 }))
+    assert_equal({ threshold: { failures: 5, within: 30 }, reset_after: 1 },
+                 CB.config_for(:transport_publish, reset_after: 1))
+    assert_raises(KeyError) { CB.config_for(:no_such_circuit) }
+    assert_equal 5, defaults[:threshold][:failures], 'the defaults are not modified'
+  end
+
+  def test_configure_for_gives_each_instance_its_own_circuits
+    klass = Class.new
+    CB.configure_for(klass, message_processor: { threshold: { failures: 1 } })
+    one = klass.new
+    two = klass.new
+
+    assert_raises(RuntimeError) { one.circuit(:message_processor).wrap { raise 'boom' } }
+
+    assert one.circuit(:message_processor).open?
+    assert two.circuit(:message_processor).closed?, 'another instance is not affected'
+    assert one.circuit(:transport_publish).closed?, 'another circuit is not affected'
+    refute CB.available?(one, :message_processor)
+    assert CB.available?(two, :message_processor)
+    assert_equal :open, CB.stats(one, :message_processor)[:state]
+
+    CB.reset!(one, :message_processor)
+    assert one.circuit(:message_processor).closed?
+  end
+
+  def test_configure_entity_circuit
+    klass = Class.new { include BreakerMachines::DSL }
+
+    name = CB.configure_entity_circuit(klass, 'order-service', threshold: { failures: 1 })
+
+    assert_equal :'entity_order-service', name
+    assert_equal 5, klass.new.circuit(name).wrap { 5 }
+  end
+
+  # ---- logging -------------------------------------------------------------
+
+  def test_circuit_events_go_to_the_smart_message_logger_and_never_to_stdout
+    log = StringIO.new
+    SmartMessage.configure { |config| config.logger = SmartMessage::Logger::Default.new(log_file: log, level: :info) }
+    events = BreakerMachines.log_events
+    BreakerMachines.log_events = true
+
+    out, err = capture_subprocess_io { fail_circuit(CB.build('announced', fast_config(failures: 1)), 1) }
+
+    assert_empty out
+    assert_empty err
+    assert_instance_of CB::LogBridge, BreakerMachines.logger
+    refute CB.install_log_bridge, 'a logger that is already set is left alone'
+    assert_match(/Circuit 'announced' opened/, log.string)
+  ensure
+    BreakerMachines.log_events = events
+  end
+
+  def test_log_bridge_forwards_strings_and_blocks
+    log = StringIO.new
+    SmartMessage.configure { |config| config.logger = SmartMessage::Logger::Default.new(log_file: log, level: :debug) }
+    bridge = CB::LogBridge.new
+
+    assert_nil bridge.warn('a string')
+    assert_nil bridge.debug { 'a block' }
+
+    assert_match(/WARN.*a string/, log.string)
+    assert_match(/DEBUG.*a block/, log.string)
+  end
+
+  # ---- retries -------------------------------------------------------------
+
+  def test_backoff_delay_doubles_up_to_the_maximum
+    assert_equal [1, 2, 4, 8, 10, 10], (0..5).map { |attempt| CB.backoff_delay(attempt, 1, 10) }
+    assert_equal 0.5, CB.backoff_delay(0, 0.5, 30)
+  end
+
+  def test_with_retries_returns_as_soon_as_an_attempt_succeeds
+    delays   = []
+    attempts = []
+
+    value = CB.with_retries(max_retries: 3, base_delay: 1, sleeper: ->(d) { delays << d }) do |attempt|
+      attempts << attempt
+      raise 'not yet' if attempt < 2
+
+      :done
+    end
+
+    assert_equal :done, value
+    assert_equal [0, 1, 2], attempts
+    assert_equal [1, 2], delays
+  end
+
+  def test_with_retries_is_bounded_and_raises_the_last_error
+    calls = 0
+
+    error = assert_raises(RuntimeError) do
+      CB.with_retries(max_retries: 2, sleeper: ->(_d) {}) do
+        calls += 1
+        raise "failure #{calls}"
       end
-    end.new(content: content)
+    end
+
+    assert_equal 3, calls, 'one attempt plus two retries'
+    assert_equal 'failure 3', error.message
+  end
+
+  def test_with_retries_only_retries_the_listed_errors
+    calls = 0
+
+    assert_raises(ArgumentError) do
+      CB.with_retries(on: [IOError], sleeper: ->(_d) {}) do
+        calls += 1
+        raise ArgumentError, 'not retryable'
+      end
+    end
+
+    assert_equal 1, calls
+  end
+
+  # ---- fallbacks -----------------------------------------------------------
+
+  def test_fallback_result_tells_a_failure_from_a_rejection
+    failure = CB::Fallbacks.result(IOError.new('down'), extra: 1)[:circuit_breaker]
+
+    assert_equal 'closed', failure[:state]
+    refute failure[:rejected]
+    assert_equal 'down', failure[:error]
+    assert_equal 'IOError', failure[:error_class]
+    assert_equal 1, failure[:extra]
+
+    circuit = CB.build('rejecting', fast_config(failures: 1))
+    fail_circuit(circuit, 1)
+    rejection = assert_raises(BreakerMachines::CircuitOpenError) { circuit.wrap { 1 } }
+    rejected  = CB::Fallbacks.result(rejection)[:circuit_breaker]
+
+    assert_equal 'open', rejected[:state]
+    assert rejected[:rejected]
+  end
+
+  def test_dead_letter_queue_fallback_stores_the_message_of_the_circuit_owner
+    klass = Class.new do
+      include BreakerMachines::DSL
+
+      attr_accessor :current_message
+
+      circuit :work do
+        threshold failures: 5, within: 60
+        fallback SmartMessage::CircuitBreaker::Fallbacks.dead_letter_queue { current_message }
+      end
+    end
+    worker = klass.new
+    worker.current_message = Sample.new(value: 7)
+
+    result = worker.circuit(:work).wrap { raise IOError, 'down' }
+
+    assert result[:circuit_breaker][:sent_to_dlq]
+    assert_equal 1, dlq.size
+    entry = dlq.peek
+    assert_equal worker.current_message.uuid, entry[:header][:uuid]
+    assert_equal 'IOError: down', entry[:error]
+  end
+
+  def test_dead_letter_queue_fallback_without_a_message_stores_nothing
+    fallback = CB::Fallbacks.dead_letter_queue
+
+    result = fallback.call(IOError.new('down'))
+
+    refute result[:circuit_breaker][:sent_to_dlq]
+    assert dlq.empty?
+  end
+
+  def test_graceful_degradation_fallback
+    fallback = CB::Fallbacks.graceful_degradation({ cached: true })
+
+    result = fallback.call(IOError.new('down'))
+
+    assert_equal({ cached: true }, result[:circuit_breaker][:degraded_response])
+    assert_equal 'down', result[:circuit_breaker][:error]
   end
 end

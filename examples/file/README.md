@@ -1,257 +1,48 @@
-# SmartMessage FileTransport Examples
+# File Transport Examples
 
-This directory contains comprehensive examples demonstrating the capabilities of SmartMessage's FileTransport class. The FileTransport provides powerful file-based messaging with support for multiple formats, FIFO operations, file watching, and advanced routing patterns.
+`SmartMessage::Transport::FileTransport` appends each published message to a file, one line of JSON per message (JSON Lines). Subscribing starts a background poller that tails the same file, so several transports or several processes can share one file: writers append, readers tail.
 
-## Quick Start
-
-Run all examples:
 ```bash
-ruby 00_run_all_file_demos.rb all
+bundle exec ruby -Ilib examples/file/01_basic_file_transport_demo.rb
+bundle exec ruby examples/run_all.rb file     # all of them
 ```
 
-Run interactively:
-```bash
-ruby 00_run_all_file_demos.rb
-```
+Each script checks its own result and exits non-zero when it is wrong. The files are written to a temporary directory that is removed when the script ends. See [`../README.md`](../README.md) for the runner and the shared helper.
 
-## Examples Overview
+## Examples
 
-### 1. Basic File Transport Demo (`01_basic_file_transport_demo.rb`)
+| Script | Shows |
+|--------|-------|
+| [`01_basic_file_transport_demo.rb`](01_basic_file_transport_demo.rb) | Publishing to a file, several message classes in one file, append-only behaviour, decoding a stored line, publishing to an IO, `disconnect` / `connect` |
+| [`03_file_watching_demo.rb`](03_file_watching_demo.rb) | The tailing poller: `read_from_end:`, `poll_interval:`, several readers on one file, truncation, an undecodable line going to the dead letter queue |
+| [`04_multi_transport_file_demo.rb`](04_multi_transport_file_demo.rb) | A file beside other transports: archiving, fan-out to two files, partial failure, choosing the file per message |
 
-**What it demonstrates:**
-- Core FileTransport functionality
-- Multiple output formats (JSON, YAML, raw)
-- Append vs overwrite modes
-- Custom serialization for CSV output
-- File rotation concepts
+`00_run_all_file_demos.rb` runs `../run_all.rb file`.
 
-**Key concepts:**
-- Message persistence to files
-- Format flexibility
-- Custom serializers
-- Write mode configuration
+There is no `02`: it demonstrated named pipes (FIFOs), which the file transport no longer supports.
 
-**Sample output:**
+The message classes are in [`messages/`](messages/), one class per file.
+
+## Options
+
 ```ruby
-# JSON format
-{"level":"INFO","message":"Application started","timestamp":"2024-01-15T10:00:00Z","component":"main"}
-
-# Custom CSV format
-timestamp,user_id,action,details
-2024-01-15T10:00:00Z,12345,login,"{:ip=>\"192.168.1.1\"}"
-```
-
-### 2. FIFO Transport Demo (`02_fifo_transport_demo.rb`)
-
-**What it demonstrates:**
-- Named pipes (FIFO) for inter-process communication
-- Real-time message streaming
-- Multiple writer processes to single reader
-- Non-blocking FIFO operations
-- Message filtering with FIFOs
-
-**Key concepts:**
-- Process-to-process messaging
-- Real-time communication
-- Concurrent access patterns
-- System-level integration
-
-**Requirements:**
-- Unix-like system with `mkfifo` support
-- Will be skipped automatically on unsupported systems
-
-**Sample usage:**
-```ruby
-# Create FIFO transport
-fifo_transport = SmartMessage::Transport::FileTransport.new(
-  file_path: '/tmp/message_pipe.fifo',
-  file_type: :fifo,
-  format: :json
+SmartMessage::Transport::FileTransport.new(
+  file_path:          'messages.jsonl',  # required: a path, or an IO to write to
+  create_directories: true,              # create the file's directory
+  encoding:           nil,               # file encoding; default: Ruby's default
+  poll_interval:      0.5,               # seconds between checks for new lines
+  read_from_end:      true               # a new subscription sees only lines written after it started
 )
+
+SmartMessage::Transport.create(:file, file_path: 'messages.jsonl')   # the same, through the registry
 ```
 
-### 3. File Watching Demo (`03_file_watching_demo.rb`)
+- `read_from_end: false` reads the whole file first, then tails it.
+- An IO (`$stdout`, a `StringIO`) can be published to but not subscribed from, and the transport never closes it.
+- A reader that finds the file shorter than what it has already consumed (truncated or replaced) starts again from the beginning.
+- A line that cannot be decoded is stored in the dead letter queue and the poller continues with the next line.
+- After `disconnect`, publishing fails until `connect` is called.
 
-**What it demonstrates:**
-- File change monitoring
-- Configuration file watching
-- Log rotation handling
-- Multiple file monitoring
-- Pattern-based content processing
+## Removed in 0.1.0
 
-**Key concepts:**
-- Reactive file processing
-- Configuration change detection
-- Log aggregation patterns
-- Real-time file monitoring
-
-**Sample configuration:**
-```ruby
-# Watch for file changes
-watching_transport = SmartMessage::Transport::FileTransport.new(
-  file_path: 'application.log',
-  enable_subscriptions: true,
-  subscription_mode: :poll_changes,
-  poll_interval: 0.5,
-  read_from: :end
-)
-```
-
-### 4. Multi-Transport File Demo (`04_multi_transport_file_demo.rb`)
-
-**What it demonstrates:**
-- Fan-out messaging to multiple files
-- Conditional routing based on message content
-- Combining FileTransport with other transports
-- Archive and cleanup strategies
-- Performance monitoring
-
-**Key concepts:**
-- Message routing patterns
-- Multi-destination publishing
-- Archive management
-- Performance optimization
-
-**Advanced patterns:**
-```ruby
-# Fan-out to multiple destinations
-AuditEvent.configure do |config|
-  config.transport = [
-    main_transport,      # JSON format
-    audit_transport,     # YAML format  
-    backup_transport     # Custom format
-  ]
-end
-```
-
-## Demo Runner (`00_run_all_file_demos.rb`)
-
-The demo runner provides multiple ways to explore the examples:
-
-### Interactive Mode
-```bash
-ruby 00_run_all_file_demos.rb
-```
-- Menu-driven interface
-- Run individual demos or all demos
-- System requirement checking
-- Automatic FIFO support detection
-
-### Command Line Mode
-```bash
-# Run all demos
-ruby 00_run_all_file_demos.rb all
-
-# List available demos
-ruby 00_run_all_file_demos.rb list
-
-# Run specific demo
-ruby 00_run_all_file_demos.rb 1
-```
-
-## System Requirements
-
-- **Ruby**: 2.7 or later
-- **Platform**: Cross-platform (Windows, macOS, Linux)
-- **FIFO Support**: Unix-like systems for FIFO demos
-- **Dependencies**: SmartMessage gem
-
-## Key FileTransport Features Demonstrated
-
-### File Operations
-- ✅ Writing to regular files
-- ✅ Append and overwrite modes
-- ✅ Multiple output formats
-- ✅ Custom serialization
-- ✅ File rotation handling
-
-### FIFO Operations
-- ✅ Named pipe creation and usage
-- ✅ Inter-process communication
-- ✅ Blocking and non-blocking modes
-- ✅ Multiple writers, single reader
-- ✅ Real-time message streaming
-
-### File Watching
-- ✅ Change detection and monitoring
-- ✅ Configuration file watching
-- ✅ Log rotation awareness
-- ✅ Multiple file monitoring
-- ✅ Pattern-based processing
-
-### Advanced Features
-- ✅ Multi-transport configurations
-- ✅ Message routing and filtering
-- ✅ Performance monitoring
-- ✅ Archive strategies
-- ✅ Error handling
-
-## Best Practices Shown
-
-1. **Message Class Organization**
-   - Store message classes in `messages/` directory
-   - Use clear, descriptive property definitions
-   - Include validation where appropriate
-
-2. **Transport Configuration**
-   - Choose appropriate formats for use case
-   - Configure proper file modes
-   - Handle cleanup in ensure blocks
-
-3. **Error Handling**
-   - Graceful degradation for unsupported features
-   - Proper resource cleanup
-   - Informative error messages
-
-4. **Performance Considerations**
-   - Appropriate polling intervals
-   - Efficient serialization
-   - Resource management
-
-## Troubleshooting
-
-### FIFO Not Supported
-If you see "FIFOs are not supported on this system":
-- This is expected on Windows
-- FIFO demos will be automatically skipped
-- Other demos will still work normally
-
-### Permission Errors
-If you encounter permission errors:
-- Ensure write access to the demo directory
-- Check that temporary directories can be created
-- Verify file system supports the operations
-
-### Performance Issues
-If file operations seem slow:
-- Adjust polling intervals in file watching demos
-- Consider using smaller message sizes
-- Check available disk space
-
-## Next Steps
-
-After exploring these examples:
-
-1. **Adapt for Your Use Case**
-   - Modify message classes for your domain
-   - Adjust file formats and paths
-   - Customize routing logic
-
-2. **Integration Patterns**
-   - Combine with other SmartMessage transports
-   - Add to existing logging infrastructure
-   - Build monitoring dashboards
-
-3. **Production Considerations**
-   - Add proper error handling
-   - Implement log rotation
-   - Monitor file system usage
-   - Add authentication/authorization
-
-## Related Examples
-
-- `../memory/` - Memory transport examples
-- `../redis/` - Redis transport examples  
-- `../multi_transport_example.rb` - Cross-transport patterns
-
-For more information, see the main SmartMessage documentation.
+The 0.0.x file transport also had FIFO (named pipe) support, an asynchronous publish queue, file rotation, partitioned files, and several file watching modes, with the options `file_type`, `async`, `rotate_size`, `directory` and `subscription_mode`. All of these are gone.

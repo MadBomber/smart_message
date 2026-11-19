@@ -2,17 +2,19 @@
 # encoding: utf-8
 # frozen_string_literal: true
 
-require_relative 'transport/base'
-require_relative 'transport/registry'
-require_relative 'transport/stdout_transport'
-require_relative 'transport/memory_transport'
-require_relative 'transport/redis_transport'
-
 module SmartMessage
+  # Transports move serialized messages between processes.
+  #
+  # Built in: :memory, :stdout, :file, :redis.  Extension gems register
+  # their own:
+  #
+  #   SmartMessage::Transport.register(:nats, SmartMessage::Transport::NATS)
+  #   SmartMessage::Transport.create(:nats, url: '...')
   module Transport
     class << self
+      # The globally configured transport, or nil.  There is no framework
+      # default: a transport has to be configured.
       def default
-        # Check global configuration first, then fall back to framework default
         SmartMessage.configuration.default_transport
       end
 
@@ -28,9 +30,13 @@ module SmartMessage
         registry.get(name)
       end
 
+      # Build a registered transport.
+      # @raise [ArgumentError] when no transport is registered under +name+
       def create(name, **options)
         transport_class = get(name)
-        transport_class&.new(**options)
+        raise ArgumentError, "Unknown transport: #{name.inspect}. Available: #{available.inspect}" unless transport_class
+
+        transport_class.new(**options)
       end
 
       def available

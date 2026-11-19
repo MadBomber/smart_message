@@ -16,8 +16,6 @@ module Messages
       automatic unit dispatch based on the threat severity level.
     DESC
 
-    transport  SmartMessage::Transport::RedisTransport.new
-
     VALID_ALARM_TYPES = %w[robbery vault_breach suspicious_activity]
     VALID_SEVERITY = %w[low medium high critical]
 

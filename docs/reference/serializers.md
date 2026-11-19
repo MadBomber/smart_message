@@ -1,245 +1,165 @@
-# Transport-Based Serialization
+# Serializers
 
-In SmartMessage's architecture, serialization is handled at the transport level rather than being configured for individual messages. Each transport manages its own optimal serialization format, eliminating the need for separate serializer configuration.
+A serializer turns a message Hash into a String and back. Each transport owns one serializer and uses it for everything it sends and receives.
 
-## Overview
+SmartMessage ships one serializer: `SmartMessage::Serializer::Json`. It is the default for every transport.
 
-Transport-based serialization provides:
-- **Automatic Format Selection**: Each transport chooses its optimal serialization format
-- **Simplified Configuration**: No need to configure serializers separately
-- **Format Optimization**: Transports can choose the best format for their medium
-- **Consistent Behavior**: All messages using a transport share the same serialization format
+## The wire format
 
-## Transport Serialization Formats
+A message on the wire is one flat JSON object: the message's properties plus the header under `_sm_header`.
 
-### Memory Transport
-- **Format**: No serialization (objects passed directly)
-- **Use case**: Testing and development where no network transmission occurs
-- **Performance**: Fastest possible (no encoding/decoding overhead)
-
-```ruby
-# Memory transport - no serialization needed
-transport = SmartMessage::Transport::MemoryTransport.new
-```
-
-### STDOUT Transport
-- **Format**: JSON (human-readable)
-- **Use case**: Debugging, development logging, message inspection
-- **Features**: Pretty-printed output for easy reading
-
-```ruby
-# STDOUT transport - uses JSON for readability
-transport = SmartMessage::Transport::StdoutTransport.new(
-  format: :pretty  # or :json for compact format
-)
-```
-
-### Redis Transport
-- **Format**: MessagePack (primary), JSON (fallback)
-- **Use case**: Production messaging where efficiency matters
-- **Benefits**: Compact binary format reduces network overhead
-
-```ruby
-# Redis transport - automatically uses MessagePack if available
-transport = SmartMessage::Transport::RedisTransport.new(
-  url: 'redis://localhost:6379'
-)
-```
-
-## How It Works
-
-### Transport Serialization Process
-
-1. **Message Publishing**: 
-   ```ruby
-   message = OrderMessage.new(order_id: "123", amount: 99.99)
-   message.publish  # Transport handles serialization automatically
-   ```
-
-2. **Automatic Encoding**: Transport calls its serializer internally
-   ```ruby
-   # Inside transport.publish(message):
-   serialized = transport.serializer.encode(message.to_hash)
-   ```
-
-3. **Message Receiving**: Transport deserializes automatically
-   ```ruby
-   # Inside transport.receive(serialized_data):
-   data = transport.serializer.decode(serialized_data)
-   message = MessageClass.new(data)
-   ```
-
-### Message Structure
-
-All messages are serialized as flat hashes with the `_sm_header` property containing routing metadata:
-
-```ruby
+```json
 {
-  _sm_header: {
-    uuid: "...",
-    message_class: "OrderMessage", 
-    published_at: "2025-01-09T...",
-    from: "order-service",
-    to: "fulfillment-service",
-    serializer: "SmartMessage::Serializer::Json"
+  "_sm_header": {
+    "uuid": "0b0e6f0c-4f6e-4a57-9b1e-3b6a2a6f2f10",
+    "message_class": "OrderMessage",
+    "published_at": "2026-11-11T10:15:30.123456-06:00",
+    "publisher_pid": 4242,
+    "version": 1,
+    "from": "order-service",
+    "serializer": "SmartMessage::Serializer::Json"
   },
-  order_id: "123",
-  amount: 99.99,
-  items: ["Widget A", "Widget B"]
+  "order_id": "ORD-1",
+  "amount": 99.99
 }
 ```
 
-## Custom Transport Serializers
+Header fields that are `nil` are left out. Header fields the receiving version does not know are kept in `header.extensions` and written back out when the message is published again, so an older consumer can pass on a message from a newer publisher without losing them.
 
-You can specify a custom serializer when creating a transport:
+## Type changes on a JSON round trip
+
+JSON has fewer types than Ruby, so a value can come back as a different type. Every shipped transport serializes (the memory transport too, unless you pass `serialize: false`), so this applies to what handlers receive.
+
+| Published as | Received as |
+|--------------|-------------|
+| `String`, `Integer`, `Float`, `true`, `false`, `nil` | unchanged |
+| `Time`, `DateTime` | ISO 8601 `String` with microseconds, such as `"2026-11-11T10:15:30.123456-06:00"` |
+| `Date` | ISO 8601 `String`, such as `"2026-11-11"` |
+| `Symbol` | `String` |
+| `BigDecimal` | `String` in plain notation, such as `"1.0"` |
+| any other object | its `to_h` (converted the same way) when it has one, else its `to_s` |
+| `Hash` keys (String or Symbol) | `Symbol`, at every level |
+| `Array` | `Array`, elements converted as above |
+
+The encoding is the same in every process, whatever JSON extensions are loaded.
+
+The header's `published_at` is the exception: it is restored to a `Time` automatically.
+
+## Restoring a type with `coerce_key`
+
+Declare a coercion on the message class. It runs whenever the property is assigned, including when a received message is rebuilt, so the handler sees the type you want.
 
 ```ruby
-# Custom serializer for a transport
-class MyCustomSerializer
-  def encode(data_hash)
-    # Your encoding logic here
-    # Must return a string
-  end
-
-  def decode(serialized_string)
-    # Your decoding logic here
-    # Must return a hash
-  end
-end
-
-# Use custom serializer with transport
-transport = SmartMessage::Transport::RedisTransport.new(
-  serializer: MyCustomSerializer.new,
-  url: 'redis://localhost:6379'
-)
+coerce_key :placed_at, ->(value) { value.is_a?(String) ? Time.parse(value) : value }
 ```
 
-## Built-in Serializer Classes
+The `is_a?(String)` guard matters: the same coercion also runs on the publishing side, where the value is already a `Time`.
 
-SmartMessage includes these serializer implementations that transports use internally:
+A complete program:
 
-### JSON Serializer
 ```ruby
-SmartMessage::Serializer::Json.new
-```
-- Human-readable format
-- Wide compatibility
-- Used by STDOUT transport and as fallback
+require 'smart_message'
+require 'time'
+require 'date'
+require 'bigdecimal'
 
-### MessagePack Serializer
-```ruby
-SmartMessage::Serializer::MessagePack.new
-```
-- Binary format for efficiency
-- Smaller payload size
-- Used by Redis transport when available
+# messages/invoice_message.rb
+class InvoiceMessage < SmartMessage::Base
+  from 'billing'
+  transport SmartMessage::Transport::MemoryTransport.new
 
-## Migration from Message-Level Serializers
+  property :issued_at
+  property :due_on
+  property :total
+  property :status
+  property :raw_time
+  property :lines
 
-If you were previously configuring serializers at the message level, here's how to migrate:
+  coerce_key :issued_at, ->(value) { value.is_a?(String) ? Time.parse(value) : value }
+  coerce_key :due_on,    ->(value) { value.is_a?(String) ? Date.parse(value) : value }
+  coerce_key :total,     ->(value) { value.is_a?(String) ? BigDecimal(value) : value }
+  coerce_key :status,    ->(value) { value.respond_to?(:to_sym) ? value.to_sym : value }
 
-### Before (Message-Level Configuration)
-```ruby
-class OrderMessage < SmartMessage::Base
-  property :order_id
-  property :amount
-  
-  config do
-    transport SmartMessage::Transport::RedisTransport.new
-    serializer SmartMessage::Serializer::Json.new  # ❌ No longer needed
-  end
-end
-```
-
-### After (Transport-Level Serialization)
-```ruby
-class OrderMessage < SmartMessage::Base
-  property :order_id
-  property :amount
-  
-  config do
-    # Transport automatically handles serialization
-    transport SmartMessage::Transport::RedisTransport.new
+  def self.process(message)
+    puts <<~RECEIVED
+      issued_at: #{message.issued_at.class}   (coerced)
+      due_on:    #{message.due_on.class}   (coerced)
+      total:     #{message.total.class}   (coerced)
+      status:    #{message.status.inspect}   (coerced)
+      raw_time:  #{message.raw_time.class}   (no coercion: a String)
+      lines:     #{message.lines.inspect}   (keys are Symbols, values converted)
+    RECEIVED
   end
 end
 
-# Or specify custom serializer for transport
-class OrderMessage < SmartMessage::Base
-  property :order_id
-  property :amount
-  
-  config do
-    transport SmartMessage::Transport::RedisTransport.new(
-      serializer: MyCustomSerializer.new
-    )
-  end
-end
+InvoiceMessage.subscribe
+InvoiceMessage.new(
+  issued_at: Time.now,
+  due_on:    Date.today + 30,
+  total:     BigDecimal('99.50'),
+  status:    :open,
+  raw_time:  Time.now,
+  lines:     [{ 'sku' => 'A-1', kind: :widget }]
+).publish
+
+SmartMessage.shutdown
 ```
 
-## Serialization Best Practices
+For nested structures, coerce the whole property (a lambda that maps over the Array, for example).
 
-### 1. Let Transports Choose
-Let each transport use its optimal format:
-- Memory: No serialization
-- STDOUT: JSON for readability  
-- Redis: MessagePack for efficiency
+## Errors
 
-### 2. Custom Serializers
-Only use custom serializers when you have specific requirements:
-- Special data formats (XML, Protocol Buffers)
-- Encryption/compression needs
-- Legacy system compatibility
+- A message that cannot be encoded raises `SmartMessage::Errors::SerializationError`. `publish` records it as that transport's failure.
+- A payload that cannot be decoded raises `SmartMessage::Errors::DecodeError`. On receive, the payload is stored in the [dead letter queue](dead-letter-queue.md).
 
-### 3. Testing
-Test with actual transports to ensure serialization works correctly:
+Serializers are not wrapped in a circuit breaker.
+
+## Using the serializer directly
 
 ```ruby
-RSpec.describe OrderMessage do
-  it "serializes correctly with Redis transport" do
-    transport = SmartMessage::Transport::RedisTransport.new
-    message = OrderMessage.new(order_id: "123", amount: 99.99)
-    
-    # Test roundtrip serialization
-    serialized = transport.encode_message(message)
-    deserialized = transport.decode_message(serialized)
-    
-    expect(deserialized[:order_id]).to eq("123")
-    expect(deserialized[:amount]).to eq(99.99)
-  end
-end
+serializer = SmartMessage::Serializer::Json.new
+
+payload = serializer.encode({ order_id: 'ORD-1', placed_at: Time.now })   # => String
+serializer.decode(payload)                                                # => { order_id: "ORD-1", placed_at: "2026-..." }
+
+SmartMessage::Serializer::Json.jsonify(:open)        # => "open"
+SmartMessage::Serializer.default                     # => SmartMessage::Serializer::Json
+SmartMessage::Serializer.for('json')                 # => SmartMessage::Serializer::Json
 ```
 
-### 4. Error Handling
-Transports handle serialization errors internally, but you can still catch them:
+To encode or decode a whole message with its header, use the transport (`transport.encode_message(message)`, `transport.decode_message(payload)`) or `SmartMessage::Envelope`.
+
+## Writing a serializer
+
+Subclass `SmartMessage::Serializer::Base` and implement two private methods. `do_encode` receives a Hash with Symbol keys, including `:_sm_header`, and returns a String. `do_decode` receives the String and returns a Hash; the header must come back under `_sm_header` (String or Symbol key).
+
+Any error they raise is wrapped in `SerializationError` or `DecodeError`.
 
 ```ruby
-begin
-  message.publish
-rescue SmartMessage::Errors::SerializationError => e
-  logger.error "Failed to serialize message: #{e.message}"
+require 'smart_message'
+require 'json'
+
+# JSON, indented for people to read
+class PrettyJsonSerializer < SmartMessage::Serializer::Base
+  private
+
+  def do_encode(message_hash)
+    JSON.pretty_generate(SmartMessage::Serializer::Json.jsonify(message_hash))
+  end
+
+  def do_decode(payload)
+    JSON.parse(payload, symbolize_names: true)
+  end
 end
+
+# messages/greeting_message.rb
+class GreetingMessage < SmartMessage::Base
+  from 'greeter'
+  transport SmartMessage::Transport::StdoutTransport.new(serializer: PrettyJsonSerializer.new)
+  property :text
+end
+
+GreetingMessage.new(text: 'hello').publish
 ```
 
-## Performance Considerations
-
-### Format Efficiency
-- **MessagePack**: 20-30% more compact than JSON
-- **JSON**: Human-readable but larger payload
-- **Memory**: No serialization overhead
-
-### Network Optimization
-- Redis transport automatically uses MessagePack when available
-- Falls back to JSON if MessagePack gem is not installed
-- STDOUT uses JSON for debugging clarity
-
-### Monitoring
-Each transport logs its serializer choice:
-```
-[SmartMessage::Transport::RedisTransport] Using serializer: SmartMessage::Serializer::MessagePack
-```
-
-## Next Steps
-
-- [Transports](transports.md) - Available transport implementations
-- [Configuration](../getting-started/quick-start.md) - Setting up transports
-- [Examples](../getting-started/examples.md) - Real-world usage patterns
+A serializer is given to a transport with the `serializer:` option. Both ends of a transport must use compatible serializers. The file transport expects one message per line, so a serializer used with it must not emit newlines.

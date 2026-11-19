@@ -1,129 +1,107 @@
 #!/usr/bin/env ruby
-# examples/multi_program_demo/redis_monitor.rb
+# examples/city_scenario/redis_monitor.rb
+# frozen_string_literal: true
 #
-# Redis Monitor for SmartMessage Traffic
-# Shows formatted, real-time message activity
+# Shows every message the city publishes, as it happens.
+#
+# It listens with its own Redis connection and a pattern subscription on
+# the city's namespace, so it sees the raw JSON each SmartMessage travels
+# as: the message's properties plus its header under "_sm_header".
 
-require 'redis'
 require 'json'
+require 'redis'
+
+require_relative 'common/city'
 
 class RedisMonitor
-  def initialize
-    @redis = Redis.new
-    puts "🔍 SmartMessage Redis Monitor"
-    puts "   Monitoring Redis pub/sub traffic..."
-    puts "   Press Ctrl+C to stop\n\n"
-    setup_signal_handlers
-  end
+  RESET  = "\e[0m"
+  COLORS = {
+    /Health/    => "\e[32m", # green
+    /Fire/      => "\e[31m", # red
+    /Police/    => "\e[34m", # blue
+    /Alarm/     => "\e[33m", # yellow
+    /Emergency/ => "\e[35m"  # magenta
+  }.freeze
+  STATUS_COLORS = { 'healthy' => "\e[32m", 'warning' => "\e[33m", 'critical' => "\e[93m", 'failed' => "\e[31m" }.freeze
 
-  def setup_signal_handlers
-    %w[INT TERM].each do |signal|
-      Signal.trap(signal) do
-        puts "\n🔍 Redis monitor shutting down..."
-        exit(0)
-      end
-    end
+  # The lines shown under each kind of message.
+  DETAILS = {
+    /HealthCheck/       => ->(data) { ["🏥 Check ID: #{data['check_id']}"] },
+    /HealthStatus/      => lambda { |data|
+      ["#{STATUS_COLORS.fetch(data['status'], RESET)}📊 #{data['service_name']}: #{data['status'].to_s.upcase}#{RESET}",
+       "📝 #{data['details']}"]
+    },
+    /FireEmergency/     => lambda { |data|
+      ["🔥 #{data['house_address']} - #{data['fire_type']} (#{data['severity']})", "👥 Occupants: #{data['occupants_status']}"]
+    },
+    /FireDispatch/      => lambda { |data|
+      ["🚒 Engines: #{Array(data['engines_assigned']).join(', ')}", "📍 Location: #{data['location']}",
+       "⏱️  ETA: #{data['estimated_arrival']}"]
+    },
+    /SilentAlarm/       => lambda { |data|
+      ["🚨 #{data['bank_name']} - #{data['alarm_type']} (#{data['severity']})", "📍 #{data['location']}"]
+    },
+    /PoliceDispatch/    => lambda { |data|
+      ["🚔 Units: #{Array(data['units_assigned']).join(', ')}", "📍 Location: #{data['location']}",
+       "⏱️  ETA: #{data['estimated_arrival']}"]
+    },
+    /EmergencyResolved/ => lambda { |data|
+      ["✅ #{data['incident_type']} resolved: #{data['outcome']}", "📍 #{data['location']}",
+       "⏱️  Duration: #{data['duration_minutes']} minutes"]
+    },
+    /Emergency911/      => lambda { |data|
+      ["📞 #{data['emergency_type']} (#{data['severity']}) at #{data['caller_location']}", "📝 #{data['description']}"]
+    }
+  }.freeze
+
+  def initialize(redis: Redis.new(url: Common::City.redis_url), pattern: "#{Common::City.namespace}:*", out: $stdout)
+    @redis   = redis
+    @pattern = pattern
+    @out     = out
   end
 
   def start_monitoring
-    # Use psubscribe to catch all channels
-    @redis.psubscribe("*") do |on|
-      on.pmessage do |pattern, channel, message|
-        display_message(channel, message)
-      end
-    end
-  rescue => e
-    puts "❌ Error monitoring Redis: #{e.message}"
-    retry
-  end
+    @out.puts <<~BANNER
+      🔍 SmartMessage Redis Monitor
+         Watching channels matching #{@pattern}
+         Press Ctrl+C to stop
 
-  private
+    BANNER
 
-  def display_message(channel, message)
-    begin
-      data = JSON.parse(message)
-      header = data['_sm_header'] || {}
-      payload = data['_sm_payload'] || {}
-
-      timestamp = Time.now.strftime('%H:%M:%S')
-      from = header['from'] || 'unknown'
-      to = header['to'] || 'broadcast'
-      message_class = header['message_class'] || channel
-
-      # Color code by message type
-      color = message_color(message_class)
-
-      puts "#{color}[#{timestamp}] #{message_class}#{color_reset}"
-      puts "   📤 From: #{from}"
-      puts "   📥 To: #{to}"
-
-      # Show relevant payload details
-      show_payload_details(message_class, payload)
-      puts ""
-
-    rescue JSON::ParserError
-      # Handle non-JSON messages
-      puts "📋 [#{Time.now.strftime('%H:%M:%S')}] #{channel}: #{message[0..100]}..."
-      puts ""
+    %w[INT TERM].each { |signal| Signal.trap(signal) { exit(0) } }
+    @redis.psubscribe(@pattern) do |on|
+      on.pmessage { |_pattern, channel, payload| @out.puts format_message(channel, payload) }
     end
   end
 
-  def show_payload_details(message_class, payload)
-    case message_class
-    when /HealthCheck/
-      puts "   🏥 Check ID: #{payload['check_id'][0..7]}..."
-    when /HealthStatus/
-      status_color = status_color(payload['status'])
-      puts "   #{status_color}📊 #{payload['service_name']}: #{payload['status'].upcase}#{color_reset}"
-      puts "   📝 #{payload['details']}"
-    when /FireEmergency/
-      puts "   🔥 #{payload['house_address']} - #{payload['fire_type']} (#{payload['severity']})"
-      puts "   👥 Occupants: #{payload['occupants_status']}"
-    when /FireDispatch/
-      puts "   🚒 Engines: #{payload['engines_assigned']&.join(', ')}"
-      puts "   📍 Location: #{payload['location']}"
-      puts "   ⏱️  ETA: #{payload['estimated_arrival']}"
-    when /SilentAlarm/
-      puts "   🚨 #{payload['bank_name']} - #{payload['alarm_type']} (#{payload['severity']})"
-      puts "   📍 #{payload['location']}"
-    when /PoliceDispatch/
-      puts "   🚔 Units: #{payload['units_assigned']&.join(', ')}"
-      puts "   📍 Location: #{payload['location']}"
-      puts "   ⏱️  ETA: #{payload['estimated_arrival']}"
-    when /EmergencyResolved/
-      puts "   ✅ #{payload['incident_type']} resolved"
-      puts "   📍 #{payload['location']}"
-      puts "   ⏱️  Duration: #{payload['duration_minutes']} minutes"
-    end
+  # @return [String] the lines to show for one published payload
+  def format_message(channel, payload, now: Time.now)
+    data   = JSON.parse(payload)
+    header = data.fetch('_sm_header', {})
+    name   = header['message_class'] || channel
+
+    [
+      "#{color_for(name)}[#{now.strftime('%H:%M:%S')}] #{name}#{RESET}",
+      "   📤 From: #{header['from'] || 'unknown'}",
+      "   📥 To: #{header['to'] || 'broadcast'}",
+      *details_for(name, data).map { |line| "   #{line}" },
+      ''
+    ].join("\n")
+  rescue JSON::ParserError, TypeError
+    "📋 [#{now.strftime('%H:%M:%S')}] #{channel}: #{payload.to_s[0, 100]}\n"
   end
 
-  def message_color(message_class)
-    case message_class
-    when /Health/ then "\e[32m"      # Green
-    when /Fire/ then "\e[31m"        # Red
-    when /Police/ then "\e[34m"      # Blue
-    when /Alarm/ then "\e[33m"       # Yellow
-    when /Emergency/ then "\e[35m"   # Magenta
-    else "\e[37m"                    # White
-    end
+  # @return [Array<String>]
+  def details_for(message_class, data)
+    _pattern, formatter = DETAILS.find { |pattern, _formatter| pattern.match?(message_class) }
+    formatter ? formatter.call(data) : []
   end
 
-  def status_color(status)
-    case status
-    when 'healthy' then "\e[32m"     # Green
-    when 'warning' then "\e[33m"     # Yellow
-    when 'critical' then "\e[93m"    # Orange
-    when 'failed' then "\e[31m"      # Red
-    else "\e[0m"
-    end
-  end
-
-  def color_reset
-    "\e[0m"
+  # @return [String] an ANSI colour escape
+  def color_for(message_class)
+    _pattern, color = COLORS.find { |pattern, _color| pattern.match?(message_class) }
+    color || "\e[37m"
   end
 end
 
-if __FILE__ == $0
-  monitor = RedisMonitor.new
-  monitor.start_monitoring
-end
+RedisMonitor.new.start_monitoring if __FILE__ == $PROGRAM_NAME

@@ -2,6 +2,7 @@
 # encoding: utf-8
 # frozen_string_literal: true
 
+require 'tmpdir'
 require_relative 'test_helper'
 
 class DeadLetterQueueTest < Minitest::Test
@@ -15,7 +16,7 @@ class DeadLetterQueueTest < Minitest::Test
     property :amount
   end
   def setup
-    @test_dlq_file = '/tmp/test_dlq.jsonl'
+    @test_dlq_file = temp_path('test_dlq.jsonl')
     @dlq = SmartMessage::DeadLetterQueue.new(@test_dlq_file)
     
     # Clean up any existing test file
@@ -37,8 +38,6 @@ class DeadLetterQueueTest < Minitest::Test
       to: 'target-service'
     )
     
-    # Store the expected payload (JSON encoded message)
-    @payload = JSON.generate(@message.to_hash)
   end
   
   def teardown
@@ -62,7 +61,9 @@ class DeadLetterQueueTest < Minitest::Test
     entry = @dlq.dequeue
     refute_nil entry
     assert_equal 'DeadLetterQueueTest::TestMessage', entry[:header][:message_class]
-    assert_equal @payload, entry[:payload]
+    payload = JSON.parse(entry[:payload], symbolize_names: true)
+    assert_equal 'sample data', payload[:test_data]
+    assert_equal @message.uuid, payload[:_sm_header][:uuid]
     assert_equal 'Test error', entry[:error]
     assert_equal 0, @dlq.size
   end
@@ -171,6 +172,37 @@ class DeadLetterQueueTest < Minitest::Test
     assert_equal 0, stats[:total]
   end
   
+  def test_inspect_messages_returns_first_limit_entries
+    Dir.mktmpdir do |dir|
+      dlq = SmartMessage::DeadLetterQueue.new(File.join(dir, 'dlq.jsonl'))
+      5.times { |i| dlq.enqueue(@message, error: "error #{i}") }
+
+      errors = dlq.inspect_messages(limit: 3).map { |entry| entry[:error] }
+
+      assert_equal ['error 0', 'error 1', 'error 2'], errors
+      assert_equal 5, dlq.size
+    end
+  end
+
+  def test_inspect_messages_returns_all_entries_under_limit
+    Dir.mktmpdir do |dir|
+      dlq = SmartMessage::DeadLetterQueue.new(File.join(dir, 'dlq.jsonl'))
+      2.times { |i| dlq.enqueue(@message, error: "error #{i}") }
+
+      assert_equal 2, dlq.inspect_messages(limit: 3).size
+    end
+  end
+
+  def test_inspect_messages_with_non_positive_limit_returns_empty
+    Dir.mktmpdir do |dir|
+      dlq = SmartMessage::DeadLetterQueue.new(File.join(dir, 'dlq.jsonl'))
+      dlq.enqueue(@message, error: 'error')
+
+      assert_empty dlq.inspect_messages(limit: 0)
+      assert_empty dlq.inspect_messages(limit: -1)
+    end
+  end
+
   def test_default_singleton
     # Test default singleton instance
     default_dlq = SmartMessage::DeadLetterQueue.default
@@ -208,16 +240,6 @@ class DeadLetterQueueTest < Minitest::Test
   
   private
   
-  def create_header(uuid, message_class, **extra_attrs)
-    SmartMessage::Header.new({
-      uuid: uuid,
-      message_class: message_class,
-      published_at: Time.now,
-      publisher_pid: Process.pid,
-      from: 'test-service'
-    }.merge(extra_attrs))
-  end
-  
   def create_test_message(data, **extra_attrs)
     attrs = {
       test_data: data,
@@ -234,5 +256,314 @@ class DeadLetterQueueTest < Minitest::Test
       from: 'order-service'
     }.merge(extra_attrs)
     OrderMessage.new(**attrs)
+  end
+
+  # Store an encoded OrderMessage as a raw entry received for +stored_as+
+  def enqueue_raw_order(stored_as:)
+    payload = SmartMessage::Envelope.encode(create_order_message("ORD-1"), SmartMessage::Serializer::Json.new)
+    @dlq.enqueue_raw(message_class: stored_as, payload: payload, error_info: { error: "could not be received" })
+  end
+
+  public
+
+  # ---- queue safety (review finding R6) ---------------------------------
+
+  def test_concurrent_enqueue_and_dequeue_lose_nothing
+    writers = 8.times.map do
+      Thread.new { 25.times { |i| @dlq.enqueue(@message, error: "error #{i}") } }
+    end
+    taken   = Queue.new
+    readers = 4.times.map do
+      Thread.new { 25.times { (entry = @dlq.dequeue) && taken << entry } }
+    end
+    (writers + readers).each(&:join)
+
+    assert_equal 200, taken.size + @dlq.size, "every enqueued entry is either dequeued or still queued"
+    assert_equal taken.size, Array.new(taken.size) { taken.pop[:id] }.uniq.size, "no entry is dequeued twice"
+  end
+
+  def test_two_queue_objects_on_one_file_share_it_safely
+    other = SmartMessage::DeadLetterQueue.new(@test_dlq_file)
+
+    threads = [@dlq, other].map do |queue|
+      Thread.new { 50.times { queue.enqueue(@message, error: "shared") } }
+    end
+    threads.each(&:join)
+
+    assert_equal 100, @dlq.size
+    assert_equal 100, @dlq.entries.size, "no line was torn by a concurrent write"
+  end
+
+  def test_corrupt_first_line_does_not_wedge_the_queue
+    File.write(@test_dlq_file, "this is not json\n")
+    @dlq.enqueue(@message, error: "after the corrupt line")
+
+    assert_equal "after the corrupt line", @dlq.peek[:error]
+
+    entry = @dlq.dequeue
+
+    assert_equal "after the corrupt line", entry[:error]
+    assert_equal 0, @dlq.size, "the corrupt line is dropped along the way"
+    assert_nil @dlq.dequeue
+  end
+
+  def test_statistics_report_corrupt_lines
+    @dlq.enqueue(@message, error: "ok")
+    File.open(@test_dlq_file, "a") { |file| file.puts("{broken") }
+
+    stats = @dlq.statistics
+
+    assert_equal 1, stats[:total]
+    assert_equal 1, stats[:corrupt]
+  end
+
+  def test_failed_replay_keeps_the_entry_and_counts_the_retry
+    @dlq.enqueue(@message, error: "original failure")
+
+    result = @dlq.replay_one(FailingTransport.new)
+
+    refute result[:success]
+    assert_equal 1, @dlq.size, "a failed replay must not lose the entry"
+    entry = @dlq.peek
+    assert_equal 1, entry[:retry_count]
+    assert_match(/Replay failed/, entry[:error])
+  end
+
+  def test_replay_all_stops_after_one_pass_when_every_replay_fails
+    3.times { @dlq.enqueue(@message, error: "original failure") }
+
+    results = @dlq.replay_all(FailingTransport.new)
+
+    assert_equal 0, results[:success]
+    assert_equal 3, results[:failed]
+    assert_equal 3, @dlq.size
+    assert_equal [1, 1, 1], @dlq.entries.map { |entry| entry[:retry_count] }
+  end
+
+
+  def test_replay_batch_replays_only_the_oldest_count_entries
+    3.times { |i| @dlq.enqueue(create_test_message("data #{i}"), error: "error #{i}") }
+    transport = SmartMessage::Transport::MemoryTransport.new(auto_process: false)
+
+    results = @dlq.replay_batch(2, transport)
+
+    assert_equal({ success: 2, failed: 0, errors: [] }, results)
+    assert_equal(['data 0', 'data 1'],
+                 transport.all_messages.map { |sent| transport.decode_message(sent[:payload]).test_data })
+    assert_equal ['error 2'], @dlq.entries.map { |entry| entry[:error] }, 'the newest entry is left'
+  end
+
+
+  def test_replay_batch_counts_failures_and_keeps_the_failed_entries
+    3.times { @dlq.enqueue(@message, error: 'original failure') }
+
+    results = @dlq.replay_batch(2, FailingTransport.new)
+
+    assert_equal({ success: 0, failed: 2, errors: ['IOError: transport is down'] * 2 }, results)
+    assert_equal([1, 1, 0], @dlq.entries.map { |entry| entry[:retry_count] })
+  end
+
+
+  def test_replay_batch_defaults_to_ten_entries_on_the_class_transport
+    transport = SmartMessage::Transport::MemoryTransport.new(auto_process: false)
+    TestMessage.transport(transport)
+    11.times { @dlq.enqueue(@message, error: 'original failure') }
+
+    results = @dlq.replay_batch
+
+    assert_equal({ success: 10, failed: 0, errors: [] }, results)
+    assert_equal 1, @dlq.size
+  ensure
+    TestMessage.reset_transport
+  end
+
+
+  def test_failed_replay_from_the_default_queue_does_not_add_a_copy
+    dlq.enqueue(@message, error: "original failure")
+
+    3.times { refute dlq.replay_one(FailingTransport.new)[:success] }
+
+    assert_equal 1, dlq.size, "the entry is kept once, however often its replay fails"
+    assert_equal 3, dlq.peek[:retry_count]
+  end
+
+  def test_replay_uses_the_class_transport_when_none_is_given
+    transport = SmartMessage::Transport::MemoryTransport.new(auto_process: false)
+    @message.class.transport(transport)
+    @dlq.enqueue(@message, error: "original failure")
+
+    assert @dlq.replay_one[:success]
+    assert_equal 1, transport.message_count
+    assert @dlq.empty?
+  ensure
+    @message.class.reset_transport
+  end
+
+  def test_successful_replay_removes_only_that_entry_and_keeps_the_uuid
+    first  = @dlq.enqueue(@message, error: "first")
+    second = @dlq.enqueue(@message, error: "second")
+    transport = SmartMessage::Transport::MemoryTransport.new(auto_process: false)
+
+    result = @dlq.replay_one(transport)
+
+    assert result[:success]
+    assert_equal @message.uuid, result[:message].uuid, "a replayed message keeps its identity"
+    assert_equal [second[:id]], @dlq.entries.map { |entry| entry[:id] }
+    refute_equal first[:id], second[:id]
+    assert_equal 1, transport.message_count
+  end
+
+  def test_enqueue_raw_stores_an_undecodable_payload
+    entry = @dlq.enqueue_raw(
+      message_class: "DeadLetterQueueTest::TestMessage",
+      payload:       "not json at all",
+      error_info:    { error: "DecodeError: bad payload", transport: "SmartMessage::Transport::RedisTransport" }
+    )
+
+    assert_equal "not json at all", @dlq.peek[:payload]
+    assert_equal "DeadLetterQueueTest::TestMessage", entry[:header][:message_class]
+
+    result = @dlq.replay_one(SmartMessage::Transport::MemoryTransport.new)
+
+    refute result[:success], "an undecodable payload cannot be replayed"
+    assert_equal 1, @dlq.size, "and it stays in the queue"
+  end
+
+  def test_replay_rebuilds_a_raw_entry_only_as_the_class_it_was_stored_for
+    enqueue_raw_order(stored_as: TestMessage.name)
+    transport = SmartMessage::Transport::MemoryTransport.new(auto_process: false)
+    OrderMessage.transport(transport)
+
+    results = @dlq.replay_all
+
+    assert_equal 0, results[:success]
+    assert_equal 1, results[:failed]
+    assert_match(/MessageClassMismatch/, results[:errors].first)
+    assert_equal 0, transport.message_count, "the payload is not published as #{OrderMessage}"
+    assert_equal 1, @dlq.size, "the entry stays in the queue"
+  ensure
+    OrderMessage.reset_transport
+  end
+
+  def test_replay_of_a_raw_entry_stored_without_a_class_uses_the_payload_header
+    [SmartMessage::DeadLetterQueue::UNKNOWN_CLASS, nil].each do |stored_as|
+      @dlq.clear
+      entry = enqueue_raw_order(stored_as: stored_as)
+
+      result = @dlq.replay_one(SmartMessage::Transport::MemoryTransport.new(auto_process: false))
+
+      assert_equal SmartMessage::DeadLetterQueue::UNKNOWN_CLASS, entry[:header][:message_class]
+      assert result[:success], "stored as #{stored_as.inspect}: #{result[:error]}"
+      assert_instance_of OrderMessage, result[:message]
+      assert @dlq.empty?
+    end
+  end
+
+  def test_replay_of_a_raw_entry_stored_for_a_blank_channel_fails
+    ["", " "].each do |stored_as|
+      @dlq.clear
+      enqueue_raw_order(stored_as: stored_as)
+
+      result = @dlq.replay_one(SmartMessage::Transport::MemoryTransport.new(auto_process: false))
+
+      refute result[:success], "stored as #{stored_as.inspect}"
+      assert_match(/MessageClassMismatch/, result[:error])
+    end
+  end
+
+  def test_replay_of_an_entry_whose_header_names_no_class_uses_the_payload_header
+    entry = enqueue_raw_order(stored_as: OrderMessage.name)
+    [{}, "not a header"].each do |header|
+      File.write(@test_dlq_file, "#{JSON.generate(entry.merge(header: header))}\n")
+
+      result = @dlq.replay_one(SmartMessage::Transport::MemoryTransport.new(auto_process: false))
+
+      assert result[:success], "header #{header.inspect}: #{result[:error]}"
+      assert @dlq.empty?
+    end
+    File.write(@test_dlq_file, "#{JSON.generate(entry.except(:header))}\n")
+    assert @dlq.replay_one(SmartMessage::Transport::MemoryTransport.new(auto_process: false))[:success]
+    assert @dlq.empty?
+  end
+
+  # A serializer whose payloads are not JSON (JSON wrapped in base64)
+  class PackedSerializer < SmartMessage::Serializer::Base
+    private
+
+    def do_encode(hash) = [SmartMessage::Serializer::Json.new.encode(hash)].pack('m0')
+    def do_decode(payload) = SmartMessage::Serializer::Json.new.decode(payload.unpack1('m0'))
+  end
+
+  def test_a_payload_a_non_json_transport_could_not_receive_can_be_replayed
+    previous_path = SmartMessage.configuration.dlq_path
+    SmartMessage.configuration.dlq_path = @test_dlq_file
+    serializer = PackedSerializer.new
+    late_name  = "#{self.class}::LateOrder"
+    hash       = serializer.decode(SmartMessage::Envelope.encode(create_order_message('ORD-1'), serializer))
+    hash[:_sm_header][:message_class] = late_name
+    payload    = serializer.encode(hash)
+    receiver   = SmartMessage::Transport::MemoryTransport.new(serializer: serializer, auto_process: false)
+
+    assert_raises(SmartMessage::Errors::UnknownMessageClass) { receiver.send(:receive, late_name, payload) }
+    assert_equal PackedSerializer.name, @dlq.peek[:payload_format]
+
+    self.class.const_set(:LateOrder, Class.new(SmartMessage::Base) { property :order_id; property :amount })
+    result = @dlq.replay_one(SmartMessage::Transport::MemoryTransport.new(auto_process: false))
+
+    assert result[:success], result[:error]
+    assert_equal 'ORD-1', result[:message].order_id
+    assert @dlq.empty?
+  ensure
+    self.class.send(:remove_const, :LateOrder) if self.class.const_defined?(:LateOrder, false)
+    SmartMessage.configuration.dlq_path = previous_path
+  end
+
+  def test_dlq_payload_format_names_the_transports_serializer
+    format_for = ->(serializer) { SmartMessage::Transport::MemoryTransport.new(serializer: serializer).send(:dlq_payload_format) }
+
+    assert_equal 'json', format_for.call(SmartMessage::Serializer::Json.new)
+    assert_equal PackedSerializer.name, format_for.call(PackedSerializer.new)
+    assert_equal 'json', format_for.call(Class.new(PackedSerializer).new), 'an anonymous serializer cannot be found again by name'
+  end
+
+  def test_default_path_is_absolute_and_not_in_the_working_directory
+    path = SmartMessage::Configuration.default_dlq_path({})
+
+    assert_equal File.expand_path(path), path
+    refute path.start_with?(Dir.pwd + File::SEPARATOR)
+  end
+
+  def test_default_path_honours_the_environment
+    assert_equal "/var/tmp/app/dlq.jsonl",
+                 SmartMessage::Configuration.default_dlq_path("SMART_MESSAGE_DLQ_PATH" => "/var/tmp/app/dlq.jsonl")
+    assert_equal "/state/smart_message/dead_letters.jsonl",
+                 SmartMessage::Configuration.default_dlq_path("XDG_STATE_HOME" => "/state")
+  end
+
+  def test_default_queue_follows_the_configured_path
+    path = temp_path("configured_dlq.jsonl")
+    SmartMessage.configure { |config| config.dlq_path = path }
+
+    assert_equal path, SmartMessage::DeadLetterQueue.default.file_path
+    assert_same SmartMessage::DeadLetterQueue.default, SmartMessage::DeadLetterQueue.default
+  end
+
+
+  def test_configure_default_sets_the_path_and_returns_the_default_queue
+    path = temp_path('configured_default.jsonl')
+    refute_equal path, SmartMessage::DeadLetterQueue.default.file_path, 'the default queue starts elsewhere'
+
+    queue = SmartMessage::DeadLetterQueue.configure_default(path)
+
+    assert_equal path, SmartMessage.configuration.dlq_path
+    assert_equal path, queue.file_path
+    assert_same SmartMessage::DeadLetterQueue.default, queue
+  end
+
+  # A transport whose publish always fails
+  class FailingTransport < SmartMessage::Transport::Base
+    def do_publish(_message_class, _serialized_message)
+      raise IOError, "transport is down"
+    end
   end
 end

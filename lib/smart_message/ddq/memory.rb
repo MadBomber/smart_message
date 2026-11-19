@@ -2,107 +2,88 @@
 # encoding: utf-8
 # frozen_string_literal: true
 
-require 'set'
-require_relative 'base'
-
 module SmartMessage
   module DDQ
     # Memory-based Deduplication Queue implementation
-    # 
-    # Uses a hybrid approach with Array for circular queue behavior 
-    # and Set for O(1) lookup performance. Thread-safe with Mutex protection.
+    #
+    # A circular buffer of the last +size+ UUIDs with a Hash index for O(1)
+    # lookup.  Every operation runs under one Mutex, so #reserve is an
+    # atomic add-if-absent.
     class Memory < Base
       def initialize(size)
-        super(size)
-        @circular_array = Array.new(@size)
-        @lookup_set = Set.new
-        @index = 0
+        super
         @mutex = Mutex.new
-        @count = 0
-        
-        logger.debug { "[SmartMessage::DDQ::Memory] Initialized with size: #{@size}" }
+        reset_storage
       end
-      
+
+      # (see Base#reserve)
+      def reserve(uuid)
+        validate_uuid!(uuid)
+
+        @mutex.synchronize do
+          next false if @slots.key?(uuid)
+
+          evicted = @ring[@index]
+          @slots.delete(evicted) if evicted
+
+          @ring[@index] = uuid
+          @slots[uuid]  = @index
+          @index        = (@index + 1) % @size
+          true
+        end
+      end
+
+      # (see Base#release)
+      def release(uuid)
+        validate_uuid!(uuid)
+
+        @mutex.synchronize do
+          slot = @slots.delete(uuid)
+          @ring[slot] = nil if slot
+        end
+        nil
+      end
+
       # Check if a UUID exists in the queue (O(1) operation)
-      # @param uuid [String] The UUID to check
-      # @return [Boolean] true if UUID exists, false otherwise
       def contains?(uuid)
         validate_uuid!(uuid)
-        
-        @mutex.synchronize do
-          @lookup_set.include?(uuid)
-        end
+        @mutex.synchronize { @slots.key?(uuid) }
       end
-      
-      # Add a UUID to the queue, removing oldest if full (O(1) operation)
-      # @param uuid [String] The UUID to add
-      # @return [void]
-      def add(uuid)
-        validate_uuid!(uuid)
-        
-        @mutex.synchronize do
-          # Don't add if already exists
-          return if @lookup_set.include?(uuid)
-          
-          # Remove old entry if slot is occupied
-          old_uuid = @circular_array[@index]
-          if old_uuid
-            @lookup_set.delete(old_uuid)
-            logger.debug { "[SmartMessage::DDQ::Memory] Evicted UUID: #{old_uuid}" }
-          end
-          
-          # Add new entry
-          @circular_array[@index] = uuid
-          @lookup_set.add(uuid)
-          @index = (@index + 1) % @size
-          @count = [@count + 1, @size].min
-          
-          logger.debug { "[SmartMessage::DDQ::Memory] Added UUID: #{uuid}, count: #{@count}" }
-        end
-      end
-      
+
       # Get current queue statistics
       # @return [Hash] Statistics about the queue
       def stats
         @mutex.synchronize do
           super.merge(
-            current_count: @count,
-            utilization: (@count.to_f / @size * 100).round(2),
+            current_count: @slots.size,
+            utilization: (@slots.size.to_f / @size * 100).round(2),
             next_index: @index
           )
         end
       end
-      
+
       # Clear all entries from the queue
-      # @return [void]
       def clear
-        @mutex.synchronize do
-          @circular_array = Array.new(@size)
-          @lookup_set.clear
-          @index = 0
-          @count = 0
-          
-          logger.debug { "[SmartMessage::DDQ::Memory] Cleared all entries" }
-        end
+        @mutex.synchronize { reset_storage }
+        nil
       end
-      
-      # Get the storage type identifier
-      # @return [Symbol] Storage type
+
       def storage_type
         :memory
       end
-      
+
       # Get current entries (for debugging/testing)
-      # @return [Array<String>] Current UUIDs in insertion order
+      # @return [Array<String>] Current UUIDs, oldest first
       def entries
-        @mutex.synchronize do
-          result = []
-          @count.times do |i|
-            idx = (@index - @count + i) % @size
-            result << @circular_array[idx] if @circular_array[idx]
-          end
-          result
-        end
+        @mutex.synchronize { @ring.rotate(@index).compact }
+      end
+
+      private
+
+      def reset_storage
+        @ring  = Array.new(@size)
+        @slots = {}
+        @index = 0
       end
     end
   end

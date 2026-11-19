@@ -1,379 +1,77 @@
 #!/usr/bin/env ruby
-# examples/08_entity_addressing.rb
+# examples/memory/10_entity_addressing_basic.rb
+# frozen_string_literal: true
 #
-# Demonstrates SmartMessage entity addressing capabilities including:
-# - Point-to-point messaging with FROM/TO fields
-# - Broadcast messaging (no TO field)
-# - Request-reply patterns with REPLY_TO
-# - Instance-level addressing overrides
-# - Gateway patterns
+# Entity addressing: from, to and reply_to
+#
+#   from      who sent it (required)
+#   to        the recipient; nil means broadcast
+#   reply_to  where an answer should go
+#
+# A class sets defaults; an instance can override them.  The values travel
+# in the message header.
 
-require_relative '../../lib/smart_message'
+require_relative '../support/example_helper'
+require_relative 'messages/shipment_message'
+require_relative 'messages/system_announcement_message'
+require_relative 'messages/user_lookup_request'
+require_relative 'messages/user_lookup_response'
 
-puts "🎯 SmartMessage Entity Addressing Demo"
-puts "=" * 50
+TRANSPORT = SmartMessage::Transport::MemoryTransport.new
+[ShipmentMessage, SystemAnnouncementMessage, UserLookupRequest, UserLookupResponse].each { it.transport(TRANSPORT) }
 
-# Configure transport for demo
-transport = SmartMessage::Transport::MemoryTransport.new
-serializer = SmartMessage::Serializer::Json.new
+# Answers lookups, sending each answer to the request's reply_to.
+module UserService
+  USERS = { 'U-1' => 'Ada Lovelace' }.freeze
 
-# =============================================================================
-# Example 1: Point-to-Point Messaging
-# =============================================================================
-
-puts "\n📡 Example 1: Point-to-Point Messaging"
-puts "-" * 40
-
-class OrderMessage < SmartMessage::Base
-  version 1
-  description "Direct order processing between order service and fulfillment"
-  
-  # Point-to-point addressing
-  from 'order-service'
-  to 'fulfillment-service'
-  reply_to 'order-service'
-  
-  property :order_id, required: true
-  property :customer_id, required: true
-  property :items, required: true
-  property :total_amount, required: true
-  
-  config do
-    transport SmartMessage::Transport::MemoryTransport.new
-  end
-  
-  def process(message)
-    header = message._sm_header
-    payload = message
-    data = JSON.parse(payload)
-    puts "   🎯 FULFILLMENT SERVICE received order:"
-    puts "      Order ID: #{data['order_id']}"
-    puts "      From: #{header.from} → To: #{header.to}"
-    puts "      Reply to: #{header.reply_to}"
-    puts "      Customer: #{data['customer_id']}"
-    puts "      Items: #{data['items'].join(', ')}"
-    puts "      Total: $#{data['total_amount']}"
+  def self.lookup(request)
+    name = USERS[request.user_id]
+    UserLookupResponse.new(request_id: request.request_id, user_name: name, found: !name.nil?, to: request.reply_to).publish
   end
 end
 
-# Subscribe and publish point-to-point message
-OrderMessage.subscribe
+def addressing(message) = [message.from, message.to, message.reply_to]
 
-order = OrderMessage.new(
-  order_id: "ORD-2024-001",
-  customer_id: "CUST-12345",
-  items: ["Widget A", "Widget B", "Gadget C"],
-  total_amount: 299.99,
-  from: 'order-service'
-)
+Example.title 'Entity addressing'
 
-puts "\n📤 Publishing point-to-point order message..."
-order.publish
-sleep(0.2)  # Allow time for handlers to process
+Example.section 'Point-to-point: class defaults name sender and recipient'
+ShipmentMessage.subscribe { |message| Example.inbox.add(:shipments, addressing(message)) }
+ShipmentMessage.new(order_id: 'ORD-1', address: '1 Main St').publish
 
-# =============================================================================
-# Example 2: Broadcast Messaging
-# =============================================================================
+Example.section 'Instance override: same class, different recipient'
+rerouted = ShipmentMessage.new(order_id: 'ORD-2', address: '2 Side St', to: 'backup-warehouse')
+rerouted.publish
 
-puts "\n📻 Example 2: Broadcast Messaging"
-puts "-" * 40
+Example.section 'Broadcast: no recipient'
+SystemAnnouncementMessage.subscribe { |message| Example.inbox.add(:announcements, addressing(message)) }
+SystemAnnouncementMessage.new(text: 'Maintenance at 02:00').publish
 
-class SystemAnnouncementMessage < SmartMessage::Base
-  version 1
-  description "System-wide announcements to all services"
-  
-  # Broadcast addressing (no 'to' field)
-  from 'admin-service'
-  # No 'to' field = broadcast to all subscribers
-  
-  property :message, required: true
-  property :priority, default: 'normal'
-  property :effective_time, required: true
-  
-  config do
-    transport SmartMessage::Transport::MemoryTransport.new
-  end
-  
-  def process(message)
-    header = message._sm_header
-    payload = message
-    data = JSON.parse(payload)
-    priority_icon = data['priority'] == 'high' ? '🚨' : '📢'
-    puts "   #{priority_icon} ALL SERVICES received announcement:"
-    puts "      From: #{header.from}"
-    puts "      To: #{header.to.nil? ? 'ALL (broadcast)' : header.to}"
-    puts "      Priority: #{data['priority'].upcase}"
-    puts "      Message: #{data['message']}"
-    puts "      Effective: #{data['effective_time']}"
-  end
+Example.section 'Request-reply: the answer goes to reply_to'
+UserLookupRequest.subscribe('UserService.lookup')
+UserLookupResponse.subscribe { |message| Example.inbox.add(:replies, message) }
+UserLookupRequest.new(request_id: 'REQ-1', user_id: 'U-1').publish
+UserLookupRequest.new(request_id: 'REQ-2', user_id: 'U-404', reply_to: 'audit-service').publish
+
+Example.wait_for_idle(TRANSPORT)
+
+Example.check('the first shipment used the class defaults') do
+  Example.inbox[:shipments].include?(['order-service', 'fulfillment-service', nil])
+end
+Example.check('the second shipment went to the overridden recipient') do
+  Example.inbox[:shipments].include?(['order-service', 'backup-warehouse', nil])
+end
+Example.check('the override did not change the class default') { ShipmentMessage.to == 'fulfillment-service' }
+Example.check('the announcement is a broadcast: to is nil') do
+  Example.inbox[:announcements] == [['admin-service', nil, nil]]
 end
 
-# Subscribe and publish broadcast message
-SystemAnnouncementMessage.subscribe
-
-announcement = SystemAnnouncementMessage.new(
-  message: "System maintenance scheduled for tonight at 2:00 AM EST",
-  priority: 'high',
-  effective_time: '2024-12-20 02:00:00 EST',
-  from: 'admin-service'
-)
-
-puts "\n📤 Publishing broadcast announcement..."
-announcement.publish
-sleep(0.2)  # Allow time for handlers to process
-
-# =============================================================================
-# Example 3: Request-Reply Pattern
-# =============================================================================
-
-puts "\n🔄 Example 3: Request-Reply Pattern"
-puts "-" * 40
-
-class UserLookupRequest < SmartMessage::Base
-  version 1
-  description "Request user information from user service"
-  
-  from 'web-service'
-  to 'user-service'
-  reply_to 'web-service'
-  
-  property :user_id, required: true
-  property :request_id, required: true
-  property :requested_fields, default: ['name', 'email']
-  
-  config do
-    transport SmartMessage::Transport::MemoryTransport.new
-  end
-  
-  def process(message)
-    header = message._sm_header
-    payload = message
-    data = JSON.parse(payload)
-    puts "   🔍 USER SERVICE received lookup request:"
-    puts "      Request ID: #{data['request_id']}"
-    puts "      User ID: #{data['user_id']}"
-    puts "      From: #{header.from} → To: #{header.to}"
-    puts "      Reply to: #{header.reply_to}"
-    puts "      Fields: #{data['requested_fields'].join(', ')}"
-    
-    # Simulate response (in real system, this would be a separate response message)
-    puts "   ↩️  Simulated response would go to: #{header.reply_to}"
-  end
+replies = Example.inbox[:replies].to_h { [it.request_id, it] }
+replies.each_value { puts "  #{it.request_id}: #{it.from} -> #{it.to} found=#{it.found} #{it.user_name}" }
+Example.check('REQ-1 was answered to the requester (web-app)') do
+  replies['REQ-1'].to == 'web-app' && replies['REQ-1'].user_name == 'Ada Lovelace'
+end
+Example.check('REQ-2 was answered to its own reply_to (audit-service)') do
+  replies['REQ-2'].to == 'audit-service' && replies['REQ-2'].found == false
 end
 
-class UserLookupResponse < SmartMessage::Base
-  version 1
-  description "Response with user information"
-  
-  from 'user-service'
-  # 'to' will be set to the original request's 'reply_to'
-  
-  property :user_id, required: true
-  property :request_id, required: true
-  property :user_data
-  property :success, default: true
-  property :error_message
-  
-  config do
-    transport SmartMessage::Transport::MemoryTransport.new
-  end
-  
-  def process(message)
-    header = message._sm_header
-    payload = message
-    data = JSON.parse(payload)
-    puts "   ✅ WEB SERVICE received lookup response:"
-    puts "      Request ID: #{data['request_id']}"
-    puts "      Success: #{data['success']}"
-    puts "      User Data: #{data['user_data'] ? 'Present' : 'None'}"
-    puts "      From: #{header.from} → To: #{header.to}"
-  end
-end
-
-# Subscribe to both request and response
-UserLookupRequest.subscribe
-UserLookupResponse.subscribe
-
-# Send request
-request = UserLookupRequest.new(
-  user_id: "USER-789",
-  request_id: SecureRandom.uuid,
-  requested_fields: ['name', 'email', 'last_login'],
-  from: 'web-service'
-)
-
-puts "\n📤 Publishing user lookup request..."
-request.publish
-sleep(0.2)  # Allow time for handlers to process
-
-# Send simulated response
-response = UserLookupResponse.new(
-  user_id: "USER-789",
-  request_id: request.request_id,
-  user_data: {
-    name: "Alice Johnson",
-    email: "alice@example.com",
-    last_login: "2024-12-19 14:30:00"
-  },
-  success: true,
-  from: 'user-service'
-)
-response.to('web-service')  # Set reply destination
-
-puts "\n📤 Publishing user lookup response..."
-response.publish
-sleep(0.2)  # Allow time for handlers to process
-
-# =============================================================================
-# Example 4: Instance-Level Addressing Override
-# =============================================================================
-
-puts "\n🔧 Example 4: Instance-Level Addressing Override"
-puts "-" * 40
-
-class PaymentMessage < SmartMessage::Base
-  version 1
-  description "Payment processing with configurable routing"
-  
-  # Default addressing
-  from 'payment-service'
-  to 'primary-bank-gateway'
-  reply_to 'payment-service'
-  
-  property :payment_id, required: true
-  property :amount, required: true
-  property :account_id, required: true
-  property :payment_method, default: 'credit_card'
-  
-  config do
-    transport SmartMessage::Transport::MemoryTransport.new
-  end
-  
-  def process(message)
-    header = message._sm_header
-    payload = message
-    data = JSON.parse(payload)
-    gateway_icon = header.to.include?('backup') ? '🔄' : '🏦'
-    puts "   #{gateway_icon} #{header.to.upcase} received payment:"
-    puts "      Payment ID: #{data['payment_id']}"
-    puts "      From: #{header.from} → To: #{header.to}"
-    puts "      Amount: $#{data['amount']}"
-    puts "      Account: #{data['account_id']}"
-    puts "      Method: #{data['payment_method']}"
-  end
-end
-
-PaymentMessage.subscribe
-
-# Normal payment using class defaults
-normal_payment = PaymentMessage.new(
-  payment_id: "PAY-001",
-  amount: 150.00,
-  account_id: "ACCT-12345",
-  payment_method: 'credit_card',
-  from: 'payment-service'
-)
-
-puts "\n📤 Publishing normal payment (using class defaults)..."
-puts "   Class FROM: #{PaymentMessage.from}"
-puts "   Class TO: #{PaymentMessage.to}"
-normal_payment.publish
-sleep(0.2)  # Allow time for handlers to process
-
-# Override addressing for backup gateway
-backup_payment = PaymentMessage.new(
-  payment_id: "PAY-002",
-  amount: 75.50,
-  account_id: "ACCT-67890",
-  payment_method: 'debit_card',
-  from: 'payment-service'
-)
-
-# Override instance addressing
-backup_payment.to('backup-bank-gateway')
-backup_payment.reply_to('payment-backup-service')
-
-puts "\n📤 Publishing backup payment (with overrides)..."
-puts "   Instance FROM: #{backup_payment.from}"
-puts "   Instance TO: #{backup_payment.to}"
-puts "   Instance REPLY_TO: #{backup_payment.reply_to}"
-backup_payment.publish
-sleep(0.2)  # Allow time for handlers to process
-
-# =============================================================================
-# Example 5: Gateway Pattern
-# =============================================================================
-
-puts "\n🌉 Example 5: Gateway Pattern"
-puts "-" * 40
-
-class ExternalAPIMessage < SmartMessage::Base
-  version 1
-  description "External API integration message"
-  
-  from 'api-gateway'
-  to 'external-partner-service'
-  
-  property :api_call, required: true
-  property :payload_data, required: true
-  property :authentication_token
-  property :partner_id, required: true
-  
-  config do
-    transport SmartMessage::Transport::MemoryTransport.new
-  end
-  
-  def process(message)
-    header = message._sm_header
-    payload = message
-    data = JSON.parse(payload)
-    puts "   🌐 EXTERNAL PARTNER received API call:"
-    puts "      API Call: #{data['api_call']}"
-    puts "      From: #{header.from} → To: #{header.to}"
-    puts "      Partner ID: #{data['partner_id']}"
-    puts "      Has Auth Token: #{data['authentication_token'] ? 'Yes' : 'No'}"
-    puts "      Payload Size: #{data['payload_data'].to_s.length} characters"
-  end
-end
-
-ExternalAPIMessage.subscribe
-
-# Create internal message
-internal_data = {
-  user_id: "USER-123",
-  action: "update_profile",
-  changes: { email: "newemail@example.com" }
-}
-
-# Transform for external API via gateway
-external_message = ExternalAPIMessage.new(
-  api_call: "PUT /api/v1/users/USER-123",
-  payload_data: internal_data,
-  authentication_token: "Bearer abc123xyz789",
-  partner_id: "PARTNER-ALPHA",
-  from: 'api-gateway'
-)
-
-# Gateway can override destination based on routing rules
-if internal_data[:action] == "update_profile"
-  external_message.to('partner-alpha-profile-service')
-else
-  external_message.to('partner-alpha-general-service')
-end
-
-puts "\n📤 Publishing external API message via gateway..."
-external_message.publish
-sleep(0.2)  # Allow time for handlers to process
-
-# =============================================================================
-# Summary
-# =============================================================================
-
-puts "\n🎯 Entity Addressing Summary"
-puts "=" * 50
-puts "✅ Point-to-Point: FROM/TO specified for direct routing"
-puts "✅ Broadcast: FROM only, TO=nil for all subscribers"
-puts "✅ Request-Reply: REPLY_TO for response routing"
-puts "✅ Instance Override: Runtime addressing changes"
-puts "✅ Gateway Pattern: Message transformation and routing"
-puts "\nFor more details, see docs/addressing.md"
+Example.finish

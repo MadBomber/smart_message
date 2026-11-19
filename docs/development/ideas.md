@@ -1,5 +1,7 @@
 # Ideas to Think About
 
+> **None of the ideas on this page are implemented.** The code blocks are sketches of APIs that do not exist in SmartMessage 0.1.0. For what the gem does today, see the rest of this documentation.
+
 This document analyzes potential enhancements to SmartMessage based on a comparison between the current implementation and an idealized vision of intelligent messaging.
 
 ## Current State vs. Vision
@@ -8,13 +10,13 @@ A description was provided that envisioned SmartMessage as an advanced, intellig
 
 ### What Currently Matches:
 
-✅ **Message abstraction from transport mechanisms** - The gem does abstract messages from their delivery systems
+- **Message abstraction from transport mechanisms** - The gem does abstract messages from their delivery systems
 
-✅ **Pluggable architecture** - Supports different transports and serializers
+- **Pluggable architecture** - Transports and serializers are classes you can replace; four transports and a JSON serializer ship with the gem
 
-✅ **Multiple messaging patterns** - Can handle 1-to-1, 1-to-many scenarios through subscription patterns
+- **Multiple messaging patterns** - Can handle 1-to-1, 1-to-many scenarios through subscription patterns
 
-✅ **Error handling** - Basic error isolation in the dispatcher
+- **Error handling** - Handler isolation, per-handler circuit breakers, and a dead letter queue for every failure
 
 ### Major Enhancement Opportunities:
 
@@ -87,7 +89,7 @@ class SmartMessage::Dispatcher
   private
   
   def transform_format(payload, from:, to:)
-    # Convert between formats (JSON -> XML, XML -> MessagePack, etc.)
+    # Convert between formats (JSON -> XML, etc.)
     case [from, to]
     when ['json', 'xml']
       json_to_xml(payload)
@@ -271,7 +273,7 @@ end
 ### Phase 1: Foundation Enhancements
 1. **Enhanced Statistics System** - More detailed metrics collection
 2. **Message Tracing** - Correlation IDs and message flow tracking
-3. **Improved Error Handling** - Retry mechanisms and dead letter queues
+3. **Improved Error Handling** - Automatic retry policies on top of the existing dead letter queue
 4. **Configuration Management** - More sophisticated configuration options
 
 ### Phase 2: Intelligence Features

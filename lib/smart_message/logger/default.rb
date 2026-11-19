@@ -4,164 +4,76 @@
 
 require 'logger'
 require 'fileutils'
-require 'stringio'
 
 module SmartMessage
   module Logger
-    # Default logger implementation for SmartMessage
+    # A SmartMessage logger built on Ruby's standard Logger.
     #
-    # This logger provides a simple Ruby Logger message with enhanced formatting.
-    # Applications can easily configure Rails.logger or other loggers through
-    # the global configuration system instead.
+    # Each line carries the file and line of the caller.
     #
     # Usage:
-    #   # Use default file logging
-    #   SmartMessage.configure do |config|
-    #     config.logger = SmartMessage::Logger::Default.new
-    #   end
-    #
-    #   # Use custom options
     #   SmartMessage.configure do |config|
     #     config.logger = SmartMessage::Logger::Default.new(
-    #       log_file: 'custom/path.log',
-    #       level: Logger::DEBUG
+    #       log_file: 'log/smart_message.log',   # a path or an IO
+    #       level: :debug
     #     )
-    #   end
-    #
-    #   # Log to STDOUT
-    #   SmartMessage.configure do |config|
-    #     config.logger = SmartMessage::Logger::Default.new(
-    #       log_file: STDOUT,
-    #       level: Logger::INFO
-    #     )
-    #   end
-    #
-    #   # Use Rails logger instead
-    #   SmartMessage.configure do |config|
-    #     config.logger = Rails.logger
     #   end
     class Default < Base
-      attr_reader :logger, :log_file, :level
+      DEFAULT_LOG_FILE = 'log/smart_message.log'
 
+      attr_reader :logger, :log_file
+
+      # @param log_file [String, IO, nil] path or IO; default log/smart_message.log
+      # @param level [Symbol, String, Integer, nil] default :info
       def initialize(log_file: nil, level: nil)
-        @log_file = log_file || 'log/smart_message.log'
-        @level = level || ::Logger::INFO
-
-        @logger = setup_logger
+        @log_file = log_file || DEFAULT_LOG_FILE
+        @logger   = setup_logger
+        self.level = level || :info
       end
 
-
-      # General purpose logging methods matching Ruby's Logger interface
-      # These methods capture caller information and embed it in the log message
-
-      def debug(message = nil, &block)
-        enhanced_log(:debug, message, caller_locations(1, 1).first, &block)
+      def level
+        @logger.level
       end
 
-      def info(message = nil, &block)
-        enhanced_log(:info, message, caller_locations(1, 1).first, &block)
+      def level=(value)
+        @logger.level = SmartMessage::Logger.severity(value)
       end
 
-      def warn(message = nil, &block)
-        enhanced_log(:warn, message, caller_locations(1, 1).first, &block)
-      end
-
-      def error(message = nil, &block)
-        enhanced_log(:error, message, caller_locations(1, 1).first, &block)
-      end
-
-      def fatal(message = nil, &block)
-        enhanced_log(:fatal, message, caller_locations(1, 1).first, &block)
+      def close
+        @logger.close unless io_target?
       end
 
       private
 
-      # Enhanced logging method that embeds caller information
-      def enhanced_log(level, message, caller_location, &block)
-        if caller_location
-          file_path = caller_location.path
-          line_number = caller_location.lineno
-          
-          # If a block is provided, call it to get the message
-          if block_given?
-            actual_message = block.call
-          else
-            actual_message = message
-          end
-          
-          # Embed caller info in the message
-          enhanced_message = "[#{file_path}:#{line_number}] #{actual_message}"
-          logger.send(level, enhanced_message)
-        else
-          # Fallback if caller information is not available
-          if block_given?
-            logger.send(level, &block)
-          else
-            logger.send(level, message)
-          end
-        end
+      def log(severity, message, data, &block)
+        return nil if severity < level
+
+        location = caller_locations(2, 1)&.first
+        source   = location ? "#{File.basename(location.path)}:#{location.lineno}" : nil
+        text     = resolve_message(message, &block).to_s
+        text     = "#{text} #{data.inspect}" unless data.empty?
+
+        @logger.add(severity, text, source)
+      end
+
+      def io_target?
+        @log_file.respond_to?(:write)
       end
 
       def setup_logger
-        # Handle IO objects (STDOUT, STDERR) vs file paths
-        if @log_file.is_a?(IO) || @log_file.is_a?(StringIO)
-          # For STDOUT/STDERR, don't use rotation
-          ruby_logger = ::Logger.new(@log_file)
-        else
-          # For file paths, ensure directory exists and use rotation
-          log_dir = File.dirname(@log_file)
-          FileUtils.mkdir_p(log_dir) unless Dir.exist?(log_dir)
+        ruby_logger = if io_target?
+                        ::Logger.new(@log_file)
+                      else
+                        FileUtils.mkdir_p(File.dirname(@log_file))
+                        ::Logger.new(@log_file, 10, 10_485_760) # keep 10 files of 10 MB
+                      end
 
-          ruby_logger = ::Logger.new(
-            @log_file,
-            10,           # Keep 10 old log files
-            10_485_760    # Rotate when file reaches 10MB
-          )
-        end
-
-        ruby_logger.level = @level
-
-        # Set a formatter that includes file and line number
-        ruby_logger.formatter = proc do |severity, datetime, progname, msg|
-          timestamp = datetime.strftime('%Y-%m-%d %H:%M:%S.%3N')
-          
-          # Extract caller information if it's embedded in the message
-          if msg.is_a?(String) && msg.match(/\A\[(.+?):(\d+)\] (.+)\z/)
-            file_path = $1
-            line_number = $2
-            actual_msg = $3
-            
-            # Get just the filename from the full path
-            filename = File.basename(file_path)
-            
-            "[#{timestamp}] #{severity.ljust(5)} -- #{filename}:#{line_number} : #{actual_msg}\n"
-          else
-            "[#{timestamp}] #{severity.ljust(5)} -- : #{msg}\n"
-          end
+        ruby_logger.formatter = proc do |severity, datetime, source, msg|
+          "[#{datetime.strftime('%Y-%m-%d %H:%M:%S.%3N')}] #{severity.ljust(5)} -- #{source} : #{msg}\n"
         end
 
         ruby_logger
       end
-
-
-      def message_summary(message)
-        # Create a brief summary of the message for logging
-        if message.respond_to?(:to_h)
-          data = message.to_h
-          # Remove internal header for cleaner logs
-          data.delete(:_sm_header)
-          data.delete('_sm_header')
-          truncate(data.inspect, 200)
-        else
-          truncate(message.inspect, 200)
-        end
-      end
-
-      def truncate(string, max_length)
-        return string if string.length <= max_length
-        "#{string[0...max_length]}..."
-      end
-
     end
   end
 end

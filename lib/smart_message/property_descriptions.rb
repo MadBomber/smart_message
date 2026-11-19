@@ -3,39 +3,34 @@
 # frozen_string_literal: true
 
 module SmartMessage
+  # Adds a +description:+ option to the property DSL.  Descriptions are
+  # inherited by subclasses.
   module PropertyDescriptions
     def self.included(base)
+      base.extend(InheritableSettings)
       base.extend(ClassMethods)
-      base.class_eval do
-        @property_descriptions = {}
-      end
     end
 
     module ClassMethods
       def property(property_name, options = {})
-        # Extract our custom option before passing to parent
+        options     = options.dup
         description = options.delete(:description)
-        
-        # Call original property method first
+
         super(property_name, options)
-        
-        # Then store description if provided
-        if description
-          @property_descriptions ||= {}
-          @property_descriptions[property_name.to_sym] = description
-        end
+
+        add_to_setting(:property_descriptions, property_name.to_sym, description) if description
       end
 
       def property_description(property_name)
-        @property_descriptions&.[](property_name.to_sym)
+        property_descriptions[property_name.to_sym]
       end
 
       def property_descriptions
-        @property_descriptions&.dup || {}
+        merged_setting(:property_descriptions)
       end
 
       def described_properties
-        @property_descriptions&.keys || []
+        property_descriptions.keys
       end
     end
   end

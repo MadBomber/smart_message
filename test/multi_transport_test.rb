@@ -234,14 +234,83 @@ class MultiTransportTest < Minitest::Test
   def test_transport_configuration_validation
     msg = TestMessage.new(content: "test", from: "test_app")
     
-    # Should work with nil (uses default)
-    msg.transport(nil)
-    assert msg.transports.length >= 1 # Default transport(s)
+    # transport(nil) is a read: the class-level transport shows through
+    assert_equal TestMessage.transports, msg.transports
     
-    # Should work with empty array (though not practically useful)
+    # An empty instance override also falls through to the class
     msg.transport([])
-    assert_equal 0, msg.transports.length
-    assert msg.transport.nil? # No transport available
+    assert_equal TestMessage.transports, msg.transports
+    
+    # With no transport anywhere there is none, and publishing says so
+    unconfigured = Class.new(SmartMessage::Base) { property :content }.new(content: 'x', from: 'test_app')
+    assert_empty unconfigured.transports
+    assert_nil unconfigured.transport
+    assert unconfigured.transport_missing?
+    assert_raises(SmartMessage::Errors::TransportNotConfigured) { unconfigured.publish }
+  end
+
+  class SubscribeFailsTransport < SmartMessage::Transport::MemoryTransport
+    def subscribe(*) = raise(SmartMessage::Errors::TransportError, 'down')
+  end
+
+  class RollbackMessage < SmartMessage::Base
+    property :content
+    def self.process(_message) = nil
+  end
+
+  def test_a_subscribe_that_fails_partway_is_rolled_back
+    good  = SmartMessage::Transport::MemoryTransport.new
+    klass = RollbackMessage
+    name  = klass.name
+    handler_ids = -> { good.subscribers[name].map { |subscription| subscription[:subscriber_id] } }
+
+    klass.transport(good)
+    klass.subscribe
+    assert_equal ["#{name}.process"], handler_ids.call
+
+    klass.transport([good, SubscribeFailsTransport.new])
+    assert_raises(SmartMessage::Errors::TransportError) { klass.subscribe }
+    assert_raises(SmartMessage::Errors::TransportError) { klass.subscribe('Other.handle') }
+    assert_raises(SmartMessage::Errors::TransportError) { klass.subscribe { |_message| nil } }
+
+    assert_equal ["#{name}.process"], handler_ids.call, 'only the earlier subscription is left'
+    assert_empty SmartMessage::Subscription::PROC_HANDLERS.keys.grep(/\A#{Regexp.escape(name)}\./)
+  ensure
+    RollbackMessage.unsubscribe!
+    RollbackMessage.reset_transport
+    good&.dispatcher&.shutdown(timeout: 1)
+  end
+
+  def test_a_value_that_is_not_a_transport_is_rejected_when_set
+    klass = Class.new(SmartMessage::Base) { property :content }
+
+    error = assert_raises(ArgumentError) { klass.transport(:memory) }
+    assert_match(/Transport\.create\(:memory\)/, error.message)
+    assert_raises(ArgumentError) { klass.transport([SmartMessage::Transport::MemoryTransport.new, 'redis']) }
+    assert_raises(ArgumentError) { klass.new(content: 'x', from: 'test_app').transport(Object.new) }
+    assert_raises(ArgumentError) { SmartMessage.configuration.transport = :memory }
+    assert klass.transport_missing?
+
+    double = Object.new
+    def double.publish(*) = nil
+    def double.subscribe(*) = nil
+    klass.transport(double)
+    assert_same double, klass.transport
+  end
+
+  class Unrouted < SmartMessage::Base
+    from 'test_app'
+    property :content
+  end
+
+  def test_transport_not_configured_names_the_class_and_the_fix
+    [-> { Unrouted.new(content: 'x').publish }, -> { Unrouted.subscribe { |_m| nil } }].each do |action|
+      error = assert_raises(SmartMessage::Errors::TransportNotConfigured) { action.call }
+
+      assert_includes error.message, "MultiTransportTest::Unrouted has no transport configured"
+      assert_includes error.message, "transport SmartMessage::Transport.create(:memory)"
+      assert_includes error.message, "config.transport ="
+    end
   end
 
   # Test transport utility methods

@@ -7,6 +7,126 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **License**: `LICENSE.txt` with the MIT license and `spec.license = 'MIT'` in the gemspec, matching the README (#19)
+### Changed
+- **Errors**: the missing-`from` validation error names the message class and says how to set `from`; `TransportNotConfigured` says how to set a transport in the class or globally (#31)
+
+### Fixed
+- **Subscribe**: `subscribe` raises `ArgumentError` when given both a handler (a `"Class.method"` String or a proc/lambda) and a block, instead of silently ignoring the handler and subscribing only the block (#69)
+- **Dead letter queue**: a payload that a transport with a non-JSON serializer could not receive is stored with that serializer as its `payload_format`, so it can be decoded and replayed instead of failing every replay as JSON (#51)
+- **Deduplication**: the `key_prefix:` given to `ddq_storage :redis` is the root of the Redis key names instead of being overwritten with `smart_message:ddq`, so environments sharing a Redis server can keep their records apart (#53)
+- **Unsubscribe**: `unsubscribe` raises `ArgumentError` when given the handler lambda/proc itself instead of the id `subscribe` returned, instead of logging success and leaving the handler subscribed (#59)
+- **Validation**: a `required:` lambda that takes the message (`->(m) { m.kind == 'physical' }`) is given it, instead of raising `ArgumentError` and making the property always required (#58)
+- **Validation**: a `required:` callable object (one with `call(message)`) or a proc with an optional parameter (`proc { |m = nil| m.kind == 'physical' }`) is called with the message, instead of raising and making the property always required
+- **Validation**: a Module (`Enumerable`, `Comparable`) given as `validate:` is a type check and a Set is a list of allowed values, instead of rejecting every value (#57)
+- **Dead letter queue**: replay fails, and leaves the entry queued, when the payload names a different message class than the entry was stored for
+- **Subscribe**: when one transport's `subscribe` raises, the transports already subscribed by that call are unsubscribed again, so a failed `subscribe` leaves no live or orphaned subscription behind (#27)
+- **Transport setters**: `transport` (class and instance) and `config.transport=` raise `ArgumentError` for a value that is not a transport, such as `transport :memory`, instead of failing at subscribe/publish and dead-lettering the message (#26)
+- **Configuration**: `log_level` and `log_format` raise `ArgumentError` when set to an unknown value, instead of breaking every later `new` (bad level) or being ignored (bad format); Strings are accepted (#30)
+- **Gemspec links**: `homepage` points at the docs site and `documentation_uri` at its quick start, so rubygems.org shows distinct Homepage, Documentation and Source links (#32)
+- **Redis**: when the subscriber gives up after `reconnect_attempts`, `connected?` returns `false` while channels still have handlers; new `subscriber_alive?` reports it, and `connect` restarts the subscriber (#18)
+- **Docs/examples**: the global configuration page and example 14 set `dispatcher_max_threads`/`dispatcher_max_queue` before creating the transport, so the limits take effect; `Dispatcher#max_threads` and `#max_queue` report the limits in effect (#28)
+- **Receiving**: a payload whose message cannot be built (a bad `published_at`, a `coerce_key` that raises) is now a `DecodeError` and goes to the dead letter queue instead of being dropped; `RedisTransport` logs any other skipped message at `error` (#24)
+- **Subscribe**: a named handler that can never be called (a Symbol, a String without `Class.method`, a defined class without that class method, or a default `process` that is not implemented) raises `ArgumentError` at `subscribe` instead of dead-lettering every message (#20)
+- **Configuration**: `config.logger` accepts a `Pathname` as a log file (as does `Logger::Lumberjack`, which now creates its directory), and raises `ArgumentError` at assignment for values such as `:stdout` that are not a log target or logger (#25)
+- **Configuration**: `config.dlq_path = nil` (or blank) restores the default dead letter file instead of pointing the queue at the working directory (#29)
+- **Deduplication**: `clear_ddq!` and `ddq_stats` act only on the class's own handlers, no longer on a nested class such as `Order::Shipped` (#33)
+- **Transports**: `MemoryTransport` raises `ArgumentError` unless `max_messages` is a positive Integer, and `FileTransport` unless `poll_interval` is a positive number, instead of hanging or stalling delivery (#34)
+- **`pretty_print`**: no longer raises `NoMethodError` for a Hash property with Integer or `nil` keys (#35)
+- **Message class lookup**: a class name through a constant that is not a class or module (`SmartMessage::VERSION::X`) is an `UnknownMessageClass` like any other unknown name, instead of a `TypeError` from `subscribe` or a `DecodeError` from `Envelope.decode` (#70)
+- **FileTransport**: a line that cannot be received is logged once at `error` (by `receive`) instead of twice; the poller logs it again only at `debug`, as `RedisTransport` does (#67)
+- **Subscribe**: a named handler whose class part can never name a class (`'lower.handle'`, `'.process'`) raises `ArgumentError` instead of being accepted as "defined later", one through a constant that is not a module (`'Float::INFINITY::X.handle'`) raises `ArgumentError` instead of `TypeError`, and `check_named_handler!` is no longer a public class method (#68)
+- **Configuration**: `dispatcher_max_threads` and `dispatcher_max_queue` raise `ArgumentError` unless a positive Integer, and `shutdown_timeout` unless a positive number, instead of silently never running handlers (`max_threads` 0/nil), making the queue unbounded (`max_queue` 0) or breaking `SmartMessage.shutdown` with a `TypeError` (#66)
+
+### Tests
+- `test_dispatcher_routing` now asserts that both processors receive the routed message, and the dispatcher and subscribe tests no longer print debug output (#14)
+
+## [0.1.0] 2026-11-11
+
+A reliability release. It changes the public API in several places; the
+**Breaking** list below is the upgrade guide.
+
+### Breaking
+- **Ruby**: requires Ruby 4.0 or newer
+- **No default transport**: a message class with no transport no longer falls back to a Redis connection. Set one on the class, or globally with `SmartMessage.configure { |config| config.transport = ... }`. Publishing or subscribing without one raises `SmartMessage::Errors::TransportNotConfigured`
+- **`publish` returns a `SmartMessage::PublishResult`** (`success?`, `partial?`, `failure?`, `successful`, `failed`, `errors`, `outcomes`) instead of a count. When every transport fails it raises `SmartMessage::Errors::PublishError` (the result is on `error.result`). `Transport#publish` raises the transport's own error instead of returning a fallback Hash
+- **Validation happens in one place**: `new` no longer raises for a missing required property or a missing `from`. `valid?`, `validation_errors` and `validate!` report them, and `publish` calls `validate!`. `validate!` raises `SmartMessage::Errors::ValidationError` (all failures on `error.errors`)
+- **Reserved property names**: declaring a property named `from`, `to`, `reply_to`, `uuid`, `publish`, `transport`, `transports`, `config`, `logger`, `validate!`, `valid?`, `validation_errors`, `to_h`, `to_hash`, `message_header`, or anything starting with `_sm_` raises `SmartMessage::Errors::ReservedPropertyName` when the class is defined
+- **Message hashes**: nested Hashes keep the keys they were given (no indifferent access below the top level), and `to_h` returns the header as a plain Hash under `:_sm_header`
+- **Class settings are inherited the same way everywhere**: transport, logger, version, addressing, DDQ settings, validators, and property descriptions are read from the class, else its parent; a subclass can no longer change its parent or a sibling. `description` is not inherited
+- **Logging is off unless configured**: with no `config.logger`, nothing is logged and no `log/` directory is created. Loggers share one interface (`SmartMessage::Logger::Base`); the Lumberjack JSON format nests keyword data under `data`
+- **Dead letter queue location**: the default file is `$SMART_MESSAGE_DLQ_PATH`, else `$XDG_STATE_HOME/smart_message/dead_letters.jsonl` (`~/.local/state/...`), no longer `dead_letters.jsonl` in the working directory. Set `config.dlq_path` to choose
+- **Deduplication API**: the queues belong to the dispatcher (one per handler per message class). Removed `duplicate?`, `mark_as_processed!`, `duplicate_uuid?`, and `get_ddq_instance`; `ddq_stats` returns `{ enabled:, queues: { "Class:handler" => stats } }`. DDQ backends gained atomic `reserve`/`release`. The Redis backend stores one key per UUID with a TTL (`ttl:` option) instead of a list and a set
+- **Circuit breakers**: one circuit per transport instance and one per handler per message class, each with its own in-memory state; `storage: :redis` is gone. `SmartMessage::CircuitBreaker::Fallbacks` procs take the error only. Serializers are no longer wrapped in a circuit: they raise `SerializationError` / `DecodeError`
+- **File transport**: now append-only JSON Lines with a tailing poller. Removed FIFO support, the async publish queue, file rotation, partitioned files, and their options (`file_type`, `async`, `rotate_size`, `directory`, `subscription_mode`, and the rest). `file_path:` is required
+- **Stdout transport**: no longer inherits from the file transport. Options are `output:` (an IO) and `loopback:`; it never closes the IO
+- **Memory transport**: stored entries are `{ message_class:, payload:, published_at: }`; messages are stored only when `auto_process: false` (or `store_messages: true`); `process_all` removes what it delivers
+- **Redis transport**: publishing or subscribing after `disconnect` raises `SmartMessage::Errors::TransportError` until `connect` is called; `subscribe` returns once Redis has confirmed the subscription, or raises after `subscribe_timeout` seconds
+- **`Transport.create`** raises `ArgumentError` for an unknown name instead of returning nil
+- **Removed**: `SimpleStats` (use `SmartMessage::Stats`), `SmartMessage::Base.decode`, `Errors::SerializerNotConfigured`, the `_version` accessor, and the `activesupport`, `async`, `async-redis`, and `colorize` dependencies
+- **`MessageClass.header`** takes a block only; any other call raises `ArgumentError`
+
+### Added
+- **`SmartMessage::PublishResult`** with one `Outcome` per transport
+- **`SmartMessage::Envelope`**: the single codec used by every transport. Decoding only builds classes that inherit from `SmartMessage::Base`, checks the class named in the header against the channel the payload arrived on, and passes only declared properties to the message
+- **Header extensions**: header fields this version does not know are kept in `header.extensions` and survive a round trip
+- **Delivery guarantees**: a message that could not be published, a payload that could not be decoded, a handler that raised, a call rejected by an open circuit, and a handler killed at shutdown each put the message in the dead letter queue
+- **`SmartMessage.shutdown(timeout:)`** and `Dispatcher#shutdown(timeout:)` wait for running handlers; one `at_exit` hook replaces the per-dispatcher hooks
+- **Bounded dispatcher**: `config.dispatcher_max_threads` and `config.dispatcher_max_queue`; a full queue slows the publisher down instead of growing
+- **Redis namespace**: `RedisTransport.new(namespace: 'staging')` prefixes every channel. Pub/sub channels are global to a Redis server, so the `db` number does not separate environments
+- **`:file` transport** in the registry; `SmartMessage::Transport.create(:file, file_path: ...)`
+- **`SmartMessage::CircuitBreaker.with_retries`**: a bounded retry loop with exponential backoff
+- **`DeadLetterQueue#enqueue_raw`** for payloads that could not be decoded, and an `id` on every entry
+- **`config.dlq_path`**, `config.shutdown_timeout`, `SmartMessage.configuration=`
+- **Test CI**: GitHub Actions workflow runs `bundle exec rake test` with a Redis service on Ruby 4.0 and 4.1.0-preview1 for pushes and pull requests to `main` and `develop`
+- **Tests**: 443 tests, none skipped when Redis is available (was 319 with 27 skipped); every test run uses its own temporary directory and Redis namespace
+
+### Fixed
+- **Lost messages**: a failed publish was counted and reported as a success
+- **Shared class state**: setting a transport, logger, or addressing value on one message class changed other classes; versioned subclasses built messages that failed their own validation; subclasses did not enforce their parent's validators
+- **Caller data**: building a message converted the caller's nested Hashes in place and shared them with the message
+- **Dispatcher**: one failing handler opened the circuit for every handler; handlers shared one message object; an exception in a pool task was discarded; unsubscribing during delivery could raise; the thread pool and its queue were unbounded
+- **Deduplication**: two concurrent deliveries of one message could both run the handler; a failed handler left the message marked as processed; `enable_deduplication!` without `ddq_size` used a nil size
+- **Dead letter queue**: concurrent writers and a replay could corrupt or drop entries; a failed replay removed the entry, or added a second copy of it; a corrupt line stopped every later read; `inspect_messages(limit:)` returned `[]` whenever the queue held more than `limit` entries
+- **Redis transport**: changing subscriptions restarted the subscriber and dropped messages published meanwhile; a lost subscriber connection ended the subscriber thread without a trace; `subscribe` returned before Redis had confirmed
+- **Stdout transport**: `disconnect` closed `$stdout`
+- **Circuit breakers**: circuit state changes were printed to `$stdout` whatever the logger configuration; they now go to the SmartMessage logger
+- **Loggers**: the Default and Null loggers did not accept the calls the Lumberjack logger accepts; a logger was rebuilt (and its file reopened) on every use; the Default logger had no `level=`
+- **Coercion**: `coerce_key` declarations were ignored for values set after construction and for the header's `published_at`
+- **Packaging**: the gem shipped log files, editor settings, and a backup file; the gemspec listed dependencies the code never loaded and missed `concurrent-ruby`
+
+### Changed
+- **JSON encoding** no longer depends on which JSON extensions are loaded: `Time` is always ISO 8601 with microseconds, `BigDecimal` is plain decimal notation
+- Docs: removed an unused polyfill script from the docs site
+
+### Removed
+- **Travis CI**: Deleted the unused `.travis.yml` (Ruby 2.6, bundler 1.16.5)
+
+## [0.0.18] 2026-10-19
+
+### Changed
+- **Ruby 4.1 Support**: Runs and passes its test suite on Ruby 4.1.0-preview1
+  - **Ruby Version**: Added `.ruby-version` pinning 4.1.0-preview1
+  - **Dependencies**: Updated all gems (`bundle update --all`) and re-locked with bundler 4.1.0.beta2; bundler 2.7.1 crashes on Ruby 4.1
+  - **Test Dependencies**: Added `minitest-mock` development dependency; minitest 6 moved `Minitest::Mock` into a separate gem
+- **Lumberjack 2.x Logger**: Ported `SmartMessage::Logger::Lumberjack` to the Lumberjack 2.x API
+  - **Constructor**: Options passed as keywords instead of a positional hash
+  - **Log Rotation**: `roll_by_size`, `roll_by_date`, and `date_pattern` now map to standard library Logger rotation arguments
+  - **Templates**: Console and file output share one line template; `entry.attributes` replaces the removed `entry.tags`
+- **Pretty Printing**: `pretty_print` uses amazing_print when installed and falls back to the standard library `pp`
+
+### Fixed
+- **Duplicate Keys in `to_h`**: `Base#to_h` returned every property twice (nil Symbol keys plus String keys)
+  - **Cause**: `Hashie::Dash#to_h` merges Symbol-keyed defaults with the String keys stored by `IndifferentAccess`
+  - **Impact**: json 3.x raises on duplicate keys, so every JSON encode failed silently behind the serializer circuit breaker
+  - **Solution**: `to_h` builds one Symbol key per declared property; `to_hash` is now an alias
+- **amazing_print 3.x Load Crash**: Loading amazing_print after SmartMessage raised `NoMethodError` / `NameError`
+  - **Solution**: SmartMessage loads ActiveSupport's `Object#try` and `LogSubscriber` before anything requires amazing_print
+  - **Load Time**: `SimpleStats` no longer requires the development-only `ap` gem at load time
+- **Lumberjack JSON Format**: JSON log output crashed because `json` was never required
+- **Structured Log Attributes**: The log message text no longer leaks into each entry's structured attributes
+
 ## [0.0.17] 2025-09-11
 
 ### Enhanced

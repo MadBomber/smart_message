@@ -1,13 +1,21 @@
 #!/usr/bin/env ruby
 # compare_benchmarks.rb
 #
-# Compares benchmark results between multiple subjects/implementations
-# Usage: ruby compare_benchmarks.rb subject1 subject2 [subject3 ...]
-# Will find and compare JSON files for each subject
+# Compares the results of performance_benchmark.rb runs made with
+# different subject labels.
+#
+#   bundle exec ruby -Ilib examples/performance_metrics/compare_benchmarks.rb subject1 subject2 [subject3 ...]
+#
+# Reads the most recent benchmark_results_<subject>_*.json for each subject
+# from BENCHMARK_RESULTS_DIR (default: <tmpdir>/smart_message_benchmarks),
+# the directory performance_benchmark.rb writes to.
 
 require 'json'
 require 'optparse'
 require 'fileutils'
+require 'tmpdir'
+
+RESULTS_DIR = ENV.fetch('BENCHMARK_RESULTS_DIR') { File.join(Dir.tmpdir, 'smart_message_benchmarks') }
 
 # Try to load visualization gems, but don't fail if they're not available
 begin
@@ -15,9 +23,11 @@ begin
   GRAPHICS_AVAILABLE = true
 rescue LoadError
   GRAPHICS_AVAILABLE = false
-  puts "📊 Note: Install 'unicode_plot' gem for graphical visualizations"
-  puts "  Run: gem install unicode_plot"
-  puts ""
+  puts <<~NOTE
+    📊 Note: Install 'unicode_plot' gem for graphical visualizations
+      Run: gem install unicode_plot
+
+  NOTE
 end
 
 class BenchmarkComparator
@@ -54,7 +64,7 @@ class BenchmarkComparator
   def load_subject_data
     @subjects.each do |subject|
       # Find the most recent JSON file for this subject
-      pattern = "benchmark_results_#{subject}_*.json"
+      pattern = File.join(RESULTS_DIR, "benchmark_results_#{subject}_*.json")
       matching_files = Dir.glob(pattern).sort_by { |f| File.mtime(f) }
       
       if matching_files.empty?
@@ -187,11 +197,13 @@ class BenchmarkComparator
     puts "\nPlatform Information:"
     @subjects.each_with_index do |subject, index|
       platform_info = @subject_data[subject]['benchmark_info']
-      puts "  #{subject.upcase}:"
-      puts "    Ruby Version: #{platform_info['ruby_version']}"
-      puts "    Platform:     #{platform_info['platform']}"
-      puts "    Processors:   #{platform_info['processors'] || platform_info['processor_count']}"
-      puts "    Timestamp:    #{platform_info['timestamp']}"
+      puts <<~PLATFORM.gsub(/^(?=.)/, '  ')
+        #{subject.upcase}:
+          Ruby Version: #{platform_info['ruby_version']}
+          Platform:     #{platform_info['platform']}
+          Processors:   #{platform_info['processors'] || platform_info['processor_count']}
+          Timestamp:    #{platform_info['timestamp']}
+      PLATFORM
       puts "" unless index == @subjects.length - 1
     end
   end
@@ -224,9 +236,11 @@ class BenchmarkComparator
     fastest_runtime = overall_metrics.min_by { |_, metrics| metrics[:runtime] }
     lowest_memory = overall_metrics.min_by { |_, metrics| metrics[:memory] }
     
-    puts "  🚀 Highest Throughput: #{best_throughput[0].upcase} (#{best_throughput[1][:throughput].round(1)} msg/sec)"
-    puts "  ⚡ Fastest Runtime:     #{fastest_runtime[0].upcase} (#{fastest_runtime[1][:runtime].round(3)}s)"
-    puts "  💾 Lowest Memory:      #{lowest_memory[0].upcase} (#{lowest_memory[1][:memory].round(2)} MB)"
+    puts <<~WINNERS.gsub(/^(?=.)/, '  ')
+      🚀 Highest Throughput: #{best_throughput[0].upcase} (#{best_throughput[1][:throughput].round(1)} msg/sec)
+      ⚡ Fastest Runtime:     #{fastest_runtime[0].upcase} (#{fastest_runtime[1][:runtime].round(3)}s)
+      💾 Lowest Memory:      #{lowest_memory[0].upcase} (#{lowest_memory[1][:memory].round(2)} MB)
+    WINNERS
 
     # Scenario-by-scenario winners
     puts "\n📊 SCENARIO WINNERS:"
@@ -265,10 +279,13 @@ class BenchmarkComparator
     puts "     - Balanced combination of throughput and memory efficiency"
     
     # Generate optimization suggestions
-    puts "\n🔧 OPTIMIZATION SUGGESTIONS:"
-    puts "  • Test with larger message volumes to validate scalability"
-    puts "  • Profile CPU utilization patterns during peak loads"
-    puts "  • Consider workload-specific optimizations based on scenario winners"
+    puts <<~SUGGESTIONS
+
+      🔧 OPTIMIZATION SUGGESTIONS:
+        • Test with larger message volumes to validate scalability
+        • Profile CPU utilization patterns during peak loads
+        • Consider workload-specific optimizations based on scenario winners
+    SUGGESTIONS
     
     # Check for significant memory differences
     memory_values = overall_metrics.values.map { |m| m[:memory] }
@@ -293,9 +310,12 @@ class BenchmarkComparator
   end
   
   def generate_visualizations
-    puts "\n" + "=" * 80
-    puts "📊 GRAPHICAL VISUALIZATIONS"
-    puts "=" * 80
+    puts <<~HEADING
+
+      #{'=' * 80}
+      📊 GRAPHICAL VISUALIZATIONS
+      #{'=' * 80}
+    HEADING
     
     # Show color legend for subjects
     puts "\n🎨 Color Legend:"
@@ -491,17 +511,20 @@ end
 # Command line interface
 if __FILE__ == $0
   if ARGV.length < 2
-    puts "Usage: ruby compare_benchmarks.rb subject1 subject2 [subject3 ...]"
-    puts ""
-    puts "Compares benchmark results between multiple subjects/implementations."
-    puts "Will automatically find the most recent JSON file for each subject."
-    puts ""
-    puts "Example:"
-    puts "  ruby compare_benchmarks.rb threadpool ractor"
-    puts "  ruby compare_benchmarks.rb threadpool ractor async_queue"
-    puts ""
-    puts "Available benchmark files:"
-    Dir.glob("benchmark_results_*.json").group_by { |f| f.match(/benchmark_results_(.+?)_\d+_\d+\.json/)[1] rescue "unknown" }.each do |subject, files|
+    puts <<~USAGE
+      Usage: ruby compare_benchmarks.rb subject1 subject2 [subject3 ...]
+
+      Compares benchmark results between multiple subjects/implementations.
+      Will automatically find the most recent JSON file for each subject.
+
+      Example:
+        ruby performance_benchmark.rb baseline
+        BENCHMARK_MAX_THREADS=4 ruby performance_benchmark.rb four_threads
+        ruby compare_benchmarks.rb baseline four_threads
+
+      Available benchmark files in #{RESULTS_DIR}:
+    USAGE
+    Dir.glob(File.join(RESULTS_DIR, "benchmark_results_*.json")).group_by { |f| f.match(/benchmark_results_(.+?)_\d+_\d+\.json/)[1] rescue "unknown" }.each do |subject, files|
       puts "  #{subject}: #{files.length} file(s), latest: #{files.sort_by { |f| File.mtime(f) }.last}"
     end
     exit 1

@@ -34,6 +34,57 @@ class ProcHandlerTest < Minitest::Test
     end
   end
 
+  module Service
+    def self.handle(_message) = nil
+  end
+
+  class Unimplemented < SmartMessage::Base
+    from 'test-service'
+    property :content
+
+    def process(_message) = nil # an instance method: never called
+  end
+
+  def test_a_named_handler_that_cannot_be_called_fails_the_subscribe
+    TestMessage.transport @transport
+    Unimplemented.transport @transport
+
+    {
+      'ProcHandlerTest::Service.missing'  => /has no class method missing/,
+      'ProcHandlerTest::Service'          => /Class\.method/,
+      :process                            => /must be a "Class\.method" String/,
+      '.process'                          => /"" is not a class name/,
+      'lower.handle'                      => /"lower" is not a class name/,
+      'Float::INFINITY::X.handle'         => /does not name a class or module/
+    }.each do |handler, message|
+      error = assert_raises(ArgumentError, handler.inspect) { TestMessage.subscribe(handler) }
+      assert_match message, error.message
+    end
+
+    error = assert_raises(ArgumentError) { Unimplemented.subscribe }
+    assert_match(/not implemented.*def self\.process/, error.message)
+    assert_empty @transport.subscribers
+
+    # a class that is not defined yet may be defined after the subscription
+    assert_equal 'ProcHandlerTest::DefinedLater.handle', TestMessage.subscribe('ProcHandlerTest::DefinedLater.handle')
+    assert_equal '::ProcHandlerTest::AlsoLater.handle', TestMessage.subscribe('::ProcHandlerTest::AlsoLater.handle')
+    refute TestMessage.respond_to?(:check_named_handler!), 'an internal helper, not public API'
+  ensure
+    Unimplemented.reset_transport
+  end
+
+  def test_a_handler_and_a_block_together_fail_the_subscribe
+    TestMessage.transport @transport
+    before = SmartMessage::Subscription::PROC_HANDLERS.size
+
+    ['ProcHandlerTest::Service.handle', ->(_message) {}].each do |handler|
+      error = assert_raises(ArgumentError, handler.inspect) { TestMessage.subscribe(handler) { |_message| } }
+      assert_match(/a handler or a block, not both/, error.message)
+    end
+    assert_empty @transport.subscribers
+    assert_equal before, SmartMessage::Subscription::PROC_HANDLERS.size, 'no proc handler is registered'
+  end
+
   def test_default_subscribe_still_works
     TestMessage.transport @transport
 
@@ -213,6 +264,23 @@ class ProcHandlerTest < Minitest::Test
     refute TestMessage.proc_handler?(handler_id)
   end
 
+  def test_unsubscribe_with_the_handler_itself_raises_and_keeps_the_subscription
+    TestMessage.transport @transport
+    handler    = ->(_message) {}
+    handler_id = TestMessage.subscribe(handler)
+
+    error = assert_raises(ArgumentError) { TestMessage.unsubscribe(handler) }
+    assert_match(/id .*subscribe returned/, error.message)
+    assert TestMessage.proc_handler?(handler_id), 'nothing is unsubscribed'
+
+    TestMessage.unsubscribe(handler_id)
+    refute TestMessage.proc_handler?(handler_id)
+  end
+
+  def test_unsubscribe_with_a_method_object_raises
+    assert_raises(ArgumentError) { TestMessage.unsubscribe(Service.method(:handle)) }
+  end
+
   def test_proc_handler_with_message_header
     TestMessage.transport @transport
 
@@ -311,10 +379,9 @@ class ProcHandlerTest < Minitest::Test
     # Unsubscribe all handlers for this message class
     TestMessage.unsubscribe!
 
-    # Registry should still contain the procs since unsubscribe! doesn't clean individual procs
-    # This is expected behavior - unsubscribe! only removes from dispatcher
-    assert TestMessage.proc_handler?(id1)
-    assert TestMessage.proc_handler?(id2)
+    # unsubscribe! removes the class's procs from the registry too
+    refute TestMessage.proc_handler?(id1)
+    refute TestMessage.proc_handler?(id2)
   end
 
   def test_subscription_return_values
@@ -324,8 +391,8 @@ class ProcHandlerTest < Minitest::Test
     default_id = TestMessage.subscribe
     assert_equal "ProcHandlerTest::TestMessage.process", default_id
 
-    method_id = TestMessage.subscribe("SomeClass.some_method")
-    assert_equal "SomeClass.some_method", method_id
+    method_id = TestMessage.subscribe("ProcHandlerTest::Service.handle")
+    assert_equal "ProcHandlerTest::Service.handle", method_id
 
     block_id = TestMessage.subscribe { |message| }
     assert block_id.start_with?("ProcHandlerTest::TestMessage.proc_")

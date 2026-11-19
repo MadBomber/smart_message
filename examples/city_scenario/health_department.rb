@@ -1,100 +1,76 @@
 #!/usr/bin/env ruby
-# examples/multi_program_demo/health_department.rb
+# examples/city_scenario/health_department.rb
+# frozen_string_literal: true
+#
+# Broadcasts a health check every few seconds, shows the status each city
+# service sends back, and reports resolved emergencies.
 
-HEALTH_CHECK_RATE = 5 # seconds; setting to zero gets overruns and 1300+ msg/sec
-
-require_relative '../../lib/smart_message'
+require_relative 'common/service'
 require_relative 'messages/health_check_message'
 require_relative 'messages/health_status_message'
-
-require_relative 'common/logger'
+require_relative 'messages/emergency_resolved_message'
 
 class HealthDepartment
-  include Common::Logger
+  include Common::Service
+
+  NAME              = 'health-department'
+  HEALTH_CHECK_RATE = Float(ENV.fetch('CITY_HEALTH_CHECK_RATE', '5')) # seconds
+  STATUS_COLORS     = {
+    'healthy'  => "\e[32m", # green
+    'warning'  => "\e[33m", # yellow
+    'critical' => "\e[93m", # orange
+    'failed'   => "\e[31m"  # red
+  }.freeze
 
   def initialize
-    @service_name  = 'health-department'
-    Messages::HealthCheckMessage.from = @service_name
+    setup_service(NAME)
     @check_id = 0
-
     setup_messaging
-    setup_signal_handlers
-  end
-
-  def setup_logging
-    log_file = File.join(__dir__, 'health_department.log')
-    logger = Logger.new(log_file)
-    logger.level = Logger::INFO
-    logger.formatter = proc do |severity, datetime, progname, msg|
-      "#{datetime.strftime('%Y-%m-%d %H:%M:%S')} [#{severity}] #{msg}\n"
-    end
-    logger.info("Health Department logging started")
   end
 
   def setup_messaging
-    # Subscribe to all broadcast health status messages
-    Messages::HealthStatusMessage.subscribe(broadcast: true, to: @service_name) do |message|
-      # Process health status message with colored output
-      status_color = case message.status
-                    when 'healthy' then "\e[32m"    # Green
-                    when 'warning' then "\e[33m"    # Yellow
-                    when 'critical' then "\e[93m"   # Orange
-                    when 'failed' then "\e[31m"     # Red
-                    else "\e[0m"                     # Reset
-                    end
+    # Services address their status to the sender of the health check.
+    Messages::HealthStatusMessage.subscribe(to: NAME) { |status| show_status(status) }
+    Messages::EmergencyResolvedMessage.subscribe(broadcast: true) { |resolved| show_resolution(resolved) }
 
-      puts "#{status_color}#{message.service_name}: #{message.status.upcase}\e[0m #{message.details}"
-      logger.info("Received health status: #{message.service_name} = #{message.status} (#{message.details})")
-    end
+    puts <<~BANNER
+      🏥 Health Department started
+         Broadcasting a HealthCheck every #{HEALTH_CHECK_RATE} seconds
+         Logging to: #{Common::City.log_file(NAME)}
+         Press Ctrl+C to stop
 
-    puts "🏥 Health Department started"
-    puts "   Monitoring city services health status..."
-    puts "   Will send HealthCheck broadcasts every 5 seconds"
-    puts "   Logging to: health_department.log"
-    puts "   Press Ctrl+C to stop\n\n"
-    logger.info("Health Department started monitoring city services")
-  end
-
-  def setup_signal_handlers
-    %w[INT TERM].each do |signal|
-      Signal.trap(signal) do
-        puts "\n🏥 Health Department shutting down..."
-        logger.info("Health Department shutting down")
-        exit(0)
-      end
-    end
+    BANNER
+    logger.info('Health Department started monitoring city services')
   end
 
   def start_monitoring
-    loop do
-      send_health_check
-      sleep(HEALTH_CHECK_RATE)
-    end
-  rescue => e
-    puts "🏥 Error in health monitoring: #{e.message}"
-    logger.error("Error in health monitoring: #{e.message}")
-    retry
+    reason = run_service(HEALTH_CHECK_RATE) { send_health_check }
+    shutdown_service(reason, 'Health Department shutting down...')
   end
 
-  private
-
+  # @return [Messages::HealthCheckMessage] the published health check
   def send_health_check
     @check_id += 1
-
-    health_check = Messages::HealthCheckMessage.new(check_id: @check_id)
-
-    puts
-    puts "🏥 Broadcasting health check ##{@check_id} (#{health_check.uuid[0..7]}...)"
-    logger.info("Broadcasting health check ##{@check_id}")
-
+    health_check = Messages::HealthCheckMessage.new(check_id: @check_id, from: NAME)
     health_check.publish
-  rescue => e
-    puts "🏥 Error sending health check: #{e.message}"
-    logger.error("Error sending health check: #{e.message}")
+
+    puts "\n🏥 Broadcasting health check ##{@check_id} (#{health_check.uuid[0..7]}...)"
+    logger.info("Broadcasting health check ##{@check_id}")
+    health_check
   end
+
+  def show_status(status)
+    color = STATUS_COLORS.fetch(status.status, "\e[0m")
+    puts "#{color}#{status.service_name}: #{status.status.upcase}\e[0m #{status.details}"
+    logger.info("Received health status: #{status.service_name} = #{status.status} (#{status.details})")
+  end
+
+  def show_resolution(resolved)
+    puts "✅ #{resolved.resolved_by} resolved #{resolved.incident_type} at #{resolved.location}: #{resolved.outcome}"
+    logger.info("Incident #{resolved.incident_id} resolved by #{resolved.resolved_by}: #{resolved.outcome}")
+  end
+
+  def service_emoji = '🏥'
 end
 
-if __FILE__ == $0
-  health_dept = HealthDepartment.new
-  health_dept.start_monitoring
-end
+HealthDepartment.new.start_monitoring if __FILE__ == $PROGRAM_NAME

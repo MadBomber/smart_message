@@ -1,195 +1,65 @@
 #!/usr/bin/env ruby
-# examples/10_message_deduplication.rb
+# examples/memory/01_message_deduplication_demo.rb
+# frozen_string_literal: true
+#
+# Message deduplication with the Deduplication Queue (DDQ)
+#
+# A class that calls enable_deduplication! gets one queue of recently seen
+# message UUIDs per handler.  A second delivery of the same UUID to the same
+# handler is skipped.  The queues belong to the transport's dispatcher.
 
-require_relative '../../lib/smart_message'
+require_relative '../support/example_helper'
+require_relative 'messages/invoice_message'
+require_relative 'messages/reminder_message'
 
-# Example demonstrating message deduplication with DDQ (Deduplication Queue)
+TRANSPORT = SmartMessage::Transport::MemoryTransport.new
+InvoiceMessage.transport(TRANSPORT)
+ReminderMessage.transport(TRANSPORT)
 
-# Message class with deduplication enabled
-class OrderMessage < SmartMessage::Base
-  version 1
-  property :order_id, required: true
-  property :amount, required: true
-  
-  from "order-service"
-  
-  # Configure deduplication
-  ddq_size 100            # Keep track of last 100 message UUIDs
-  ddq_storage :memory     # Use memory storage (could be :redis)
-  enable_deduplication!   # Enable deduplication for this message class
-  
-  def self.process(message)
-    puts "✅ Processing order: #{message.order_id} for $#{message.amount}"
-    @@processed_orders ||= []
-    @@processed_orders << message.order_id
-  end
-  
-  def self.processed_orders
-    @@processed_orders || []
-  end
-  
-  def self.clear_processed
-    @@processed_orders = []
-  end
+# Publish the same message object (so the same UUID) +times+ times.
+def deliver_repeatedly(message, times)
+  times.times { message.publish }
+  Example.wait_for_idle(TRANSPORT)
 end
 
-# Regular message class without deduplication
-class NotificationMessage < SmartMessage::Base
-  version 1
-  property :message, required: true
-  property :recipient, required: true
-  
-  from "notification-service"
-  
-  def self.process(message)
-    puts "📧 Sending: '#{message.message}' to #{message.recipient}"
-    @@sent_notifications ||= []
-    @@sent_notifications << { message: message.message, recipient: message.recipient }
-  end
-  
-  def self.sent_notifications
-    @@sent_notifications || []
-  end
-  
-  def self.clear_processed
-    @@sent_notifications = []
-  end
+Example.title 'Message deduplication'
+
+Example.section 'A deduplicated class handles a redelivered message once'
+InvoiceMessage.subscribe # => InvoiceMessage.process
+invoice = InvoiceMessage.new(invoice_id: 'INV-1', amount: 250.0)
+deliver_repeatedly(invoice, 3)
+
+handler = 'InvoiceMessage.process'
+Example.check('the invoice was booked once out of three deliveries') do
+  Example.inbox[:invoices] == ['INV-1']
+end
+Example.check('two deliveries were counted as duplicates') do
+  SmartMessage::Stats.get('InvoiceMessage', handler, 'duplicate') == 2
 end
 
-def demonstrate_deduplication
-  puts "=== SmartMessage Deduplication Demo ==="
-  puts
-  
-  # Setup transport and subscriptions
-  transport = SmartMessage::Transport::MemoryTransport.new
-  
-  OrderMessage.transport(transport)
-  OrderMessage.subscribe('OrderMessage.process')
-  
-  NotificationMessage.transport(transport)
-  NotificationMessage.subscribe('NotificationMessage.process')
-  
-  # Clear any previous state
-  OrderMessage.clear_processed
-  NotificationMessage.clear_processed
-  OrderMessage.clear_ddq!
-  
-  puts "📊 DDQ Configuration:"
-  config = OrderMessage.ddq_config
-  puts "  - Enabled: #{config[:enabled]}"
-  puts "  - Size: #{config[:size]}"
-  puts "  - Storage: #{config[:storage]}"
-  puts
-  
-  # Create a specific UUID for testing duplicates
-  uuid = SecureRandom.uuid
-  puts "🔍 Testing with UUID: #{uuid}"
-  puts
-  
-  # Test 1: OrderMessage with deduplication
-  puts "--- Test 1: OrderMessage (with deduplication) ---"
-  
-  # First message (create normally, then set UUID for testing)
-  order1 = OrderMessage.new(
-    order_id: "ORD-001", 
-    amount: 99.99
-  )
-  # Override UUID for deduplication testing
-  order1._sm_header.uuid = uuid
-  
-  puts "Publishing first order message..."
-  order1.publish
-  sleep 0.1  # Allow processing
-  
-  # Second message with SAME UUID (should be deduplicated)
-  order2 = OrderMessage.new(
-    order_id: "ORD-002", 
-    amount: 149.99
-  )
-  # Use same UUID to test deduplication
-  order2._sm_header.uuid = uuid
-  
-  puts "Publishing duplicate order message (same UUID)..."
-  order2.publish
-  sleep 0.1  # Allow processing
-  
-  puts "📈 Results:"
-  puts "  - Processed orders: #{OrderMessage.processed_orders.length}"
-  puts "  - Orders: #{OrderMessage.processed_orders}"
-  puts
-  
-  # Test 2: NotificationMessage without deduplication
-  puts "--- Test 2: NotificationMessage (no deduplication) ---"
-  
-  # First notification (create normally, then set UUID)
-  notif1 = NotificationMessage.new(
-    message: "Order confirmed", 
-    recipient: "customer@example.com"
-  )
-  # Use same UUID as orders to show deduplication is per-message-class
-  notif1._sm_header.uuid = uuid
-  
-  puts "Publishing first notification..."
-  notif1.publish
-  sleep 0.1
-  
-  # Second notification with same UUID (should NOT be deduplicated)
-  notif2 = NotificationMessage.new(
-    message: "Order shipped", 
-    recipient: "customer@example.com"
-  )
-  # Use same UUID - NotificationMessage doesn't have deduplication enabled
-  notif2._sm_header.uuid = uuid
-  
-  puts "Publishing duplicate notification (same UUID)..."
-  notif2.publish
-  sleep 0.1
-  
-  puts "📈 Results:"
-  puts "  - Sent notifications: #{NotificationMessage.sent_notifications.length}"
-  puts "  - Notifications: #{NotificationMessage.sent_notifications}"
-  puts
-  
-  # Show DDQ statistics
-  puts "📊 DDQ Statistics:"
-  stats = OrderMessage.ddq_stats
-  if stats[:enabled]
-    puts "  - Current count: #{stats[:current_count]}"
-    puts "  - Utilization: #{stats[:utilization]}%"
-    puts "  - Storage type: #{stats[:storage_type]}"
-  else
-    puts "  - DDQ not enabled"
-  end
+Example.section 'A class without deduplication handles every delivery'
+ReminderMessage.subscribe
+deliver_repeatedly(ReminderMessage.new(invoice_id: 'INV-1', text: 'Payment due'), 3)
+Example.check('the reminder was handled three times') { Example.inbox.count(:reminders) == 3 }
+Example.check('ReminderMessage reports deduplication as off') { ReminderMessage.ddq_stats == { enabled: false } }
+
+Example.section 'Each handler has its own queue'
+InvoiceMessage.subscribe { |message| Example.inbox.add(:audit, message.invoice_id) }
+deliver_repeatedly(invoice, 2)
+Example.check('the new handler saw INV-1 once; the first handler skipped it again') do
+  Example.inbox[:audit] == ['INV-1'] && Example.inbox[:invoices] == ['INV-1']
 end
 
-def demonstrate_memory_efficiency
-  puts
-  puts "=== Memory Usage Demonstration ==="
-  puts
-  
-  # Show memory usage for different DDQ sizes
-  test_sizes = [10, 100, 1000]
-  
-  test_sizes.each do |size|
-    memory_usage = size * 48  # Approximate bytes per UUID
-    puts "DDQ size #{size}: ~#{memory_usage} bytes (~#{(memory_usage / 1024.0).round(1)} KB)"
-  end
-  
-  puts
-  puts "💡 Memory is very reasonable - even 1000 entries uses less than 50KB!"
+stats = InvoiceMessage.ddq_stats
+puts "  ddq_config: #{InvoiceMessage.ddq_config}"
+stats[:queues].each { |name, queue| puts "  #{name}: #{queue}" }
+Example.check('ddq_stats lists one queue per handler, each holding one UUID') do
+  stats[:enabled] && stats[:queues].size == 2 && stats[:queues].values.all? { it[:current_count] == 1 }
 end
 
-if __FILE__ == $0
-  demonstrate_deduplication
-  demonstrate_memory_efficiency
-  
-  puts
-  puts "✨ Key Benefits:"
-  puts "  - O(1) duplicate detection"
-  puts "  - Configurable queue size"
-  puts "  - Memory or Redis storage"
-  puts "  - Per-message-class configuration"
-  puts "  - Automatic integration with dispatcher"
-  puts
-  puts "🚀 Ready for production multi-transport scenarios!"
-end
+Example.section 'clear_ddq! forgets what was seen'
+InvoiceMessage.clear_ddq!
+deliver_repeatedly(invoice, 1)
+Example.check('after clear_ddq! the same UUID is handled again') { Example.inbox.count(:invoices) == 2 }
+
+Example.finish
