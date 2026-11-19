@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Intelligent messages that know what to do and how to do it">
+        <meta name="description" content="A Ruby messaging framework that separates messages from their transports">
       
       
         <meta name="author" content="madbomber">
@@ -15,14 +15,17 @@
         <link rel="canonical" href="https://madbomber.github.io/smart_message/reference/serializers/">
       
       
-        <link rel="prev" href="../transports/">
+        <link rel="prev" href="../publishing/">
       
       
         <link rel="next" href="../logging/">
       
       
-      <link rel="icon" href="../../assets/smart_message.jpg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.19">
+        
+      
+      
+      <link rel="icon" href="../../assets/images/smart_message.jpg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -30,10 +33,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -60,7 +63,6 @@
 
     
     
-    
   </head>
   
   
@@ -80,7 +82,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#transport-based-serialization" class="md-skip">
+        <a href="#serializers" class="md-skip">
           Skip to content
         </a>
       
@@ -102,7 +104,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="SmartMessage Documentation" class="md-header__button md-logo" aria-label="SmartMessage Documentation" data-md-component="logo">
       
-  <img src="../../assets/smart_message.jpg" alt="logo">
+  <img src="../../assets/images/smart_message.jpg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -209,7 +211,7 @@
         <a href="https://github.com/madbomber/smart_message" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
   </div>
   <div class="md-source__repository">
     madbomber/smart_message
@@ -258,7 +260,7 @@
   
     
   
-  🚀 Getting Started
+  Getting Started
 
         </a>
       </li>
@@ -280,7 +282,29 @@
   
     
   
-  📖 Core Concepts
+  Core Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../transports/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Transports
 
         </a>
       </li>
@@ -298,57 +322,13 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../transports/" class="md-tabs__link">
+        <a href="../publishing/" class="md-tabs__link">
           
   
   
     
   
-  🔌 Reference
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../../transports/memory-transport/" class="md-tabs__link">
-          
-  
-  
-    
-  
-  🚚 Transports
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../../guides/transport-selection/" class="md-tabs__link">
-          
-  
-  
-    
-  
-  📚 Guides
+  Reference
 
         </a>
       </li>
@@ -370,7 +350,7 @@
   
     
   
-  ⚙️ Development
+  Development
 
         </a>
       </li>
@@ -408,7 +388,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href="../.." title="SmartMessage Documentation" class="md-nav__button md-logo" aria-label="SmartMessage Documentation" data-md-component="logo">
       
-  <img src="../../assets/smart_message.jpg" alt="logo">
+  <img src="../../assets/images/smart_message.jpg" alt="logo">
 
     </a>
     SmartMessage Documentation
@@ -418,7 +398,7 @@
       <a href="https://github.com/madbomber/smart_message" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
   </div>
   <div class="md-source__repository">
     madbomber/smart_message
@@ -440,9 +420,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Home
+  
+
     
   </span>
+  
   
 
       </a>
@@ -458,6 +443,8 @@
   
     
     
+      
+        
       
         
       
@@ -484,9 +471,14 @@
   
   
   <span class="md-ellipsis">
-    🚀 Getting Started
+    
+  
+    Getting Started
+  
+
     
   </span>
+  
   
 
             <span class="md-nav__icon md-icon"></span>
@@ -495,7 +487,11 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
-            🚀 Getting Started
+            
+  
+    Getting Started
+  
+
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -511,9 +507,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Quick Start
+  
+
     
   </span>
+  
   
 
       </a>
@@ -534,9 +535,42 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Examples
+  
+
     
   </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/upgrading/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Upgrading from 0.0.x
+  
+
+    
+  </span>
+  
   
 
       </a>
@@ -573,6 +607,8 @@
       
         
       
+        
+      
     
     
     
@@ -594,9 +630,14 @@
   
   
   <span class="md-ellipsis">
-    📖 Core Concepts
+    
+  
+    Core Concepts
+  
+
     
   </span>
+  
   
 
             <span class="md-nav__icon md-icon"></span>
@@ -605,7 +646,11 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            📖 Core Concepts
+            
+  
+    Core Concepts
+  
+
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -621,9 +666,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Architecture
+  
+
     
   </span>
+  
   
 
       </a>
@@ -644,9 +694,14 @@
   
   
   <span class="md-ellipsis">
-    Properties
+    
+  
+    Properties and Validation
+  
+
     
   </span>
+  
   
 
       </a>
@@ -667,32 +722,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Addressing
+  
+
     
   </span>
   
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../core-concepts/dispatcher/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Dispatcher
-    
-  </span>
   
 
       </a>
@@ -713,9 +750,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Message Filtering
+  
+
     
   </span>
+  
   
 
       </a>
@@ -736,9 +778,281 @@
   
   
   <span class="md-ellipsis">
-    Message Processing
+    
+  
+    Handlers
+  
+
     
   </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../core-concepts/dispatcher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dispatcher
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../core-concepts/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transports
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Transports
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transports/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview and Delivery Semantics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../transports/memory-transport/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Memory Transport
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../transports/stdout-transport/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stdout Transport
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../transports/file-transport/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File Transport
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../transports/redis-transport/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Redis Transport
+  
+
+    
+  </span>
+  
   
 
       </a>
@@ -793,26 +1107,35 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
-    🔌 Reference
+    
+  
+    Reference
+  
+
     
   </span>
+  
   
 
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
-            🔌 Reference
+            
+  
+    Reference
+  
+
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -823,14 +1146,19 @@
   
   
     <li class="md-nav__item">
-      <a href="../transports/" class="md-nav__link">
+      <a href="../publishing/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Transports
+    
+  
+    Publishing
+  
+
     
   </span>
+  
   
 
       </a>
@@ -860,9 +1188,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Serializers
+  
+
     
   </span>
+  
   
 
           <span class="md-nav__icon md-icon"></span>
@@ -873,9 +1206,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Serializers
+  
+
     
   </span>
+  
   
 
       </a>
@@ -898,261 +1236,66 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
+  <a href="#the-wire-format" class="md-nav__link">
     <span class="md-ellipsis">
-      Overview
+      
+        The wire format
+      
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#transport-serialization-formats" class="md-nav__link">
+  <a href="#type-changes-on-a-json-round-trip" class="md-nav__link">
     <span class="md-ellipsis">
-      Transport Serialization Formats
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Transport Serialization Formats">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#memory-transport" class="md-nav__link">
-    <span class="md-ellipsis">
-      Memory Transport
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#stdout-transport" class="md-nav__link">
-    <span class="md-ellipsis">
-      STDOUT Transport
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#redis-transport" class="md-nav__link">
-    <span class="md-ellipsis">
-      Redis Transport
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
       
-        <li class="md-nav__item">
-  <a href="#how-it-works" class="md-nav__link">
-    <span class="md-ellipsis">
-      How It Works
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="How It Works">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#transport-serialization-process" class="md-nav__link">
-    <span class="md-ellipsis">
-      Transport Serialization Process
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#message-structure" class="md-nav__link">
-    <span class="md-ellipsis">
-      Message Structure
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
+        Type changes on a JSON round trip
       
-        <li class="md-nav__item">
-  <a href="#custom-transport-serializers" class="md-nav__link">
-    <span class="md-ellipsis">
-      Custom Transport Serializers
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#built-in-serializer-classes" class="md-nav__link">
+  <a href="#restoring-a-type-with-coerce_key" class="md-nav__link">
     <span class="md-ellipsis">
-      Built-in Serializer Classes
+      
+        Restoring a type with coerce_key
+      
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Built-in Serializer Classes">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#json-serializer" class="md-nav__link">
-    <span class="md-ellipsis">
-      JSON Serializer
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#messagepack-serializer" class="md-nav__link">
-    <span class="md-ellipsis">
-      MessagePack Serializer
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#migration-from-message-level-serializers" class="md-nav__link">
+  <a href="#errors" class="md-nav__link">
     <span class="md-ellipsis">
-      Migration from Message-Level Serializers
+      
+        Errors
+      
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Migration from Message-Level Serializers">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#before-message-level-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Before (Message-Level Configuration)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#after-transport-level-serialization" class="md-nav__link">
-    <span class="md-ellipsis">
-      After (Transport-Level Serialization)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#serialization-best-practices" class="md-nav__link">
+  <a href="#using-the-serializer-directly" class="md-nav__link">
     <span class="md-ellipsis">
-      Serialization Best Practices
+      
+        Using the serializer directly
+      
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Serialization Best Practices">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-let-transports-choose" class="md-nav__link">
-    <span class="md-ellipsis">
-      1. Let Transports Choose
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-custom-serializers" class="md-nav__link">
-    <span class="md-ellipsis">
-      2. Custom Serializers
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-testing" class="md-nav__link">
-    <span class="md-ellipsis">
-      3. Testing
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-error-handling" class="md-nav__link">
-    <span class="md-ellipsis">
-      4. Error Handling
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#performance-considerations" class="md-nav__link">
+  <a href="#writing-a-serializer" class="md-nav__link">
     <span class="md-ellipsis">
-      Performance Considerations
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Performance Considerations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#format-efficiency" class="md-nav__link">
-    <span class="md-ellipsis">
-      Format Efficiency
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#network-optimization" class="md-nav__link">
-    <span class="md-ellipsis">
-      Network Optimization
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#monitoring" class="md-nav__link">
-    <span class="md-ellipsis">
-      Monitoring
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
       
-        <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
-    <span class="md-ellipsis">
-      Next Steps
+        Writing a serializer
+      
     </span>
   </a>
   
@@ -1179,9 +1322,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Logging
+  
+
     
   </span>
+  
   
 
       </a>
@@ -1202,9 +1350,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Dead Letter Queue
+  
+
     
   </span>
+  
   
 
       </a>
@@ -1225,9 +1378,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Message Deduplication
+  
+
     
   </span>
+  
   
 
       </a>
@@ -1243,14 +1401,19 @@
   
   
     <li class="md-nav__item">
-      <a href="../proc-handlers/" class="md-nav__link">
+      <a href="../circuit-breakers/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Proc Handlers
+    
+  
+    Circuit Breakers
+  
+
     
   </span>
+  
   
 
       </a>
@@ -1276,206 +1439,6 @@
     
       
         
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    🚚 Transports
-    
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
-            <span class="md-nav__icon md-icon"></span>
-            🚚 Transports
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../transports/memory-transport/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Memory Transport
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../transports/redis-transport/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Redis Transport
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../transports/stdout-transport/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    STDOUT Transport
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../transports/file-transport/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    File Transport
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../transports/multi-transport/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Multi-Transport Publishing
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../transports/redis-transport-comparison/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Redis Transport Comparison
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
       
         
       
@@ -1500,9 +1463,14 @@
   
   
   <span class="md-ellipsis">
-    📚 Guides
+    
+  
+    Development
+  
+
     
   </span>
+  
   
 
             <span class="md-nav__icon md-icon"></span>
@@ -1511,86 +1479,11 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
-            📚 Guides
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../guides/transport-selection/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Transport Selection
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-      
-        
-      
-        
-      
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
-        
-          
-          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
             
   
-  
-  <span class="md-ellipsis">
-    ⚙️ Development
-    
-  </span>
+    Development
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_7">
-            <span class="md-nav__icon md-icon"></span>
-            ⚙️ Development
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1606,9 +1499,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Troubleshooting
+  
+
     
   </span>
+  
   
 
       </a>
@@ -1629,9 +1527,14 @@
   
   
   <span class="md-ellipsis">
-    Ideas & Roadmap
+    
+  
+    Ideas
+  
+
     
   </span>
+  
   
 
       </a>
@@ -1676,261 +1579,66 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
+  <a href="#the-wire-format" class="md-nav__link">
     <span class="md-ellipsis">
-      Overview
+      
+        The wire format
+      
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#transport-serialization-formats" class="md-nav__link">
+  <a href="#type-changes-on-a-json-round-trip" class="md-nav__link">
     <span class="md-ellipsis">
-      Transport Serialization Formats
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Transport Serialization Formats">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#memory-transport" class="md-nav__link">
-    <span class="md-ellipsis">
-      Memory Transport
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#stdout-transport" class="md-nav__link">
-    <span class="md-ellipsis">
-      STDOUT Transport
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#redis-transport" class="md-nav__link">
-    <span class="md-ellipsis">
-      Redis Transport
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
       
-        <li class="md-nav__item">
-  <a href="#how-it-works" class="md-nav__link">
-    <span class="md-ellipsis">
-      How It Works
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="How It Works">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#transport-serialization-process" class="md-nav__link">
-    <span class="md-ellipsis">
-      Transport Serialization Process
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#message-structure" class="md-nav__link">
-    <span class="md-ellipsis">
-      Message Structure
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
+        Type changes on a JSON round trip
       
-        <li class="md-nav__item">
-  <a href="#custom-transport-serializers" class="md-nav__link">
-    <span class="md-ellipsis">
-      Custom Transport Serializers
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#built-in-serializer-classes" class="md-nav__link">
+  <a href="#restoring-a-type-with-coerce_key" class="md-nav__link">
     <span class="md-ellipsis">
-      Built-in Serializer Classes
+      
+        Restoring a type with coerce_key
+      
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Built-in Serializer Classes">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#json-serializer" class="md-nav__link">
-    <span class="md-ellipsis">
-      JSON Serializer
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#messagepack-serializer" class="md-nav__link">
-    <span class="md-ellipsis">
-      MessagePack Serializer
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#migration-from-message-level-serializers" class="md-nav__link">
+  <a href="#errors" class="md-nav__link">
     <span class="md-ellipsis">
-      Migration from Message-Level Serializers
+      
+        Errors
+      
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Migration from Message-Level Serializers">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#before-message-level-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Before (Message-Level Configuration)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#after-transport-level-serialization" class="md-nav__link">
-    <span class="md-ellipsis">
-      After (Transport-Level Serialization)
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#serialization-best-practices" class="md-nav__link">
+  <a href="#using-the-serializer-directly" class="md-nav__link">
     <span class="md-ellipsis">
-      Serialization Best Practices
+      
+        Using the serializer directly
+      
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Serialization Best Practices">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-let-transports-choose" class="md-nav__link">
-    <span class="md-ellipsis">
-      1. Let Transports Choose
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-custom-serializers" class="md-nav__link">
-    <span class="md-ellipsis">
-      2. Custom Serializers
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-testing" class="md-nav__link">
-    <span class="md-ellipsis">
-      3. Testing
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-error-handling" class="md-nav__link">
-    <span class="md-ellipsis">
-      4. Error Handling
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#performance-considerations" class="md-nav__link">
+  <a href="#writing-a-serializer" class="md-nav__link">
     <span class="md-ellipsis">
-      Performance Considerations
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Performance Considerations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#format-efficiency" class="md-nav__link">
-    <span class="md-ellipsis">
-      Format Efficiency
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#network-optimization" class="md-nav__link">
-    <span class="md-ellipsis">
-      Network Optimization
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#monitoring" class="md-nav__link">
-    <span class="md-ellipsis">
-      Monitoring
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
       
-        <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
-    <span class="md-ellipsis">
-      Next Steps
+        Writing a serializer
+      
     </span>
   </a>
   
@@ -1946,6 +1654,55 @@
           
           
             <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../.." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../publishing/" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Reference
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
               <article class="md-content__inner md-typeset">
                 
                   
@@ -1968,214 +1725,171 @@
   
 
 
-<h1 id="transport-based-serialization">Transport-Based Serialization<a class="headerlink" href="#transport-based-serialization" title="Permanent link">&para;</a></h1>
-<p>In SmartMessage's architecture, serialization is handled at the transport level rather than being configured for individual messages. Each transport manages its own optimal serialization format, eliminating the need for separate serializer configuration.</p>
-<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>Transport-based serialization provides:
-- <strong>Automatic Format Selection</strong>: Each transport chooses its optimal serialization format
-- <strong>Simplified Configuration</strong>: No need to configure serializers separately
-- <strong>Format Optimization</strong>: Transports can choose the best format for their medium
-- <strong>Consistent Behavior</strong>: All messages using a transport share the same serialization format</p>
-<h2 id="transport-serialization-formats">Transport Serialization Formats<a class="headerlink" href="#transport-serialization-formats" title="Permanent link">&para;</a></h2>
-<h3 id="memory-transport">Memory Transport<a class="headerlink" href="#memory-transport" title="Permanent link">&para;</a></h3>
+<h1 id="serializers">Serializers<a class="headerlink" href="#serializers" title="Permanent link">&para;</a></h1>
+<p>A serializer turns a message Hash into a String and back. Each transport owns one serializer and uses it for everything it sends and receives.</p>
+<p>SmartMessage ships one serializer: <code>SmartMessage::Serializer::Json</code>. It is the default for every transport.</p>
+<h2 id="the-wire-format">The wire format<a class="headerlink" href="#the-wire-format" title="Permanent link">&para;</a></h2>
+<p>A message on the wire is one flat JSON object: the message's properties plus the header under <code>_sm_header</code>.</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="nt">"_sm_header"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">    </span><span class="nt">"uuid"</span><span class="p">:</span><span class="w"> </span><span class="s2">"0b0e6f0c-4f6e-4a57-9b1e-3b6a2a6f2f10"</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">"message_class"</span><span class="p">:</span><span class="w"> </span><span class="s2">"OrderMessage"</span><span class="p">,</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">"published_at"</span><span class="p">:</span><span class="w"> </span><span class="s2">"2026-11-11T10:15:30.123456-06:00"</span><span class="p">,</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="nt">"publisher_pid"</span><span class="p">:</span><span class="w"> </span><span class="mi">4242</span><span class="p">,</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="nt">"version"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="nt">"from"</span><span class="p">:</span><span class="w"> </span><span class="s2">"order-service"</span><span class="p">,</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="nt">"serializer"</span><span class="p">:</span><span class="w"> </span><span class="s2">"SmartMessage::Serializer::Json"</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="p">},</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">  </span><span class="nt">"order_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ORD-1"</span><span class="p">,</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">  </span><span class="nt">"amount"</span><span class="p">:</span><span class="w"> </span><span class="mf">99.99</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>Header fields that are <code>nil</code> are left out. Header fields the receiving version does not know are kept in <code>header.extensions</code> and written back out when the message is published again, so an older consumer can pass on a message from a newer publisher without losing them.</p>
+<h2 id="type-changes-on-a-json-round-trip">Type changes on a JSON round trip<a class="headerlink" href="#type-changes-on-a-json-round-trip" title="Permanent link">&para;</a></h2>
+<p>JSON has fewer types than Ruby, so a value can come back as a different type. Every shipped transport serializes (the memory transport too, unless you pass <code>serialize: false</code>), so this applies to what handlers receive.</p>
+<table>
+<thead>
+<tr>
+<th>Published as</th>
+<th>Received as</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>String</code>, <code>Integer</code>, <code>Float</code>, <code>true</code>, <code>false</code>, <code>nil</code></td>
+<td>unchanged</td>
+</tr>
+<tr>
+<td><code>Time</code>, <code>DateTime</code></td>
+<td>ISO 8601 <code>String</code> with microseconds, such as <code>"2026-11-11T10:15:30.123456-06:00"</code></td>
+</tr>
+<tr>
+<td><code>Date</code></td>
+<td>ISO 8601 <code>String</code>, such as <code>"2026-11-11"</code></td>
+</tr>
+<tr>
+<td><code>Symbol</code></td>
+<td><code>String</code></td>
+</tr>
+<tr>
+<td><code>BigDecimal</code></td>
+<td><code>String</code> in plain notation, such as <code>"1.0"</code></td>
+</tr>
+<tr>
+<td>any other object</td>
+<td>its <code>to_h</code> (converted the same way) when it has one, else its <code>to_s</code></td>
+</tr>
+<tr>
+<td><code>Hash</code> keys (String or Symbol)</td>
+<td><code>Symbol</code>, at every level</td>
+</tr>
+<tr>
+<td><code>Array</code></td>
+<td><code>Array</code>, elements converted as above</td>
+</tr>
+</tbody>
+</table>
+<p>The encoding is the same in every process, whatever JSON extensions are loaded.</p>
+<p>The header's <code>published_at</code> is the exception: it is restored to a <code>Time</code> automatically.</p>
+<h2 id="restoring-a-type-with-coerce_key">Restoring a type with <code>coerce_key</code><a class="headerlink" href="#restoring-a-type-with-coerce_key" title="Permanent link">&para;</a></h2>
+<p>Declare a coercion on the message class. It runs whenever the property is assigned, including when a received message is rebuilt, so the handler sees the type you want.</p>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">coerce_key</span><span class="w"> </span><span class="ss">:placed_at</span><span class="p">,</span><span class="w"> </span><span class="o">-&gt;</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">value</span><span class="o">.</span><span class="n">is_a?</span><span class="p">(</span><span class="nb">String</span><span class="p">)</span><span class="w"> </span><span class="p">?</span><span class="w"> </span><span class="no">Time</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="p">}</span>
+</span></code></pre></div>
+<p>The <code>is_a?(String)</code> guard matters: the same coercion also runs on the publishing side, where the value is already a <code>Time</code>.</p>
+<p>A complete program:</p>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">require</span><span class="w"> </span><span class="s1">'smart_message'</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nb">require</span><span class="w"> </span><span class="s1">'time'</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nb">require</span><span class="w"> </span><span class="s1">'date'</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="nb">require</span><span class="w"> </span><span class="s1">'bigdecimal'</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="c1"># messages/invoice_message.rb</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="k">class</span><span class="w"> </span><span class="nc">InvoiceMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="n">from</span><span class="w"> </span><span class="s1">'billing'</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">MemoryTransport</span><span class="o">.</span><span class="n">new</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:issued_at</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:due_on</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:total</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:status</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:raw_time</span>
+</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:lines</span>
+</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a>
+</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">  </span><span class="n">coerce_key</span><span class="w"> </span><span class="ss">:issued_at</span><span class="p">,</span><span class="w"> </span><span class="o">-&gt;</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">value</span><span class="o">.</span><span class="n">is_a?</span><span class="p">(</span><span class="nb">String</span><span class="p">)</span><span class="w"> </span><span class="p">?</span><span class="w"> </span><span class="no">Time</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-2-19"><a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">  </span><span class="n">coerce_key</span><span class="w"> </span><span class="ss">:due_on</span><span class="p">,</span><span class="w">    </span><span class="o">-&gt;</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">value</span><span class="o">.</span><span class="n">is_a?</span><span class="p">(</span><span class="nb">String</span><span class="p">)</span><span class="w"> </span><span class="p">?</span><span class="w"> </span><span class="no">Date</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-2-20"><a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">  </span><span class="n">coerce_key</span><span class="w"> </span><span class="ss">:total</span><span class="p">,</span><span class="w">     </span><span class="o">-&gt;</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">value</span><span class="o">.</span><span class="n">is_a?</span><span class="p">(</span><span class="nb">String</span><span class="p">)</span><span class="w"> </span><span class="p">?</span><span class="w"> </span><span class="no">BigDecimal</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-2-21"><a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">  </span><span class="n">coerce_key</span><span class="w"> </span><span class="ss">:status</span><span class="p">,</span><span class="w">    </span><span class="o">-&gt;</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">value</span><span class="o">.</span><span class="n">respond_to?</span><span class="p">(</span><span class="ss">:to_sym</span><span class="p">)</span><span class="w"> </span><span class="p">?</span><span class="w"> </span><span class="n">value</span><span class="o">.</span><span class="n">to_sym</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-2-22"><a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a>
+</span><span id="__span-2-23"><a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nc">self</span><span class="o">.</span><span class="nf">process</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span id="__span-2-24"><a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="o">&lt;&lt;~</span><span class="dl">RECEIVED</span>
+</span><span id="__span-2-25"><a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="sh">      issued_at: #{message.issued_at.class}   (coerced)</span>
+</span><span id="__span-2-26"><a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="sh">      due_on:    #{message.due_on.class}   (coerced)</span>
+</span><span id="__span-2-27"><a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="sh">      total:     #{message.total.class}   (coerced)</span>
+</span><span id="__span-2-28"><a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a><span class="sh">      status:    #{message.status.inspect}   (coerced)</span>
+</span><span id="__span-2-29"><a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="sh">      raw_time:  #{message.raw_time.class}   (no coercion: a String)</span>
+</span><span id="__span-2-30"><a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a><span class="sh">      lines:     #{message.lines.inspect}   (keys are Symbols, values converted)</span>
+</span><span id="__span-2-31"><a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a><span class="dl">    RECEIVED</span>
+</span><span id="__span-2-32"><a id="__codelineno-2-32" name="__codelineno-2-32" href="#__codelineno-2-32"></a><span class="w">  </span><span class="k">end</span>
+</span><span id="__span-2-33"><a id="__codelineno-2-33" name="__codelineno-2-33" href="#__codelineno-2-33"></a><span class="k">end</span>
+</span><span id="__span-2-34"><a id="__codelineno-2-34" name="__codelineno-2-34" href="#__codelineno-2-34"></a>
+</span><span id="__span-2-35"><a id="__codelineno-2-35" name="__codelineno-2-35" href="#__codelineno-2-35"></a><span class="no">InvoiceMessage</span><span class="o">.</span><span class="n">subscribe</span>
+</span><span id="__span-2-36"><a id="__codelineno-2-36" name="__codelineno-2-36" href="#__codelineno-2-36"></a><span class="no">InvoiceMessage</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+</span><span id="__span-2-37"><a id="__codelineno-2-37" name="__codelineno-2-37" href="#__codelineno-2-37"></a><span class="w">  </span><span class="ss">issued_at</span><span class="p">:</span><span class="w"> </span><span class="no">Time</span><span class="o">.</span><span class="n">now</span><span class="p">,</span>
+</span><span id="__span-2-38"><a id="__codelineno-2-38" name="__codelineno-2-38" href="#__codelineno-2-38"></a><span class="w">  </span><span class="ss">due_on</span><span class="p">:</span><span class="w">    </span><span class="no">Date</span><span class="o">.</span><span class="n">today</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span>
+</span><span id="__span-2-39"><a id="__codelineno-2-39" name="__codelineno-2-39" href="#__codelineno-2-39"></a><span class="w">  </span><span class="ss">total</span><span class="p">:</span><span class="w">     </span><span class="no">BigDecimal</span><span class="p">(</span><span class="s1">'99.50'</span><span class="p">),</span>
+</span><span id="__span-2-40"><a id="__codelineno-2-40" name="__codelineno-2-40" href="#__codelineno-2-40"></a><span class="w">  </span><span class="ss">status</span><span class="p">:</span><span class="w">    </span><span class="ss">:open</span><span class="p">,</span>
+</span><span id="__span-2-41"><a id="__codelineno-2-41" name="__codelineno-2-41" href="#__codelineno-2-41"></a><span class="w">  </span><span class="ss">raw_time</span><span class="p">:</span><span class="w">  </span><span class="no">Time</span><span class="o">.</span><span class="n">now</span><span class="p">,</span>
+</span><span id="__span-2-42"><a id="__codelineno-2-42" name="__codelineno-2-42" href="#__codelineno-2-42"></a><span class="w">  </span><span class="ss">lines</span><span class="p">:</span><span class="w">     </span><span class="o">[</span><span class="p">{</span><span class="w"> </span><span class="s1">'sku'</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="s1">'A-1'</span><span class="p">,</span><span class="w"> </span><span class="ss">kind</span><span class="p">:</span><span class="w"> </span><span class="ss">:widget</span><span class="w"> </span><span class="p">}</span><span class="o">]</span>
+</span><span id="__span-2-43"><a id="__codelineno-2-43" name="__codelineno-2-43" href="#__codelineno-2-43"></a><span class="p">)</span><span class="o">.</span><span class="n">publish</span>
+</span><span id="__span-2-44"><a id="__codelineno-2-44" name="__codelineno-2-44" href="#__codelineno-2-44"></a>
+</span><span id="__span-2-45"><a id="__codelineno-2-45" name="__codelineno-2-45" href="#__codelineno-2-45"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">shutdown</span>
+</span></code></pre></div>
+<p>For nested structures, coerce the whole property (a lambda that maps over the Array, for example).</p>
+<h2 id="errors">Errors<a class="headerlink" href="#errors" title="Permanent link">&para;</a></h2>
 <ul>
-<li><strong>Format</strong>: No serialization (objects passed directly)</li>
-<li><strong>Use case</strong>: Testing and development where no network transmission occurs</li>
-<li><strong>Performance</strong>: Fastest possible (no encoding/decoding overhead)</li>
+<li>A message that cannot be encoded raises <code>SmartMessage::Errors::SerializationError</code>. <code>publish</code> records it as that transport's failure.</li>
+<li>A payload that cannot be decoded raises <code>SmartMessage::Errors::DecodeError</code>. On receive, the payload is stored in the <a href="../dead-letter-queue/">dead letter queue</a>.</li>
 </ul>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Memory transport - no serialization needed</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">transport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">MemoryTransport</span><span class="o">.</span><span class="n">new</span>
+<p>Serializers are not wrapped in a circuit breaker.</p>
+<h2 id="using-the-serializer-directly">Using the serializer directly<a class="headerlink" href="#using-the-serializer-directly" title="Permanent link">&para;</a></h2>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">serializer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Serializer</span><span class="o">::</span><span class="no">Json</span><span class="o">.</span><span class="n">new</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">payload</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">serializer</span><span class="o">.</span><span class="n">encode</span><span class="p">({</span><span class="w"> </span><span class="ss">order_id</span><span class="p">:</span><span class="w"> </span><span class="s1">'ORD-1'</span><span class="p">,</span><span class="w"> </span><span class="ss">placed_at</span><span class="p">:</span><span class="w"> </span><span class="no">Time</span><span class="o">.</span><span class="n">now</span><span class="w"> </span><span class="p">})</span><span class="w">   </span><span class="c1"># =&gt; String</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">serializer</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span><span class="w">                                                </span><span class="c1"># =&gt; { order_id: "ORD-1", placed_at: "2026-..." }</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Serializer</span><span class="o">::</span><span class="no">Json</span><span class="o">.</span><span class="n">jsonify</span><span class="p">(</span><span class="ss">:open</span><span class="p">)</span><span class="w">        </span><span class="c1"># =&gt; "open"</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Serializer</span><span class="o">.</span><span class="n">default</span><span class="w">                     </span><span class="c1"># =&gt; SmartMessage::Serializer::Json</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Serializer</span><span class="o">.</span><span class="n">for</span><span class="p">(</span><span class="s1">'json'</span><span class="p">)</span><span class="w">                 </span><span class="c1"># =&gt; SmartMessage::Serializer::Json</span>
 </span></code></pre></div>
-<h3 id="stdout-transport">STDOUT Transport<a class="headerlink" href="#stdout-transport" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Format</strong>: JSON (human-readable)</li>
-<li><strong>Use case</strong>: Debugging, development logging, message inspection</li>
-<li><strong>Features</strong>: Pretty-printed output for easy reading</li>
-</ul>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># STDOUT transport - uses JSON for readability</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">transport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">StdoutTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nb">format</span><span class="p">:</span><span class="w"> </span><span class="ss">:pretty</span><span class="w">  </span><span class="c1"># or :json for compact format</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="p">)</span>
+<p>To encode or decode a whole message with its header, use the transport (<code>transport.encode_message(message)</code>, <code>transport.decode_message(payload)</code>) or <code>SmartMessage::Envelope</code>.</p>
+<h2 id="writing-a-serializer">Writing a serializer<a class="headerlink" href="#writing-a-serializer" title="Permanent link">&para;</a></h2>
+<p>Subclass <code>SmartMessage::Serializer::Base</code> and implement two private methods. <code>do_encode</code> receives a Hash with Symbol keys, including <code>:_sm_header</code>, and returns a String. <code>do_decode</code> receives the String and returns a Hash; the header must come back under <code>_sm_header</code> (String or Symbol key).</p>
+<p>Any error they raise is wrapped in <code>SerializationError</code> or <code>DecodeError</code>.</p>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">require</span><span class="w"> </span><span class="s1">'smart_message'</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nb">require</span><span class="w"> </span><span class="s1">'json'</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="c1"># JSON, indented for people to read</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="k">class</span><span class="w"> </span><span class="nc">PrettyJsonSerializer</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Serializer</span><span class="o">::</span><span class="no">Base</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">  </span><span class="kp">private</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">do_encode</span><span class="p">(</span><span class="n">message_hash</span><span class="p">)</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="w">    </span><span class="no">JSON</span><span class="o">.</span><span class="n">pretty_generate</span><span class="p">(</span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Serializer</span><span class="o">::</span><span class="no">Json</span><span class="o">.</span><span class="n">jsonify</span><span class="p">(</span><span class="n">message_hash</span><span class="p">))</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="w">  </span><span class="k">end</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>
+</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">do_decode</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
+</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="w">    </span><span class="no">JSON</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">payload</span><span class="p">,</span><span class="w"> </span><span class="ss">symbolize_names</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">)</span>
+</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="w">  </span><span class="k">end</span>
+</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="k">end</span>
+</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>
+</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a><span class="c1"># messages/greeting_message.rb</span>
+</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="k">class</span><span class="w"> </span><span class="nc">GreetingMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
+</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="w">  </span><span class="n">from</span><span class="w"> </span><span class="s1">'greeter'</span>
+</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="w">  </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">StdoutTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">serializer</span><span class="p">:</span><span class="w"> </span><span class="no">PrettyJsonSerializer</span><span class="o">.</span><span class="n">new</span><span class="p">)</span>
+</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:text</span>
+</span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="k">end</span>
+</span><span id="__span-4-23"><a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a>
+</span><span id="__span-4-24"><a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a><span class="no">GreetingMessage</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">text</span><span class="p">:</span><span class="w"> </span><span class="s1">'hello'</span><span class="p">)</span><span class="o">.</span><span class="n">publish</span>
 </span></code></pre></div>
-<h3 id="redis-transport">Redis Transport<a class="headerlink" href="#redis-transport" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>Format</strong>: MessagePack (primary), JSON (fallback)</li>
-<li><strong>Use case</strong>: Production messaging where efficiency matters</li>
-<li><strong>Benefits</strong>: Compact binary format reduces network overhead</li>
-</ul>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Redis transport - automatically uses MessagePack if available</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">transport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;redis://localhost:6379&#39;</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="p">)</span>
-</span></code></pre></div>
-<h2 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h2>
-<h3 id="transport-serialization-process">Transport Serialization Process<a class="headerlink" href="#transport-serialization-process" title="Permanent link">&para;</a></h3>
-<ol>
-<li>
-<p><strong>Message Publishing</strong>: 
-   <div class="language-ruby highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">message</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">OrderMessage</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">order_id</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;123&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">amount</span><span class="p">:</span><span class="w"> </span><span class="mi">99</span><span class="o">.</span><span class="mi">99</span><span class="p">)</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">message</span><span class="o">.</span><span class="n">publish</span><span class="w">  </span><span class="c1"># Transport handles serialization automatically</span>
-</span></code></pre></div></p>
-</li>
-<li>
-<p><strong>Automatic Encoding</strong>: Transport calls its serializer internally
-   <div class="language-ruby highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Inside transport.publish(message):</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">serialized</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">transport</span><span class="o">.</span><span class="n">serializer</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">message</span><span class="o">.</span><span class="n">to_hash</span><span class="p">)</span>
-</span></code></pre></div></p>
-</li>
-<li>
-<p><strong>Message Receiving</strong>: Transport deserializes automatically
-   <div class="language-ruby highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Inside transport.receive(serialized_data):</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">transport</span><span class="o">.</span><span class="n">serializer</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">serialized_data</span><span class="p">)</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">message</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">MessageClass</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-</span></code></pre></div></p>
-</li>
-</ol>
-<h3 id="message-structure">Message Structure<a class="headerlink" href="#message-structure" title="Permanent link">&para;</a></h3>
-<p>All messages are serialized as flat hashes with the <code>_sm_header</code> property containing routing metadata:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="p">{</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="ss">_sm_header</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="ss">uuid</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="ss">message_class</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;OrderMessage&quot;</span><span class="p">,</span><span class="w"> </span>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="ss">published_at</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2025-01-09T...&quot;</span><span class="p">,</span>
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">    </span><span class="ss">from</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;order-service&quot;</span><span class="p">,</span>
-</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="w">    </span><span class="ss">to</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;fulfillment-service&quot;</span><span class="p">,</span>
-</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="w">    </span><span class="ss">serializer</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SmartMessage::Serializer::Json&quot;</span>
-</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="w">  </span><span class="p">},</span>
-</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="w">  </span><span class="ss">order_id</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;123&quot;</span><span class="p">,</span>
-</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a><span class="w">  </span><span class="ss">amount</span><span class="p">:</span><span class="w"> </span><span class="mi">99</span><span class="o">.</span><span class="mi">99</span><span class="p">,</span>
-</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="w">  </span><span class="ss">items</span><span class="p">:</span><span class="w"> </span><span class="o">[</span><span class="s2">&quot;Widget A&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Widget B&quot;</span><span class="o">]</span>
-</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="p">}</span>
-</span></code></pre></div>
-<h2 id="custom-transport-serializers">Custom Transport Serializers<a class="headerlink" href="#custom-transport-serializers" title="Permanent link">&para;</a></h2>
-<p>You can specify a custom serializer when creating a transport:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Custom serializer for a transport</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyCustomSerializer</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">encode</span><span class="p">(</span><span class="n">data_hash</span><span class="p">)</span>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">    </span><span class="c1"># Your encoding logic here</span>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">    </span><span class="c1"># Must return a string</span>
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>
-</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">decode</span><span class="p">(</span><span class="n">serialized_string</span><span class="p">)</span>
-</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span><span class="c1"># Your decoding logic here</span>
-</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">    </span><span class="c1"># Must return a hash</span>
-</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="k">end</span>
-</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>
-</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="c1"># Use custom serializer with transport</span>
-</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="n">transport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
-</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">  </span><span class="ss">serializer</span><span class="p">:</span><span class="w"> </span><span class="no">MyCustomSerializer</span><span class="o">.</span><span class="n">new</span><span class="p">,</span>
-</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="w">  </span><span class="ss">url</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;redis://localhost:6379&#39;</span>
-</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="p">)</span>
-</span></code></pre></div>
-<h2 id="built-in-serializer-classes">Built-in Serializer Classes<a class="headerlink" href="#built-in-serializer-classes" title="Permanent link">&para;</a></h2>
-<p>SmartMessage includes these serializer implementations that transports use internally:</p>
-<h3 id="json-serializer">JSON Serializer<a class="headerlink" href="#json-serializer" title="Permanent link">&para;</a></h3>
-<p><div class="language-ruby highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Serializer</span><span class="o">::</span><span class="no">Json</span><span class="o">.</span><span class="n">new</span>
-</span></code></pre></div>
-- Human-readable format
-- Wide compatibility
-- Used by STDOUT transport and as fallback</p>
-<h3 id="messagepack-serializer">MessagePack Serializer<a class="headerlink" href="#messagepack-serializer" title="Permanent link">&para;</a></h3>
-<p><div class="language-ruby highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Serializer</span><span class="o">::</span><span class="no">MessagePack</span><span class="o">.</span><span class="n">new</span>
-</span></code></pre></div>
-- Binary format for efficiency
-- Smaller payload size
-- Used by Redis transport when available</p>
-<h2 id="migration-from-message-level-serializers">Migration from Message-Level Serializers<a class="headerlink" href="#migration-from-message-level-serializers" title="Permanent link">&para;</a></h2>
-<p>If you were previously configuring serializers at the message level, here's how to migrate:</p>
-<h3 id="before-message-level-configuration">Before (Message-Level Configuration)<a class="headerlink" href="#before-message-level-configuration" title="Permanent link">&para;</a></h3>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">OrderMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:order_id</span>
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:amount</span>
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>
-</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">  </span><span class="n">config</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">    </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisTransport</span><span class="o">.</span><span class="n">new</span>
-</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">    </span><span class="n">serializer</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Serializer</span><span class="o">::</span><span class="no">Json</span><span class="o">.</span><span class="n">new</span><span class="w">  </span><span class="c1"># ❌ No longer needed</span>
-</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="k">end</span>
-</span></code></pre></div>
-<h3 id="after-transport-level-serialization">After (Transport-Level Serialization)<a class="headerlink" href="#after-transport-level-serialization" title="Permanent link">&para;</a></h3>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">OrderMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:order_id</span>
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:amount</span>
-</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>
-</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">  </span><span class="n">config</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">    </span><span class="c1"># Transport automatically handles serialization</span>
-</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">    </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisTransport</span><span class="o">.</span><span class="n">new</span>
-</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="k">end</span>
-</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>
-</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="c1"># Or specify custom serializer for transport</span>
-</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="k">class</span><span class="w"> </span><span class="nc">OrderMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:order_id</span>
-</span><span id="__span-11-14"><a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:amount</span>
-</span><span id="__span-11-15"><a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a>
-</span><span id="__span-11-16"><a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a><span class="w">  </span><span class="n">config</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-11-17"><a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a><span class="w">    </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
-</span><span id="__span-11-18"><a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a><span class="w">      </span><span class="ss">serializer</span><span class="p">:</span><span class="w"> </span><span class="no">MyCustomSerializer</span><span class="o">.</span><span class="n">new</span>
-</span><span id="__span-11-19"><a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a><span class="w">    </span><span class="p">)</span>
-</span><span id="__span-11-20"><a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-11-21"><a id="__codelineno-11-21" name="__codelineno-11-21" href="#__codelineno-11-21"></a><span class="k">end</span>
-</span></code></pre></div>
-<h2 id="serialization-best-practices">Serialization Best Practices<a class="headerlink" href="#serialization-best-practices" title="Permanent link">&para;</a></h2>
-<h3 id="1-let-transports-choose">1. Let Transports Choose<a class="headerlink" href="#1-let-transports-choose" title="Permanent link">&para;</a></h3>
-<p>Let each transport use its optimal format:
-- Memory: No serialization
-- STDOUT: JSON for readability<br />
-- Redis: MessagePack for efficiency</p>
-<h3 id="2-custom-serializers">2. Custom Serializers<a class="headerlink" href="#2-custom-serializers" title="Permanent link">&para;</a></h3>
-<p>Only use custom serializers when you have specific requirements:
-- Special data formats (XML, Protocol Buffers)
-- Encryption/compression needs
-- Legacy system compatibility</p>
-<h3 id="3-testing">3. Testing<a class="headerlink" href="#3-testing" title="Permanent link">&para;</a></h3>
-<p>Test with actual transports to ensure serialization works correctly:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="no">RSpec</span><span class="o">.</span><span class="n">describe</span><span class="w"> </span><span class="no">OrderMessage</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="n">it</span><span class="w"> </span><span class="s2">&quot;serializes correctly with Redis transport&quot;</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span><span class="n">transport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">RedisTransport</span><span class="o">.</span><span class="n">new</span>
-</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">    </span><span class="n">message</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">OrderMessage</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">order_id</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;123&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">amount</span><span class="p">:</span><span class="w"> </span><span class="mi">99</span><span class="o">.</span><span class="mi">99</span><span class="p">)</span>
-</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>
-</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">    </span><span class="c1"># Test roundtrip serialization</span>
-</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">    </span><span class="n">serialized</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">transport</span><span class="o">.</span><span class="n">encode_message</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">    </span><span class="n">deserialized</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">transport</span><span class="o">.</span><span class="n">decode_message</span><span class="p">(</span><span class="n">serialized</span><span class="p">)</span>
-</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a>
-</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="w">    </span><span class="n">expect</span><span class="p">(</span><span class="n">deserialized</span><span class="o">[</span><span class="ss">:order_id</span><span class="o">]</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="w"> </span><span class="n">eq</span><span class="p">(</span><span class="s2">&quot;123&quot;</span><span class="p">)</span>
-</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="w">    </span><span class="n">expect</span><span class="p">(</span><span class="n">deserialized</span><span class="o">[</span><span class="ss">:amount</span><span class="o">]</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="w"> </span><span class="n">eq</span><span class="p">(</span><span class="mi">99</span><span class="o">.</span><span class="mi">99</span><span class="p">)</span>
-</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-12-13"><a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="k">end</span>
-</span></code></pre></div>
-<h3 id="4-error-handling">4. Error Handling<a class="headerlink" href="#4-error-handling" title="Permanent link">&para;</a></h3>
-<p>Transports handle serialization errors internally, but you can still catch them:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="k">begin</span>
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span><span class="n">message</span><span class="o">.</span><span class="n">publish</span>
-</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="k">rescue</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Errors</span><span class="o">::</span><span class="no">SerializationError</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">e</span>
-</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">  </span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="w"> </span><span class="s2">&quot;Failed to serialize message: </span><span class="si">#{</span><span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="k">end</span>
-</span></code></pre></div>
-<h2 id="performance-considerations">Performance Considerations<a class="headerlink" href="#performance-considerations" title="Permanent link">&para;</a></h2>
-<h3 id="format-efficiency">Format Efficiency<a class="headerlink" href="#format-efficiency" title="Permanent link">&para;</a></h3>
-<ul>
-<li><strong>MessagePack</strong>: 20-30% more compact than JSON</li>
-<li><strong>JSON</strong>: Human-readable but larger payload</li>
-<li><strong>Memory</strong>: No serialization overhead</li>
-</ul>
-<h3 id="network-optimization">Network Optimization<a class="headerlink" href="#network-optimization" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Redis transport automatically uses MessagePack when available</li>
-<li>Falls back to JSON if MessagePack gem is not installed</li>
-<li>STDOUT uses JSON for debugging clarity</li>
-</ul>
-<h3 id="monitoring">Monitoring<a class="headerlink" href="#monitoring" title="Permanent link">&para;</a></h3>
-<p>Each transport logs its serializer choice:
-<div class="language-text highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>[SmartMessage::Transport::RedisTransport] Using serializer: SmartMessage::Serializer::MessagePack
-</span></code></pre></div></p>
-<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
-<ul>
-<li><a href="../transports/">Transports</a> - Available transport implementations</li>
-<li><a href="../../getting-started/quick-start/">Configuration</a> - Setting up transports</li>
-<li><a href="../../getting-started/examples/">Examples</a> - Real-world usage patterns</li>
-</ul>
+<p>A serializer is given to a transport with the <code>serializer:</code> option. Both ends of a transport must use compatible serializers. The file transport expects one message per line, so a serializer used with it must not emit newlines.</p>
 
 
 
@@ -2227,7 +1941,7 @@
     
     
     <a href="https://github.com/madbomber/smart_message" target="_blank" rel="noopener" title="GitHub Repository" class="md-social__link">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
     </a>
   
 </div>
@@ -2244,14 +1958,13 @@
     
     
       
-      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.path", "navigation.indexes", "navigation.top", "toc.follow", "search.suggest", "search.highlight", "search.share", "header.autohide", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "content.action.edit", "content.action.view"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.11"}</script>
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.path", "navigation.indexes", "navigation.top", "toc.follow", "search.suggest", "search.highlight", "search.share", "header.autohide", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "content.action.edit", "content.action.view"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
     
     
-      <script src="../../assets/javascripts/bundle.92b07e13.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
         <script src="../../assets/javascripts/mathjax.js"></script>
-      
-        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
       
         <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
       

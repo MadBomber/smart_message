@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Intelligent messages that know what to do and how to do it">
+        <meta name="description" content="A Ruby messaging framework that separates messages from their transports">
       
       
         <meta name="author" content="madbomber">
@@ -21,8 +21,11 @@
         <link rel="next" href="../dead-letter-queue/">
       
       
-      <link rel="icon" href="../../assets/smart_message.jpg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.19">
+        
+      
+      
+      <link rel="icon" href="../../assets/images/smart_message.jpg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -30,10 +33,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -60,7 +63,6 @@
 
     
     
-    
   </head>
   
   
@@ -80,7 +82,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#logging-in-smartmessage" class="md-skip">
+        <a href="#logging" class="md-skip">
           Skip to content
         </a>
       
@@ -102,7 +104,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="SmartMessage Documentation" class="md-header__button md-logo" aria-label="SmartMessage Documentation" data-md-component="logo">
       
-  <img src="../../assets/smart_message.jpg" alt="logo">
+  <img src="../../assets/images/smart_message.jpg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -209,7 +211,7 @@
         <a href="https://github.com/madbomber/smart_message" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
   </div>
   <div class="md-source__repository">
     madbomber/smart_message
@@ -258,7 +260,7 @@
   
     
   
-  🚀 Getting Started
+  Getting Started
 
         </a>
       </li>
@@ -280,7 +282,29 @@
   
     
   
-  📖 Core Concepts
+  Core Concepts
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../transports/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Transports
 
         </a>
       </li>
@@ -298,57 +322,13 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../transports/" class="md-tabs__link">
+        <a href="../publishing/" class="md-tabs__link">
           
   
   
     
   
-  🔌 Reference
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../../transports/memory-transport/" class="md-tabs__link">
-          
-  
-  
-    
-  
-  🚚 Transports
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../../guides/transport-selection/" class="md-tabs__link">
-          
-  
-  
-    
-  
-  📚 Guides
+  Reference
 
         </a>
       </li>
@@ -370,7 +350,7 @@
   
     
   
-  ⚙️ Development
+  Development
 
         </a>
       </li>
@@ -408,7 +388,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href="../.." title="SmartMessage Documentation" class="md-nav__button md-logo" aria-label="SmartMessage Documentation" data-md-component="logo">
       
-  <img src="../../assets/smart_message.jpg" alt="logo">
+  <img src="../../assets/images/smart_message.jpg" alt="logo">
 
     </a>
     SmartMessage Documentation
@@ -418,7 +398,7 @@
       <a href="https://github.com/madbomber/smart_message" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
   </div>
   <div class="md-source__repository">
     madbomber/smart_message
@@ -440,9 +420,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Home
+  
+
     
   </span>
+  
   
 
       </a>
@@ -458,6 +443,8 @@
   
     
     
+      
+        
       
         
       
@@ -484,9 +471,14 @@
   
   
   <span class="md-ellipsis">
-    🚀 Getting Started
+    
+  
+    Getting Started
+  
+
     
   </span>
+  
   
 
             <span class="md-nav__icon md-icon"></span>
@@ -495,7 +487,11 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
-            🚀 Getting Started
+            
+  
+    Getting Started
+  
+
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -511,9 +507,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Quick Start
+  
+
     
   </span>
+  
   
 
       </a>
@@ -534,9 +535,42 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Examples
+  
+
     
   </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/upgrading/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Upgrading from 0.0.x
+  
+
+    
+  </span>
+  
   
 
       </a>
@@ -573,6 +607,8 @@
       
         
       
+        
+      
     
     
     
@@ -594,9 +630,14 @@
   
   
   <span class="md-ellipsis">
-    📖 Core Concepts
+    
+  
+    Core Concepts
+  
+
     
   </span>
+  
   
 
             <span class="md-nav__icon md-icon"></span>
@@ -605,7 +646,11 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            📖 Core Concepts
+            
+  
+    Core Concepts
+  
+
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -621,9 +666,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Architecture
+  
+
     
   </span>
+  
   
 
       </a>
@@ -644,9 +694,14 @@
   
   
   <span class="md-ellipsis">
-    Properties
+    
+  
+    Properties and Validation
+  
+
     
   </span>
+  
   
 
       </a>
@@ -667,32 +722,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Addressing
+  
+
     
   </span>
   
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../core-concepts/dispatcher/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Dispatcher
-    
-  </span>
   
 
       </a>
@@ -713,9 +750,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Message Filtering
+  
+
     
   </span>
+  
   
 
       </a>
@@ -736,9 +778,281 @@
   
   
   <span class="md-ellipsis">
-    Message Processing
+    
+  
+    Handlers
+  
+
     
   </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../core-concepts/dispatcher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dispatcher
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../core-concepts/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Transports
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Transports
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../transports/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview and Delivery Semantics
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../transports/memory-transport/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Memory Transport
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../transports/stdout-transport/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Stdout Transport
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../transports/file-transport/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File Transport
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../transports/redis-transport/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Redis Transport
+  
+
+    
+  </span>
+  
   
 
       </a>
@@ -793,26 +1107,35 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
-    🔌 Reference
+    
+  
+    Reference
+  
+
     
   </span>
+  
   
 
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
-            🔌 Reference
+            
+  
+    Reference
+  
+
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -823,14 +1146,19 @@
   
   
     <li class="md-nav__item">
-      <a href="../transports/" class="md-nav__link">
+      <a href="../publishing/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Transports
+    
+  
+    Publishing
+  
+
     
   </span>
+  
   
 
       </a>
@@ -851,9 +1179,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Serializers
+  
+
     
   </span>
+  
   
 
       </a>
@@ -883,9 +1216,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Logging
+  
+
     
   </span>
+  
   
 
           <span class="md-nav__icon md-icon"></span>
@@ -896,9 +1234,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Logging
+  
+
     
   </span>
+  
   
 
       </a>
@@ -921,46 +1264,100 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#table-of-contents" class="md-nav__link">
+  <a href="#configlogger" class="md-nav__link">
     <span class="md-ellipsis">
-      Table of Contents
+      
+        config.logger
+      
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#quick-start" class="md-nav__link">
+  <a href="#the-log_-settings" class="md-nav__link">
     <span class="md-ellipsis">
-      Quick Start
+      
+        The log_* settings
+      
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration-options" class="md-nav__link">
+  <a href="#output" class="md-nav__link">
     <span class="md-ellipsis">
-      Configuration Options
+      
+        Output
+      
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Configuration Options">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-smartmessage-logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What SmartMessage logs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-the-logger-yourself" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the logger yourself
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-shipped-loggers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The shipped loggers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The shipped loggers">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#global-configuration" class="md-nav__link">
+  <a href="#smartmessageloggerlumberjack" class="md-nav__link">
     <span class="md-ellipsis">
-      Global Configuration
+      
+        SmartMessage::Logger::Lumberjack
+      
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#configuration-details" class="md-nav__link">
+  <a href="#smartmessageloggerdefault" class="md-nav__link">
     <span class="md-ellipsis">
-      Configuration Details
+      
+        SmartMessage::Logger::Default
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#smartmessageloggernull" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SmartMessage::Logger::Null
+      
     </span>
   </a>
   
@@ -972,281 +1369,46 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#output-formats" class="md-nav__link">
+  <a href="#per-class-loggers" class="md-nav__link">
     <span class="md-ellipsis">
-      Output Formats
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Output Formats">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#text-format-default" class="md-nav__link">
-    <span class="md-ellipsis">
-      Text Format (Default)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#json-format" class="md-nav__link">
-    <span class="md-ellipsis">
-      JSON Format
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
       
-        <li class="md-nav__item">
-  <a href="#colorized-console-output" class="md-nav__link">
-    <span class="md-ellipsis">
-      Colorized Console Output
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Colorized Console Output">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#color-scheme" class="md-nav__link">
-    <span class="md-ellipsis">
-      Color Scheme
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
+        Per-class loggers
       
-        <li class="md-nav__item">
-  <a href="#file-rolling" class="md-nav__link">
-    <span class="md-ellipsis">
-      File Rolling
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="File Rolling">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#size-based-rolling" class="md-nav__link">
-    <span class="md-ellipsis">
-      Size-Based Rolling
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#date-based-rolling" class="md-nav__link">
-    <span class="md-ellipsis">
-      Date-Based Rolling
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#rolling-options" class="md-nav__link">
-    <span class="md-ellipsis">
-      Rolling Options
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#structured-logging" class="md-nav__link">
-    <span class="md-ellipsis">
-      Structured Logging
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#application-integration" class="md-nav__link">
+  <a href="#forcing-a-logger" class="md-nav__link">
     <span class="md-ellipsis">
-      Application Integration
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Application Integration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#accessing-the-logger" class="md-nav__link">
-    <span class="md-ellipsis">
-      Accessing the Logger
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#class-level-integration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Class-Level Integration
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
       
-        <li class="md-nav__item">
-  <a href="#smartmessage-integration" class="md-nav__link">
-    <span class="md-ellipsis">
-      SmartMessage Integration
+        Forcing a logger
+      
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#examples" class="md-nav__link">
+  <a href="#a-complete-program" class="md-nav__link">
     <span class="md-ellipsis">
-      Examples
+      
+        A complete program
+      
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Examples">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#development-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Development Configuration
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#production-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Production Configuration
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#dockercontainer-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Docker/Container Configuration
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#testing-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Testing Configuration
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#multiple-logger-configurations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Multiple Logger Configurations
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#best-practices" class="md-nav__link">
+  <a href="#rails" class="md-nav__link">
     <span class="md-ellipsis">
-      Best Practices
+      
+        Rails
+      
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Best Practices">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-environment-based-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      1. Environment-Based Configuration
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-structured-data" class="md-nav__link">
-    <span class="md-ellipsis">
-      2. Structured Data
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-appropriate-log-levels" class="md-nav__link">
-    <span class="md-ellipsis">
-      3. Appropriate Log Levels
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-performance-considerations" class="md-nav__link">
-    <span class="md-ellipsis">
-      4. Performance Considerations
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#5-security" class="md-nav__link">
-    <span class="md-ellipsis">
-      5. Security
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#6-testing" class="md-nav__link">
-    <span class="md-ellipsis">
-      6. Testing
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1271,9 +1433,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Dead Letter Queue
+  
+
     
   </span>
+  
   
 
       </a>
@@ -1294,9 +1461,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Message Deduplication
+  
+
     
   </span>
+  
   
 
       </a>
@@ -1312,14 +1484,19 @@
   
   
     <li class="md-nav__item">
-      <a href="../proc-handlers/" class="md-nav__link">
+      <a href="../circuit-breakers/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Proc Handlers
+    
+  
+    Circuit Breakers
+  
+
     
   </span>
+  
   
 
       </a>
@@ -1345,206 +1522,6 @@
     
       
         
-      
-        
-      
-        
-      
-        
-      
-        
-      
-        
-      
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
-        
-          
-          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    🚚 Transports
-    
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_5">
-            <span class="md-nav__icon md-icon"></span>
-            🚚 Transports
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../transports/memory-transport/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Memory Transport
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../transports/redis-transport/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Redis Transport
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../transports/stdout-transport/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    STDOUT Transport
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../transports/file-transport/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    File Transport
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../transports/multi-transport/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Multi-Transport Publishing
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../transports/redis-transport-comparison/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Redis Transport Comparison
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
       
         
       
@@ -1569,9 +1546,14 @@
   
   
   <span class="md-ellipsis">
-    📚 Guides
+    
+  
+    Development
+  
+
     
   </span>
+  
   
 
             <span class="md-nav__icon md-icon"></span>
@@ -1580,86 +1562,11 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
-            📚 Guides
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../guides/transport-selection/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Transport Selection
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-      
-        
-      
-        
-      
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
-        
-          
-          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
             
   
-  
-  <span class="md-ellipsis">
-    ⚙️ Development
-    
-  </span>
+    Development
   
 
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_7">
-            <span class="md-nav__icon md-icon"></span>
-            ⚙️ Development
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1675,9 +1582,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Troubleshooting
+  
+
     
   </span>
+  
   
 
       </a>
@@ -1698,9 +1610,14 @@
   
   
   <span class="md-ellipsis">
-    Ideas & Roadmap
+    
+  
+    Ideas
+  
+
     
   </span>
+  
   
 
       </a>
@@ -1745,46 +1662,100 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#table-of-contents" class="md-nav__link">
+  <a href="#configlogger" class="md-nav__link">
     <span class="md-ellipsis">
-      Table of Contents
+      
+        config.logger
+      
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#quick-start" class="md-nav__link">
+  <a href="#the-log_-settings" class="md-nav__link">
     <span class="md-ellipsis">
-      Quick Start
+      
+        The log_* settings
+      
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration-options" class="md-nav__link">
+  <a href="#output" class="md-nav__link">
     <span class="md-ellipsis">
-      Configuration Options
+      
+        Output
+      
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Configuration Options">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-smartmessage-logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What SmartMessage logs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-the-logger-yourself" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Using the logger yourself
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-shipped-loggers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The shipped loggers
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The shipped loggers">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#global-configuration" class="md-nav__link">
+  <a href="#smartmessageloggerlumberjack" class="md-nav__link">
     <span class="md-ellipsis">
-      Global Configuration
+      
+        SmartMessage::Logger::Lumberjack
+      
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#configuration-details" class="md-nav__link">
+  <a href="#smartmessageloggerdefault" class="md-nav__link">
     <span class="md-ellipsis">
-      Configuration Details
+      
+        SmartMessage::Logger::Default
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#smartmessageloggernull" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SmartMessage::Logger::Null
+      
     </span>
   </a>
   
@@ -1796,281 +1767,46 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#output-formats" class="md-nav__link">
+  <a href="#per-class-loggers" class="md-nav__link">
     <span class="md-ellipsis">
-      Output Formats
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Output Formats">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#text-format-default" class="md-nav__link">
-    <span class="md-ellipsis">
-      Text Format (Default)
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#json-format" class="md-nav__link">
-    <span class="md-ellipsis">
-      JSON Format
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
       
-        <li class="md-nav__item">
-  <a href="#colorized-console-output" class="md-nav__link">
-    <span class="md-ellipsis">
-      Colorized Console Output
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Colorized Console Output">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#color-scheme" class="md-nav__link">
-    <span class="md-ellipsis">
-      Color Scheme
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
+        Per-class loggers
       
-        <li class="md-nav__item">
-  <a href="#file-rolling" class="md-nav__link">
-    <span class="md-ellipsis">
-      File Rolling
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="File Rolling">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#size-based-rolling" class="md-nav__link">
-    <span class="md-ellipsis">
-      Size-Based Rolling
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#date-based-rolling" class="md-nav__link">
-    <span class="md-ellipsis">
-      Date-Based Rolling
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#rolling-options" class="md-nav__link">
-    <span class="md-ellipsis">
-      Rolling Options
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#structured-logging" class="md-nav__link">
-    <span class="md-ellipsis">
-      Structured Logging
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#application-integration" class="md-nav__link">
+  <a href="#forcing-a-logger" class="md-nav__link">
     <span class="md-ellipsis">
-      Application Integration
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Application Integration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#accessing-the-logger" class="md-nav__link">
-    <span class="md-ellipsis">
-      Accessing the Logger
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#class-level-integration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Class-Level Integration
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
       
-        <li class="md-nav__item">
-  <a href="#smartmessage-integration" class="md-nav__link">
-    <span class="md-ellipsis">
-      SmartMessage Integration
+        Forcing a logger
+      
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#examples" class="md-nav__link">
+  <a href="#a-complete-program" class="md-nav__link">
     <span class="md-ellipsis">
-      Examples
+      
+        A complete program
+      
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Examples">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#development-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Development Configuration
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#production-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Production Configuration
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#dockercontainer-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Docker/Container Configuration
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#testing-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Testing Configuration
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#multiple-logger-configurations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Multiple Logger Configurations
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#best-practices" class="md-nav__link">
+  <a href="#rails" class="md-nav__link">
     <span class="md-ellipsis">
-      Best Practices
+      
+        Rails
+      
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Best Practices">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-environment-based-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      1. Environment-Based Configuration
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-structured-data" class="md-nav__link">
-    <span class="md-ellipsis">
-      2. Structured Data
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-appropriate-log-levels" class="md-nav__link">
-    <span class="md-ellipsis">
-      3. Appropriate Log Levels
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-performance-considerations" class="md-nav__link">
-    <span class="md-ellipsis">
-      4. Performance Considerations
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#5-security" class="md-nav__link">
-    <span class="md-ellipsis">
-      5. Security
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#6-testing" class="md-nav__link">
-    <span class="md-ellipsis">
-      6. Testing
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -2084,6 +1820,55 @@
           
           
             <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../.." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="../publishing/" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Reference
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
               <article class="md-content__inner md-typeset">
                 
                   
@@ -2106,529 +1891,251 @@
   
 
 
-<h1 id="logging-in-smartmessage">Logging in SmartMessage<a class="headerlink" href="#logging-in-smartmessage" title="Permanent link">&para;</a></h1>
-<p>SmartMessage provides comprehensive logging capabilities with support for multiple output formats, colorization, structured logging, and file rolling. Built on the Lumberjack logging framework, it offers production-ready features with flexible configuration options.</p>
-<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
-<ul>
-<li><a href="#quick-start">Quick Start</a></li>
-<li><a href="#configuration-options">Configuration Options</a></li>
-<li><a href="#output-formats">Output Formats</a></li>
-<li><a href="#colorized-console-output">Colorized Console Output</a></li>
-<li><a href="#file-rolling">File Rolling</a></li>
-<li><a href="#structured-logging">Structured Logging</a></li>
-<li><a href="#application-integration">Application Integration</a></li>
-<li><a href="#smartmessage-integration">SmartMessage Integration</a></li>
-<li><a href="#examples">Examples</a></li>
-<li><a href="#best-practices">Best Practices</a></li>
-</ul>
-<h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
-<p>Configure SmartMessage logging through the global configuration block:</p>
+<h1 id="logging">Logging<a class="headerlink" href="#logging" title="Permanent link">&para;</a></h1>
+<p><strong>Logging is off unless you configure it.</strong> With no logger configured, SmartMessage writes nothing and creates no file or directory.</p>
+<h2 id="configlogger"><code>config.logger</code><a class="headerlink" href="#configlogger" title="Permanent link">&para;</a></h2>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">STDOUT</span><span class="w">              </span><span class="c1"># Output destination</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:info</span><span class="w">           </span><span class="c1"># Log level</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:text</span><span class="w">          </span><span class="c1"># Format</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_colorize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">true</span><span class="w">         </span><span class="c1"># Enable colors</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="k">end</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># Access the logger in your application</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configuration</span><span class="o">.</span><span class="n">default_logger</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Application started&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">component</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;main&quot;</span><span class="p">)</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">'log/my_app.log'</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">end</span>
 </span></code></pre></div>
-<h2 id="configuration-options">Configuration Options<a class="headerlink" href="#configuration-options" title="Permanent link">&para;</a></h2>
-<h3 id="global-configuration">Global Configuration<a class="headerlink" href="#global-configuration" title="Permanent link">&para;</a></h3>
-<p>All logging configuration is done through the <code>SmartMessage.configure</code> block:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="c1"># Required: Output destination</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">STDOUT</span><span class="w">                    </span><span class="c1"># or file path, STDERR</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="c1"># Optional: Logging behavior</span>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:info</span><span class="w">                 </span><span class="c1"># :debug, :info, :warn, :error, :fatal</span>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:text</span><span class="w">                </span><span class="c1"># :text, :json</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_colorize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">true</span><span class="w">               </span><span class="c1"># Enable colorized console output</span>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_include_source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">false</span><span class="w">        </span><span class="c1"># Include file/line information</span>
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_structured_data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">false</span><span class="w">       </span><span class="c1"># Enable structured metadata</span>
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">  </span><span class="c1"># Optional: File rolling options</span>
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="ss">roll_by_size</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">,</span>
-</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">    </span><span class="ss">max_file_size</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">,</span><span class="w">       </span><span class="c1"># 10 MB</span>
-</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">    </span><span class="ss">keep_files</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w">                          </span><span class="c1"># Keep 5 old files</span>
-</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">    </span><span class="ss">roll_by_date</span><span class="p">:</span><span class="w"> </span><span class="kp">false</span><span class="p">,</span><span class="w">                    </span><span class="c1"># Alternative: date-based rolling</span>
-</span><span id="__span-1-18"><a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">    </span><span class="ss">date_pattern</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;%Y-%m-%d&#39;</span><span class="w">                </span><span class="c1"># Daily pattern</span>
-</span><span id="__span-1-19"><a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">  </span><span class="p">}</span>
-</span><span id="__span-1-20"><a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="k">end</span>
-</span></code></pre></div>
-<h3 id="configuration-details">Configuration Details<a class="headerlink" href="#configuration-details" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
 <tr>
-<th>Option</th>
-<th>Type</th>
-<th>Default</th>
-<th>Description</th>
+<th>Value</th>
+<th>Result</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><code>logger</code></td>
-<td>String/IO</td>
-<td>Required</td>
-<td>Output destination (file path, STDOUT, STDERR)</td>
+<td><code>nil</code></td>
+<td>No logging. This is the default.</td>
 </tr>
 <tr>
-<td><code>log_level</code></td>
-<td>Symbol</td>
-<td><code>:info</code></td>
-<td>Log level (<code>:debug</code>, <code>:info</code>, <code>:warn</code>, <code>:error</code>, <code>:fatal</code>)</td>
+<td><code>:default</code></td>
+<td>The built-in Lumberjack logger writing to <code>log/smart_message.log</code> (under <code>Rails.root</code> in a Rails application)</td>
 </tr>
 <tr>
-<td><code>log_format</code></td>
-<td>Symbol</td>
-<td><code>:text</code></td>
-<td>Output format (<code>:text</code>, <code>:json</code>)</td>
+<td>a String or <code>Pathname</code> path</td>
+<td>The built-in Lumberjack logger writing to that file. The directory is created.</td>
 </tr>
 <tr>
-<td><code>log_colorize</code></td>
-<td>Boolean</td>
-<td><code>false</code></td>
-<td>Enable colorized console output</td>
+<td><code>STDOUT</code> or <code>STDERR</code></td>
+<td>The built-in Lumberjack logger writing to the console</td>
 </tr>
 <tr>
-<td><code>log_include_source</code></td>
-<td>Boolean</td>
-<td><code>false</code></td>
-<td>Include source file and line information</td>
-</tr>
-<tr>
-<td><code>log_structured_data</code></td>
-<td>Boolean</td>
-<td><code>false</code></td>
-<td>Enable structured data logging</td>
-</tr>
-<tr>
-<td><code>log_options</code></td>
-<td>Hash</td>
-<td><code>{}</code></td>
-<td>Additional Lumberjack options</td>
+<td>a logger object</td>
+<td>Used as it is: <code>Rails.logger</code>, <code>Logger.new(...)</code>, a <code>SmartMessage::Logger::Default</code>, or your own. It must respond to <code>debug</code>, <code>info</code>, <code>warn</code>, <code>error</code> and <code>fatal</code>; anything else raises <code>ArgumentError</code> when assigned</td>
 </tr>
 </tbody>
 </table>
-<h2 id="output-formats">Output Formats<a class="headerlink" href="#output-formats" title="Permanent link">&para;</a></h2>
-<h3 id="text-format-default">Text Format (Default)<a class="headerlink" href="#text-format-default" title="Permanent link">&para;</a></h3>
-<p>Human-readable text output with optional colorization:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">STDOUT</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:text</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_colorize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">true</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="k">end</span>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configuration</span><span class="o">.</span><span class="n">default_logger</span>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User login successful&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">user_id</span><span class="p">:</span><span class="w"> </span><span class="mi">12345</span><span class="p">)</span>
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="c1"># Output: 2025-01-15 10:30:45 [INFO] User login successful user_id=12345</span>
+<p>Any object with the standard Ruby <code>Logger</code> interface works. The framework only calls <code>debug</code>, <code>info</code>, <code>warn</code>, <code>error</code> and <code>fatal</code>, each with a block.</p>
+<h2 id="the-log_-settings">The <code>log_*</code> settings<a class="headerlink" href="#the-log_-settings" title="Permanent link">&para;</a></h2>
+<p>These shape the built-in Lumberjack logger, that is, when <code>config.logger</code> is <code>:default</code>, a String path, <code>STDOUT</code> or <code>STDERR</code>. They have no effect on a logger object you supply.</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Values</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>config.log_level</code></td>
+<td><code>:debug</code>, <code>:info</code>, <code>:warn</code>, <code>:error</code>, <code>:fatal</code></td>
+<td><code>:info</code></td>
+</tr>
+<tr>
+<td><code>config.log_format</code></td>
+<td><code>:text</code> or <code>:json</code></td>
+<td><code>:text</code></td>
+</tr>
+<tr>
+<td><code>config.log_include_source</code></td>
+<td><code>true</code> / <code>false</code>: add <code>file:line</code> of the caller</td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td><code>config.log_structured_data</code></td>
+<td><code>true</code> / <code>false</code>: keep keyword data given to log calls</td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td><code>config.log_colorize</code></td>
+<td><code>true</code> / <code>false</code>: colour lines by level; console output only</td>
+<td><code>false</code></td>
+</tr>
+<tr>
+<td><code>config.log_options</code></td>
+<td>a Hash of rotation options (below)</td>
+<td><code>{}</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>log_level</code> and <code>log_format</code> also accept Strings (<code>'warn'</code>, <code>'json'</code>). Any other value raises <code>ArgumentError</code> when it is assigned.</p>
+<p>Rotation options for <code>config.log_options</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>roll_by_size: true</code></td>
+<td>Rotate by size</td>
+</tr>
+<tr>
+<td><code>max_file_size:</code></td>
+<td>Bytes per file when rotating by size (default 10 MB)</td>
+</tr>
+<tr>
+<td><code>keep_files:</code></td>
+<td>Files to keep when rotating by size (default 5)</td>
+</tr>
+<tr>
+<td><code>roll_by_date: true</code></td>
+<td>Rotate by date</td>
+</tr>
+<tr>
+<td><code>roll_period:</code></td>
+<td><code>'daily'</code> (default), <code>'weekly'</code> or <code>'monthly'</code></td>
+</tr>
+<tr>
+<td><code>date_pattern:</code></td>
+<td>Suffix pattern for rotated files, such as <code>'%Y-%m-%d'</code></td>
+</tr>
+</tbody>
+</table>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">logger</span><span class="w">              </span><span class="o">=</span><span class="w"> </span><span class="s1">'log/smart_message.log'</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_level</span><span class="w">           </span><span class="o">=</span><span class="w"> </span><span class="ss">:debug</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_format</span><span class="w">          </span><span class="o">=</span><span class="w"> </span><span class="ss">:json</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_include_source</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="kp">true</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_structured_data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">true</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_options</span><span class="w">         </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="ss">roll_by_size</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">,</span><span class="w"> </span><span class="ss">max_file_size</span><span class="p">:</span><span class="w"> </span><span class="mi">50</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">,</span><span class="w"> </span><span class="ss">keep_files</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="k">end</span>
 </span></code></pre></div>
-<h3 id="json-format">JSON Format<a class="headerlink" href="#json-format" title="Permanent link">&para;</a></h3>
-<p>Machine-readable structured JSON output:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;log/application.log&quot;</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:json</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_structured_data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">true</span>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_include_source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">true</span>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="k">end</span>
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configuration</span><span class="o">.</span><span class="n">default_logger</span>
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User action&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">user_id</span><span class="p">:</span><span class="w"> </span><span class="mi">12345</span><span class="p">,</span><span class="w"> </span><span class="ss">action</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;login&quot;</span><span class="p">)</span>
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="c1"># Output: {&quot;timestamp&quot;:&quot;2025-01-15T10:30:45.123Z&quot;,&quot;level&quot;:&quot;INFO&quot;,&quot;message&quot;:&quot;User action&quot;,&quot;user_id&quot;:12345,&quot;action&quot;:&quot;login&quot;,&quot;source&quot;:&quot;app.rb:42:in `authenticate`&quot;}</span>
+<p>The logger is built once, when it is first needed, and rebuilt only after one of these settings changes.</p>
+<h2 id="output">Output<a class="headerlink" href="#output" title="Permanent link">&para;</a></h2>
+<p>Text format:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>[2026-11-11 10:15:30.123] INFO  -- messaging.rb:77 : [SmartMessage] Published: OrderMessage via MemoryTransport
 </span></code></pre></div>
-<h2 id="colorized-console-output">Colorized Console Output<a class="headerlink" href="#colorized-console-output" title="Permanent link">&para;</a></h2>
-<p>SmartMessage provides colorized console output for improved readability during development:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">STDOUT</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:text</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_colorize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">true</span>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="k">end</span>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configuration</span><span class="o">.</span><span class="n">default_logger</span>
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Debug message&quot;</span><span class="p">)</span><span class="w">    </span><span class="c1"># Green background, black text, bold</span>
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Info message&quot;</span><span class="p">)</span><span class="w">      </span><span class="c1"># Bright white text</span>
-</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Warning message&quot;</span><span class="p">)</span><span class="w">   </span><span class="c1"># Yellow background, white bold text</span>
-</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Error message&quot;</span><span class="p">)</span><span class="w">    </span><span class="c1"># Light red background, white bold text</span>
-</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="n">logger</span><span class="o">.</span><span class="n">fatal</span><span class="p">(</span><span class="s2">&quot;Fatal message&quot;</span><span class="p">)</span><span class="w">    </span><span class="c1"># Light red background, yellow bold text</span>
+<p>JSON format, one object per line. Keyword data given to a log call is nested under <code>data</code>, so it cannot collide with the fixed fields:</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="p">{</span><span class="nt">"timestamp"</span><span class="p">:</span><span class="s2">"2026-11-11 10:15:30.123"</span><span class="p">,</span><span class="nt">"level"</span><span class="p">:</span><span class="s2">"INFO"</span><span class="p">,</span><span class="nt">"message"</span><span class="p">:</span><span class="s2">"Order accepted"</span><span class="p">,</span><span class="nt">"source"</span><span class="p">:</span><span class="s2">"orders.rb:12"</span><span class="p">,</span><span class="nt">"data"</span><span class="p">:{</span><span class="nt">"order_id"</span><span class="p">:</span><span class="mi">42</span><span class="p">}}</span>
 </span></code></pre></div>
-<h3 id="color-scheme">Color Scheme<a class="headerlink" href="#color-scheme" title="Permanent link">&para;</a></h3>
+<p>The circuit breakers (the BreakerMachines gem) report through the same logger: a circuit opening is logged at <code>warn</code>, closing and half-opening at <code>info</code>. See <a href="../circuit-breakers/#circuit-events-in-the-log">Circuit Breakers</a>.</p>
+<h2 id="what-smartmessage-logs">What SmartMessage logs<a class="headerlink" href="#what-smartmessage-logs" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
 <th>Level</th>
-<th>Foreground</th>
-<th>Background</th>
-<th>Style</th>
+<th>Events</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>DEBUG</td>
-<td>Black</td>
-<td>Green</td>
-<td>Bold</td>
+<td><code>debug</code></td>
+<td>Message created, routing decisions, subscriptions added, skipped Redis payloads</td>
 </tr>
 <tr>
-<td>INFO</td>
-<td>Bright White</td>
-<td>None</td>
-<td>None</td>
+<td><code>info</code></td>
+<td>Published (with the transports used), subscribed, unsubscribed</td>
 </tr>
 <tr>
-<td>WARN</td>
-<td>White</td>
-<td>Yellow</td>
-<td>Bold</td>
+<td><code>warn</code></td>
+<td>Partial publish failure, duplicate skipped, corrupt dead letter queue lines dropped</td>
 </tr>
 <tr>
-<td>ERROR</td>
-<td>White</td>
-<td>Light Red</td>
-<td>Bold</td>
-</tr>
-<tr>
-<td>FATAL</td>
-<td>Yellow</td>
-<td>Light Red</td>
-<td>Bold</td>
+<td><code>error</code></td>
+<td>Transport publish failure, handler failure, payload that cannot be received, lost Redis subscriber connection, handler killed at shutdown, dead letter queue write failure</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Note:</strong> Colorization is automatically disabled for file output to keep log files clean.</p>
-<h2 id="file-rolling">File Rolling<a class="headerlink" href="#file-rolling" title="Permanent link">&para;</a></h2>
-<p>SmartMessage supports both size-based and date-based log file rolling:</p>
-<h3 id="size-based-rolling">Size-Based Rolling<a class="headerlink" href="#size-based-rolling" title="Permanent link">&para;</a></h3>
+<h2 id="using-the-logger-yourself">Using the logger yourself<a class="headerlink" href="#using-the-logger-yourself" title="Permanent link">&para;</a></h2>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Logger</span><span class="o">.</span><span class="n">default</span><span class="w">   </span><span class="c1"># the configured logger, or a Null logger</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'Order accepted'</span><span class="p">)</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">"built only when the level allows it"</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'Order accepted'</span><span class="p">,</span><span class="w"> </span><span class="ss">order_id</span><span class="p">:</span><span class="w"> </span><span class="mi">42</span><span class="p">)</span><span class="w">   </span><span class="c1"># keyword data</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="n">logger</span><span class="o">.</span><span class="n">level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:debug</span><span class="w">                          </span><span class="c1"># Symbol, String or Integer</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="n">logger</span><span class="o">.</span><span class="n">debug?</span><span class="w">                                  </span><span class="c1"># =&gt; true</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="n">logger</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="ss">:warn</span><span class="p">,</span><span class="w"> </span><span class="s1">'text'</span><span class="p">)</span>
+</span></code></pre></div>
+<p>Keyword data, <code>level=</code> with a Symbol and <code>add</code> with a Symbol belong to the interface of the loggers shipped with SmartMessage (<code>SmartMessage::Logger::Base</code>). A plain Ruby <code>Logger</code> does not accept keyword data.</p>
+<h2 id="the-shipped-loggers">The shipped loggers<a class="headerlink" href="#the-shipped-loggers" title="Permanent link">&para;</a></h2>
+<p>All three inherit from <code>SmartMessage::Logger::Base</code> and share one interface.</p>
+<h3 id="smartmessageloggerlumberjack"><code>SmartMessage::Logger::Lumberjack</code><a class="headerlink" href="#smartmessageloggerlumberjack" title="Permanent link">&para;</a></h3>
+<p>What <code>config.logger = :default</code>, a path, <code>STDOUT</code> or <code>STDERR</code> builds. You can also build one yourself:</p>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;log/application.log&quot;</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="ss">roll_by_size</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">,</span>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="ss">max_file_size</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">,</span><span class="w">  </span><span class="c1"># 10 MB</span>
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">    </span><span class="ss">keep_files</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="w">                      </span><span class="c1"># Keep 5 old files</span>
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">  </span><span class="p">}</span>
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="k">end</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Logger</span><span class="o">::</span><span class="no">Lumberjack</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="ss">log_file</span><span class="p">:</span><span class="w">        </span><span class="no">STDERR</span><span class="p">,</span><span class="w">   </span><span class="c1"># a path, STDOUT or STDERR</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="w">    </span><span class="ss">level</span><span class="p">:</span><span class="w">           </span><span class="ss">:debug</span><span class="p">,</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="nb">format</span><span class="p">:</span><span class="w">          </span><span class="ss">:text</span><span class="p">,</span><span class="w">    </span><span class="c1"># :text or :json</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">    </span><span class="ss">include_source</span><span class="p">:</span><span class="w">  </span><span class="kp">true</span><span class="p">,</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span><span class="ss">structured_data</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">,</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">    </span><span class="ss">colorize</span><span class="p">:</span><span class="w">        </span><span class="kp">true</span><span class="w">      </span><span class="c1"># console only</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="w">  </span><span class="p">)</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="k">end</span>
 </span></code></pre></div>
-<p>Files are named: <code>application.log</code>, <code>application.log.1</code>, <code>application.log.2</code>, etc.</p>
-<h3 id="date-based-rolling">Date-Based Rolling<a class="headerlink" href="#date-based-rolling" title="Permanent link">&para;</a></h3>
+<h3 id="smartmessageloggerdefault"><code>SmartMessage::Logger::Default</code><a class="headerlink" href="#smartmessageloggerdefault" title="Permanent link">&para;</a></h3>
+<p>A thin wrapper around Ruby's standard <code>Logger</code>. Each line carries the caller's file and line.</p>
 <div class="language-ruby highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;log/application.log&quot;</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="ss">roll_by_date</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">,</span>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">    </span><span class="ss">date_pattern</span><span class="p">:</span><span class="w"> </span><span class="s1">&#39;%Y-%m-%d&#39;</span><span class="w">  </span><span class="c1"># Daily rolling</span>
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="w">  </span><span class="p">}</span>
-</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="k">end</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Logger</span><span class="o">::</span><span class="no">Default</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="ss">log_file</span><span class="p">:</span><span class="w"> </span><span class="s1">'log/smart_message.log'</span><span class="p">,</span><span class="w">   </span><span class="c1"># a path or an IO; this path is the default</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="ss">level</span><span class="p">:</span><span class="w">    </span><span class="ss">:info</span><span class="w">                      </span><span class="c1"># default :info</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span><span class="p">)</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="k">end</span>
 </span></code></pre></div>
-<p>Files are named: <code>application.log.2025-01-15</code>, <code>application.log.2025-01-14</code>, etc.</p>
-<h3 id="rolling-options">Rolling Options<a class="headerlink" href="#rolling-options" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th>Option</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>roll_by_size</code></td>
-<td>Boolean</td>
-<td>Enable size-based rolling</td>
-</tr>
-<tr>
-<td><code>max_file_size</code></td>
-<td>Integer</td>
-<td>Maximum file size in bytes</td>
-</tr>
-<tr>
-<td><code>keep_files</code></td>
-<td>Integer</td>
-<td>Number of old files to keep</td>
-</tr>
-<tr>
-<td><code>roll_by_date</code></td>
-<td>Boolean</td>
-<td>Enable date-based rolling</td>
-</tr>
-<tr>
-<td><code>date_pattern</code></td>
-<td>String</td>
-<td>Date format pattern</td>
-</tr>
-</tbody>
-</table>
-<h2 id="structured-logging">Structured Logging<a class="headerlink" href="#structured-logging" title="Permanent link">&para;</a></h2>
-<p>Enable structured data logging to include metadata with your log entries:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;log/application.log&quot;</span>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:json</span>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_structured_data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">true</span>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_include_source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">true</span>
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="k">end</span>
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>
-</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configuration</span><span class="o">.</span><span class="n">default_logger</span>
-</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>
-</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="c1"># Log with structured data</span>
-</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User registration&quot;</span><span class="p">,</span><span class="w"> </span>
-</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">            </span><span class="ss">user_id</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user123&quot;</span><span class="p">,</span>
-</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">            </span><span class="ss">email</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;user@example.com&quot;</span><span class="p">,</span>
-</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">            </span><span class="ss">registration_source</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;web&quot;</span><span class="p">,</span>
-</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">            </span><span class="ss">timestamp</span><span class="p">:</span><span class="w"> </span><span class="no">Time</span><span class="o">.</span><span class="n">now</span><span class="o">.</span><span class="n">iso8601</span><span class="p">)</span>
-</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a>
-</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="c1"># Log with block for conditional data</span>
-</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Database slow query&quot;</span><span class="p">)</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="w">  </span><span class="p">{</span>
-</span><span id="__span-7-20"><a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="w">    </span><span class="ss">query</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;SELECT * FROM users WHERE status = ?&quot;</span><span class="p">,</span>
-</span><span id="__span-7-21"><a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="w">    </span><span class="ss">duration_ms</span><span class="p">:</span><span class="w"> </span><span class="mi">1500</span><span class="p">,</span>
-</span><span id="__span-7-22"><a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="w">    </span><span class="ss">table</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;users&quot;</span><span class="p">,</span>
-</span><span id="__span-7-23"><a id="__codelineno-7-23" name="__codelineno-7-23" href="#__codelineno-7-23"></a><span class="w">    </span><span class="ss">slow_query</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
-</span><span id="__span-7-24"><a id="__codelineno-7-24" name="__codelineno-7-24" href="#__codelineno-7-24"></a><span class="w">  </span><span class="p">}</span>
-</span><span id="__span-7-25"><a id="__codelineno-7-25" name="__codelineno-7-25" href="#__codelineno-7-25"></a><span class="k">end</span>
+<p>Given a path, it keeps 10 files of 10 MB.</p>
+<h3 id="smartmessageloggernull"><code>SmartMessage::Logger::Null</code><a class="headerlink" href="#smartmessageloggernull" title="Permanent link">&para;</a></h3>
+<p>Discards everything; message blocks are never evaluated. It is what SmartMessage uses when nothing is configured.</p>
+<h2 id="per-class-loggers">Per-class loggers<a class="headerlink" href="#per-class-loggers" title="Permanent link">&para;</a></h2>
+<p>A message class can have its own logger, inherited by its subclasses:</p>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nb">require</span><span class="w"> </span><span class="s1">'logger'</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="k">class</span><span class="w"> </span><span class="nc">PaymentMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
+</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="n">logger</span><span class="w"> </span><span class="no">Logger</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="s1">'log/payments.log'</span><span class="p">)</span>
+</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="k">end</span>
+</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>
+</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="no">PaymentMessage</span><span class="o">.</span><span class="n">logger</span><span class="w">              </span><span class="c1"># the class logger</span>
+</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="no">PaymentMessage</span><span class="o">.</span><span class="n">logger_configured?</span><span class="w">  </span><span class="c1"># =&gt; true (set on the class or an ancestor)</span>
+</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="no">PaymentMessage</span><span class="o">.</span><span class="n">reset_logger</span><span class="w">        </span><span class="c1"># back to the global logger</span>
 </span></code></pre></div>
-<h2 id="application-integration">Application Integration<a class="headerlink" href="#application-integration" title="Permanent link">&para;</a></h2>
-<h3 id="accessing-the-logger">Accessing the Logger<a class="headerlink" href="#accessing-the-logger" title="Permanent link">&para;</a></h3>
-<p>The configured logger is available globally:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Get the globally configured logger</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configuration</span><span class="o">.</span><span class="n">default_logger</span>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1"># Use in your application</span>
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Application starting&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">version</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0.0&quot;</span><span class="p">)</span>
-</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Configuration missing&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">config_key</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;database_url&quot;</span><span class="p">)</span>
-</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Service unavailable&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">service</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;payment_gateway&quot;</span><span class="p">)</span>
+<p>It receives the lines logged on behalf of that class's messages: creation, publishing and subscription. Transports, the dispatcher, deduplication and the dead letter queue use the global logger.</p>
+<h2 id="forcing-a-logger">Forcing a logger<a class="headerlink" href="#forcing-a-logger" title="Permanent link">&para;</a></h2>
+<p><code>SmartMessage::Logger.default = logger</code> overrides the configuration until <code>SmartMessage::Logger.reset!</code> (or <code>SmartMessage::Logger.default = nil</code>). It is meant for tests.</p>
+<h2 id="a-complete-program">A complete program<a class="headerlink" href="#a-complete-program" title="Permanent link">&para;</a></h2>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nb">require</span><span class="w"> </span><span class="s1">'smart_message'</span>
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">logger</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="no">STDOUT</span>
+</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:info</span>
+</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">transport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">MemoryTransport</span><span class="o">.</span><span class="n">new</span>
+</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="k">end</span>
+</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>
+</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="c1"># messages/ping_message.rb</span>
+</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="k">class</span><span class="w"> </span><span class="nc">PingMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
+</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">  </span><span class="n">from</span><span class="w"> </span><span class="s1">'pinger'</span>
+</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:n</span>
+</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>
+</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nc">self</span><span class="o">.</span><span class="nf">process</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">    </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Logger</span><span class="o">.</span><span class="n">default</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'handled a ping'</span><span class="p">,</span><span class="w"> </span><span class="ss">n</span><span class="p">:</span><span class="w"> </span><span class="n">message</span><span class="o">.</span><span class="n">n</span><span class="p">)</span>
+</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="w">  </span><span class="k">end</span>
+</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="k">end</span>
+</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>
+</span><span id="__span-8-19"><a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a><span class="no">PingMessage</span><span class="o">.</span><span class="n">subscribe</span>
+</span><span id="__span-8-20"><a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a><span class="no">PingMessage</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">n</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">publish</span>
+</span><span id="__span-8-21"><a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">shutdown</span>
 </span></code></pre></div>
-<h3 id="class-level-integration">Class-Level Integration<a class="headerlink" href="#class-level-integration" title="Permanent link">&para;</a></h3>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">OrderService</span>
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">initialize</span>
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">    </span><span class="vi">@logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configuration</span><span class="o">.</span><span class="n">default_logger</span>
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>
-</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">process_order</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
-</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">    </span><span class="vi">@logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Processing order&quot;</span><span class="p">,</span><span class="w"> </span>
-</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">                 </span><span class="ss">order_id</span><span class="p">:</span><span class="w"> </span><span class="n">order</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">                 </span><span class="ss">customer_id</span><span class="p">:</span><span class="w"> </span><span class="n">order</span><span class="o">.</span><span class="n">customer_id</span><span class="p">,</span>
-</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">                 </span><span class="ss">amount</span><span class="p">:</span><span class="w"> </span><span class="n">order</span><span class="o">.</span><span class="n">amount</span><span class="p">)</span>
-</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>
-</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">    </span><span class="k">begin</span>
-</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="w">      </span><span class="c1"># Process order logic</span>
-</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="w">      </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">perform_processing</span><span class="p">(</span><span class="n">order</span><span class="p">)</span>
-</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a>
-</span><span id="__span-9-16"><a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a><span class="w">      </span><span class="vi">@logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Order completed&quot;</span><span class="p">,</span><span class="w"> </span>
-</span><span id="__span-9-17"><a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a><span class="w">                   </span><span class="ss">order_id</span><span class="p">:</span><span class="w"> </span><span class="n">order</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-</span><span id="__span-9-18"><a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a><span class="w">                   </span><span class="ss">status</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;success&quot;</span><span class="p">,</span>
-</span><span id="__span-9-19"><a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a><span class="w">                   </span><span class="ss">processing_time_ms</span><span class="p">:</span><span class="w"> </span><span class="n">result</span><span class="o">[</span><span class="ss">:duration</span><span class="o">]</span><span class="p">)</span>
-</span><span id="__span-9-20"><a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a>
-</span><span id="__span-9-21"><a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a><span class="w">    </span><span class="k">rescue</span><span class="w"> </span><span class="no">StandardError</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">e</span>
-</span><span id="__span-9-22"><a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a><span class="w">      </span><span class="vi">@logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Order processing failed&quot;</span><span class="p">,</span>
-</span><span id="__span-9-23"><a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a><span class="w">                    </span><span class="ss">order_id</span><span class="p">:</span><span class="w"> </span><span class="n">order</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
-</span><span id="__span-9-24"><a id="__codelineno-9-24" name="__codelineno-9-24" href="#__codelineno-9-24"></a><span class="w">                    </span><span class="ss">error</span><span class="p">:</span><span class="w"> </span><span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="p">,</span>
-</span><span id="__span-9-25"><a id="__codelineno-9-25" name="__codelineno-9-25" href="#__codelineno-9-25"></a><span class="w">                    </span><span class="ss">error_class</span><span class="p">:</span><span class="w"> </span><span class="n">e</span><span class="o">.</span><span class="n">class</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-</span><span id="__span-9-26"><a id="__codelineno-9-26" name="__codelineno-9-26" href="#__codelineno-9-26"></a><span class="w">      </span><span class="k">raise</span>
-</span><span id="__span-9-27"><a id="__codelineno-9-27" name="__codelineno-9-27" href="#__codelineno-9-27"></a><span class="w">    </span><span class="k">end</span>
-</span><span id="__span-9-28"><a id="__codelineno-9-28" name="__codelineno-9-28" href="#__codelineno-9-28"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-9-29"><a id="__codelineno-9-29" name="__codelineno-9-29" href="#__codelineno-9-29"></a><span class="k">end</span>
+<p>It prints the <code>Subscribed</code> and <code>Published</code> lines from the framework and the handler's own line with its keyword data.</p>
+<h2 id="rails">Rails<a class="headerlink" href="#rails" title="Permanent link">&para;</a></h2>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># config/initializers/smart_message.rb</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Rails</span><span class="o">.</span><span class="n">logger</span>
+</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="k">end</span>
 </span></code></pre></div>
-<h2 id="smartmessage-integration">SmartMessage Integration<a class="headerlink" href="#smartmessage-integration" title="Permanent link">&para;</a></h2>
-<p>SmartMessage classes automatically use the configured logger:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">OrderMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:order_id</span><span class="p">,</span><span class="w"> </span><span class="ss">required</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:customer_id</span><span class="p">,</span><span class="w"> </span><span class="ss">required</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:amount</span><span class="p">,</span><span class="w"> </span><span class="ss">required</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
-</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>
-</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">  </span><span class="n">config</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">    </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">::</span><span class="no">StdoutTransport</span><span class="o">.</span><span class="n">new</span>
-</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">    </span><span class="n">serializer</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Serializer</span><span class="o">::</span><span class="no">Json</span><span class="o">.</span><span class="n">new</span>
-</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="w">    </span><span class="n">from</span><span class="w"> </span><span class="s1">&#39;order-service&#39;</span>
-</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>
-</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">process</span>
-</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a><span class="w">    </span><span class="c1"># Logger is automatically available</span>
-</span><span id="__span-10-14"><a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="w">    </span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Processing order message&quot;</span><span class="p">,</span>
-</span><span id="__span-10-15"><a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="w">                </span><span class="ss">message_id</span><span class="p">:</span><span class="w"> </span><span class="n">_sm_header</span><span class="o">.</span><span class="n">uuid</span><span class="p">,</span>
-</span><span id="__span-10-16"><a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a><span class="w">                </span><span class="ss">order_id</span><span class="p">:</span><span class="w"> </span><span class="n">order_id</span><span class="p">,</span>
-</span><span id="__span-10-17"><a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a><span class="w">                </span><span class="ss">customer_id</span><span class="p">:</span><span class="w"> </span><span class="n">customer_id</span><span class="p">,</span>
-</span><span id="__span-10-18"><a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a><span class="w">                </span><span class="ss">amount</span><span class="p">:</span><span class="w"> </span><span class="n">amount</span><span class="p">)</span>
-</span><span id="__span-10-19"><a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>
-</span><span id="__span-10-20"><a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a><span class="w">    </span><span class="c1"># Log the complete message structure</span>
-</span><span id="__span-10-21"><a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a><span class="w">    </span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Message details&quot;</span><span class="p">,</span>
-</span><span id="__span-10-22"><a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a><span class="w">                 </span><span class="ss">header</span><span class="p">:</span><span class="w"> </span><span class="n">_sm_header</span><span class="o">.</span><span class="n">to_h</span><span class="p">,</span>
-</span><span id="__span-10-23"><a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a><span class="w">                 </span><span class="ss">payload</span><span class="p">:</span><span class="w"> </span><span class="n">_sm_payload</span><span class="p">,</span>
-</span><span id="__span-10-24"><a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a><span class="w">                 </span><span class="ss">full_message</span><span class="p">:</span><span class="w"> </span><span class="n">to_h</span><span class="p">)</span>
-</span><span id="__span-10-25"><a id="__codelineno-10-25" name="__codelineno-10-25" href="#__codelineno-10-25"></a>
-</span><span id="__span-10-26"><a id="__codelineno-10-26" name="__codelineno-10-26" href="#__codelineno-10-26"></a><span class="w">    </span><span class="c1"># Process the order</span>
-</span><span id="__span-10-27"><a id="__codelineno-10-27" name="__codelineno-10-27" href="#__codelineno-10-27"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="n">amount</span>
-</span><span id="__span-10-28"><a id="__codelineno-10-28" name="__codelineno-10-28" href="#__codelineno-10-28"></a><span class="w">    </span><span class="k">when</span><span class="w"> </span><span class="mi">0</span><span class="o">..</span><span class="mi">100</span>
-</span><span id="__span-10-29"><a id="__codelineno-10-29" name="__codelineno-10-29" href="#__codelineno-10-29"></a><span class="w">      </span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Small order processed&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">order_id</span><span class="p">:</span><span class="w"> </span><span class="n">order_id</span><span class="p">)</span>
-</span><span id="__span-10-30"><a id="__codelineno-10-30" name="__codelineno-10-30" href="#__codelineno-10-30"></a><span class="w">    </span><span class="k">when</span><span class="w"> </span><span class="mi">101</span><span class="o">..</span><span class="mi">1000</span>
-</span><span id="__span-10-31"><a id="__codelineno-10-31" name="__codelineno-10-31" href="#__codelineno-10-31"></a><span class="w">      </span><span class="n">logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Medium order requires review&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">order_id</span><span class="p">:</span><span class="w"> </span><span class="n">order_id</span><span class="p">)</span>
-</span><span id="__span-10-32"><a id="__codelineno-10-32" name="__codelineno-10-32" href="#__codelineno-10-32"></a><span class="w">    </span><span class="k">else</span>
-</span><span id="__span-10-33"><a id="__codelineno-10-33" name="__codelineno-10-33" href="#__codelineno-10-33"></a><span class="w">      </span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Large order requires manual approval&quot;</span><span class="p">,</span><span class="w"> </span>
-</span><span id="__span-10-34"><a id="__codelineno-10-34" name="__codelineno-10-34" href="#__codelineno-10-34"></a><span class="w">                   </span><span class="ss">order_id</span><span class="p">:</span><span class="w"> </span><span class="n">order_id</span><span class="p">,</span><span class="w"> </span>
-</span><span id="__span-10-35"><a id="__codelineno-10-35" name="__codelineno-10-35" href="#__codelineno-10-35"></a><span class="w">                   </span><span class="ss">amount</span><span class="p">:</span><span class="w"> </span><span class="n">amount</span><span class="p">)</span>
-</span><span id="__span-10-36"><a id="__codelineno-10-36" name="__codelineno-10-36" href="#__codelineno-10-36"></a><span class="w">    </span><span class="k">end</span>
-</span><span id="__span-10-37"><a id="__codelineno-10-37" name="__codelineno-10-37" href="#__codelineno-10-37"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-10-38"><a id="__codelineno-10-38" name="__codelineno-10-38" href="#__codelineno-10-38"></a><span class="k">end</span>
-</span></code></pre></div>
-<h2 id="examples">Examples<a class="headerlink" href="#examples" title="Permanent link">&para;</a></h2>
-<h3 id="development-configuration">Development Configuration<a class="headerlink" href="#development-configuration" title="Permanent link">&para;</a></h3>
-<p>Perfect for local development with colorized console output:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">STDOUT</span>
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:debug</span>
-</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:text</span>
-</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_colorize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">true</span>
-</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_include_source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">true</span>
-</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="k">end</span>
-</span></code></pre></div>
-<h3 id="production-configuration">Production Configuration<a class="headerlink" href="#production-configuration" title="Permanent link">&para;</a></h3>
-<p>Production setup with JSON logging and file rolling:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;/var/log/app/smartmessage.log&quot;</span>
-</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:info</span>
-</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:json</span>
-</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_colorize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">false</span>
-</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_structured_data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">true</span>
-</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_include_source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">false</span>
-</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">    </span><span class="ss">roll_by_size</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">,</span>
-</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="w">    </span><span class="ss">max_file_size</span><span class="p">:</span><span class="w"> </span><span class="mi">50</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">1024</span><span class="p">,</span><span class="w">  </span><span class="c1"># 50 MB</span>
-</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="w">    </span><span class="ss">keep_files</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span>
-</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="w">  </span><span class="p">}</span>
-</span><span id="__span-12-13"><a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="k">end</span>
-</span></code></pre></div>
-<h3 id="dockercontainer-configuration">Docker/Container Configuration<a class="headerlink" href="#dockercontainer-configuration" title="Permanent link">&para;</a></h3>
-<p>Container-friendly setup with structured STDOUT logging:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">STDOUT</span>
-</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;LOG_LEVEL&#39;</span><span class="o">]&amp;.</span><span class="n">downcase</span><span class="o">&amp;.</span><span class="n">to_sym</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="ss">:info</span>
-</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:json</span>
-</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_colorize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">false</span>
-</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_structured_data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">true</span>
-</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_include_source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">true</span>
-</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="k">end</span>
-</span></code></pre></div>
-<h3 id="testing-configuration">Testing Configuration<a class="headerlink" href="#testing-configuration" title="Permanent link">&para;</a></h3>
-<p>Minimal logging for test environments:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">STDERR</span>
-</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:error</span>
-</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:text</span>
-</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_colorize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">false</span>
-</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="k">end</span>
-</span></code></pre></div>
-<h3 id="multiple-logger-configurations">Multiple Logger Configurations<a class="headerlink" href="#multiple-logger-configurations" title="Permanent link">&para;</a></h3>
-<p>You can create multiple logger instances for different purposes:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># Configure global logger</span>
-</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;log/application.log&quot;</span>
-</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:info</span>
-</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:json</span>
-</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="k">end</span>
-</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>
-</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="c1"># Create additional loggers for specific needs</span>
-</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="n">console_logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Logger</span><span class="o">::</span><span class="no">Lumberjack</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
-</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="w">  </span><span class="ss">log_file</span><span class="p">:</span><span class="w"> </span><span class="no">STDERR</span><span class="p">,</span>
-</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a><span class="w">  </span><span class="ss">level</span><span class="p">:</span><span class="w"> </span><span class="ss">:warn</span><span class="p">,</span>
-</span><span id="__span-15-12"><a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a><span class="w">  </span><span class="nb">format</span><span class="p">:</span><span class="w"> </span><span class="ss">:text</span><span class="p">,</span>
-</span><span id="__span-15-13"><a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a><span class="w">  </span><span class="ss">colorize</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
-</span><span id="__span-15-14"><a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a><span class="p">)</span>
-</span><span id="__span-15-15"><a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a>
-</span><span id="__span-15-16"><a id="__codelineno-15-16" name="__codelineno-15-16" href="#__codelineno-15-16"></a><span class="n">debug_logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Logger</span><span class="o">::</span><span class="no">Lumberjack</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
-</span><span id="__span-15-17"><a id="__codelineno-15-17" name="__codelineno-15-17" href="#__codelineno-15-17"></a><span class="w">  </span><span class="ss">log_file</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;log/debug.log&quot;</span><span class="p">,</span>
-</span><span id="__span-15-18"><a id="__codelineno-15-18" name="__codelineno-15-18" href="#__codelineno-15-18"></a><span class="w">  </span><span class="ss">level</span><span class="p">:</span><span class="w"> </span><span class="ss">:debug</span><span class="p">,</span>
-</span><span id="__span-15-19"><a id="__codelineno-15-19" name="__codelineno-15-19" href="#__codelineno-15-19"></a><span class="w">  </span><span class="nb">format</span><span class="p">:</span><span class="w"> </span><span class="ss">:text</span><span class="p">,</span>
-</span><span id="__span-15-20"><a id="__codelineno-15-20" name="__codelineno-15-20" href="#__codelineno-15-20"></a><span class="w">  </span><span class="ss">include_source</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span>
-</span><span id="__span-15-21"><a id="__codelineno-15-21" name="__codelineno-15-21" href="#__codelineno-15-21"></a><span class="p">)</span>
-</span><span id="__span-15-22"><a id="__codelineno-15-22" name="__codelineno-15-22" href="#__codelineno-15-22"></a>
-</span><span id="__span-15-23"><a id="__codelineno-15-23" name="__codelineno-15-23" href="#__codelineno-15-23"></a><span class="c1"># Use in application</span>
-</span><span id="__span-15-24"><a id="__codelineno-15-24" name="__codelineno-15-24" href="#__codelineno-15-24"></a><span class="n">console_logger</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Service degraded&quot;</span><span class="p">)</span>
-</span><span id="__span-15-25"><a id="__codelineno-15-25" name="__codelineno-15-25" href="#__codelineno-15-25"></a><span class="n">debug_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Detailed debugging info&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">state</span><span class="p">:</span><span class="w"> </span><span class="n">app_state</span><span class="p">)</span>
-</span></code></pre></div>
-<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
-<h3 id="1-environment-based-configuration">1. Environment-Based Configuration<a class="headerlink" href="#1-environment-based-configuration" title="Permanent link">&para;</a></h3>
-<p>Configure logging based on your environment:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="k">case</span><span class="w"> </span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;RAILS_ENV&#39;</span><span class="o">]</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;ENVIRONMENT&#39;</span><span class="o">]</span>
-</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="k">when</span><span class="w"> </span><span class="s1">&#39;production&#39;</span>
-</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="w">  </span><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="w">    </span><span class="n">config</span><span class="o">.</span><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;/var/log/app/smartmessage.log&quot;</span>
-</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="w">    </span><span class="n">config</span><span class="o">.</span><span class="n">log_level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:info</span>
-</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="w">    </span><span class="n">config</span><span class="o">.</span><span class="n">log_format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:json</span>
-</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="w">    </span><span class="n">config</span><span class="o">.</span><span class="n">log_structured_data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">true</span>
-</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a><span class="w">    </span><span class="n">config</span><span class="o">.</span><span class="n">log_options</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="ss">roll_by_size</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">,</span><span class="w"> </span><span class="ss">max_file_size</span><span class="p">:</span><span class="w"> </span><span class="mi">50</span><span class="o">.</span><span class="n">megabytes</span><span class="p">,</span><span class="w"> </span><span class="ss">keep_files</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="w"> </span><span class="p">}</span>
-</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a><span class="k">when</span><span class="w"> </span><span class="s1">&#39;development&#39;</span>
-</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a><span class="w">  </span><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span id="__span-16-12"><a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a><span class="w">    </span><span class="n">config</span><span class="o">.</span><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">STDOUT</span>
-</span><span id="__span-16-13"><a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a><span class="w">    </span><span class="n">config</span><span class="o">.</span><span class="n">log_level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:debug</span>
-</span><span id="__span-16-14"><a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a><span class="w">    </span><span class="n">config</span><span class="o">.</span><span class="n">log_format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:text</span>
-</span><span id="__span-16-15"><a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a><span class="w">    </span><span class="n">config</span><span class="o">.</span><span class="n">log_colorize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">true</span>
-</span><span id="__span-16-16"><a id="__codelineno-16-16" name="__codelineno-16-16" href="#__codelineno-16-16"></a><span class="w">    </span><span class="n">config</span><span class="o">.</span><span class="n">log_include_source</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">true</span>
-</span><span id="__span-16-17"><a id="__codelineno-16-17" name="__codelineno-16-17" href="#__codelineno-16-17"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-16-18"><a id="__codelineno-16-18" name="__codelineno-16-18" href="#__codelineno-16-18"></a><span class="k">when</span><span class="w"> </span><span class="s1">&#39;test&#39;</span>
-</span><span id="__span-16-19"><a id="__codelineno-16-19" name="__codelineno-16-19" href="#__codelineno-16-19"></a><span class="w">  </span><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span id="__span-16-20"><a id="__codelineno-16-20" name="__codelineno-16-20" href="#__codelineno-16-20"></a><span class="w">    </span><span class="n">config</span><span class="o">.</span><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">STDERR</span>
-</span><span id="__span-16-21"><a id="__codelineno-16-21" name="__codelineno-16-21" href="#__codelineno-16-21"></a><span class="w">    </span><span class="n">config</span><span class="o">.</span><span class="n">log_level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:error</span>
-</span><span id="__span-16-22"><a id="__codelineno-16-22" name="__codelineno-16-22" href="#__codelineno-16-22"></a><span class="w">    </span><span class="n">config</span><span class="o">.</span><span class="n">log_format</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:text</span>
-</span><span id="__span-16-23"><a id="__codelineno-16-23" name="__codelineno-16-23" href="#__codelineno-16-23"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-16-24"><a id="__codelineno-16-24" name="__codelineno-16-24" href="#__codelineno-16-24"></a><span class="k">end</span>
-</span></code></pre></div>
-<h3 id="2-structured-data">2. Structured Data<a class="headerlink" href="#2-structured-data" title="Permanent link">&para;</a></h3>
-<p>Use structured data for better log analysis:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># Good: Structured data</span>
-</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User action&quot;</span><span class="p">,</span><span class="w"> </span>
-</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">            </span><span class="ss">user_id</span><span class="p">:</span><span class="w"> </span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="p">,</span><span class="w"> </span>
-</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">            </span><span class="ss">action</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;login&quot;</span><span class="p">,</span><span class="w"> </span>
-</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">            </span><span class="ss">ip_address</span><span class="p">:</span><span class="w"> </span><span class="n">request</span><span class="o">.</span><span class="n">ip</span><span class="p">,</span>
-</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">            </span><span class="ss">user_agent</span><span class="p">:</span><span class="w"> </span><span class="n">request</span><span class="o">.</span><span class="n">user_agent</span><span class="p">)</span>
-</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>
-</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="c1"># Avoid: String interpolation</span>
-</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User </span><span class="si">#{</span><span class="n">user</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2"> logged in from </span><span class="si">#{</span><span class="n">request</span><span class="o">.</span><span class="n">ip</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span></code></pre></div>
-<h3 id="3-appropriate-log-levels">3. Appropriate Log Levels<a class="headerlink" href="#3-appropriate-log-levels" title="Permanent link">&para;</a></h3>
-<p>Use log levels appropriately:</p>
-<ul>
-<li><strong>DEBUG</strong>: Detailed information for diagnosing problems</li>
-<li><strong>INFO</strong>: General information about program execution</li>
-<li><strong>WARN</strong>: Something unexpected happened, but the application is still working</li>
-<li><strong>ERROR</strong>: A serious problem occurred, but the application can continue</li>
-<li><strong>FATAL</strong>: A very serious error occurred, application may not be able to continue</li>
-</ul>
-<h3 id="4-performance-considerations">4. Performance Considerations<a class="headerlink" href="#4-performance-considerations" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Use appropriate log levels in production (avoid DEBUG)</li>
-<li>Consider async logging for high-volume applications</li>
-<li>Use structured data instead of string concatenation</li>
-<li>Be mindful of log volume and storage costs</li>
-</ul>
-<h3 id="5-security">5. Security<a class="headerlink" href="#5-security" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Never log sensitive data (passwords, tokens, credit card numbers)</li>
-<li>Sanitize user input before logging</li>
-<li>Use structured data to avoid log injection attacks</li>
-</ul>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># Good: Structured data prevents injection</span>
-</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User input received&quot;</span><span class="p">,</span><span class="w"> </span><span class="ss">user_input</span><span class="p">:</span><span class="w"> </span><span class="n">params</span><span class="o">[</span><span class="ss">:query</span><span class="o">]</span><span class="p">)</span>
-</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>
-</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="c1"># Avoid: Direct string interpolation</span>
-</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;User searched for: </span><span class="si">#{</span><span class="n">params</span><span class="o">[</span><span class="ss">:query</span><span class="o">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</span></code></pre></div>
-<h3 id="6-testing">6. Testing<a class="headerlink" href="#6-testing" title="Permanent link">&para;</a></h3>
-<p>Test your logging configuration:</p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1"># Test that logs are being generated</span>
-</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="nb">require</span><span class="w"> </span><span class="s1">&#39;stringio&#39;</span>
-</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>
-</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="n">log_output</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">StringIO</span><span class="o">.</span><span class="n">new</span>
-</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
-</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">log_output</span>
-</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:debug</span>
-</span><span id="__span-19-8"><a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="k">end</span>
-</span><span id="__span-19-9"><a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a>
-</span><span id="__span-19-10"><a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="n">logger</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configuration</span><span class="o">.</span><span class="n">default_logger</span>
-</span><span id="__span-19-11"><a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Test message&quot;</span><span class="p">)</span>
-</span><span id="__span-19-12"><a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a>
-</span><span id="__span-19-13"><a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a><span class="n">assert_includes</span><span class="w"> </span><span class="n">log_output</span><span class="o">.</span><span class="n">string</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;Test message&quot;</span>
-</span></code></pre></div>
-<p>For more information, see the comprehensive logging examples at <code>examples/memory/15_logger_demo.rb</code> and <code>examples/memory/08_custom_logger_demo.rb</code>.</p>
 
 
 
@@ -2680,7 +2187,7 @@
     
     
     <a href="https://github.com/madbomber/smart_message" target="_blank" rel="noopener" title="GitHub Repository" class="md-social__link">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
     </a>
   
 </div>
@@ -2697,14 +2204,13 @@
     
     
       
-      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.path", "navigation.indexes", "navigation.top", "toc.follow", "search.suggest", "search.highlight", "search.share", "header.autohide", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "content.action.edit", "content.action.view"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.11"}</script>
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.path", "navigation.indexes", "navigation.top", "toc.follow", "search.suggest", "search.highlight", "search.share", "header.autohide", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "content.action.edit", "content.action.view"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
     
     
-      <script src="../../assets/javascripts/bundle.92b07e13.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
         <script src="../../assets/javascripts/mathjax.js"></script>
-      
-        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
       
         <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
       

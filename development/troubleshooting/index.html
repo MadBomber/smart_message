@@ -6,7 +6,7 @@
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width,initial-scale=1">
       
-        <meta name="description" content="Intelligent messages that know what to do and how to do it">
+        <meta name="description" content="A Ruby messaging framework that separates messages from their transports">
       
       
         <meta name="author" content="madbomber">
@@ -15,14 +15,17 @@
         <link rel="canonical" href="https://madbomber.github.io/smart_message/development/troubleshooting/">
       
       
-        <link rel="prev" href="../../guides/transport-selection/">
+        <link rel="prev" href="../../reference/circuit-breakers/">
       
       
         <link rel="next" href="../ideas/">
       
       
-      <link rel="icon" href="../../assets/smart_message.jpg">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.19">
+        
+      
+      
+      <link rel="icon" href="../../assets/images/smart_message.jpg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.1">
     
     
       
@@ -30,10 +33,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -60,7 +63,6 @@
 
     
     
-    
   </head>
   
   
@@ -80,7 +82,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#troubleshooting-guide" class="md-skip">
+        <a href="#troubleshooting" class="md-skip">
           Skip to content
         </a>
       
@@ -102,7 +104,7 @@
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="../.." title="SmartMessage Documentation" class="md-header__button md-logo" aria-label="SmartMessage Documentation" data-md-component="logo">
       
-  <img src="../../assets/smart_message.jpg" alt="logo">
+  <img src="../../assets/images/smart_message.jpg" alt="logo">
 
     </a>
     <label class="md-header__button md-icon" for="__drawer">
@@ -209,7 +211,7 @@
         <a href="https://github.com/madbomber/smart_message" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
   </div>
   <div class="md-source__repository">
     madbomber/smart_message
@@ -258,7 +260,7 @@
   
     
   
-  🚀 Getting Started
+  Getting Started
 
         </a>
       </li>
@@ -280,7 +282,7 @@
   
     
   
-  📖 Core Concepts
+  Core Concepts
 
         </a>
       </li>
@@ -302,7 +304,7 @@
   
     
   
-  🔌 Reference
+  Transports
 
         </a>
       </li>
@@ -318,35 +320,13 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../transports/memory-transport/" class="md-tabs__link">
+        <a href="../../reference/publishing/" class="md-tabs__link">
           
   
   
     
   
-  🚚 Transports
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="../../guides/transport-selection/" class="md-tabs__link">
-          
-  
-  
-    
-  
-  📚 Guides
+  Reference
 
         </a>
       </li>
@@ -370,7 +350,7 @@
   
     
   
-  ⚙️ Development
+  Development
 
         </a>
       </li>
@@ -408,7 +388,7 @@
   <label class="md-nav__title" for="__drawer">
     <a href="../.." title="SmartMessage Documentation" class="md-nav__button md-logo" aria-label="SmartMessage Documentation" data-md-component="logo">
       
-  <img src="../../assets/smart_message.jpg" alt="logo">
+  <img src="../../assets/images/smart_message.jpg" alt="logo">
 
     </a>
     SmartMessage Documentation
@@ -418,7 +398,7 @@
       <a href="https://github.com/madbomber/smart_message" title="Go to repository" class="md-source" data-md-component="source">
   <div class="md-source__icon md-icon">
     
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
   </div>
   <div class="md-source__repository">
     madbomber/smart_message
@@ -440,9 +420,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Home
+  
+
     
   </span>
+  
   
 
       </a>
@@ -458,6 +443,8 @@
   
     
     
+      
+        
       
         
       
@@ -484,9 +471,14 @@
   
   
   <span class="md-ellipsis">
-    🚀 Getting Started
+    
+  
+    Getting Started
+  
+
     
   </span>
+  
   
 
             <span class="md-nav__icon md-icon"></span>
@@ -495,7 +487,11 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
-            🚀 Getting Started
+            
+  
+    Getting Started
+  
+
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -511,9 +507,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Quick Start
+  
+
     
   </span>
+  
   
 
       </a>
@@ -534,9 +535,42 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Examples
+  
+
     
   </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/upgrading/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Upgrading from 0.0.x
+  
+
+    
+  </span>
+  
   
 
       </a>
@@ -560,6 +594,8 @@
   
     
     
+      
+        
       
         
       
@@ -594,9 +630,14 @@
   
   
   <span class="md-ellipsis">
-    📖 Core Concepts
+    
+  
+    Core Concepts
+  
+
     
   </span>
+  
   
 
             <span class="md-nav__icon md-icon"></span>
@@ -605,7 +646,11 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
-            📖 Core Concepts
+            
+  
+    Core Concepts
+  
+
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -621,9 +666,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Architecture
+  
+
     
   </span>
+  
   
 
       </a>
@@ -644,9 +694,14 @@
   
   
   <span class="md-ellipsis">
-    Properties
+    
+  
+    Properties and Validation
+  
+
     
   </span>
+  
   
 
       </a>
@@ -667,32 +722,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Addressing
+  
+
     
   </span>
   
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../core-concepts/dispatcher/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Dispatcher
-    
-  </span>
   
 
       </a>
@@ -713,9 +750,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Message Filtering
+  
+
     
   </span>
+  
   
 
       </a>
@@ -736,9 +778,70 @@
   
   
   <span class="md-ellipsis">
-    Message Processing
+    
+  
+    Handlers
+  
+
     
   </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../core-concepts/dispatcher/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dispatcher
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../core-concepts/configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
   
 
       </a>
@@ -773,8 +876,6 @@
       
         
       
-        
-      
     
     
     
@@ -796,9 +897,14 @@
   
   
   <span class="md-ellipsis">
-    🔌 Reference
+    
+  
+    Transports
+  
+
     
   </span>
+  
   
 
             <span class="md-nav__icon md-icon"></span>
@@ -807,7 +913,11 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
-            🔌 Reference
+            
+  
+    Transports
+  
+
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -823,9 +933,14 @@
   
   
   <span class="md-ellipsis">
-    Transports
+    
+  
+    Overview and Delivery Semantics
+  
+
     
   </span>
+  
   
 
       </a>
@@ -841,14 +956,19 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/serializers/" class="md-nav__link">
+      <a href="../../transports/memory-transport/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Serializers
+    
+  
+    Memory Transport
+  
+
     
   </span>
+  
   
 
       </a>
@@ -864,14 +984,19 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/logging/" class="md-nav__link">
+      <a href="../../transports/stdout-transport/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Logging
+    
+  
+    Stdout Transport
+  
+
     
   </span>
+  
   
 
       </a>
@@ -887,14 +1012,19 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/dead-letter-queue/" class="md-nav__link">
+      <a href="../../transports/file-transport/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Dead Letter Queue
+    
+  
+    File Transport
+  
+
     
   </span>
+  
   
 
       </a>
@@ -910,37 +1040,19 @@
   
   
     <li class="md-nav__item">
-      <a href="../../reference/message-deduplication/" class="md-nav__link">
+      <a href="../../transports/redis-transport/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Message Deduplication
+    
+  
+    Redis Transport
+  
+
     
   </span>
   
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../reference/proc-handlers/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Proc Handlers
-    
-  </span>
   
 
       </a>
@@ -998,9 +1110,14 @@
   
   
   <span class="md-ellipsis">
-    🚚 Transports
+    
+  
+    Reference
+  
+
     
   </span>
+  
   
 
             <span class="md-nav__icon md-icon"></span>
@@ -1009,7 +1126,11 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_5">
             <span class="md-nav__icon md-icon"></span>
-            🚚 Transports
+            
+  
+    Reference
+  
+
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1020,14 +1141,19 @@
   
   
     <li class="md-nav__item">
-      <a href="../../transports/memory-transport/" class="md-nav__link">
+      <a href="../../reference/publishing/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Memory Transport
+    
+  
+    Publishing
+  
+
     
   </span>
+  
   
 
       </a>
@@ -1043,14 +1169,19 @@
   
   
     <li class="md-nav__item">
-      <a href="../../transports/redis-transport/" class="md-nav__link">
+      <a href="../../reference/serializers/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Redis Transport
+    
+  
+    Serializers
+  
+
     
   </span>
+  
   
 
       </a>
@@ -1066,14 +1197,19 @@
   
   
     <li class="md-nav__item">
-      <a href="../../transports/stdout-transport/" class="md-nav__link">
+      <a href="../../reference/logging/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    STDOUT Transport
+    
+  
+    Logging
+  
+
     
   </span>
+  
   
 
       </a>
@@ -1089,14 +1225,19 @@
   
   
     <li class="md-nav__item">
-      <a href="../../transports/file-transport/" class="md-nav__link">
+      <a href="../../reference/dead-letter-queue/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    File Transport
+    
+  
+    Dead Letter Queue
+  
+
     
   </span>
+  
   
 
       </a>
@@ -1112,14 +1253,19 @@
   
   
     <li class="md-nav__item">
-      <a href="../../transports/multi-transport/" class="md-nav__link">
+      <a href="../../reference/message-deduplication/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Multi-Transport Publishing
+    
+  
+    Message Deduplication
+  
+
     
   </span>
+  
   
 
       </a>
@@ -1135,91 +1281,19 @@
   
   
     <li class="md-nav__item">
-      <a href="../../transports/redis-transport-comparison/" class="md-nav__link">
+      <a href="../../reference/circuit-breakers/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Redis Transport Comparison
+    
+  
+    Circuit Breakers
+  
+
     
   </span>
   
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    
-    
-      
-        
-      
-    
-    
-    
-      
-      
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
-        
-          
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
-            
-  
-  
-  <span class="md-ellipsis">
-    📚 Guides
-    
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_6">
-            <span class="md-nav__icon md-icon"></span>
-            📚 Guides
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../guides/transport-selection/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Transport Selection
-    
-  </span>
   
 
       </a>
@@ -1266,26 +1340,35 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
         
           
-          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
             
   
   
   <span class="md-ellipsis">
-    ⚙️ Development
+    
+  
+    Development
+  
+
     
   </span>
+  
   
 
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_7">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
-            ⚙️ Development
+            
+  
+    Development
+  
+
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1310,9 +1393,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Troubleshooting
+  
+
     
   </span>
+  
   
 
           <span class="md-nav__icon md-icon"></span>
@@ -1323,9 +1411,14 @@
   
   
   <span class="md-ellipsis">
+    
+  
     Troubleshooting
+  
+
     
   </span>
+  
   
 
       </a>
@@ -1348,275 +1441,167 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#common-issues" class="md-nav__link">
+  <a href="#transportnotconfigured" class="md-nav__link">
     <span class="md-ellipsis">
-      Common Issues
+      
+        TransportNotConfigured
+      
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Common Issues">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-messages-not-being-processed" class="md-nav__link">
-    <span class="md-ellipsis">
-      1. Messages Not Being Processed
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="1. Messages Not Being Processed">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#missing-subscription" class="md-nav__link">
-    <span class="md-ellipsis">
-      Missing Subscription
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#transport-not-configured-for-loopback" class="md-nav__link">
-    <span class="md-ellipsis">
-      Transport Not Configured for Loopback
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#auto-process-disabled" class="md-nav__link">
-    <span class="md-ellipsis">
-      Auto-process Disabled
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-serialization-errors" class="md-nav__link">
-    <span class="md-ellipsis">
-      2. Serialization Errors
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="2. Serialization Errors">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#missing-serializer-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Missing Serializer Configuration
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#json-encoding-issues" class="md-nav__link">
-    <span class="md-ellipsis">
-      JSON Encoding Issues
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-transport-configuration-issues" class="md-nav__link">
-    <span class="md-ellipsis">
-      3. Transport Configuration Issues
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="3. Transport Configuration Issues">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#missing-transport-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Missing Transport Configuration
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#transport-connection-issues" class="md-nav__link">
-    <span class="md-ellipsis">
-      Transport Connection Issues
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-thread-pool-issues" class="md-nav__link">
-    <span class="md-ellipsis">
-      4. Thread Pool Issues
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4. Thread Pool Issues">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#slow-message-processing" class="md-nav__link">
-    <span class="md-ellipsis">
-      Slow Message Processing
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#application-hanging-on-exit" class="md-nav__link">
-    <span class="md-ellipsis">
-      Application Hanging on Exit
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#5-memory-issues" class="md-nav__link">
-    <span class="md-ellipsis">
-      5. Memory Issues
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="5. Memory Issues">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#memory-transport-overflow" class="md-nav__link">
-    <span class="md-ellipsis">
-      Memory Transport Overflow
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#statistics-memory-growth" class="md-nav__link">
-    <span class="md-ellipsis">
-      Statistics Memory Growth
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#6-debugging-message-flow" class="md-nav__link">
-    <span class="md-ellipsis">
-      6. Debugging Message Flow
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#7-configuration-issues" class="md-nav__link">
-    <span class="md-ellipsis">
-      7. Configuration Issues
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#performance-troubleshooting" class="md-nav__link">
+  <a href="#validationerror-on-publish-but-new-worked" class="md-nav__link">
     <span class="md-ellipsis">
-      Performance Troubleshooting
+      
+        ValidationError on publish, but new worked
+      
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Performance Troubleshooting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#slow-message-processing_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      Slow Message Processing
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#high-memory-usage" class="md-nav__link">
-    <span class="md-ellipsis">
-      High Memory Usage
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#getting-help" class="md-nav__link">
+  <a href="#reservedpropertyname-when-a-class-is-loaded" class="md-nav__link">
     <span class="md-ellipsis">
-      Getting Help
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Getting Help">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#collect-debug-information" class="md-nav__link">
-    <span class="md-ellipsis">
-      Collect Debug Information
+      
+        ReservedPropertyName when a class is loaded
+      
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#enable-verbose-logging" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#the-handler-never-runs" class="md-nav__link">
     <span class="md-ellipsis">
-      Enable Verbose Logging
+      
+        The handler never runs
+      
     </span>
   </a>
   
 </li>
-        
-      </ul>
-    </nav>
+      
+        <li class="md-nav__item">
+  <a href="#the-handler-runs-but-a-property-has-the-wrong-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The handler runs, but a property has the wrong type
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#messages-cross-between-environments-or-test-runs-on-redis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Messages cross between environments or test runs on Redis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transporterror-from-the-redis-transport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TransportError from the Redis transport
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#publisherror-or-a-result-that-is-partial" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PublishError, or a result that is partial?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#unknownmessageclass-or-messageclassmismatch-in-the-log" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UnknownMessageClass or MessageClassMismatch in the log
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-is-the-dead-letter-queue-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where is the dead letter queue file?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#no-log-file-appears" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        No log file appears
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#shutdown-takes-several-seconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shutdown takes several seconds
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#handlers-slow-the-publisher-down" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Handlers slow the publisher down
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#looking-at-what-is-going-on" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Looking at what is going on
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reporting-a-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reporting a problem
+      
+    </span>
+  </a>
   
 </li>
       
@@ -1641,9 +1626,14 @@
   
   
   <span class="md-ellipsis">
-    Ideas & Roadmap
+    
+  
+    Ideas
+  
+
     
   </span>
+  
   
 
       </a>
@@ -1688,275 +1678,167 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#common-issues" class="md-nav__link">
+  <a href="#transportnotconfigured" class="md-nav__link">
     <span class="md-ellipsis">
-      Common Issues
+      
+        TransportNotConfigured
+      
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Common Issues">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-messages-not-being-processed" class="md-nav__link">
-    <span class="md-ellipsis">
-      1. Messages Not Being Processed
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="1. Messages Not Being Processed">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#missing-subscription" class="md-nav__link">
-    <span class="md-ellipsis">
-      Missing Subscription
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#transport-not-configured-for-loopback" class="md-nav__link">
-    <span class="md-ellipsis">
-      Transport Not Configured for Loopback
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#auto-process-disabled" class="md-nav__link">
-    <span class="md-ellipsis">
-      Auto-process Disabled
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-serialization-errors" class="md-nav__link">
-    <span class="md-ellipsis">
-      2. Serialization Errors
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="2. Serialization Errors">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#missing-serializer-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Missing Serializer Configuration
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#json-encoding-issues" class="md-nav__link">
-    <span class="md-ellipsis">
-      JSON Encoding Issues
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-transport-configuration-issues" class="md-nav__link">
-    <span class="md-ellipsis">
-      3. Transport Configuration Issues
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="3. Transport Configuration Issues">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#missing-transport-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Missing Transport Configuration
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#transport-connection-issues" class="md-nav__link">
-    <span class="md-ellipsis">
-      Transport Connection Issues
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-thread-pool-issues" class="md-nav__link">
-    <span class="md-ellipsis">
-      4. Thread Pool Issues
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="4. Thread Pool Issues">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#slow-message-processing" class="md-nav__link">
-    <span class="md-ellipsis">
-      Slow Message Processing
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#application-hanging-on-exit" class="md-nav__link">
-    <span class="md-ellipsis">
-      Application Hanging on Exit
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#5-memory-issues" class="md-nav__link">
-    <span class="md-ellipsis">
-      5. Memory Issues
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="5. Memory Issues">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#memory-transport-overflow" class="md-nav__link">
-    <span class="md-ellipsis">
-      Memory Transport Overflow
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#statistics-memory-growth" class="md-nav__link">
-    <span class="md-ellipsis">
-      Statistics Memory Growth
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#6-debugging-message-flow" class="md-nav__link">
-    <span class="md-ellipsis">
-      6. Debugging Message Flow
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#7-configuration-issues" class="md-nav__link">
-    <span class="md-ellipsis">
-      7. Configuration Issues
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#performance-troubleshooting" class="md-nav__link">
+  <a href="#validationerror-on-publish-but-new-worked" class="md-nav__link">
     <span class="md-ellipsis">
-      Performance Troubleshooting
+      
+        ValidationError on publish, but new worked
+      
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Performance Troubleshooting">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#slow-message-processing_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      Slow Message Processing
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#high-memory-usage" class="md-nav__link">
-    <span class="md-ellipsis">
-      High Memory Usage
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#getting-help" class="md-nav__link">
+  <a href="#reservedpropertyname-when-a-class-is-loaded" class="md-nav__link">
     <span class="md-ellipsis">
-      Getting Help
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Getting Help">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#collect-debug-information" class="md-nav__link">
-    <span class="md-ellipsis">
-      Collect Debug Information
+      
+        ReservedPropertyName when a class is loaded
+      
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#enable-verbose-logging" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#the-handler-never-runs" class="md-nav__link">
     <span class="md-ellipsis">
-      Enable Verbose Logging
+      
+        The handler never runs
+      
     </span>
   </a>
   
 </li>
-        
-      </ul>
-    </nav>
+      
+        <li class="md-nav__item">
+  <a href="#the-handler-runs-but-a-property-has-the-wrong-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The handler runs, but a property has the wrong type
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#messages-cross-between-environments-or-test-runs-on-redis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Messages cross between environments or test runs on Redis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#transporterror-from-the-redis-transport" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TransportError from the Redis transport
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#publisherror-or-a-result-that-is-partial" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PublishError, or a result that is partial?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#unknownmessageclass-or-messageclassmismatch-in-the-log" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        UnknownMessageClass or MessageClassMismatch in the log
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-is-the-dead-letter-queue-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where is the dead letter queue file?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#no-log-file-appears" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        No log file appears
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#shutdown-takes-several-seconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shutdown takes several seconds
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#handlers-slow-the-publisher-down" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Handlers slow the publisher down
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#looking-at-what-is-going-on" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Looking at what is going on
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reporting-a-problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reporting a problem
+      
+    </span>
+  </a>
   
 </li>
       
@@ -1970,6 +1852,55 @@
           
           
             <div class="md-content" data-md-component="content">
+              
+                
+
+
+
+  
+
+
+  <nav class="md-path" aria-label="Navigation" >
+    <ol class="md-path__list">
+      
+        
+  
+  
+    <li class="md-path__item">
+      <a href="../.." class="md-path__link">
+        
+  <span class="md-ellipsis">
+    Home
+  </span>
+
+      </a>
+    </li>
+  
+
+      
+      
+        
+  
+  
+    
+    
+      <li class="md-path__item">
+        <a href="./" class="md-path__link">
+          
+  <span class="md-ellipsis">
+    Development
+  </span>
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ol>
+  </nav>
+
+              
               <article class="md-content__inner md-typeset">
                 
                   
@@ -1992,512 +1923,85 @@
   
 
 
-<h1 id="troubleshooting-guide">Troubleshooting Guide<a class="headerlink" href="#troubleshooting-guide" title="Permanent link">&para;</a></h1>
-<p>This guide helps you diagnose and solve common issues when working with SmartMessage.</p>
-<h2 id="common-issues">Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">&para;</a></h2>
-<h3 id="1-messages-not-being-processed">1. Messages Not Being Processed<a class="headerlink" href="#1-messages-not-being-processed" title="Permanent link">&para;</a></h3>
-<p><strong>Symptoms:</strong>
-- Messages are published but process methods are never called
-- No errors are thrown
-- Statistics show messages published but not routed</p>
-<p><strong>Possible Causes &amp; Solutions:</strong></p>
-<h4 id="missing-subscription">Missing Subscription<a class="headerlink" href="#missing-subscription" title="Permanent link">&para;</a></h4>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Problem: Forgot to subscribe</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:data</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nc">self</span><span class="o">.</span><span class="nf">process</span><span class="p">(</span><span class="n">header</span><span class="p">,</span><span class="w"> </span><span class="n">payload</span><span class="p">)</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Processing message&quot;</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="k">end</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="no">MyMessage</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">data</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;test&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">publish</span><span class="w">  </span><span class="c1"># Nothing happens</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>
-</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="c1"># Solution: Add subscription</span>
-</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="no">MyMessage</span><span class="o">.</span><span class="n">subscribe</span>
-</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="no">MyMessage</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">data</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;test&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">publish</span><span class="w">  </span><span class="c1"># Now it works</span>
+<h1 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h1>
+<p>Start by turning logging on. SmartMessage logs nothing unless a logger is configured.</p>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configure</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">config</span><span class="o">|</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">logger</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="no">STDERR</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">config</span><span class="o">.</span><span class="n">log_level</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="ss">:debug</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">end</span>
 </span></code></pre></div>
-<h4 id="transport-not-configured-for-loopback">Transport Not Configured for Loopback<a class="headerlink" href="#transport-not-configured-for-loopback" title="Permanent link">&para;</a></h4>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Problem: Using STDOUT without loopback</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:data</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="n">config</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:stdout</span><span class="p">)</span><span class="w">  </span><span class="c1"># No loopback</span>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="n">serializer</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Serializer</span><span class="o">::</span><span class="no">Json</span><span class="o">.</span><span class="n">new</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="k">end</span>
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="c1"># Solution: Enable loopback for local testing</span>
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">  </span><span class="n">config</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:stdout</span><span class="p">,</span><span class="w"> </span><span class="ss">loopback</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">)</span>
-</span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">    </span><span class="n">serializer</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Serializer</span><span class="o">::</span><span class="no">Json</span><span class="o">.</span><span class="n">new</span>
-</span><span id="__span-1-16"><a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-1-17"><a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="k">end</span>
+<p>Then look at the dead letter queue, where every failure ends up:</p>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">dlq</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">DeadLetterQueue</span><span class="o">.</span><span class="n">default</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">dlq</span><span class="o">.</span><span class="n">file_path</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">dlq</span><span class="o">.</span><span class="n">statistics</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">dlq</span><span class="o">.</span><span class="n">inspect_messages</span><span class="p">(</span><span class="ss">limit</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">)</span>
 </span></code></pre></div>
-<h4 id="auto-process-disabled">Auto-process Disabled<a class="headerlink" href="#auto-process-disabled" title="Permanent link">&para;</a></h4>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># Problem: Memory transport with auto_process disabled</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="n">config</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">    </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:memory</span><span class="p">,</span><span class="w"> </span><span class="ss">auto_process</span><span class="p">:</span><span class="w"> </span><span class="kp">false</span><span class="p">)</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="k">end</span>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>
-</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="c1"># Messages are stored but not processed</span>
-</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="n">transport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">MyMessage</span><span class="o">.</span><span class="n">transport</span>
-</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="nb">puts</span><span class="w"> </span><span class="n">transport</span><span class="o">.</span><span class="n">message_count</span><span class="w">  </span><span class="c1"># Shows stored messages</span>
-</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>
-</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="c1"># Solution: Enable auto_process or manually process</span>
-</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="no">MyMessage</span><span class="o">.</span><span class="n">config</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">  </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:memory</span><span class="p">,</span><span class="w"> </span><span class="ss">auto_process</span><span class="p">:</span><span class="w"> </span><span class="kp">true</span><span class="p">)</span>
-</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="k">end</span>
-</span><span id="__span-2-16"><a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a>
-</span><span id="__span-2-17"><a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="c1"># Or manually trigger processing</span>
-</span><span id="__span-2-18"><a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="n">transport</span><span class="o">.</span><span class="n">process_all</span>
+<h2 id="transportnotconfigured"><code>TransportNotConfigured</code><a class="headerlink" href="#transportnotconfigured" title="Permanent link">&para;</a></h2>
+<p><code>SmartMessage::Errors::TransportNotConfigured: OrderMessage has no transport configured. Set one in the class (transport SmartMessage::Transport.create(:memory)) or globally (SmartMessage.configure { |config| config.transport = ... })</code></p>
+<p>There is no default transport. Set one on the class (<code>transport ...</code>), on a parent class, or globally (<code>config.transport = ...</code>). See <a href="../../core-concepts/configuration/">Configuration</a>.</p>
+<p>If the transport is set globally, check that <code>SmartMessage.configure</code> runs before the first <code>publish</code> or <code>subscribe</code>, and that nothing called <code>SmartMessage.reset_configuration!</code> in between.</p>
+<h2 id="validationerror-on-publish-but-new-worked"><code>ValidationError</code> on publish, but <code>new</code> worked<a class="headerlink" href="#validationerror-on-publish-but-new-worked" title="Permanent link">&para;</a></h2>
+<p><code>new</code> does not validate; <code>publish</code> does. Inspect the message:</p>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">message</span><span class="o">.</span><span class="n">valid?</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">message</span><span class="o">.</span><span class="n">validation_errors</span><span class="w">   </span><span class="c1"># each has :property, :value, :message, :source</span>
 </span></code></pre></div>
-<h3 id="2-serialization-errors">2. Serialization Errors<a class="headerlink" href="#2-serialization-errors" title="Permanent link">&para;</a></h3>
-<p><strong>Symptoms:</strong>
-- <code>SmartMessage::Errors::SerializerNotConfigured</code> exceptions
-- Encoding/decoding failures
-- Malformed message data</p>
-<p><strong>Solutions:</strong></p>
-<h4 id="missing-serializer-configuration">Missing Serializer Configuration<a class="headerlink" href="#missing-serializer-configuration" title="Permanent link">&para;</a></h4>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Problem: No serializer configured</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:data</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">  </span><span class="n">config</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:memory</span><span class="p">)</span>
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">    </span><span class="c1"># Missing serializer!</span>
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="k">end</span>
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
-</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="c1"># Throws: SmartMessage::Errors::SerializerNotConfigured</span>
-</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="no">MyMessage</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">data</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;test&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">publish</span>
-</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>
-</span><span id="__span-3-14"><a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="c1"># Solution: Add serializer</span>
-</span><span id="__span-3-15"><a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-3-16"><a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="w">  </span><span class="n">config</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-3-17"><a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="w">    </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:memory</span><span class="p">)</span>
-</span><span id="__span-3-18"><a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a><span class="w">    </span><span class="n">serializer</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Serializer</span><span class="o">::</span><span class="no">Json</span><span class="o">.</span><span class="n">new</span>
-</span><span id="__span-3-19"><a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-3-20"><a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="k">end</span>
+<p>A <code>source</code> of <code>"header"</code> with <code>property: :from</code> means the message has no sender: set <code>from</code> on the class or pass <code>from:</code> to <code>new</code>.</p>
+<p>The error message itself says so:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>OrderMessage#from: From entity ID is required for message routing and replies (declare from 'service-name' in the class or pass from: to new)
 </span></code></pre></div>
-<h4 id="json-encoding-issues">JSON Encoding Issues<a class="headerlink" href="#json-encoding-issues" title="Permanent link">&para;</a></h4>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Problem: Objects that can&#39;t be serialized to JSON</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">ProblematicMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:data</span>
-</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
-</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">  </span><span class="n">config</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="n">serializer</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Serializer</span><span class="o">::</span><span class="no">Json</span><span class="o">.</span><span class="n">new</span>
-</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a><span class="k">end</span>
-</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
-</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a><span class="c1"># This will fail</span>
-</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="n">message</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">ProblematicMessage</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">data</span><span class="p">:</span><span class="w"> </span><span class="no">Object</span><span class="o">.</span><span class="n">new</span><span class="p">)</span>
-</span><span id="__span-4-12"><a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="n">message</span><span class="o">.</span><span class="n">publish</span><span class="w">  </span><span class="c1"># JSON::GeneratorError</span>
-</span><span id="__span-4-13"><a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>
-</span><span id="__span-4-14"><a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a><span class="c1"># Solution: Ensure data is JSON-serializable</span>
-</span><span id="__span-4-15"><a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a><span class="n">message</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">ProblematicMessage</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">data</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="ss">key</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;value&quot;</span><span class="w"> </span><span class="p">})</span>
-</span><span id="__span-4-16"><a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a><span class="n">message</span><span class="o">.</span><span class="n">publish</span><span class="w">  </span><span class="c1"># Works fine</span>
-</span><span id="__span-4-17"><a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>
-</span><span id="__span-4-18"><a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a><span class="c1"># Or implement custom serialization</span>
-</span><span id="__span-4-19"><a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a><span class="k">class</span><span class="w"> </span><span class="nc">SafeMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-4-20"><a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:data</span>
-</span><span id="__span-4-21"><a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>
-</span><span id="__span-4-22"><a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">to_h</span>
-</span><span id="__span-4-23"><a id="__codelineno-4-23" name="__codelineno-4-23" href="#__codelineno-4-23"></a><span class="w">    </span><span class="nb">hash</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">super</span>
-</span><span id="__span-4-24"><a id="__codelineno-4-24" name="__codelineno-4-24" href="#__codelineno-4-24"></a><span class="w">    </span><span class="nb">hash</span><span class="o">[</span><span class="ss">:data</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">hash</span><span class="o">[</span><span class="ss">:data</span><span class="o">].</span><span class="n">to_s</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="nb">hash</span><span class="o">[</span><span class="ss">:data</span><span class="o">]</span>
-</span><span id="__span-4-25"><a id="__codelineno-4-25" name="__codelineno-4-25" href="#__codelineno-4-25"></a><span class="w">    </span><span class="nb">hash</span>
-</span><span id="__span-4-26"><a id="__codelineno-4-26" name="__codelineno-4-26" href="#__codelineno-4-26"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-4-27"><a id="__codelineno-4-27" name="__codelineno-4-27" href="#__codelineno-4-27"></a><span class="k">end</span>
-</span></code></pre></div>
-<h3 id="3-transport-configuration-issues">3. Transport Configuration Issues<a class="headerlink" href="#3-transport-configuration-issues" title="Permanent link">&para;</a></h3>
-<p><strong>Symptoms:</strong>
-- <code>SmartMessage::Errors::TransportNotConfigured</code> exceptions
-- Connection failures
-- Messages not being sent</p>
-<p><strong>Solutions:</strong></p>
-<h4 id="missing-transport-configuration">Missing Transport Configuration<a class="headerlink" href="#missing-transport-configuration" title="Permanent link">&para;</a></h4>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Problem: No transport configured</span>
-</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:data</span>
-</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
-</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span><span class="n">config</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">    </span><span class="n">serializer</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Serializer</span><span class="o">::</span><span class="no">Json</span><span class="o">.</span><span class="n">new</span>
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="w">    </span><span class="c1"># Missing transport!</span>
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="k">end</span>
-</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>
-</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="no">MyMessage</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">data</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;test&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">publish</span><span class="w">  </span><span class="c1"># Throws TransportNotConfigured</span>
-</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>
-</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="c1"># Solution: Add transport</span>
-</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="w">  </span><span class="n">config</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="w">    </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:memory</span><span class="p">)</span>
-</span><span id="__span-5-17"><a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="w">    </span><span class="n">serializer</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Serializer</span><span class="o">::</span><span class="no">Json</span><span class="o">.</span><span class="n">new</span>
-</span><span id="__span-5-18"><a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-5-19"><a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="k">end</span>
-</span></code></pre></div>
-<h4 id="transport-connection-issues">Transport Connection Issues<a class="headerlink" href="#transport-connection-issues" title="Permanent link">&para;</a></h4>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># For custom transports that might fail to connect</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="n">config</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">    </span><span class="n">transport</span><span class="w"> </span><span class="no">CustomTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">host</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;unreachable-host&quot;</span><span class="p">)</span>
-</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="k">end</span>
-</span><span id="__span-6-7"><a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>
-</span><span id="__span-6-8"><a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="c1"># Check transport status</span>
-</span><span id="__span-6-9"><a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="n">transport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">MyMessage</span><span class="o">.</span><span class="n">transport</span>
-</span><span id="__span-6-10"><a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Connected: </span><span class="si">#{</span><span class="n">transport</span><span class="o">.</span><span class="n">connected?</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-6-11"><a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>
-</span><span id="__span-6-12"><a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="c1"># Solution: Verify connection settings</span>
-</span><span id="__span-6-13"><a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-6-14"><a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="w">  </span><span class="n">config</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-6-15"><a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a><span class="w">    </span><span class="n">transport</span><span class="w"> </span><span class="no">CustomTransport</span><span class="o">.</span><span class="n">new</span><span class="p">(</span>
-</span><span id="__span-6-16"><a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="w">      </span><span class="ss">host</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;localhost&quot;</span><span class="p">,</span>
-</span><span id="__span-6-17"><a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="w">      </span><span class="ss">port</span><span class="p">:</span><span class="w"> </span><span class="mi">5672</span><span class="p">,</span>
-</span><span id="__span-6-18"><a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a><span class="w">      </span><span class="ss">retry_attempts</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span>
-</span><span id="__span-6-19"><a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="w">    </span><span class="p">)</span>
-</span><span id="__span-6-20"><a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-6-21"><a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="k">end</span>
-</span></code></pre></div>
-<h3 id="4-thread-pool-issues">4. Thread Pool Issues<a class="headerlink" href="#4-thread-pool-issues" title="Permanent link">&para;</a></h3>
-<p><strong>Symptoms:</strong>
-- Messages processed very slowly
-- Application hangs on exit
-- High memory usage</p>
-<p><strong>Debugging Thread Pool:</strong></p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">dispatcher</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Dispatcher</span><span class="o">.</span><span class="n">new</span>
-</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>
-</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="c1"># Check thread pool status</span>
-</span><span id="__span-7-4"><a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dispatcher</span><span class="o">.</span><span class="n">status</span>
-</span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Running: </span><span class="si">#{</span><span class="n">status</span><span class="o">[</span><span class="ss">:running</span><span class="o">]</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-7-6"><a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Queue length: </span><span class="si">#{</span><span class="n">status</span><span class="o">[</span><span class="ss">:queue_length</span><span class="o">]</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-7-7"><a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Scheduled tasks: </span><span class="si">#{</span><span class="n">status</span><span class="o">[</span><span class="ss">:scheduled_task_count</span><span class="o">]</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-7-8"><a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Completed tasks: </span><span class="si">#{</span><span class="n">status</span><span class="o">[</span><span class="ss">:completed_task_count</span><span class="o">]</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-7-9"><a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Pool size: </span><span class="si">#{</span><span class="n">status</span><span class="o">[</span><span class="ss">:length</span><span class="o">]</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-7-10"><a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>
-</span><span id="__span-7-11"><a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="c1"># If queue is growing, messages are being created faster than processed</span>
-</span><span id="__span-7-12"><a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="k">if</span><span class="w"> </span><span class="n">status</span><span class="o">[</span><span class="ss">:queue_length</span><span class="o">]</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">100</span>
-</span><span id="__span-7-13"><a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;⚠️  Large queue detected - consider optimizing message processing&quot;</span>
-</span><span id="__span-7-14"><a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="k">end</span>
-</span><span id="__span-7-15"><a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a>
-</span><span id="__span-7-16"><a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="c1"># If pool is not running</span>
-</span><span id="__span-7-17"><a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="k">unless</span><span class="w"> </span><span class="n">status</span><span class="o">[</span><span class="ss">:running</span><span class="o">]</span>
-</span><span id="__span-7-18"><a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;❌ Thread pool is not running - check for shutdown issues&quot;</span>
-</span><span id="__span-7-19"><a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="k">end</span>
-</span></code></pre></div>
-<p><strong>Solutions:</strong></p>
-<h4 id="slow-message-processing">Slow Message Processing<a class="headerlink" href="#slow-message-processing" title="Permanent link">&para;</a></h4>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Problem: Slow process method blocking thread pool</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">SlowMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nc">self</span><span class="o">.</span><span class="nf">process</span><span class="p">(</span><span class="n">header</span><span class="p">,</span><span class="w"> </span><span class="n">payload</span><span class="p">)</span>
-</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="nb">sleep</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span><span class="w">  </span><span class="c1"># Very slow operation</span>
-</span><span id="__span-8-5"><a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">    </span><span class="c1"># Processing logic</span>
-</span><span id="__span-8-6"><a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-8-7"><a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="k">end</span>
-</span><span id="__span-8-8"><a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>
-</span><span id="__span-8-9"><a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="c1"># Solution: Optimize or use background jobs</span>
-</span><span id="__span-8-10"><a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="k">class</span><span class="w"> </span><span class="nc">OptimizedMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-8-11"><a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nc">self</span><span class="o">.</span><span class="nf">process</span><span class="p">(</span><span class="n">header</span><span class="p">,</span><span class="w"> </span><span class="n">payload</span><span class="p">)</span>
-</span><span id="__span-8-12"><a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="w">    </span><span class="c1"># Quick validation</span>
-</span><span id="__span-8-13"><a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="w">    </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">JSON</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
-</span><span id="__span-8-14"><a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>
-</span><span id="__span-8-15"><a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="w">    </span><span class="c1"># Delegate heavy work to background job</span>
-</span><span id="__span-8-16"><a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a><span class="w">    </span><span class="no">BackgroundJob</span><span class="o">.</span><span class="n">perform_async</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-</span><span id="__span-8-17"><a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-8-18"><a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a><span class="k">end</span>
-</span></code></pre></div>
-<h4 id="application-hanging-on-exit">Application Hanging on Exit<a class="headerlink" href="#application-hanging-on-exit" title="Permanent link">&para;</a></h4>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Problem: Threads not shutting down gracefully</span>
-</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="c1"># The dispatcher handles this automatically, but if you create custom threads:</span>
-</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
-</span><span id="__span-9-4"><a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">CustomMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-9-5"><a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nc">self</span><span class="o">.</span><span class="nf">process</span><span class="p">(</span><span class="n">header</span><span class="p">,</span><span class="w"> </span><span class="n">payload</span><span class="p">)</span>
-</span><span id="__span-9-6"><a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span><span class="c1"># Problem: Creating non-daemon threads</span>
-</span><span id="__span-9-7"><a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">    </span><span class="no">Thread</span><span class="o">.</span><span class="n">new</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-9-8"><a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="w">      </span><span class="kp">loop</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-9-9"><a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">        </span><span class="c1"># Long-running work</span>
-</span><span id="__span-9-10"><a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">        </span><span class="nb">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="__span-9-11"><a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">      </span><span class="k">end</span>
-</span><span id="__span-9-12"><a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">    </span><span class="k">end</span>
-</span><span id="__span-9-13"><a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-9-14"><a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="k">end</span>
-</span><span id="__span-9-15"><a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a>
-</span><span id="__span-9-16"><a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a><span class="c1"># Solution: Use daemon threads or proper cleanup</span>
-</span><span id="__span-9-17"><a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a><span class="k">class</span><span class="w"> </span><span class="nc">BetterMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-9-18"><a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nc">self</span><span class="o">.</span><span class="nf">process</span><span class="p">(</span><span class="n">header</span><span class="p">,</span><span class="w"> </span><span class="n">payload</span><span class="p">)</span>
-</span><span id="__span-9-19"><a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a><span class="w">    </span><span class="n">thread</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Thread</span><span class="o">.</span><span class="n">new</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-9-20"><a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a><span class="w">      </span><span class="kp">loop</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-9-21"><a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a><span class="w">        </span><span class="k">break</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="no">Thread</span><span class="o">.</span><span class="n">current</span><span class="o">[</span><span class="ss">:stop_requested</span><span class="o">]</span>
-</span><span id="__span-9-22"><a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a><span class="w">        </span><span class="c1"># Work with interruption points</span>
-</span><span id="__span-9-23"><a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a><span class="w">        </span><span class="nb">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="__span-9-24"><a id="__codelineno-9-24" name="__codelineno-9-24" href="#__codelineno-9-24"></a><span class="w">      </span><span class="k">end</span>
-</span><span id="__span-9-25"><a id="__codelineno-9-25" name="__codelineno-9-25" href="#__codelineno-9-25"></a><span class="w">    </span><span class="k">end</span>
-</span><span id="__span-9-26"><a id="__codelineno-9-26" name="__codelineno-9-26" href="#__codelineno-9-26"></a>
-</span><span id="__span-9-27"><a id="__codelineno-9-27" name="__codelineno-9-27" href="#__codelineno-9-27"></a><span class="w">    </span><span class="c1"># Register cleanup</span>
-</span><span id="__span-9-28"><a id="__codelineno-9-28" name="__codelineno-9-28" href="#__codelineno-9-28"></a><span class="w">    </span><span class="nb">at_exit</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-9-29"><a id="__codelineno-9-29" name="__codelineno-9-29" href="#__codelineno-9-29"></a><span class="w">      </span><span class="n">thread</span><span class="o">[</span><span class="ss">:stop_requested</span><span class="o">]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">true</span>
-</span><span id="__span-9-30"><a id="__codelineno-9-30" name="__codelineno-9-30" href="#__codelineno-9-30"></a><span class="w">      </span><span class="n">thread</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span><span class="w">  </span><span class="c1"># Wait up to 5 seconds</span>
-</span><span id="__span-9-31"><a id="__codelineno-9-31" name="__codelineno-9-31" href="#__codelineno-9-31"></a><span class="w">    </span><span class="k">end</span>
-</span><span id="__span-9-32"><a id="__codelineno-9-32" name="__codelineno-9-32" href="#__codelineno-9-32"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-9-33"><a id="__codelineno-9-33" name="__codelineno-9-33" href="#__codelineno-9-33"></a><span class="k">end</span>
-</span></code></pre></div>
-<h3 id="5-memory-issues">5. Memory Issues<a class="headerlink" href="#5-memory-issues" title="Permanent link">&para;</a></h3>
-<p><strong>Symptoms:</strong>
-- Increasing memory usage over time
-- Out of memory errors
-- Slow performance</p>
-<p><strong>Debugging Memory Usage:</strong></p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Check message storage in memory transport</span>
-</span><span id="__span-10-2"><a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="n">transport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:memory</span><span class="p">)</span>
-</span><span id="__span-10-3"><a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Stored messages: </span><span class="si">#{</span><span class="n">transport</span><span class="o">.</span><span class="n">message_count</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-10-4"><a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Max messages: </span><span class="si">#{</span><span class="n">transport</span><span class="o">.</span><span class="n">instance_variable_get</span><span class="p">(</span><span class="ss">:@options</span><span class="p">)</span><span class="o">[</span><span class="ss">:max_messages</span><span class="o">]</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-10-5"><a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>
-</span><span id="__span-10-6"><a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="c1"># Check statistics storage</span>
-</span><span id="__span-10-7"><a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Statistics entries: </span><span class="si">#{</span><span class="no">SS</span><span class="o">.</span><span class="n">stat</span><span class="o">.</span><span class="n">keys</span><span class="o">.</span><span class="n">length</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-10-8"><a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>
-</span><span id="__span-10-9"><a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="c1"># Monitor object creation</span>
-</span><span id="__span-10-10"><a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a><span class="k">class</span><span class="w"> </span><span class="nc">MemoryMonitorMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-10-11"><a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nc">self</span><span class="o">.</span><span class="nf">process</span><span class="p">(</span><span class="n">header</span><span class="p">,</span><span class="w"> </span><span class="n">payload</span><span class="p">)</span>
-</span><span id="__span-10-12"><a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Objects before: </span><span class="si">#{</span><span class="no">ObjectSpace</span><span class="o">.</span><span class="n">count_objects</span><span class="o">[</span><span class="ss">:TOTAL</span><span class="o">]</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-10-13"><a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>
-</span><span id="__span-10-14"><a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a><span class="w">    </span><span class="c1"># Your processing logic</span>
-</span><span id="__span-10-15"><a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="w">    </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">JSON</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
-</span><span id="__span-10-16"><a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a>
-</span><span id="__span-10-17"><a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a><span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Objects after: </span><span class="si">#{</span><span class="no">ObjectSpace</span><span class="o">.</span><span class="n">count_objects</span><span class="o">[</span><span class="ss">:TOTAL</span><span class="o">]</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-10-18"><a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-10-19"><a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a><span class="k">end</span>
-</span></code></pre></div>
-<p><strong>Solutions:</strong></p>
-<h4 id="memory-transport-overflow">Memory Transport Overflow<a class="headerlink" href="#memory-transport-overflow" title="Permanent link">&para;</a></h4>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Problem: Memory transport storing too many messages</span>
-</span><span id="__span-11-2"><a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="n">transport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:memory</span><span class="p">,</span><span class="w"> </span><span class="ss">max_messages</span><span class="p">:</span><span class="w"> </span><span class="mi">10000</span><span class="p">)</span>
-</span><span id="__span-11-3"><a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
-</span><span id="__span-11-4"><a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1"># Monitor and clean up</span>
-</span><span id="__span-11-5"><a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">cleanup_memory_transport</span><span class="p">(</span><span class="n">transport</span><span class="p">)</span>
-</span><span id="__span-11-6"><a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">  </span><span class="k">if</span><span class="w"> </span><span class="n">transport</span><span class="o">.</span><span class="n">message_count</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">5000</span>
-</span><span id="__span-11-7"><a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Cleaning up old messages...&quot;</span>
-</span><span id="__span-11-8"><a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">    </span><span class="n">transport</span><span class="o">.</span><span class="n">clear_messages</span>
-</span><span id="__span-11-9"><a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-11-10"><a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="k">end</span>
-</span><span id="__span-11-11"><a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>
-</span><span id="__span-11-12"><a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a><span class="c1"># Or use smaller limits</span>
-</span><span id="__span-11-13"><a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a><span class="n">transport</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:memory</span><span class="p">,</span><span class="w"> </span><span class="ss">max_messages</span><span class="p">:</span><span class="w"> </span><span class="mi">100</span><span class="p">)</span>
-</span></code></pre></div>
-<h4 id="statistics-memory-growth">Statistics Memory Growth<a class="headerlink" href="#statistics-memory-growth" title="Permanent link">&para;</a></h4>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="c1"># Problem: Statistics growing without bounds</span>
-</span><span id="__span-12-2"><a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="c1"># Check current statistics size</span>
-</span><span id="__span-12-3"><a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Statistics size: </span><span class="si">#{</span><span class="no">SS</span><span class="o">.</span><span class="n">stat</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-12-4"><a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>
-</span><span id="__span-12-5"><a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="c1"># Solution: Periodic cleanup</span>
-</span><span id="__span-12-6"><a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="k">def</span><span class="w"> </span><span class="nf">cleanup_statistics</span>
-</span><span id="__span-12-7"><a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">  </span><span class="c1"># Keep only recent statistics</span>
-</span><span id="__span-12-8"><a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">  </span><span class="n">current_stats</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SS</span><span class="o">.</span><span class="n">stat</span>
-</span><span id="__span-12-9"><a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">  </span><span class="n">important_stats</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">current_stats</span><span class="o">.</span><span class="n">select</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">key</span><span class="p">,</span><span class="w"> </span><span class="n">value</span><span class="o">|</span>
-</span><span id="__span-12-10"><a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="w">    </span><span class="c1"># Keep publish counts and recent routing stats</span>
-</span><span id="__span-12-11"><a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="w">    </span><span class="n">key</span><span class="o">.</span><span class="n">include?</span><span class="p">(</span><span class="s1">&#39;publish&#39;</span><span class="p">)</span><span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="n">value</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span>
-</span><span id="__span-12-12"><a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-12-13"><a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a>
-</span><span id="__span-12-14"><a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a><span class="w">  </span><span class="no">SS</span><span class="o">.</span><span class="n">reset</span>
-</span><span id="__span-12-15"><a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a><span class="w">  </span><span class="n">important_stats</span><span class="o">.</span><span class="n">each</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">|</span><span class="n">key</span><span class="p">,</span><span class="w"> </span><span class="n">value</span><span class="o">|</span><span class="w"> </span><span class="no">SS</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="o">*</span><span class="n">key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;+&#39;</span><span class="p">),</span><span class="w"> </span><span class="ss">how_many</span><span class="p">:</span><span class="w"> </span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
-</span><span id="__span-12-16"><a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a><span class="k">end</span>
-</span><span id="__span-12-17"><a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a>
-</span><span id="__span-12-18"><a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a><span class="c1"># Run cleanup periodically</span>
-</span><span id="__span-12-19"><a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a><span class="no">Thread</span><span class="o">.</span><span class="n">new</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-12-20"><a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a><span class="w">  </span><span class="kp">loop</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-12-21"><a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a><span class="w">    </span><span class="nb">sleep</span><span class="p">(</span><span class="mi">3600</span><span class="p">)</span><span class="w">  </span><span class="c1"># Every hour</span>
-</span><span id="__span-12-22"><a id="__codelineno-12-22" name="__codelineno-12-22" href="#__codelineno-12-22"></a><span class="w">    </span><span class="n">cleanup_statistics</span>
-</span><span id="__span-12-23"><a id="__codelineno-12-23" name="__codelineno-12-23" href="#__codelineno-12-23"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-12-24"><a id="__codelineno-12-24" name="__codelineno-12-24" href="#__codelineno-12-24"></a><span class="k">end</span>
-</span></code></pre></div>
-<h3 id="6-debugging-message-flow">6. Debugging Message Flow<a class="headerlink" href="#6-debugging-message-flow" title="Permanent link">&para;</a></h3>
-<p><strong>Enable Debug Logging:</strong></p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="c1"># Add debug output to your message classes</span>
-</span><span id="__span-13-2"><a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">DebugMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-13-3"><a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:data</span>
-</span><span id="__span-13-4"><a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>
-</span><span id="__span-13-5"><a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">publish</span>
-</span><span id="__span-13-6"><a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;🚀 Publishing </span><span class="si">#{</span><span class="nb">self</span><span class="o">.</span><span class="n">class</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="nb">self</span><span class="o">.</span><span class="n">to_h</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-13-7"><a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">    </span><span class="k">super</span>
-</span><span id="__span-13-8"><a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-13-9"><a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>
-</span><span id="__span-13-10"><a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nc">self</span><span class="o">.</span><span class="nf">process</span><span class="p">(</span><span class="n">header</span><span class="p">,</span><span class="w"> </span><span class="n">payload</span><span class="p">)</span>
-</span><span id="__span-13-11"><a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;📥 Processing </span><span class="si">#{</span><span class="n">header</span><span class="o">.</span><span class="n">message_class</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">payload</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-13-12"><a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>
-</span><span id="__span-13-13"><a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="w">    </span><span class="c1"># Your processing logic</span>
-</span><span id="__span-13-14"><a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a><span class="w">    </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">JSON</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
-</span><span id="__span-13-15"><a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a><span class="w">    </span><span class="n">message</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">new</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-</span><span id="__span-13-16"><a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a>
-</span><span id="__span-13-17"><a id="__codelineno-13-17" name="__codelineno-13-17" href="#__codelineno-13-17"></a><span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;✅ Processed </span><span class="si">#{</span><span class="n">header</span><span class="o">.</span><span class="n">message_class</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">message</span><span class="o">.</span><span class="n">data</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-13-18"><a id="__codelineno-13-18" name="__codelineno-13-18" href="#__codelineno-13-18"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-13-19"><a id="__codelineno-13-19" name="__codelineno-13-19" href="#__codelineno-13-19"></a><span class="k">end</span>
-</span></code></pre></div>
-<p><strong>Trace Message Path:</strong></p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Add correlation IDs for tracing</span>
-</span><span id="__span-14-2"><a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">TrackedMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-14-3"><a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:data</span>
-</span><span id="__span-14-4"><a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">  </span><span class="n">property</span><span class="w"> </span><span class="ss">:correlation_id</span><span class="p">,</span><span class="w"> </span><span class="ss">default</span><span class="p">:</span><span class="w"> </span><span class="o">-&gt;</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="no">SecureRandom</span><span class="o">.</span><span class="n">uuid</span><span class="w"> </span><span class="p">}</span>
-</span><span id="__span-14-5"><a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>
-</span><span id="__span-14-6"><a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nf">publish</span>
-</span><span id="__span-14-7"><a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;[</span><span class="si">#{</span><span class="n">correlation_id</span><span class="si">}</span><span class="s2">] Publishing message&quot;</span>
-</span><span id="__span-14-8"><a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="w">    </span><span class="k">super</span>
-</span><span id="__span-14-9"><a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-14-10"><a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a>
-</span><span id="__span-14-11"><a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="w">  </span><span class="k">def</span><span class="w"> </span><span class="nc">self</span><span class="o">.</span><span class="nf">process</span><span class="p">(</span><span class="n">header</span><span class="p">,</span><span class="w"> </span><span class="n">payload</span><span class="p">)</span>
-</span><span id="__span-14-12"><a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="w">    </span><span class="n">data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">JSON</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">payload</span><span class="p">)</span>
-</span><span id="__span-14-13"><a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="w">    </span><span class="n">message</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kp">new</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
-</span><span id="__span-14-14"><a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a>
-</span><span id="__span-14-15"><a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a><span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;[</span><span class="si">#{</span><span class="n">message</span><span class="o">.</span><span class="n">correlation_id</span><span class="si">}</span><span class="s2">] Processing message&quot;</span>
-</span><span id="__span-14-16"><a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a>
-</span><span id="__span-14-17"><a id="__codelineno-14-17" name="__codelineno-14-17" href="#__codelineno-14-17"></a><span class="w">    </span><span class="c1"># Your logic here</span>
-</span><span id="__span-14-18"><a id="__codelineno-14-18" name="__codelineno-14-18" href="#__codelineno-14-18"></a>
-</span><span id="__span-14-19"><a id="__codelineno-14-19" name="__codelineno-14-19" href="#__codelineno-14-19"></a><span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;[</span><span class="si">#{</span><span class="n">message</span><span class="o">.</span><span class="n">correlation_id</span><span class="si">}</span><span class="s2">] Processing complete&quot;</span>
-</span><span id="__span-14-20"><a id="__codelineno-14-20" name="__codelineno-14-20" href="#__codelineno-14-20"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-14-21"><a id="__codelineno-14-21" name="__codelineno-14-21" href="#__codelineno-14-21"></a><span class="k">end</span>
-</span></code></pre></div>
-<p><strong>Check Statistics:</strong></p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="c1"># Monitor message flow with statistics</span>
-</span><span id="__span-15-2"><a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">print_message_stats</span><span class="p">(</span><span class="n">message_class</span><span class="p">)</span>
-</span><span id="__span-15-3"><a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">  </span><span class="n">class_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">message_class</span><span class="o">.</span><span class="n">to_s</span>
-</span><span id="__span-15-4"><a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">  </span><span class="n">published</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">class_name</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;publish&#39;</span><span class="p">)</span>
-</span><span id="__span-15-5"><a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">  </span><span class="n">routed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">class_name</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">#{</span><span class="n">class_name</span><span class="si">}</span><span class="s2">.process&quot;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;routed&#39;</span><span class="p">)</span>
-</span><span id="__span-15-6"><a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>
-</span><span id="__span-15-7"><a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">#{</span><span class="n">class_name</span><span class="si">}</span><span class="s2"> Statistics:&quot;</span>
-</span><span id="__span-15-8"><a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;  Published: </span><span class="si">#{</span><span class="n">published</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-15-9"><a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;  Routed: </span><span class="si">#{</span><span class="n">routed</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-15-10"><a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;  Success rate: </span><span class="si">#{</span><span class="n">routed</span><span class="o">.</span><span class="n">to_f</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">published</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">100</span><span class="si">}</span><span class="s2">%&quot;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">published</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span>
-</span><span id="__span-15-11"><a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a><span class="k">end</span>
-</span><span id="__span-15-12"><a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>
-</span><span id="__span-15-13"><a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a><span class="c1"># Usage</span>
-</span><span id="__span-15-14"><a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a><span class="n">print_message_stats</span><span class="p">(</span><span class="no">MyMessage</span><span class="p">)</span>
-</span></code></pre></div>
-<h3 id="7-configuration-issues">7. Configuration Issues<a class="headerlink" href="#7-configuration-issues" title="Permanent link">&para;</a></h3>
-<p><strong>Debug Configuration:</strong></p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># Check current configuration</span>
-</span><span id="__span-16-2"><a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">debug_message_config</span><span class="p">(</span><span class="n">message_class</span><span class="p">)</span>
-</span><span id="__span-16-3"><a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;</span><span class="si">#{</span><span class="n">message_class</span><span class="si">}</span><span class="s2"> Configuration:&quot;</span>
-</span><span id="__span-16-4"><a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;  Transport: </span><span class="si">#{</span><span class="n">message_class</span><span class="o">.</span><span class="n">transport</span><span class="o">.</span><span class="n">class</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-16-5"><a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;  Transport configured: </span><span class="si">#{</span><span class="n">message_class</span><span class="o">.</span><span class="n">transport_configured?</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-16-6"><a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;  Serializer: </span><span class="si">#{</span><span class="n">message_class</span><span class="o">.</span><span class="n">serializer</span><span class="o">.</span><span class="n">class</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-16-7"><a id="__codelineno-16-7" name="__codelineno-16-7" href="#__codelineno-16-7"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;  Serializer configured: </span><span class="si">#{</span><span class="n">message_class</span><span class="o">.</span><span class="n">serializer_configured?</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-16-8"><a id="__codelineno-16-8" name="__codelineno-16-8" href="#__codelineno-16-8"></a>
-</span><span id="__span-16-9"><a id="__codelineno-16-9" name="__codelineno-16-9" href="#__codelineno-16-9"></a><span class="w">  </span><span class="c1"># Check instance-level overrides</span>
-</span><span id="__span-16-10"><a id="__codelineno-16-10" name="__codelineno-16-10" href="#__codelineno-16-10"></a><span class="w">  </span><span class="n">instance</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">message_class</span><span class="o">.</span><span class="n">new</span>
-</span><span id="__span-16-11"><a id="__codelineno-16-11" name="__codelineno-16-11" href="#__codelineno-16-11"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;  Instance transport: </span><span class="si">#{</span><span class="n">instance</span><span class="o">.</span><span class="n">transport</span><span class="o">.</span><span class="n">class</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-16-12"><a id="__codelineno-16-12" name="__codelineno-16-12" href="#__codelineno-16-12"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;  Instance serializer: </span><span class="si">#{</span><span class="n">instance</span><span class="o">.</span><span class="n">serializer</span><span class="o">.</span><span class="n">class</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-16-13"><a id="__codelineno-16-13" name="__codelineno-16-13" href="#__codelineno-16-13"></a><span class="k">end</span>
-</span><span id="__span-16-14"><a id="__codelineno-16-14" name="__codelineno-16-14" href="#__codelineno-16-14"></a>
-</span><span id="__span-16-15"><a id="__codelineno-16-15" name="__codelineno-16-15" href="#__codelineno-16-15"></a><span class="n">debug_message_config</span><span class="p">(</span><span class="no">MyMessage</span><span class="p">)</span>
-</span></code></pre></div>
-<p><strong>Reset Configuration:</strong></p>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="c1"># If configuration gets corrupted, reset it</span>
-</span><span id="__span-17-2"><a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyMessage</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Base</span>
-</span><span id="__span-17-3"><a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">  </span><span class="c1"># Reset all configuration</span>
-</span><span id="__span-17-4"><a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="w">  </span><span class="n">reset_transport</span>
-</span><span id="__span-17-5"><a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a><span class="w">  </span><span class="n">reset_serializer</span>
-</span><span id="__span-17-6"><a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="w">  </span><span class="n">reset_logger</span>
-</span><span id="__span-17-7"><a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>
-</span><span id="__span-17-8"><a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="w">  </span><span class="c1"># Reconfigure</span>
-</span><span id="__span-17-9"><a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="w">  </span><span class="n">config</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-17-10"><a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a><span class="w">    </span><span class="n">transport</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:memory</span><span class="p">)</span>
-</span><span id="__span-17-11"><a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a><span class="w">    </span><span class="n">serializer</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Serializer</span><span class="o">::</span><span class="no">Json</span><span class="o">.</span><span class="n">new</span>
-</span><span id="__span-17-12"><a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-17-13"><a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a><span class="k">end</span>
-</span></code></pre></div>
-<h2 id="performance-troubleshooting">Performance Troubleshooting<a class="headerlink" href="#performance-troubleshooting" title="Permanent link">&para;</a></h2>
-<h3 id="slow-message-processing_1">Slow Message Processing<a class="headerlink" href="#slow-message-processing_1" title="Permanent link">&para;</a></h3>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="c1"># Benchmark message processing</span>
-</span><span id="__span-18-2"><a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="nb">require</span><span class="w"> </span><span class="s1">&#39;benchmark&#39;</span>
-</span><span id="__span-18-3"><a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>
-</span><span id="__span-18-4"><a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">benchmark_message_processing</span><span class="p">(</span><span class="n">message_class</span><span class="p">,</span><span class="w"> </span><span class="n">count</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">100</span><span class="p">)</span>
-</span><span id="__span-18-5"><a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="w">  </span><span class="n">time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">Benchmark</span><span class="o">.</span><span class="n">measure</span><span class="w"> </span><span class="k">do</span>
-</span><span id="__span-18-6"><a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="w">    </span><span class="n">count</span><span class="o">.</span><span class="n">times</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="o">|</span><span class="n">i</span><span class="o">|</span>
-</span><span id="__span-18-7"><a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a><span class="w">      </span><span class="n">message_class</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">data</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;test </span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">publish</span>
-</span><span id="__span-18-8"><a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="w">    </span><span class="k">end</span>
-</span><span id="__span-18-9"><a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>
-</span><span id="__span-18-10"><a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="w">    </span><span class="c1"># Wait for processing to complete</span>
-</span><span id="__span-18-11"><a id="__codelineno-18-11" name="__codelineno-18-11" href="#__codelineno-18-11"></a><span class="w">    </span><span class="nb">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-</span><span id="__span-18-12"><a id="__codelineno-18-12" name="__codelineno-18-12" href="#__codelineno-18-12"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-18-13"><a id="__codelineno-18-13" name="__codelineno-18-13" href="#__codelineno-18-13"></a>
-</span><span id="__span-18-14"><a id="__codelineno-18-14" name="__codelineno-18-14" href="#__codelineno-18-14"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Processed </span><span class="si">#{</span><span class="n">count</span><span class="si">}</span><span class="s2"> messages in </span><span class="si">#{</span><span class="n">time</span><span class="o">.</span><span class="n">real</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2"> seconds&quot;</span>
-</span><span id="__span-18-15"><a id="__codelineno-18-15" name="__codelineno-18-15" href="#__codelineno-18-15"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Rate: </span><span class="si">#{</span><span class="p">(</span><span class="n">count</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">time</span><span class="o">.</span><span class="n">real</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="si">}</span><span class="s2"> messages/second&quot;</span>
-</span><span id="__span-18-16"><a id="__codelineno-18-16" name="__codelineno-18-16" href="#__codelineno-18-16"></a><span class="k">end</span>
-</span><span id="__span-18-17"><a id="__codelineno-18-17" name="__codelineno-18-17" href="#__codelineno-18-17"></a>
-</span><span id="__span-18-18"><a id="__codelineno-18-18" name="__codelineno-18-18" href="#__codelineno-18-18"></a><span class="n">benchmark_message_processing</span><span class="p">(</span><span class="no">MyMessage</span><span class="p">,</span><span class="w"> </span><span class="mi">1000</span><span class="p">)</span>
-</span></code></pre></div>
-<h3 id="high-memory-usage">High Memory Usage<a class="headerlink" href="#high-memory-usage" title="Permanent link">&para;</a></h3>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="c1"># Monitor memory during message processing</span>
-</span><span id="__span-19-2"><a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">monitor_memory_usage</span>
-</span><span id="__span-19-3"><a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="w">  </span><span class="nb">require</span><span class="w"> </span><span class="s1">&#39;objspace&#39;</span>
-</span><span id="__span-19-4"><a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>
-</span><span id="__span-19-5"><a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a><span class="w">  </span><span class="n">initial_memory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">ObjectSpace</span><span class="o">.</span><span class="n">count_objects</span><span class="o">[</span><span class="ss">:TOTAL</span><span class="o">]</span>
-</span><span id="__span-19-6"><a id="__codelineno-19-6" name="__codelineno-19-6" href="#__codelineno-19-6"></a>
-</span><span id="__span-19-7"><a id="__codelineno-19-7" name="__codelineno-19-7" href="#__codelineno-19-7"></a><span class="w">  </span><span class="c1"># Process some messages</span>
-</span><span id="__span-19-8"><a id="__codelineno-19-8" name="__codelineno-19-8" href="#__codelineno-19-8"></a><span class="w">  </span><span class="mi">100</span><span class="o">.</span><span class="n">times</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">|</span><span class="n">i</span><span class="o">|</span><span class="w"> </span><span class="no">MyMessage</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="ss">data</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;test </span><span class="si">#{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">publish</span><span class="w"> </span><span class="p">}</span>
-</span><span id="__span-19-9"><a id="__codelineno-19-9" name="__codelineno-19-9" href="#__codelineno-19-9"></a>
-</span><span id="__span-19-10"><a id="__codelineno-19-10" name="__codelineno-19-10" href="#__codelineno-19-10"></a><span class="w">  </span><span class="c1"># Force garbage collection</span>
-</span><span id="__span-19-11"><a id="__codelineno-19-11" name="__codelineno-19-11" href="#__codelineno-19-11"></a><span class="w">  </span><span class="no">GC</span><span class="o">.</span><span class="n">start</span>
-</span><span id="__span-19-12"><a id="__codelineno-19-12" name="__codelineno-19-12" href="#__codelineno-19-12"></a>
-</span><span id="__span-19-13"><a id="__codelineno-19-13" name="__codelineno-19-13" href="#__codelineno-19-13"></a><span class="w">  </span><span class="n">final_memory</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">ObjectSpace</span><span class="o">.</span><span class="n">count_objects</span><span class="o">[</span><span class="ss">:TOTAL</span><span class="o">]</span>
-</span><span id="__span-19-14"><a id="__codelineno-19-14" name="__codelineno-19-14" href="#__codelineno-19-14"></a>
-</span><span id="__span-19-15"><a id="__codelineno-19-15" name="__codelineno-19-15" href="#__codelineno-19-15"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Memory usage:&quot;</span>
-</span><span id="__span-19-16"><a id="__codelineno-19-16" name="__codelineno-19-16" href="#__codelineno-19-16"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;  Initial: </span><span class="si">#{</span><span class="n">initial_memory</span><span class="si">}</span><span class="s2"> objects&quot;</span>
-</span><span id="__span-19-17"><a id="__codelineno-19-17" name="__codelineno-19-17" href="#__codelineno-19-17"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;  Final: </span><span class="si">#{</span><span class="n">final_memory</span><span class="si">}</span><span class="s2"> objects&quot;</span>
-</span><span id="__span-19-18"><a id="__codelineno-19-18" name="__codelineno-19-18" href="#__codelineno-19-18"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;  Difference: </span><span class="si">#{</span><span class="n">final_memory</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">initial_memory</span><span class="si">}</span><span class="s2"> objects&quot;</span>
-</span><span id="__span-19-19"><a id="__codelineno-19-19" name="__codelineno-19-19" href="#__codelineno-19-19"></a><span class="k">end</span>
-</span><span id="__span-19-20"><a id="__codelineno-19-20" name="__codelineno-19-20" href="#__codelineno-19-20"></a>
-</span><span id="__span-19-21"><a id="__codelineno-19-21" name="__codelineno-19-21" href="#__codelineno-19-21"></a><span class="n">monitor_memory_usage</span>
-</span></code></pre></div>
-<h2 id="getting-help">Getting Help<a class="headerlink" href="#getting-help" title="Permanent link">&para;</a></h2>
-<h3 id="collect-debug-information">Collect Debug Information<a class="headerlink" href="#collect-debug-information" title="Permanent link">&para;</a></h3>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">collect_debug_info</span>
-</span><span id="__span-20-2"><a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;SmartMessage Debug Information&quot;</span>
-</span><span id="__span-20-3"><a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;==============================&quot;</span>
-</span><span id="__span-20-4"><a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Version: </span><span class="si">#{</span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">VERSION</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-20-5"><a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Ruby version: </span><span class="si">#{</span><span class="no">RUBY_VERSION</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-20-6"><a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Platform: </span><span class="si">#{</span><span class="no">RUBY_PLATFORM</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-20-7"><a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;&quot;</span>
-</span><span id="__span-20-8"><a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a>
-</span><span id="__span-20-9"><a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a><span class="w">  </span><span class="c1"># Available transports</span>
-</span><span id="__span-20-10"><a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Available transports: </span><span class="si">#{</span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Transport</span><span class="o">.</span><span class="n">available</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-20-11"><a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;&quot;</span>
-</span><span id="__span-20-12"><a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a>
-</span><span id="__span-20-13"><a id="__codelineno-20-13" name="__codelineno-20-13" href="#__codelineno-20-13"></a><span class="w">  </span><span class="c1"># Current statistics</span>
-</span><span id="__span-20-14"><a id="__codelineno-20-14" name="__codelineno-20-14" href="#__codelineno-20-14"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Current statistics:&quot;</span>
-</span><span id="__span-20-15"><a id="__codelineno-20-15" name="__codelineno-20-15" href="#__codelineno-20-15"></a><span class="w">  </span><span class="no">SS</span><span class="o">.</span><span class="n">stat</span><span class="o">.</span><span class="n">each</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">|</span><span class="n">key</span><span class="p">,</span><span class="w"> </span><span class="n">value</span><span class="o">|</span><span class="w"> </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;  </span><span class="si">#{</span><span class="n">key</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">}</span>
-</span><span id="__span-20-16"><a id="__codelineno-20-16" name="__codelineno-20-16" href="#__codelineno-20-16"></a><span class="w">  </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;&quot;</span>
-</span><span id="__span-20-17"><a id="__codelineno-20-17" name="__codelineno-20-17" href="#__codelineno-20-17"></a>
-</span><span id="__span-20-18"><a id="__codelineno-20-18" name="__codelineno-20-18" href="#__codelineno-20-18"></a><span class="w">  </span><span class="c1"># Thread pool status if dispatcher exists</span>
-</span><span id="__span-20-19"><a id="__codelineno-20-19" name="__codelineno-20-19" href="#__codelineno-20-19"></a><span class="w">  </span><span class="k">begin</span>
-</span><span id="__span-20-20"><a id="__codelineno-20-20" name="__codelineno-20-20" href="#__codelineno-20-20"></a><span class="w">    </span><span class="n">dispatcher</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Dispatcher</span><span class="o">.</span><span class="n">new</span>
-</span><span id="__span-20-21"><a id="__codelineno-20-21" name="__codelineno-20-21" href="#__codelineno-20-21"></a><span class="w">    </span><span class="n">status</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dispatcher</span><span class="o">.</span><span class="n">status</span>
-</span><span id="__span-20-22"><a id="__codelineno-20-22" name="__codelineno-20-22" href="#__codelineno-20-22"></a><span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Dispatcher status:&quot;</span>
-</span><span id="__span-20-23"><a id="__codelineno-20-23" name="__codelineno-20-23" href="#__codelineno-20-23"></a><span class="w">    </span><span class="n">status</span><span class="o">.</span><span class="n">each</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="o">|</span><span class="n">key</span><span class="p">,</span><span class="w"> </span><span class="n">value</span><span class="o">|</span><span class="w"> </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;  </span><span class="si">#{</span><span class="n">key</span><span class="si">}</span><span class="s2">: </span><span class="si">#{</span><span class="n">value</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">}</span>
-</span><span id="__span-20-24"><a id="__codelineno-20-24" name="__codelineno-20-24" href="#__codelineno-20-24"></a><span class="w">  </span><span class="k">rescue</span><span class="w"> </span><span class="o">=&gt;</span><span class="w"> </span><span class="n">e</span>
-</span><span id="__span-20-25"><a id="__codelineno-20-25" name="__codelineno-20-25" href="#__codelineno-20-25"></a><span class="w">    </span><span class="nb">puts</span><span class="w"> </span><span class="s2">&quot;Dispatcher error: </span><span class="si">#{</span><span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="si">}</span><span class="s2">&quot;</span>
-</span><span id="__span-20-26"><a id="__codelineno-20-26" name="__codelineno-20-26" href="#__codelineno-20-26"></a><span class="w">  </span><span class="k">end</span>
-</span><span id="__span-20-27"><a id="__codelineno-20-27" name="__codelineno-20-27" href="#__codelineno-20-27"></a><span class="k">end</span>
-</span><span id="__span-20-28"><a id="__codelineno-20-28" name="__codelineno-20-28" href="#__codelineno-20-28"></a>
-</span><span id="__span-20-29"><a id="__codelineno-20-29" name="__codelineno-20-29" href="#__codelineno-20-29"></a><span class="n">collect_debug_info</span>
-</span></code></pre></div>
-<h3 id="enable-verbose-logging">Enable Verbose Logging<a class="headerlink" href="#enable-verbose-logging" title="Permanent link">&para;</a></h3>
-<div class="language-ruby highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># Enable debug output in test.log</span>
-</span><span id="__span-21-2"><a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="nb">require</span><span class="w"> </span><span class="s1">&#39;debug_me&#39;</span>
-</span><span id="__span-21-3"><a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a><span class="kp">include</span><span class="w"> </span><span class="no">DebugMe</span>
-</span><span id="__span-21-4"><a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>
-</span><span id="__span-21-5"><a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a><span class="c1"># This will log to test.log with detailed information</span>
-</span><span id="__span-21-6"><a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a><span class="n">debug_me</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="s2">&quot;Message published: </span><span class="si">#{</span><span class="n">message</span><span class="o">.</span><span class="n">to_h</span><span class="si">}</span><span class="s2">&quot;</span><span class="w"> </span><span class="p">}</span>
-</span></code></pre></div>
-<p>If you're still experiencing issues after trying these troubleshooting steps, please open an issue on the <a href="https://github.com/MadBomber/smart_message">GitHub repository</a> with:</p>
+<h2 id="reservedpropertyname-when-a-class-is-loaded"><code>ReservedPropertyName</code> when a class is loaded<a class="headerlink" href="#reservedpropertyname-when-a-class-is-loaded" title="Permanent link">&para;</a></h2>
+<p>A property uses a name the framework owns (<code>from</code>, <code>to</code>, <code>reply_to</code>, <code>uuid</code>, <code>transport</code>, <code>logger</code>, <code>to_h</code>, and others, or a name starting with <code>_sm_</code>). Rename the property. The full list is in <a href="../../core-concepts/properties/">Properties and Validation</a>.</p>
+<h2 id="the-handler-never-runs">The handler never runs<a class="headerlink" href="#the-handler-never-runs" title="Permanent link">&para;</a></h2>
+<p>Work through these in order.</p>
 <ol>
-<li>Your debug information (use <code>collect_debug_info</code> above)</li>
-<li>A minimal code example that reproduces the issue</li>
-<li>The full error message and stack trace</li>
-<li>Your system environment details</li>
+<li><strong>Did the program exit first?</strong> Handlers run on a thread pool. In a short script, call <code>SmartMessage.shutdown</code> before the end.</li>
+<li><strong>Is the class subscribed on the transport the message arrives on?</strong> <code>MessageClass.transport.subscribers</code> shows the subscriptions. A subscription made before the transport was changed belongs to the old transport.</li>
+<li><strong>Does the transport deliver at all?</strong> The stdout transport calls handlers only with <code>loopback: true</code>. The memory transport with <code>auto_process: false</code> delivers only on <code>process_all</code>.</li>
+<li><strong>Do the filters match?</strong> A <code>to:</code> filter never matches a broadcast (<code>to</code> is <code>nil</code>); add <code>broadcast: true</code> if you want both. See <a href="../../core-concepts/message-filtering/">Message Filtering</a>.</li>
+<li><strong>Was it a duplicate?</strong> With deduplication on, a UUID that the handler has already processed is skipped. Check <code>SmartMessage::Stats.get('OrderMessage', 'OrderMessage.process', 'duplicate')</code>.</li>
+<li><strong>Did the handler raise, or is its circuit open?</strong> Then the message is in the dead letter queue. Check <code>dispatcher.circuit_breaker_stats</code>.</li>
+<li><strong>Redis: was the subscriber connected when the message was published?</strong> Redis pub/sub does not keep messages for subscribers that are not connected. Also check that publisher and subscriber use the same <code>namespace:</code>.</li>
+<li><strong>File: is the reader starting at the end?</strong> By default a new subscription sees only lines written after it started. Use <code>read_from_end: false</code> to read existing lines.</li>
 </ol>
+<h2 id="the-handler-runs-but-a-property-has-the-wrong-type">The handler runs, but a property has the wrong type<a class="headerlink" href="#the-handler-runs-but-a-property-has-the-wrong-type" title="Permanent link">&para;</a></h2>
+<p>The message went through JSON. A <code>Time</code> arrives as a String, a Symbol as a String, nested Hash keys as Symbols. Declare <code>coerce_key</code> for properties that need their type back. See <a href="../../reference/serializers/">Serializers</a>.</p>
+<h2 id="messages-cross-between-environments-or-test-runs-on-redis">Messages cross between environments or test runs on Redis<a class="headerlink" href="#messages-cross-between-environments-or-test-runs-on-redis" title="Permanent link">&para;</a></h2>
+<p>Redis pub/sub channels are global to the server. The <code>db</code> number does not separate them. Give each environment, and each test run, its own <code>namespace:</code>. See <a href="../../transports/redis-transport/">Redis Transport</a>.</p>
+<h2 id="transporterror-from-the-redis-transport"><code>TransportError</code> from the Redis transport<a class="headerlink" href="#transporterror-from-the-redis-transport" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>... is disconnected</code>: the transport was disconnected; call <code>transport.connect</code>.</li>
+<li><code>Redis did not confirm the subscription to ... within 5s</code>: the server is unreachable or slow. Check the <code>url</code>, and raise <code>subscribe_timeout</code> if needed.</li>
+</ul>
+<h2 id="publisherror-or-a-result-that-is-partial"><code>PublishError</code>, or a result that is <code>partial?</code><a class="headerlink" href="#publisherror-or-a-result-that-is-partial" title="Permanent link">&para;</a></h2>
+<p>Every transport (or some of them) failed. <code>error.result.failed</code> or <code>result.failed</code> lists each failed transport with its exception. The message is in the dead letter queue once per failed transport.</p>
+<p><code>BreakerMachines::CircuitOpenError</code> as the error means that transport's circuit is open after repeated failures. It closes again by itself after the reset time, or call <code>transport.reset_transport_circuits!</code> once the cause is fixed. See <a href="../../reference/circuit-breakers/">Circuit Breakers</a>.</p>
+<h2 id="unknownmessageclass-or-messageclassmismatch-in-the-log"><code>UnknownMessageClass</code> or <code>MessageClassMismatch</code> in the log<a class="headerlink" href="#unknownmessageclass-or-messageclassmismatch-in-the-log" title="Permanent link">&para;</a></h2>
+<p>A payload named a class that is not a loaded <code>SmartMessage::Base</code> subclass in the receiving process, or arrived on a channel that belongs to another class. The payload is in the dead letter queue. Make sure the receiving process loads the message class (for instance, requires everything under <code>messages/</code>).</p>
+<h2 id="where-is-the-dead-letter-queue-file">Where is the dead letter queue file?<a class="headerlink" href="#where-is-the-dead-letter-queue-file" title="Permanent link">&para;</a></h2>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="no">SmartMessage</span><span class="o">.</span><span class="n">configuration</span><span class="o">.</span><span class="n">dlq_path</span>
+</span></code></pre></div>
+<p>By default <code>$SMART_MESSAGE_DLQ_PATH</code>, else <code>$XDG_STATE_HOME/smart_message/dead_letters.jsonl</code>, else <code>~/.local/state/smart_message/dead_letters.jsonl</code>. It is no longer <code>dead_letters.jsonl</code> in the working directory. See <a href="../../reference/dead-letter-queue/">Dead Letter Queue</a>.</p>
+<h2 id="no-log-file-appears">No log file appears<a class="headerlink" href="#no-log-file-appears" title="Permanent link">&para;</a></h2>
+<p>That is the default. Set <code>config.logger</code>; <code>config.logger = :default</code> writes to <code>log/smart_message.log</code>. See <a href="../../reference/logging/">Logging</a>.</p>
+<h2 id="shutdown-takes-several-seconds">Shutdown takes several seconds<a class="headerlink" href="#shutdown-takes-several-seconds" title="Permanent link">&para;</a></h2>
+<p><code>SmartMessage.shutdown</code> (also run at exit) waits up to <code>config.shutdown_timeout</code> seconds (default 5) for running handlers. A handler that is blocked holds the process until the timeout, then is killed and its message dead-lettered. Lower the timeout, or fix the handler.</p>
+<p>A Redis subscriber thread or a file poller is stopped with <code>transport.disconnect</code>, not by <code>SmartMessage.shutdown</code>.</p>
+<h2 id="handlers-slow-the-publisher-down">Handlers slow the publisher down<a class="headerlink" href="#handlers-slow-the-publisher-down" title="Permanent link">&para;</a></h2>
+<p>When the dispatcher's queue is full, the delivering thread runs handlers itself. Raise <code>config.dispatcher_max_threads</code> or <code>config.dispatcher_max_queue</code> before creating transports, or make the handlers faster. See <a href="../../core-concepts/dispatcher/">Dispatcher</a>.</p>
+<h2 id="looking-at-what-is-going-on">Looking at what is going on<a class="headerlink" href="#looking-at-what-is-going-on" title="Permanent link">&para;</a></h2>
+<div class="language-ruby highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">transport</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="no">OrderMessage</span><span class="o">.</span><span class="n">transport</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">dispatcher</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">transport</span><span class="o">.</span><span class="n">dispatcher</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">transport</span><span class="o">.</span><span class="n">connected?</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">transport</span><span class="o">.</span><span class="n">subscribers</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="n">transport</span><span class="o">.</span><span class="n">transport_circuit_stats</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="n">dispatcher</span><span class="o">.</span><span class="n">status</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="n">dispatcher</span><span class="o">.</span><span class="n">circuit_breaker_stats</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="no">OrderMessage</span><span class="o">.</span><span class="n">ddq_stats</span>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="no">SmartMessage</span><span class="o">::</span><span class="no">Stats</span><span class="o">.</span><span class="n">stat</span>
+</span></code></pre></div>
+<h2 id="reporting-a-problem">Reporting a problem<a class="headerlink" href="#reporting-a-problem" title="Permanent link">&para;</a></h2>
+<p>Open an issue at <a href="https://github.com/MadBomber/smart_message/issues">https://github.com/MadBomber/smart_message/issues</a> with the SmartMessage version (<code>SmartMessage::VERSION</code>), the Ruby version, the transport and its options, and the smallest program that shows the problem.</p>
 
 
 
@@ -2549,7 +2053,7 @@
     
     
     <a href="https://github.com/madbomber/smart_message" target="_blank" rel="noopener" title="GitHub Repository" class="md-social__link">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
     </a>
   
 </div>
@@ -2566,14 +2070,13 @@
     
     
       
-      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.path", "navigation.indexes", "navigation.top", "toc.follow", "search.suggest", "search.highlight", "search.share", "header.autohide", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "content.action.edit", "content.action.view"], "search": "../../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.11"}</script>
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.path", "navigation.indexes", "navigation.top", "toc.follow", "search.suggest", "search.highlight", "search.share", "header.autohide", "content.code.copy", "content.code.annotate", "content.tabs.link", "content.tooltips", "content.action.edit", "content.action.view"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": "0.1.0"}</script>
     
     
-      <script src="../../assets/javascripts/bundle.92b07e13.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
         <script src="../../assets/javascripts/mathjax.js"></script>
-      
-        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
       
         <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
       
